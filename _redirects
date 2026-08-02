@@ -51,8 +51,11 @@
 /meshy-3d-generator.html        /meshy-3d-generator        301
 /imagen-image-generator.html    /imagen-image-generator    301
 
-# Legacy blog URLs -> canonical reader
-/blog/:slug      /read?slug=:slug      301
+# Blog posts are canonical at /blog/:slug and served (200) by the blog-proxy
+# Worker, which owns /blog/* on the apex. Intentionally NO redirect rule here:
+# it would only shadow the Worker or fire if the Worker is bypassed, and it must
+# never bounce the canonical URL. The legacy /read?slug= reader 301s to
+# /blog/:slug inside the Worker.
 
 # Personal portfolio canonical route. Keep /about as a permanent legacy alias.
 /about           /dima-vasiliu         301

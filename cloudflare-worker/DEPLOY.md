@@ -14,8 +14,8 @@ routes it owns, and what stays outside the Worker entirely.
 | Surface | Owner in production | Notes |
 |---|---|---|
 | `/`, static pages, assets, `/blogs` | Cloudflare Pages / static frontend | Worker should not intercept these |
-| `/blog`, `/blog/*` | Worker | `/blog` redirects to `/blogs`; `/blog/<slug>` redirects to `/read?slug=<slug>` |
-| `/read*` | Worker + Pages | Public reader page; `/read?slug=<slug>` is canonical |
+| `/blog`, `/blog/*` | Worker | `/blog` redirects to `/blogs`; `/blog/<slug>` is the **canonical** post (200, SSR from backend); deleted slugs return 410 |
+| `/read*` | Worker | Legacy reader; `/read?slug=<slug>` **301s to canonical `/blog/<slug>`** |
 | `/tools*` | Worker -> `blog.timrx.live` | SSR page from blog backend |
 | `/rss.xml`, `/sitemap*.xml` | Worker -> `blog.timrx.live` | Public SEO feeds and sitemaps |
 | `/robots.txt` | Worker | Served directly at the edge |
@@ -42,8 +42,8 @@ If the Worker is disabled in production:
 | Route on `timrx.live` | Worker action | Backend target / result | Cache |
 |---|---|---|---|
 | `/blog` or `/blog/` | 301 redirect | `/blogs` | none |
-| `/blog/*` | redirect/proxy | post slugs -> `/read?slug=<slug>`; tag/category -> backend | none/backend-controlled |
-| `/read*` | serve static + metadata injection | `/read?slug=<slug>` or `/blogs` | public reader |
+| `/blog/*` | proxy (canonical) | post slugs -> backend SSR (200); deleted -> 410; tag/category -> backend + noindex | backend-controlled |
+| `/read*` | 301 redirect | `/read?slug=<slug>` -> canonical `/blog/<slug>` (renamed -> new, deleted -> 410) | none |
 | `/tools*` | proxy | `https://blog.timrx.live/tools` | backend-controlled |
 | `/rss.xml` | proxy | `https://blog.timrx.live/rss.xml` | backend-controlled |
 | `/sitemap-blogs.xml` | proxy | `https://blog.timrx.live/sitemap-blogs.xml` | backend-controlled |
@@ -106,7 +106,7 @@ curl -I https://timrx.live/blog
 curl -s https://timrx.live/blog/your-post-slug | head -50
 curl -I https://timrx.live/blog/your-post-slug
 
-# /blog should canonicalize to /read?slug=<slug>
+# Legacy reader should 301 to the canonical /blog/<slug>
 curl -I "https://timrx.live/read?slug=your-post-slug"
 
 # Tools page through the worker
@@ -164,8 +164,8 @@ curl -s https://timrx.live/blog/your-post-slug | grep canonical
 Browser / Bot                Cloudflare Pages + Worker                 Render
 ─────────────────────────────────────────────────────────────────────────────────────
 /blogs                  →    Pages static asset                        n/a
-/blog/foo               →    Worker route match                        /blog/foo
-/read?slug=foo          →    Worker serves reader + injects metadata   /read?slug=foo
+/blog/foo               →    Worker proxy (canonical SSR post, 200)    /blog/foo
+/read?slug=foo          →    Worker 301 → /blog/foo (legacy alias)     n/a
 /api/subscribe          →    Worker proxy (no cache)                   /api/subscribe
 /rss.xml                →    Worker proxy                              /rss.xml
 /robots.txt             →    Worker edge response                      n/a

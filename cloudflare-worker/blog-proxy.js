@@ -9,10 +9,13 @@ import { renderSeoPage } from './seo-template.js';
  *
  * NOTE: /blogs is served STATICALLY by Cloudflare Pages (blogs.html) - NOT proxied here.
  *
+ * CANONICAL URL SCHEME: /blog/<slug> (path-based, SSR from backend, 200).
+ * The legacy /read?slug=<slug> reader is retained only as a 301 alias → /blog/<slug>.
+ *
  * PROXIED ROUTES:
- * - /blog/<slug>           → 301 to /read?slug=<slug>
- * - /blog/tag/<tag>        → Tag hub pages (SSR)
- * - /blog/category/<cat>   → Category hub pages (SSR)
+ * - /blog/<slug>           → 200 SSR post from backend (canonical); 410 if deleted; 404 if missing
+ * - /blog/tag/<tag>        → Tag hub pages (SSR, noindex)
+ * - /blog/category/<cat>   → Category hub pages (SSR, noindex)
  * - /tools                 → Tools I Use page (SSR)
  * - /rss.xml               → RSS feed
  * - /sitemap-blogs.xml     → Blog sitemap (proxied from /sitemap.xml)
@@ -22,7 +25,7 @@ import { renderSeoPage } from './seo-template.js';
  * - /api/*                 → API endpoints (no caching)
  *
  * EDGE REDIRECTS:
- * - /read?slug=<slug>      → Public reader page with per-post metadata
+ * - /read?slug=<slug>      → 301 to canonical /blog/<slug> (legacy alias)
  * - /blog or /blog/        → 301 to /blogs
  *
  * WORKER ROUTES (add all of these in Cloudflare dashboard):
@@ -54,6 +57,7 @@ Allow: /converter
 Allow: /avi-to-mp4
 Allow: /converters/
 Allow: /prompts
+Allow: /blog
 Allow: /read
 
 # Block admin & private/write areas only
@@ -62,7 +66,7 @@ Disallow: /admin-edit
 Disallow: /write
 Disallow: /api/
 
-# NOTE: /3dprint, /converter, /avi-to-mp4, /converters, /prompts, /read are PUBLIC pages — do NOT disallow them
+# NOTE: /3dprint, /converter, /avi-to-mp4, /converters, /prompts, /blog, /read are PUBLIC pages — do NOT disallow them
 
 Sitemap: https://timrx.live/sitemap.xml
 `;
@@ -72,13 +76,13 @@ Sitemap: https://timrx.live/sitemap.xml
 // Add entries as: '/old-path': '/new-path'
 // ─────────────────────────────────────────────────────────────
 const PERMANENT_REDIRECTS = {
-  // Deleted/legacy paths → live equivalents (or /blogs if no relevant alive post).
-  // For /blog/<slug> the worker already 301s to /read?slug=<slug>, but if the slug
-  // itself was deleted we override here.
+  // Renamed/legacy /blog/<slug> paths → their live canonical /blog/<slug> (or /blogs
+  // if there is no relevant alive post). Canonical is now /blog/<slug>, so targets
+  // point straight at the new path — no /read hop.
   '/blog/openai-unveils-moltbot-opeclaw-a-new-era-in-ai-automation':
-    '/read?slug=openai-s-moltbot-openclaw-what-we-know-what-s-new-and-why-it-matters',
+    '/blog/openai-s-moltbot-openclaw-what-we-know-what-s-new-and-why-it-matters',
   '/blog/why-the-eufy-security-video-doorbell-dual-is-the-best-video-doorbell-without-a-subscription-in-the-uk':
-    '/read?slug=eufy-security-video-doorbell-dual-the-best-video-doorbell-without-subscription-in-the-uk',
+    '/blog/eufy-security-video-doorbell-dual-the-best-video-doorbell-without-subscription-in-the-uk',
   '/blog/the-ultimate-guide-to-the-meacodry-arete-one-dehumidifier-air-purifier': '/blogs',
   '/blog/the-meacodry-arete-one-the-best-dehumidifier-for-drying-clothes-indoors-in-the-uk': '/blogs',
   '/blog/gradual-changes-sudden-shifts-adapting-in-the-digital-era': '/blogs',
@@ -86,12 +90,32 @@ const PERMANENT_REDIRECTS = {
   '/blog/webgl-performance': '/blogs',
 };
 
-// Deleted /read?slug=X mappings. Value = new slug → /read?slug=<new>. null → /blogs.
+const DELETED_BLOG_PATHS = new Set([
+  '/blog/scroll-choreography',
+]);
+
+// Renamed slug mappings for the legacy /read?slug=X alias. Value = new slug →
+// 301 to /blog/<new>. null → /blogs.
 const SLUG_REDIRECTS = {
   'openai-unveils-moltbot-opeclaw-a-new-era-in-ai-automation':
     'openai-s-moltbot-openclaw-what-we-know-what-s-new-and-why-it-matters',
   'draft-mastering-gsap-in-2025-the-motion-engine-behind-modern-websites': null,
 };
+
+const DELETED_READ_SLUGS = new Set([
+  '3d-printing-tips',
+  'ai-workflow-2024',
+  'blender-basics',
+  'css-grid-mastery',
+  'gsap-deep-dive',
+  'print-workflow',
+  'react-performance',
+  'scroll-choreography',
+  'threejs-materials',
+  'ux-micro-interactions',
+  'viewer-craft',
+  'webgl-performance',
+]);
 
 export default {
   async fetch(request, env, ctx) {
@@ -113,13 +137,17 @@ export default {
       return Response.redirect(`${PUBLIC_DOMAIN}/converters/avi-to-mp4`, 302);
     }
 
-    // 0a. Redirect deleted /read?slug=X to live equivalents (or /blogs if no match)
+    // 0a. Legacy /read?slug=X alias: renamed slugs → canonical /blog/<new>,
+    //     deleted slugs → 410 Gone (before the generic /read → /blog redirect below).
     if (pathname === '/read') {
       const slug = url.searchParams.get('slug');
       if (slug && Object.prototype.hasOwnProperty.call(SLUG_REDIRECTS, slug)) {
         const target = SLUG_REDIRECTS[slug];
-        const dest = target ? `/read?slug=${encodeURIComponent(target)}` : '/blogs';
+        const dest = target ? `/blog/${encodeURIComponent(target)}` : '/blogs';
         return Response.redirect(`${PUBLIC_DOMAIN}${dest}`, 301);
+      }
+      if (slug && DELETED_READ_SLUGS.has(slug)) {
+        return goneResponse();
       }
     }
 
@@ -158,13 +186,13 @@ ${generateSeoSitemap()}
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 1. Handle /read at the edge.
-    // /read?slug=... is public and canonical, so serve it from Pages.
+    // 1. Legacy /read?slug=<slug> reader → 301 to canonical /blog/<slug>.
+    //    (Renamed/deleted slugs already handled in 0a above.)
     // ─────────────────────────────────────────────────────────────
     if (pathname === '/read' || pathname === '/read/') {
       const slug = url.searchParams.get('slug');
       if (slug) {
-        return serveReadPageWithMetadata(request, slug);
+        return Response.redirect(`${PUBLIC_DOMAIN}/blog/${encodeURIComponent(slug)}`, 301);
       } else {
         // No slug - 302 redirect to blog listing
         return Response.redirect(`${PUBLIC_DOMAIN}/blogs`, 302);
@@ -179,18 +207,37 @@ ${generateSeoSitemap()}
     }
 
     // ─────────────────────────────────────────────────────────────
-    // 3. Redirect legacy /blog/<slug> URLs to canonical /read?slug=<slug>.
-    //    Keep tag/category hubs proxied to backend SSR.
+    // 3. Canonical /blog/<slug> — serve the backend SSR post (200).
+    //    Deleted slugs → 410 Gone. Tag/category hubs → SSR + noindex.
+    //    NOTE: individual posts are NOT redirected — /blog/<slug> is the
+    //    single canonical URL and must resolve 200 (or 410 if deleted).
     // ─────────────────────────────────────────────────────────────
     if (pathname.startsWith('/blog/')) {
-      if (!pathname.startsWith('/blog/tag/') && !pathname.startsWith('/blog/category/')) {
-        const slug = pathname.slice('/blog/'.length).replace(/\/$/, '');
-        if (slug) {
-          return Response.redirect(`${PUBLIC_DOMAIN}/read?slug=${encodeURIComponent(slug)}`, 301);
+      const isHub = pathname.startsWith('/blog/tag/') || pathname.startsWith('/blog/category/');
+      if (!isHub) {
+        const cleanPath = pathname.replace(/\/$/, '');
+        const slug = cleanPath.slice('/blog/'.length);
+        // Canonicalize trailing slash on individual posts (backend route has none).
+        if (pathname !== cleanPath && slug) {
+          return Response.redirect(`${PUBLIC_DOMAIN}${cleanPath}`, 301);
+        }
+        // Deleted posts stay 410 Gone at the edge regardless of backend DB state.
+        if (DELETED_BLOG_PATHS.has(cleanPath) || DELETED_READ_SLUGS.has(slug)) {
+          return goneResponse();
         }
       }
       const backendUrl = `${BLOG_ORIGIN}${pathname}`;
-      return proxyToBackend(request, backendUrl);
+      const response = await proxyToBackend(request, backendUrl);
+      if (isHub) {
+        const headers = new Headers(response.headers);
+        headers.set('X-Robots-Tag', 'noindex, follow');
+        return new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers,
+        });
+      }
+      return response;
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -291,61 +338,15 @@ ${generateSeoSitemap()}
   }
 };
 
-async function serveReadPageWithMetadata(request, slug) {
-  const pageResponse = await fetch(request);
-  const contentType = pageResponse.headers.get('Content-Type') || '';
-  if (!contentType.includes('text/html')) return pageResponse;
-
-  let html = await pageResponse.text();
-  const canonical = `${PUBLIC_DOMAIN}/read?slug=${encodeURIComponent(slug)}`;
-
-  try {
-    const postResponse = await fetch(`${BLOG_ORIGIN}/api/post/${encodeURIComponent(slug)}`, {
-      cf: { cacheTtl: 300, cacheEverything: true },
-    });
-    if (postResponse.ok) {
-      const post = await postResponse.json();
-      const title = escapeHtml(post.title || 'Read');
-      const description = escapeHtml(post.excerpt || post.description || 'Read blog posts on TimrX — web development, 3D, and creative tech.');
-      const image = escapeHtml(post.cover_url || `${PUBLIC_DOMAIN}/img/blogs.png`);
-
-      html = html
-        .replace(/<title>[\s\S]*?<\/title>/i, `<title>${title} — TimrX</title>`)
-        .replace(/<meta name="description" content="[^"]*"\s*\/?>/i, `<meta name="description" content="${description}" />`)
-        .replace(/<meta property="og:title" id="ogTitle" content="[^"]*"\s*\/?>/i, `<meta property="og:title" id="ogTitle" content="${title}" />`)
-        .replace(/<meta property="og:description" id="ogDesc" content="[^"]*"\s*\/?>/i, `<meta property="og:description" id="ogDesc" content="${description}" />`)
-        .replace(/<meta property="og:image" id="ogImage" content="[^"]*"\s*\/?>/i, `<meta property="og:image" id="ogImage" content="${image}" />`)
-        .replace(/<meta name="twitter:title" id="twTitle" content="[^"]*"\s*\/?>/i, `<meta name="twitter:title" id="twTitle" content="${title}" />`)
-        .replace(/<meta name="twitter:description" id="twDesc" content="[^"]*"\s*\/?>/i, `<meta name="twitter:description" id="twDesc" content="${description}" />`)
-        .replace(/<meta name="twitter:image" id="twImage" content="[^"]*"\s*\/?>/i, `<meta name="twitter:image" id="twImage" content="${image}" />`);
-    }
-  } catch (error) {
-    console.warn('Read metadata injection failed:', error);
-  }
-
-  html = html
-    .replace(/<meta name="robots" content="[^"]*"\s*\/?>/i, '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />')
-    .replace(/<link rel="canonical" id="canonicalLink" href="[^"]*"\s*\/?>/i, `<link rel="canonical" id="canonicalLink" href="${canonical}" />`)
-    .replace(/<meta property="og:url" id="ogUrl" content="[^"]*"\s*\/?>/i, `<meta property="og:url" id="ogUrl" content="${canonical}" />`)
-    .replace(/<meta name="twitter:url" id="twUrl" content="[^"]*"\s*\/?>/i, `<meta name="twitter:url" id="twUrl" content="${canonical}" />`);
-
-  const headers = new Headers(pageResponse.headers);
-  headers.set('Content-Type', 'text/html; charset=utf-8');
-  headers.set('Cache-Control', 'public, max-age=300, stale-while-revalidate=3600');
-  headers.delete('X-Robots-Tag');
-  return new Response(html, {
-    status: pageResponse.status,
-    statusText: pageResponse.statusText,
-    headers,
+function goneResponse() {
+  return new Response('Gone', {
+    status: 410,
+    headers: {
+      'Content-Type': 'text/plain; charset=utf-8',
+      'X-Robots-Tag': 'noindex, follow',
+      'Cache-Control': 'public, max-age=3600',
+    },
   });
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
 }
 
 /**

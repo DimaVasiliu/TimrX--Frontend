@@ -657,9 +657,9 @@
       }
     }
 
-    // Generate card HTML (direct link to canonical /read?slug=<slug> - no redirect)
+    // Generate card HTML (direct link to canonical /blog/<slug> - no redirect)
     function cardHTML(p){
-      const url = `/read?slug=${encodeURIComponent(p.slug)}`;
+      const url = `/blog/${encodeURIComponent(p.slug)}`;
       const tag = esc((p.tags||'').split(',')[0] || 'Post');
       const date = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB',{month:'short',year:'numeric'}) : '';
       return `
@@ -725,7 +725,7 @@
       }
 
       card.classList.remove('is-hidden');
-      card.href = `/read?slug=${encodeURIComponent(post.slug)}`;
+      card.href = `/blog/${encodeURIComponent(post.slug)}`;
 
       const titleEl = card.querySelector('.title');
       const excerptEl = card.querySelector('.excerpt');
@@ -767,7 +767,7 @@
       const data = applySort(applyFilterSearch(posts));
       grid.innerHTML = data.slice(0, GRID_LIMIT).map(cardHTML).join('');
 
-      // Update featured posts (direct link to canonical /read?slug=<slug>)
+      // Update featured posts (direct link to canonical /blog/<slug>)
       const top = data.slice(0,3);
       applyFeaturedCard('#feat-0', top[0]);
       applyFeaturedCard('#feat-1', top[1]);
@@ -811,7 +811,7 @@
         "itemListElement": items.map((p, i) => ({
           "@type": "ListItem",
           "position": i + 1,
-          "url": `https://timrx.live/read?slug=${encodeURIComponent(p.slug)}`,
+          "url": `https://timrx.live/blog/${encodeURIComponent(p.slug)}`,
           "name": p.title || "Untitled"
         }))
       };

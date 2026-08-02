@@ -996,7 +996,7 @@
 
       grid.innerHTML = pagePosts.map((p, i) => {
         const tag = (p.tags || '').split(',')[0] || 'Post';
-        const url = `/read?slug=${encodeURIComponent(p.slug)}`;
+        const url = `/blog/${encodeURIComponent(p.slug)}`;
         const cover = p.cover_url || 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?q=80&w=800&auto=format&fit=crop';
         const date = p.created_at ? new Date(p.created_at).toLocaleDateString('en-GB', {month:'short', day:'numeric'}) : '';
         const mins = p.minutes || Math.max(3, Math.round((p.excerpt || p.title || '').length / 60));

@@ -32,7 +32,7 @@
   function renderPost(post){
     const tag = (post.tags || '').split(',').map(t => t.trim()).filter(Boolean)[0] || 'TimrX';
     const fallbackCover = 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1400&auto=format&fit=crop';
-    const href = localHref(`/read?slug=${encodeURIComponent(post.slug || '')}`);
+    const href = localHref(`/blog/${encodeURIComponent(post.slug || '')}`);
     return `<a class="insight-card reveal is-visible" href="${href}">
       <div class="insight-thumb"><img src="${esc(post.cover_url || fallbackCover)}" alt="" loading="lazy" decoding="async"><span class="insight-pill">${esc(tag)}</span></div>
       <div class="insight-body"><h3>${esc(post.title || 'Untitled article')}</h3><p>${esc(post.excerpt || 'Read the latest TimrX update.')}</p><div class="insight-meta">${esc(postDate(post))} · ${readTime(post)} min</div></div>

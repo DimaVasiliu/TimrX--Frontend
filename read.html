@@ -8,13 +8,13 @@
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
   <link rel="canonical" id="canonicalLink" href="https://timrx.live/read" />
-  <!-- SEO: Set canonical to /read?slug=<slug> immediately (before Google parses the page) -->
+  <!-- SEO: Set canonical to /blog/<slug> immediately (before Google parses the page) -->
   <script>
   (function(){
     var params = new URLSearchParams(window.location.search);
     var slug = params.get('slug');
     var baseUrl = 'https://timrx.live';
-    var canonicalUrl = slug ? baseUrl + '/read?slug=' + encodeURIComponent(slug) : baseUrl + '/read';
+    var canonicalUrl = slug ? baseUrl + '/blog/' + encodeURIComponent(slug) : baseUrl + '/read';
     var link = document.getElementById('canonicalLink');
     if (link) link.href = canonicalUrl;
   })();
@@ -28,7 +28,7 @@
     var params = new URLSearchParams(window.location.search);
     var slug = params.get('slug');
     var baseUrl = 'https://timrx.live';
-    var canonicalUrl = slug ? baseUrl + '/read?slug=' + encodeURIComponent(slug) : baseUrl + '/read';
+    var canonicalUrl = slug ? baseUrl + '/blog/' + encodeURIComponent(slug) : baseUrl + '/read';
     var meta = document.getElementById('ogUrl');
     if (meta) meta.content = canonicalUrl;
   })();
@@ -46,7 +46,7 @@
     var params = new URLSearchParams(window.location.search);
     var slug = params.get('slug');
     var baseUrl = 'https://timrx.live';
-    var canonicalUrl = slug ? baseUrl + '/read?slug=' + encodeURIComponent(slug) : baseUrl + '/read';
+    var canonicalUrl = slug ? baseUrl + '/blog/' + encodeURIComponent(slug) : baseUrl + '/read';
     var meta = document.getElementById('twUrl');
     if (meta) meta.content = canonicalUrl;
   })();
@@ -738,8 +738,8 @@
       qs('#authorAvatar').src = p.author_avatar;
     }
 
-    // SEO: Update canonical URL to /read?slug=<slug>
-    const canonicalUrl = `https://timrx.live/read?slug=${encodeURIComponent(p.slug)}`;
+    // SEO: Update canonical URL to /blog/<slug>
+    const canonicalUrl = `https://timrx.live/blog/${encodeURIComponent(p.slug)}`;
     qs('#canonicalLink').href = canonicalUrl;
 
     // SEO: Update page title and meta description
