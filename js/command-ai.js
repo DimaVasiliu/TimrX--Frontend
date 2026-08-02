@@ -59,6 +59,7 @@
 
   var bar, input, panel, listEl;
   var pending = null;          // the parsed plan awaiting confirmation
+  var parsing = false;
 
   // ------------------------------------------------------------------ helpers
   function q(id) { return document.getElementById(id); }
@@ -216,6 +217,8 @@
   async function chat(messages) {
     var res = await fetch(CHAT_API + '/api/chat', {
       method: 'POST',
+      mode: 'cors',
+      credentials: 'omit',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: messages, temperature: 0 })
     });
@@ -305,6 +308,46 @@
     btn.click();
   }
 
+  function looksLikeGenerationRequest(text) {
+    if (!text || text.length < 8) return false;
+    if (/\b(generate|create|make|render|build|turn|animate|remesh|texture|rig)\b/i.test(text)) {
+      return true;
+    }
+
+    // Also accept natural commands such as "an image of..." or
+    // "video from..." without forcing users to start with a verb.
+    return /\b(image|picture|model|mesh|3d|video|clip)\b/i.test(text) &&
+           /\b(of|from|with|using|in|at|for)\b/i.test(text);
+  }
+
+  function handleGenerationEnter(e) {
+    if (e.key !== 'Enter' || e.shiftKey || e.isComposing || e.repeat) return false;
+    var text = input.value.trim();
+    if (!looksLikeGenerationRequest(text) || parsing) return false;
+
+    // command-palette.js also handles Enter on the panel. Stop the event here
+    // during capture so a generation request cannot accidentally activate a
+    // filtered navigation row at the same time.
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    parsing = true;
+    listEl.innerHTML = '<p class="cmdai__thinking">Reading your request…</p>';
+
+    parse(text).then(function (plan) {
+      if (!plan) {
+        listEl.innerHTML = '<p class="cmdai__thinking">Not a generation request.</p>';
+        return;
+      }
+      stage(plan);
+    }).catch(function (err) {
+      listEl.innerHTML = '<p class="cmdai__thinking">Could not reach the assistant (' +
+                         esc(err.message) + ').</p>';
+    }).finally(function () {
+      parsing = false;
+    });
+    return true;
+  }
+
   // --------------------------------------------------------------------- wire
   function boot() {
     panel = document.querySelector('.ws-cmd__panel');
@@ -312,22 +355,7 @@
     listEl = q('wsCmdList');
     if (!panel || !input || !listEl) return;
 
-    input.addEventListener('keydown', function (e) {
-      if (e.key !== 'Enter' || e.shiftKey) return;
-      var text = input.value.trim();
-      // Short text is almost certainly a palette filter, not a request.
-      if (text.length < 12 || !/\b(generate|create|make|render|build|turn)\b/i.test(text)) return;
-      e.preventDefault();
-      e.stopPropagation();
-      listEl.innerHTML = '<p class="cmdai__thinking">Reading your request…</p>';
-      parse(text).then(function (plan) {
-        if (!plan) { listEl.innerHTML = '<p class="cmdai__thinking">Not a generation request.</p>'; return; }
-        stage(plan);
-      }).catch(function (err) {
-        listEl.innerHTML = '<p class="cmdai__thinking">Could not reach the assistant (' +
-                           esc(err.message) + ').</p>';
-      });
-    }, true);
+    input.addEventListener('keydown', handleGenerationEnter, true);
 
     listEl.addEventListener('click', function (e) {
       var a = e.target.closest('[data-cmdai]');

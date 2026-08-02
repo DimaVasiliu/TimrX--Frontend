@@ -1021,3 +1021,23 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
 @media (prefers-reduced-motion:reduce){
   .af__slot.is-travelling{animation:none}
 }
+
+/* --------------------------------------------------------------------------
+   Hero line: always one row
+   --------------------------------------------------------------------------
+   Each glyph is its own inline-block, so the line broke between spans whenever
+   it exceeded the 900px cap — "From imagination to production." is 31
+   characters and lands at ~899px at the 58px size, right on the edge, so some
+   messages wrapped and others did not. nowrap makes one row structural, and
+   the vw term in the clamp keeps the longest message inside the measure at
+   every width rather than relying on the cap.
+   -------------------------------------------------------------------------- */
+.hero-seq__line{
+  max-width:min(94vw,1500px) !important;
+  white-space:nowrap;
+  font-size:clamp(19px,5.1vw,58px) !important;
+}
+
+@media (max-width:640px){
+  .hero-seq__line{font-size:clamp(15px,5.4vw,30px) !important;max-width:96vw !important}
+}
