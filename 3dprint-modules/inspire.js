@@ -2120,6 +2120,7 @@
         '.ws-nav__menu-btn, [data-menu-toggle], ' +
         '.ws-nav-link, .ws-nav a, .ws-nav button, ' +
         '.ws-dropdown-item, ' +
+        '.ws-cmd-trigger, .ws-cmd__item, ' +
         '[data-open-tutorials], [data-open-community], [data-open-converter], [data-open-about], [data-open-docs]'
       );
 

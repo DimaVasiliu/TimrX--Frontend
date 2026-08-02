@@ -9,10 +9,19 @@
   left: 0;
   right: 0;
   z-index: 99999;
+  /* Two children only — brand and credits. Flex rather than a 3-column grid:
+     the command bar moved to the bottom of the viewport, and leaving a
+     phantom middle column behind is how the old nav ended up floating over
+     the credits pill in the first place. */
+  /* Three columns with a symmetric 1fr on each side: the middle cell is the
+     true centre of the viewport regardless of how wide the brand or the credit
+     cluster get. Doing this with position:absolute is what made the old nav
+     overlap the credits pill between 900px and 1028px — a grid cell cannot
+     overlap its neighbours. */
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
+  gap: 16px;
   padding: 10px clamp(20px, 3vw, 40px);
   pointer-events: none;
 }
@@ -31,6 +40,7 @@ body.print3d-page > .ws-header {
   align-items: center;
   gap: 4px;
   justify-self: start;
+  min-width: 0;
 }
 
 /* --- Brand (top-left) --- */
@@ -39,9 +49,12 @@ body.print3d-page > .ws-header {
   /* swaps overlap in single implicit cell via grid-area:1/1 */
   align-items: center;
   gap: 0 8px;
-  font-weight: 900;
-  letter-spacing: 0.03em;
-  font-size: clamp(30px, 1.4vw, 24px);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0;
+  /* Was clamp(30px, 1.4vw, 24px) — max below min, so it resolved to a flat
+     30px at every width and never scaled. Bounds corrected. */
+  font-size: clamp(22px, 1.6vw, 30px);
   line-height: 1;
   cursor: pointer;
   position: relative;
@@ -82,13 +95,13 @@ body.print3d-page > .ws-header {
 
 .ws-brand .b-x {
   margin-left: 2px;
-  background: linear-gradient(90deg, var(--accent-blue), #7dd3fc);
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 0 18px rgba(14, 165, 233, 0.35);
-  font-weight: 900;
-  letter-spacing: 0.02em;
+  text-shadow: 0 0 18px rgba(127, 200, 194, 0.26);
+  font-weight: 700;
+  letter-spacing: 0;
   transition: transform 0.25s ease, filter 0.25s ease;
 }
 
@@ -100,162 +113,13 @@ body.print3d-page > .ws-header {
 .ws-brand .b-dima { color: var(--text); opacity: 0.9; font-weight: 800; }
 .ws-brand .b-surname { color: #ff4d4d; font-weight: 900; letter-spacing: 0.04em; font-size: 1.06em; }
 
-/* --- Blogs CTA (inside ws-nav, next to MENU) --- */
-.ws-blog-cta {
-  padding: 8px 16px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #38bdf8;
-  border-radius: 20px;
-  border: 1px solid rgba(56, 189, 248, 0.2);
-  background: rgba(56, 189, 248, 0.06);
-  text-decoration: none;
-  transition: all 0.2s ease;
-  animation: blogAura 4.8s ease-in-out infinite;
-}
-
-.ws-blog-cta:hover,
-.ws-blog-cta:focus-visible {
-  color: #7dd3fc;
-  border-color: rgba(56, 189, 248, 0.35);
-  background: rgba(56, 189, 248, 0.12);
-  transform: scale(1.05);
-  animation: none;
-}
-
-@keyframes blogAura {
-  0%, 100% {
-    color: #38bdf8;
-    border-color: rgba(56, 189, 248, 0.2);
-    background: rgba(56, 189, 248, 0.06);
-  }
-  50% {
-    color: #7dd3fc;
-    border-color: rgba(56, 189, 248, 0.35);
-    background: rgba(56, 189, 248, 0.12);
-  }
-}
-
-/* --- Center Navigation (matching index nav-links style) --- */
-.ws-nav {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-weight: 500;
-}
-
-.ws-nav-link {
-  padding: 8px 16px;
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.7);
-  border-radius: 20px;
-  border: 1px solid transparent;
-  background: transparent;
-  text-decoration: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.ws-nav-link:hover,
-.ws-nav-link:focus-visible {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.03);
-  transform: scale(1.05);
-}
-
-.ws-nav-link.is-active {
-  color: #fff;
-  border-color: rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.03);
-}
-
-.ws-nav-link svg {
-  width: 10px;
-  height: 10px;
-  opacity: 0.7;
-  margin-left: 4px;
-  transition: transform 0.2s ease;
-}
-
-.ws-nav-link:hover svg {
-  opacity: 1;
-}
-
-/* --- Dropdown Menu (matching hub style) --- */
-.ws-dropdown {
-  position: relative;
-}
-
-.ws-dropdown-toggle {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* Dropdown menu - positioned below toggle */
-.ws-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%);
-  min-width: 160px;
-  padding: 8px;
-  background: rgba(16, 16, 16, 0.92);
-  -webkit-backdrop-filter: blur(12px);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
-  z-index: 9999;
-  display: none;
-}
-
-.ws-dropdown.open .ws-dropdown-menu {
-  display: block;
-}
-
-.ws-dropdown-menu a,
-.ws-dropdown-item {
-  display: block;
-  padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
-  text-decoration: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.ws-dropdown-menu a:last-child,
-.ws-dropdown-item:last-child {
-  border-bottom: none;
-}
-
-.ws-dropdown-menu a:hover,
-.ws-dropdown-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
-
-.ws-dropdown-divider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.08);
-  margin: 6px 0;
-}
-
-.ws-dropdown-item--muted {
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-}
-
-.ws-dropdown-item--muted:hover {
-  color: rgba(255, 255, 255, 0.8);
-}
+/* --- Centre of the header ---
+   The nav links, MENU dropdown and Blogs CTA that used to live here were
+   replaced by the command palette (see css/nav.css). The Blogs CTA carried
+   a 4.8s infinite `blogAura` animation with no reduced-motion guard, and
+   .ws-nav was position:absolute inside a grid that declared a 1fr column
+   for it — so the column stayed empty and the nav overlapped the credits
+   pill between ~900px and ~1028px. Both are gone with the markup. --- */
 
 /* --- Credits (top-right) --- */
 .ws-credits {
@@ -271,10 +135,10 @@ body.print3d-page > .ws-header {
   align-items: center;
   gap: 8px;
   padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(18, 24, 26, 0.72);
+  border: 1px solid var(--border-soft);
   border-radius: 999px;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-soft);
   font-size: 13px;
   font-weight: 600;
   cursor: pointer;
@@ -284,14 +148,14 @@ body.print3d-page > .ws-header {
 }
 
 .ws-credits-pill:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(24, 32, 36, 0.88);
+  border-color: rgba(var(--accent-blue-rgb), 0.22);
 }
 
 .ws-credits-pill i {
-  color: #a78bfa;
+  color: var(--accent-purple);
   font-size: 12px;
-  filter: drop-shadow(0 0 4px rgba(167, 139, 250, 0.4));
+  filter: drop-shadow(0 0 4px rgba(var(--accent-purple-rgb), 0.28));
 }
 
 .ws-credits-value {
@@ -305,10 +169,10 @@ body.print3d-page > .ws-header {
   align-items: center;
   justify-content: center;
   padding: 8px 16px;
-  background: #fff;
+  background: #e7ece8;
   border: none;
   border-radius: 999px;
-  color: #0b0b0b;
+  color: #071011;
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.04em;
@@ -322,31 +186,31 @@ body.print3d-page > .ws-header {
 
 .ws-credits-buy:hover {
   background: transparent;
-  color: #fff;
-  box-shadow: inset 0 0 0 1px #fff;
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px rgba(226, 236, 237, 0.5);
   transform: translateY(-1px);
 }
 
 /* Low credits state */
 .ws-credits-pill.low {
-  border-color: rgba(251, 191, 36, 0.4);
-  background: rgba(251, 191, 36, 0.08);
+  border-color: rgba(var(--accent-purple-rgb), 0.36);
+  background: rgba(var(--accent-purple-rgb), 0.1);
 }
 
 .ws-credits-pill.low i {
-  color: #fbbf24;
-  filter: drop-shadow(0 0 4px rgba(251, 191, 36, 0.4));
+  color: var(--accent-purple);
+  filter: drop-shadow(0 0 4px rgba(var(--accent-purple-rgb), 0.32));
 }
 
 /* Empty credits state */
 .ws-credits-pill.empty {
-  border-color: rgba(239, 68, 68, 0.4);
-  background: rgba(239, 68, 68, 0.08);
+  border-color: rgba(var(--accent-pink-rgb), 0.38);
+  background: rgba(var(--accent-pink-rgb), 0.1);
 }
 
 .ws-credits-pill.empty i {
-  color: #ef4444;
-  filter: drop-shadow(0 0 4px rgba(239, 68, 68, 0.4));
+  color: var(--accent-pink);
+  filter: drop-shadow(0 0 4px rgba(var(--accent-pink-rgb), 0.32));
 }
 
 /* Credits tooltip (hover breakdown) */

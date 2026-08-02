@@ -22,11 +22,11 @@
    ========================================================================== */
 
 /* 1. Root Variables & Body Styles */
-@import url('css/variables.css');
+@import url('css/variables.css?v=20260802b');
 @import url('media/variables-media.css');
 
 /* 2. Navigation & Brand */
-@import url('css/layout.css');
+@import url('css/layout.css?v=20260802b');
 @import url('media/layout-media.css');
 
 /* 3. Buttons, Forms, Tabs, Chips */
@@ -34,16 +34,16 @@
 @import url('media/components-media.css');
 
 /* 4. Workspace Grid & Cards */
-@import url('css/workspace.css');
-@import url('media/workspace-media.css');
+@import url('css/workspace.css?v=20260802b');
+@import url('media/workspace-media.css?v=20260802a');
 
 /* 5. 3D Viewer Controls */
 @import url('css/viewer.css');
 @import url('media/viewer-media.css');
 
 /* 6. History Panel */
-@import url('css/history.css');
-@import url('media/history-media.css');
+@import url('css/history.css?v=20260802b');
+@import url('media/history-media.css?v=20260802a');
 
 /* 7. Tutorials Styles */
 @import url('css/tutorials.css');
@@ -68,5 +68,11 @@
 /* 12. Multi-Color 3D Print Modal */
 @import url('css/multi-color-print.css?v=20260408f');
 
-/* 13. Workspace redesign layer */
-@import url('css/workspace-redesign.css?v=20260801a');
+/* 13. Workspace navigation — command trigger + command palette */
+@import url('css/nav.css?v=20260802k');
+
+/* 14. Control sheet — the tool panel */
+@import url('css/panel.css?v=20260802a');
+
+/* 15. Asset stage — the living asset field behind the workspace */
+@import url('css/asset-stage.css?v=20260802b');

@@ -307,9 +307,9 @@
     min-width: 0;
     padding: 7px 10px;
     border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(255, 255, 255, 0.05);
-    color: #e0e0e0;
+    border: 1px solid var(--border-soft);
+    background: rgba(18, 24, 26, 0.72);
+    color: var(--text-soft);
     font-size: 11px;
     font-weight: 600;
     text-decoration: none;
@@ -323,21 +323,21 @@
   
   .result-actions a:hover,
   .result-actions button:hover {
-    background: rgba(14, 165, 233, 0.15);
-    border-color: rgba(14, 165, 233, 0.4);
-    color: #0ea5e9;
+    background: rgba(var(--accent-blue-rgb), 0.14);
+    border-color: rgba(var(--accent-blue-rgb), 0.34);
+    color: var(--accent-blue);
     transform: translateY(-1px);
   }
   
   .result-actions a.primary {
-    background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+    background: linear-gradient(135deg, rgba(var(--accent-blue-rgb), 0.9), rgba(var(--accent-purple-rgb), 0.92));
     border-color: transparent;
-    color: #fff;
+    color: #071011;
     font-weight: 700;
   }
   
   .result-actions a.primary:hover {
-    background: linear-gradient(135deg, #0284c7, #7c3aed);
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
     transform: translateY(-1px);
   }
 
@@ -356,9 +356,10 @@
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px;
   background:
-    radial-gradient(circle at top left, rgba(14, 165, 233, 0.14), transparent 26%),
-    linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.02)),
-    rgba(12, 12, 14, 0.94);
+    radial-gradient(circle at top left, rgba(var(--accent-blue-rgb), 0.12), transparent 28%),
+    radial-gradient(circle at bottom right, rgba(var(--accent-purple-rgb), 0.08), transparent 32%),
+    linear-gradient(180deg, rgba(24, 32, 36, 0.76), rgba(12, 15, 17, 0.92)),
+    var(--surface-1);
   box-shadow:
     0 18px 45px rgba(0, 0, 0, 0.22),
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
@@ -367,7 +368,7 @@
 .workspace-feature-strip__eyebrow {
   display: inline-flex;
   margin-bottom: 10px;
-  color: #7dd3fc;
+  color: var(--accent-blue);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.16em;
@@ -376,7 +377,7 @@
 
 .workspace-feature-strip__copy h1 {
   margin: 0;
-  color: #f8fafc;
+  color: var(--text);
   font-size: clamp(24px, 3vw, 38px);
   line-height: 1.08;
   letter-spacing: -0.04em;
@@ -385,7 +386,7 @@
 .workspace-feature-strip__copy p {
   margin: 12px 0 0;
   max-width: 60ch;
-  color: rgba(255, 255, 255, 0.72);
+  color: var(--text-soft);
   font-size: 15px;
   line-height: 1.65;
 }
@@ -402,12 +403,12 @@
   gap: 8px;
   padding: 14px 15px;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border-soft);
+  background: rgba(18, 24, 26, 0.64);
 }
 
 .workspace-feature-tile strong {
-  color: #f8fafc;
+  color: var(--text);
   font-size: 13px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -415,91 +416,205 @@
 }
 
 .workspace-feature-tile span {
-  color: rgba(255, 255, 255, 0.65);
+  color: var(--text-dim);
   font-size: 12px;
   line-height: 1.55;
 }
 
+/* PAGE-WIDE SIMULATION VIEWER --------------------------------------------- */
+html body.print3d-page > .sim-viewer-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at 50% 46%, rgba(var(--accent-blue-rgb), 0.075), transparent 42%),
+    radial-gradient(ellipse at 50% 62%, rgba(34, 49, 52, 0.34), transparent 54%),
+    radial-gradient(ellipse at 50% 105%, rgba(var(--accent-purple-rgb), 0.05), transparent 38%),
+    linear-gradient(180deg, #080b0c 0%, #0d1214 50%, #090c0d 100%);
+}
+
+.sim-viewer-bg::before,
+.sim-viewer-bg::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.sim-viewer-bg::before {
+  left: 50%;
+  bottom: -20vh;
+  width: 160vw;
+  height: 76vh;
+  transform: translateX(-50%) perspective(820px) rotateX(64deg);
+  transform-origin: 50% 100%;
+  background-image:
+    linear-gradient(rgba(151, 170, 171, 0.19) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(151, 170, 171, 0.16) 1px, transparent 1px);
+  background-size: 84px 84px;
+  opacity: 0.34;
+  -webkit-mask-image: linear-gradient(to top, #000 4%, rgba(0, 0, 0, 0.72) 44%, transparent 90%);
+  mask-image: linear-gradient(to top, #000 4%, rgba(0, 0, 0, 0.72) 44%, transparent 90%);
+  animation: simGridDrift 22s linear infinite;
+}
+
+.sim-viewer-bg::after {
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.46) 78%);
+  opacity: 0.8;
+}
+
+@keyframes simGridDrift {
+  from { background-position: 0 0, 0 0; }
+  to { background-position: 0 84px, 84px 0; }
+}
+
   /* GRID LAYOUT
    --------------------------------------------------------------------------
-   .ws-grid = 4-column layout:
-   [icon rail] [left controls] [viewer] [right history]
-   Responsive with clamp() for fluid sizing
+   .ws-grid = top creation dock + 2-column workspace:
+   [centered creation dock]
+   [left controls] [viewer]
    -------------------------------------------------------------------------- */
 .timrx-3dprint .ws-grid {
   display: grid;
-  grid-template-columns:
-    44px                              /* rail - compact */
-    clamp(265px, 21vw, 345px)         /* left - compact */
-    minmax(0, 1fr)                    /* center/viewer - shrinks to prevent overflow */
-    clamp(335px, 27vw, 535px);        /* right/history - wider */
-  gap: 12px;
+  /* The control sheet no longer holds a column — it is a floating panel above
+     the command bar (css/panel.css), so the viewer gets the whole width. */
+  grid-template-columns: minmax(0, 1fr);
+  /* The mode switch moved into the header, so the workspace is one row and
+     the viewer gets the full height back. */
+  grid-template-rows: minmax(0, 1fr);
+  grid-template-areas: "viewer";
+  gap: 14px 12px;
   padding: 12px;
-  padding-top: 20px;
+  padding-top: 24px;
   height: calc(100vh - var(--ws-navH));
   overflow: hidden;
 }
 
-/* ICON RAIL (leftmost vertical tool strip) --------------------------------- */
+/* PRIMARY CREATION DOCK ----------------------------------------------------- */
 .timrx-3dprint .ws-rail {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: center;
-  padding: 0 2px;
-  padding-top: 182px;
-  overflow-y: auto;
-  overflow-x: visible;
+  grid-area: rail;
+  justify-self: center;
+  display: grid;
+  grid-template-columns: minmax(180px, 230px) minmax(160px, 210px) minmax(160px, 210px);
+  gap: 16px;
+  align-items: start;
+  justify-content: center;
+  width: min(100%, 740px);
+  padding: 8px 10px 16px;
+  overflow: visible;
   min-height: 0;
-  background: none;
   border: 0;
+  background: transparent;
   box-shadow: none;
+  perspective: 1200px;
 }
 
-.timrx-3dprint .ws-rail::-webkit-scrollbar { width: 0; }
+.timrx-3dprint .ws-rail::-webkit-scrollbar { width: 0; height: 0; }
+
+.timrx-3dprint .rail-model-group {
+  position: relative;
+  z-index: 3;
+}
 
 .timrx-3dprint .rail-btn {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas:
+    "orb label"
+    "orb meta";
   align-items: center;
-  gap: 4px;
-  background: none;
-  border: 0;
-  box-shadow: none;
-  color: rgba(255, 255, 255, 0.35);
-  cursor: pointer;
-  padding: 6px 4px;
-  border-radius: 8px;
-  transition: color 0.15s ease;
-  position: relative;
+  column-gap: 13px;
   width: 100%;
+  min-height: 86px;
+  padding: 14px 16px;
+  border: 0;
+  background: transparent;
+  color: rgba(226, 236, 237, 0.78);
+  cursor: pointer;
+  position: relative;
+  overflow: visible;
+  transform-style: preserve-3d;
+  box-shadow: none;
+  animation:
+    creationDockArrival 900ms cubic-bezier(0.16, 1, 0.3, 1) both,
+    creationDockPulse 1800ms ease-out 900ms 2;
+  transition:
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+    color 0.24s ease,
+    opacity 0.24s ease;
+}
+
+.timrx-3dprint .rail-model-group .rail-btn {
+  animation-delay: 0ms, 900ms;
+}
+
+.timrx-3dprint .rail-btn--video {
+  animation-delay: 140ms, 1040ms;
+}
+
+.timrx-3dprint .rail-btn--image {
+  animation-delay: 280ms, 1180ms;
+}
+
+.timrx-3dprint .rail-btn__orb {
+  grid-area: orb;
+  width: 52px;
+  height: 52px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  position: relative;
+  z-index: 1;
+}
+
+.timrx-3dprint .rail-btn__orb svg {
+  width: 26px;
+  height: 26px;
+  stroke-width: 1.8;
+}
+
+.timrx-3dprint .rail-btn__label {
+  grid-area: label;
+  position: relative;
+  z-index: 1;
+  color: inherit;
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+}
+
+.timrx-3dprint .rail-btn__meta {
+  grid-area: meta;
+  position: relative;
+  z-index: 1;
+  margin-top: 4px;
+  color: rgba(177, 188, 190, 0.58);
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.25;
 }
 
 .timrx-3dprint .rail-btn svg {
-  width: 18px;
-  height: 18px;
-  stroke-width: 1.6;
-  transition: none;
+  width: 26px;
+  height: 26px;
+  stroke-width: 1.8;
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.timrx-3dprint .rail-btn span {
-  font-size: 8px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  opacity: 1;
+.timrx-3dprint .rail-btn:hover,
+.timrx-3dprint .rail-btn:focus-visible {
+  color: #f2f5f3;
+  transform: translateY(-6px) rotateX(8deg) scale(1.025);
 }
 
-.timrx-3dprint .rail-btn:hover {
-  color: rgba(255, 255, 255, 0.8);
-  background: none;
-  border: 0;
-  box-shadow: none;
-  transform: none;
-}
-
-.timrx-3dprint .rail-btn:hover svg {
-  transform: none;
+.timrx-3dprint .rail-btn:hover svg,
+.timrx-3dprint .rail-btn:focus-visible svg {
+  transform: rotate(-8deg) scale(1.08);
 }
 
 .timrx-3dprint .rail-btn:focus {
@@ -507,25 +622,79 @@
 }
 
 .timrx-3dprint .rail-btn:focus-visible {
-  outline: 1px solid rgba(255, 255, 255, 0.25);
-  outline-offset: 2px;
-  color: rgba(255, 255, 255, 0.8);
-  background: none;
+  outline: 0;
 }
 
 .timrx-3dprint .rail-btn.is-active {
-  color: #fff;
-  background: none;
-  border: 0;
+  color: #f2f5f3;
+  background: transparent;
   box-shadow: none;
 }
 
-.timrx-3dprint .rail-btn.is-active svg {
-  filter: none;
+.timrx-3dprint .rail-btn.is-active .rail-btn__orb {
+  color: var(--accent-blue);
+  background: transparent;
 }
 
-.timrx-3dprint .rail-btn.is-active::after {
-  display: none;
+@keyframes creationDockArrival {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 42px, -520px) rotateX(64deg) rotateZ(-18deg) scale(0.45);
+    filter: blur(12px);
+  }
+  62% {
+    opacity: 1;
+    transform: translate3d(0, -8px, 32px) rotateX(-7deg) rotateZ(3deg) scale(1.05);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateX(0deg) rotateZ(0deg) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes creationDockPulse {
+  0%,
+  100% {
+    box-shadow: none;
+  }
+  42% {
+    box-shadow: none;
+  }
+}
+
+.timrx-3dprint .ws-left {
+  grid-area: left;
+}
+
+.timrx-3dprint .ws-viewer {
+  grid-area: viewer;
+  display: none !important;
+}
+
+.timrx-3dprint .ws-right {
+  grid-area: right;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sim-viewer-bg,
+  .sim-viewer-bg *,
+  .sim-viewer-bg::before,
+  .sim-viewer-bg::after {
+    animation: none !important;
+  }
+
+  .timrx-3dprint .rail-btn {
+    animation: none;
+  }
+}
+
+@media (forced-colors: active) {
+.timrx-3dprint .rail-btn.is-active {
+    outline: 2px solid Highlight;
+    outline-offset: -2px;
+  }
 }
 
 /* SHARED PANE SHELL
@@ -621,17 +790,17 @@
   }
 
   .timrx-3dprint .pane-stack::-webkit-scrollbar-track {
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(226, 236, 237, 0.025);
     border-radius: 3px;
   }
 
   .timrx-3dprint .pane-stack::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.12);
+    background: rgba(var(--accent-blue-rgb), 0.18);
     border-radius: 3px;
   }
 
   .timrx-3dprint .pane-stack::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(var(--accent-blue-rgb), 0.28);
   }
   
   /* GENERIC CARD COMPONENT
@@ -642,11 +811,13 @@
      - any generic "boxed" content in the workspace
      -------------------------------------------------------------------------- */
   .timrx-3dprint .card {
-    background: linear-gradient(135deg, rgba(15, 15, 15, 0.95) 0%, rgba(18, 18, 20, 0.95) 100%);
-    border: 1px solid var(--ws-card-border);
+    background:
+      radial-gradient(circle at 10% 0%, rgba(var(--accent-blue-rgb), 0.055), transparent 34%),
+      linear-gradient(145deg, rgba(18, 24, 26, 0.94) 0%, rgba(11, 14, 16, 0.94) 100%);
+    border: 1px solid var(--border-soft);
     border-radius: 12px;
     padding: 18px 20px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 18px 45px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(242, 245, 243, 0.04);
     transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
     position: relative;
     overflow: visible;
@@ -660,19 +831,19 @@
     left: 0;
     right: 0;
     height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+    background: linear-gradient(90deg, transparent, rgba(var(--accent-blue-rgb), 0.16), rgba(var(--accent-purple-rgb), 0.1), transparent);
     pointer-events: none;
   }
 
   .timrx-3dprint .card:hover {
-    border-color: rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    border-color: rgba(var(--accent-blue-rgb), 0.18);
+    box-shadow: 0 22px 58px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(242, 245, 243, 0.055);
   }
 
   /* Thin divider between merged sections inside a single card */
   .timrx-3dprint .card-divider {
     height: 1px;
-    background: rgba(255, 255, 255, 0.06);
+    background: var(--border-soft);
     margin: 14px 0;
   }
 
@@ -688,7 +859,7 @@
     gap: 8px;
     margin-top: 14px;
     padding-top: 14px;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid var(--border-soft);
   }
 
   .timrx-3dprint .video-utils-row .video-templates-section {
@@ -707,9 +878,9 @@
     gap: 6px;
     margin: 0;
     width: auto;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.12), rgba(14, 165, 233, 0.10));
-    border: 1px solid rgba(139, 92, 246, 0.25);
-    color: rgba(200, 180, 255, 0.9);
+    background: linear-gradient(135deg, rgba(var(--accent-purple-rgb), 0.12), rgba(var(--accent-blue-rgb), 0.1));
+    border: 1px solid rgba(var(--accent-purple-rgb), 0.22);
+    color: rgba(222, 211, 176, 0.92);
     position: relative;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -719,16 +890,16 @@
     content: '';
     position: absolute;
     inset: 0;
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(14, 165, 233, 0.12));
+    background: linear-gradient(135deg, rgba(var(--accent-purple-rgb), 0.16), rgba(var(--accent-blue-rgb), 0.13));
     opacity: 0;
     transition: opacity 0.3s ease;
   }
 
   .timrx-3dprint .video-gallery-btn--compact:hover {
-    border-color: rgba(139, 92, 246, 0.45);
-    color: #fff;
+    border-color: rgba(var(--accent-purple-rgb), 0.42);
+    color: var(--text);
     transform: translateY(-1px);
-    box-shadow: 0 4px 16px rgba(139, 92, 246, 0.2);
+    box-shadow: 0 4px 16px rgba(var(--accent-purple-rgb), 0.16);
   }
 
   .timrx-3dprint .video-gallery-btn--compact:hover::before {
@@ -747,7 +918,7 @@
 
   .timrx-3dprint .video-gallery-btn--compact:active {
     transform: translateY(0);
-    box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
+    box-shadow: 0 2px 8px rgba(var(--accent-purple-rgb), 0.12);
   }
 
   /* Card title */
@@ -755,7 +926,7 @@
     margin: 0 0 12px;
     font-size: 12px;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.85);
+    color: var(--text);
     letter-spacing: 0.02em;
     text-transform: uppercase;
   }
@@ -770,7 +941,7 @@
   .timrx-3dprint .card label {
     display: block;
     font-weight: 500;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-dim);
   }
 
   /* Inline label + select layout for compact forms */
@@ -812,8 +983,8 @@
   .timrx-3dprint .card textarea,
   .timrx-3dprint .card select {
     width: 100%;
-    background-color: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background-color: rgba(8, 11, 12, 0.72);
+    border: 1px solid var(--border-soft);
     border-radius: 7px;
     padding: 8px 10px;
     color: var(--ws-text);
@@ -848,7 +1019,8 @@
   .timrx-3dprint .card textarea:focus,
   .timrx-3dprint .card select:focus {
     outline: none;
-    border-color: rgba(255, 255, 255, 0.15);
+    border-color: rgba(var(--accent-blue-rgb), 0.42);
+    background-color: rgba(10, 14, 15, 0.86);
   }
   
   /* Textarea behaviour */

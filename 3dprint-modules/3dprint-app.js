@@ -9,16 +9,22 @@
 
    function initTimrxWorkspace() {
     'use strict';
-  
+
     /* -------------------------------------------------------------------------
      * QUICK DOM HOOKS
      * ---------------------------------------------------------------------- */
     const workspaceRoot = document.querySelector('.timrx-3dprint');
     if (!workspaceRoot) return;
-  
-    const railButtons   = workspaceRoot.querySelectorAll('.rail-btn');
+
+    // Queried from the document: the mode switch now lives in the header,
+    // outside .timrx-3dprint. Scoping to workspaceRoot would return an empty
+    // list and silently disable every mode button.
+    const railButtons   = document.querySelectorAll('.rail-btn');
+    // Queried from the document, not workspaceRoot: the model/video choice
+    // trays now live beside the command bar at body level, outside .timrx-3dprint.
+    const modelFeatureButtons = document.querySelectorAll('.model-feature-btn');
     const leftStack     = document.getElementById('leftStack');
-  
+
     // Center viewer + titles
     const viewerTitle   = document.getElementById('viewerTitle');
     const genHint       = document.getElementById('genHint');
@@ -30,7 +36,7 @@
     const viewerGear    = document.getElementById('viewerGear');
     const rotateCard    = document.getElementById('viewerRotateCard');
     const rotateToggle  = document.getElementById('rotateToggle');
-  
+
     // Modal elements
     const uploadModal       = document.getElementById('uploadModal');
     const openUploadTopBtn  = document.getElementById('openUploadModalTop');
@@ -41,10 +47,10 @@
     const customModelUpload = document.getElementById('customModelUpload');
     const modelFileHint     = document.getElementById('modelFileHint');
     const modelNameInput    = document.getElementById('modelNameInput');
-  
+
     // Short-circuit if the basic workspace shell is missing
     if (!railButtons.length || !leftStack || !viewerCanvas) return;
-  
+
     /* -------------------------------------------------------------------------
      * WORKSPACE STATE
      * ---------------------------------------------------------------------- */
@@ -247,7 +253,7 @@
     if (!webglAvailable) {
       console.warn('[Viewer] WebGL is not available. 3D preview will be disabled.');
     }
-  
+
     /* -------------------------------------------------------------------------
      * PANEL CONTENT TEMPLATES (left control column)
      * ---------------------------------------------------------------------- */
@@ -732,7 +738,7 @@
           </button>
         </div>
       `,
-  
+
       model: `
         <div class="card">
           <div style="display:flex;gap:6px;margin-bottom:12px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:8px">
@@ -1004,7 +1010,7 @@
           </button>
         </div>
       `,
-  
+
       remesh: `
         <div class="card">
           <h3>Prepare for Print</h3>
@@ -1150,7 +1156,7 @@
           </button>
         </div>
       `,
-  
+
       texture: `
         <div class="card">
           <h3>Target Model</h3>
@@ -1560,31 +1566,6 @@
       <!-- PiAPI Seedance 2 "audio" flag. Soundtrack generation is on by default. -->
       <input type="hidden" id="seedanceAudio" value="true" />
 
-      <!-- Header: Provider + Mode Selection -->
-      <div class="card video-header-card">
-        <div class="video-header-row">
-          <div class="video-provider-switcher" id="videoProviderSwitcher">
-            <button type="button" class="video-provider-btn is-active" data-provider="vertex"><span class="vpb-name">Cinematic</span><span class="vpb-tag">Veo &middot; Premium</span></button>
-            <button type="button" class="video-provider-btn" data-provider="seedance"><span class="vpb-name">Fast / Quality</span><span class="vpb-tag">Seedance &middot; Recommended</span></button>
-            <button type="button" class="video-provider-btn" data-provider="fal_seedance"><span class="vpb-name">Legacy</span><span class="vpb-tag">Seedance 1.5</span></button>
-          </div>
-          <div class="video-mode-switcher compact" id="videoModeSwitcher">
-            <button type="button" class="video-mode-btn is-active" data-mode="text2video">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h10"/></svg>
-              Text
-            </button>
-            <button type="button" class="video-mode-btn" data-mode="image2video">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
-              Animate
-            </button>
-            <button type="button" class="video-mode-btn hidden" data-mode="reference_video" id="videoReferenceModeBtn" title="Seedance only — guide video with references">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2" fill="currentColor"/></svg>
-              Reference-Guided
-            </button>
-          </div>
-        </div>
-      </div>
-
       <!-- Main video card: input + settings + templates + gallery -->
       <div class="card video-main-card">
 
@@ -1810,12 +1791,239 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       leftStack.innerHTML = content;
       initPanelInteractions();   // bind events in newly injected content
       bindLeftOpenButton();      // (re)bind optional "New model" button in left panel if you add it
+      // Reorganise into the sheet's three zones. Runs AFTER binding so that
+      // listeners attached above travel with the nodes — this moves elements,
+      // it never recreates them, so every id and handler survives.
+      organiseSheet(panelType);
       // Update credit badges for newly rendered buttons
       if (window.WorkspaceCredits?.updateButtonCosts) {
         window.WorkspaceCredits.updateButtonCosts();
       }
     }
-  
+
+    /* -------------------------------------------------------------------------
+     * SHEET ORGANISER
+     * -------------------------------------------------------------------------
+     * The panel templates emit one long vertical stack. The sheet needs three
+     * zones, and the settings zone needs to be sectioned so that only one group
+     * is on screen at a time — otherwise the content is taller than the sheet
+     * and everything scrolls, which is what made the old panel hard to read.
+     *
+     * This walks the rendered output and re-parents it. Nothing is cloned or
+     * re-serialised: `appendChild` moves the live node, so the ~300 ids and all
+     * the listeners bound a moment ago stay intact.
+     * ---------------------------------------------------------------------- */
+    function organiseSheet(panelType) {
+      if (!leftStack || leftStack.querySelector('.ws-pages')) return;
+
+      const make = (tag, cls) => {
+        const n = document.createElement(tag);
+        if (cls) n.className = cls;
+        return n;
+      };
+
+      /* Deterministic assignment. The previous version chunked blocks by field
+         count and named panes from whatever label it found first, which could
+         produce a page holding no fields at all (rig and animate opened on an
+         empty page). Each block is now classified by what it *is*. */
+      const PAGES = [
+        { key: 'prompt',   title: 'Prompt',   hint: 'What you want to make' },
+        { key: 'settings', title: 'Settings', hint: 'How it gets made' },
+        { key: 'output',   title: 'Output',   hint: 'Cost, formats and generate' },
+      ];
+
+      /* A block is "prompt" if it carries a prompt field or a reference
+         upload. The earlier rule also demanded the block hold no <select>,
+         which threw the whole image panel onto Settings and left its first
+         page blank — imagePrompt lives beside the provider dropdowns. */
+      const isPrompt = (el) =>
+        el.classList.contains('tab-content') ||
+        el.matches('.negative-prompt-field, .video-image-grid, .video-input-section, #multiImageGrid') ||
+        // matches() as well as querySelector(): some templates emit the
+        // textarea and its <label> as direct children of the card, so after
+        // the card is flattened the element IS the block, not its ancestor.
+        el.matches('textarea[id*="rompt" i], label[for*="rompt" i], .enhance-row') ||
+        !!el.querySelector('textarea[id*="rompt" i], label[for*="rompt" i]') ||
+        el.matches('.video-drop-zone, .drop-zone') ||
+        !!el.querySelector('.video-drop-zone, .drop-zone, input[type="file"]');
+
+      /* The commit control is identified by id, not by class. rig and animate
+         have no .gen-footer-card and mark EVERY button .gen-btn--rail, so both
+         class-based rules were wrong: one dragged inline "remesh this first"
+         CTAs onto Output, the other left the real Generate on Settings.
+         These seven ids are the set main.js delegates on. */
+      const COMMIT_IDS = ['generateModelBtn', 'generateImageBtn', 'generateVideoBtn',
+                          'applyRemeshBtn', 'generateTextureBtn', 'startRigBtn',
+                          'applyAnimationBtn2'];
+      const commitSel = COMMIT_IDS.map((i) => '#' + i).join(',');
+
+      const isOutput = (el) =>
+        el.classList.contains('gen-footer-card') ||
+        el.matches('.video-utils-row, .video-templates-section, .texture-format-group') ||
+        !!el.querySelector(commitSel + ', .texture-format-grid') ||
+        COMMIT_IDS.includes(el.id);
+
+      // Flatten wrappers that exist only to group (cards, the video body).
+      const expand = (el) =>
+        (el.classList.contains('card') && !el.classList.contains('gen-footer-card')) ||
+        el.classList.contains('video-main-card')
+          ? Array.from(el.children).flatMap(expand)
+          : [el];
+
+      const bucket = { prompt: [], settings: [], output: [] };
+      let modeStrip = null;
+
+      Array.from(leftStack.children).flatMap(expand).forEach((el) => {
+        if (el.querySelector && el.querySelector('.tab-btn') && !el.classList.contains('tab-content')) {
+          el.classList.add('ws-modes');
+          modeStrip = el;
+          return;
+        }
+        if (el.classList.contains('card-divider')) { el.remove(); return; }
+        if (el.tagName === 'DETAILS') {
+          // Advanced blocks are settings; unwrap so they are not double-nested.
+          Array.from(el.children)
+            .filter((n) => n.tagName !== 'SUMMARY')
+            .forEach((n) => bucket.settings.push(n));
+          el.remove();
+          return;
+        }
+        if (isOutput(el))  { bucket.output.push(el);  return; }
+        if (isPrompt(el))  { bucket.prompt.push(el);  return; }
+        bucket.settings.push(el);
+      });
+
+      /* Templates emit <label for="x"> and #x as separate siblings. In a
+         two-column grid that puts the label in one cell and its control in the
+         next, or forces the label full-width and leaves a hole beside the
+         control. Bind each pair into one block so the grid can lay out real
+         fields instead of loose fragments. */
+      Object.keys(bucket).forEach((key) => {
+        const out = [];
+        for (let i = 0; i < bucket[key].length; i++) {
+          const node = bucket[key][i];
+          const forId = node.tagName === 'LABEL' && node.getAttribute('for');
+          const next = bucket[key][i + 1];
+          if (forId && next && next.id === forId) {
+            const pair = document.createElement('div');
+            pair.className = 'ws-field';
+            pair.appendChild(node);
+            pair.appendChild(next);
+            // a trailing hint belongs to the same field
+            const after = bucket[key][i + 2];
+            if (after && after.classList?.contains('field-hint')) { pair.appendChild(after); i++; }
+            out.push(pair);
+            i++;
+            continue;
+          }
+          out.push(node);
+        }
+        bucket[key] = out;
+      });
+
+      Array.from(leftStack.children).forEach((c) => c.remove());
+
+      /* Drop pages with nothing in them rather than showing a blank step:
+         remesh, rig and animate have no prompt at all — they act on a model
+         that already exists — so they run as a two-step flow. */
+      const live = PAGES.filter((pg) => bucket[pg.key].length || (pg.key === 'prompt' && modeStrip));
+      if (live[0] && live[0].key === 'prompt' &&
+          !bucket.prompt.some((n) =>
+            n.matches?.('textarea[id*="rompt" i]') || n.querySelector?.('textarea[id*="rompt" i]'))) {
+        live[0] = { key: 'prompt', title: 'Source', hint: 'What this runs on' };
+      }
+
+      const shell = make('div', 'ws-pages');
+      const track = make('div', 'ws-pages__track');
+
+      live.forEach((page, i) => {
+        const sec = make('section', 'ws-page' + (i === 0 ? ' is-active' : ''));
+        sec.dataset.page = page.key;
+        sec.setAttribute('role', 'tabpanel');
+        sec.setAttribute('aria-label', page.title);
+
+        const head = make('div', 'ws-page__head');
+        const h = make('h3', 'ws-page__title'); h.textContent = page.title;
+        const sub = make('p', 'ws-page__hint'); sub.textContent = page.hint;
+        head.appendChild(h); head.appendChild(sub);
+        sec.appendChild(head);
+
+        if (page.key === 'prompt' && modeStrip) sec.appendChild(modeStrip);
+
+        const body = make('div', 'ws-page__body');
+        bucket[page.key].forEach((n) => body.appendChild(n));
+        // Sparseness is decided here, not in CSS: the natural selector would be
+        // .ws-page:has(.ws-page__body:not(:has(> :nth-child(3)))), but :has()
+        // cannot be nested inside :has(), so that rule parses as invalid and is
+        // dropped silently. A class is unambiguous.
+        if (bucket[page.key].length < 3) sec.classList.add('ws-page--sparse');
+
+        sec.appendChild(body);
+        track.appendChild(sec);
+      });
+
+      shell.appendChild(track);
+      shell.appendChild(buildPager(shell, live));
+      leftStack.appendChild(shell);
+    }
+
+    /** Footer navigation: Back · dots · Next, with the last step committing. */
+    function buildPager(shell, PAGES) {
+      const nav = document.createElement('div');
+      nav.className = 'ws-pager';
+
+      const back = document.createElement('button');
+      back.type = 'button';
+      back.className = 'ws-pager__btn ws-pager__btn--back';
+      back.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span>Back</span>';
+
+      const dots = document.createElement('div');
+      dots.className = 'ws-pager__dots';
+      dots.setAttribute('role', 'tablist');
+
+      const next = document.createElement('button');
+      next.type = 'button';
+      next.className = 'ws-pager__btn ws-pager__btn--next';
+      next.innerHTML = '<span>Next</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+
+      let index = 0;
+      const pages = () => Array.from(shell.querySelectorAll('.ws-page'));
+
+      function go(i) {
+        const list = pages();
+        index = Math.max(0, Math.min(list.length - 1, i));
+        list.forEach((s, n) => s.classList.toggle('is-active', n === index));
+        Array.from(dots.children).forEach((d, n) => {
+          d.classList.toggle('is-active', n === index);
+          d.setAttribute('aria-selected', n === index ? 'true' : 'false');
+        });
+        back.disabled = index === 0;
+        next.disabled = index === list.length - 1;
+        nav.dataset.step = String(index + 1);
+      }
+
+      PAGES.forEach((page, i) => {
+        const d = document.createElement('button');
+        d.type = 'button';
+        d.className = 'ws-pager__dot' + (i === 0 ? ' is-active' : '');
+        d.setAttribute('role', 'tab');
+        d.setAttribute('aria-label', page.title);
+        d.setAttribute('aria-selected', i === 0 ? 'true' : 'false');
+        d.innerHTML = '<span>' + page.title + '</span>';
+        d.addEventListener('click', () => go(i));
+        dots.appendChild(d);
+      });
+
+      back.addEventListener('click', () => go(index - 1));
+      next.addEventListener('click', () => go(index + 1));
+
+      nav.appendChild(back);
+      nav.appendChild(dots);
+      nav.appendChild(next);
+      go(0);
+      return nav;
+    }
+
     /* -------------------------------------------------------------------------
      * THREE.JS VIEWER: bootstrap + resize (lazy)
      * Exposes window.timrx3D = { scene, camera, renderer, resize }
@@ -1859,7 +2067,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         showWebGLFallback();
       });
     }
-  
+
     /**
      * Shows fallback UI when WebGL is unavailable.
      */
@@ -2028,7 +2236,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       bottomLight.position.set(0, -4, 2);
       bottomLight.userData.keepAlive = true;
       scene.add(bottomLight);
-  
+
       // Placeholder: Rubik's Cube style 3x3x3 grid
       placeholderCube = new THREE.Group();
       placeholderCube.userData.isPlaceholder = true;
@@ -2074,14 +2282,14 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       placeholderCube.position.y = 0.1;
       scene.add(placeholderCube);
       window.placeholderCube = placeholderCube;
-  
+
       if (THREE.OrbitControls) {
         const controls = new THREE.OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
         controls.autoRotate = rotationState.enabled;
         window.timrxControls = controls;
       }
-  
+
       /**
        * Resizes the renderer and camera to fit the viewer wrapper.
        */
@@ -2099,7 +2307,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       }
       applyViewerSceneProfile(rect);
       window.addEventListener('resize', onResize);
-  
+
       /**
        * Renders the scene on every animation frame.
        */
@@ -2120,12 +2328,12 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         renderer.render(scene, camera);
       }
       animate();
-  
+
       window.timrx3D = { scene, camera, renderer, resize: onResize };
       threeBooted = true;
       setAutoRotateState(rotationState.enabled);
     }
-  
+
     /**
      * Enables or disables auto-rotation for camera controls and the placeholder cube.
      * @param {boolean} isEnabled - Desired rotation state.
@@ -2136,14 +2344,14 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         window.timrxControls.autoRotate = rotationState.enabled;
       }
     }
-  
+
     /**
      * Keeps the viewer toggle UI in sync with the rotation state.
      */
     function syncRotateToggle() {
       if (rotateToggle) rotateToggle.checked = rotationState.enabled;
     }
-  
+
     /**
      * Wires up the gear button and toggle that control cube rotation.
      */
@@ -2155,7 +2363,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       document.addEventListener('click', dismissRotateCardOnClick);
       document.addEventListener('keydown', dismissRotateCardOnEsc);
     }
-  
+
     /**
      * Shows or hides the rotate settings pill.
      */
@@ -2164,7 +2372,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       syncRotateToggle();
       rotateCard.classList.toggle('hidden');
     }
-  
+
     /**
      * Applies the user-selected rotation setting.
      * @param {Event} event - The change event triggered by the checkbox.
@@ -2173,7 +2381,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       setAutoRotateState(!!event.target.checked);
       requestAnimationFrame(() => rotateCard?.classList.add('hidden'));
     }
-  
+
     /**
      * Closes the rotate pill when clicking outside of it.
      * @param {MouseEvent} event - Document click.
@@ -2184,7 +2392,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const clickedGear   = viewerGear?.contains(event.target);
       if (!clickedInside && !clickedGear) rotateCard.classList.add('hidden');
     }
-  
+
     /**
      * Closes the rotate pill on Escape.
      * @param {KeyboardEvent} event - Document keydown.
@@ -2192,19 +2400,19 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
     function dismissRotateCardOnEsc(event) {
       if (event.key === 'Escape') rotateCard?.classList.add('hidden');
     }
-  
+
     /**
      * Shows the correct preview pane based on the selected tool.
      * @param {string} panelType - image | video | model | remesh | texture
      */
     function switchViewer(panelType) {
       if (!model3dWrap || !imageViewer || !videoViewer || !viewerTitle || !genHint) return;
-  
+
       // Hide all viewers first
       model3dWrap.classList.add('hidden');
       imageViewer.classList.add('hidden');
       videoViewer.classList.add('hidden');
-  
+
       // Then show the active one
       if (panelType === 'image') {
         imageViewer.classList.remove('hidden');
@@ -2231,7 +2439,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         setTimeout(ensureThreeViewer, 0); // safety after layout paint
       }
     }
-  
+
     /**
      * Loads a GLB/GLTF/STL model into the viewer, re-centers it, and fits the camera.
      * @param {File} file - The uploaded model file.
@@ -2284,7 +2492,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           URL.revokeObjectURL(blobUrl);
         });
     }
-  
+
     /**
      * Wires up the tab controls and upload helpers within the left stack.
      */
@@ -2292,7 +2500,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       // Tabs for model → (Text to 3D / Image to 3D)
       const tabButtons  = leftStack.querySelectorAll('.tab-btn');
       const tabContents = leftStack.querySelectorAll('.tab-content');
-  
+
       tabButtons.forEach((btn) => {
         btn.addEventListener('click', function () {
           const targetTab = this.getAttribute('data-tab');
@@ -2339,12 +2547,12 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           }
         });
       });
-  
+
       // Image-to-3D: upload & preview
       const modelImageDrop   = leftStack.querySelector('#modelImageDrop');
       const modelImageUpload = leftStack.querySelector('#modelImageUpload');
       const modelImagePreview= leftStack.querySelector('#modelImagePreview');
-  
+
       if (modelImageDrop && modelImageUpload && modelImagePreview) {
         modelImageDrop.addEventListener('click', () => modelImageUpload.click());
         modelImageUpload.addEventListener('change', async function () {
@@ -2618,7 +2826,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       // ========================================
       // VIDEO: Mode Switching & Credits Logic
       // ========================================
-      const videoModeSwitcher = leftStack.querySelector('#videoModeSwitcher');
+      const videoModeSwitcher = document.getElementById('videoModeSwitcher');
       const videoModeValue = leftStack.querySelector('#videoModeValue');
       const text2videoContent = leftStack.querySelector('#text2videoContent');
       const image2videoContent = leftStack.querySelector('#image2videoContent');
@@ -2633,6 +2841,13 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const videoQuality = leftStack.querySelector('#videoQuality');
       const videoQualityWrap = leftStack.querySelector('#videoQualityWrap');
       const videoAIProvider = leftStack.querySelector('#videoAIProvider');
+
+      document.querySelectorAll('#videoModeSwitcher .video-mode-btn').forEach((button) => {
+        button.classList.toggle('is-active', button.dataset.mode === (videoModeValue?.value || 'text2video'));
+      });
+      document.querySelectorAll('#videoProviderSwitcher .video-provider-btn').forEach((button) => {
+        button.classList.toggle('is-active', button.dataset.provider === (videoAIProvider?.value || 'vertex'));
+      });
 
       // ========================================
       // VIDEO: Pricing Constants (Veo only - resolution + duration based)
@@ -3263,7 +3478,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       if (videoModeSwitcher) {
         const modeButtons = videoModeSwitcher.querySelectorAll('.video-mode-btn');
         modeButtons.forEach(btn => {
-          btn.addEventListener('click', function() {
+          btn.onclick = function() {
             const mode = this.dataset.mode;
 
             // Update active state
@@ -3298,7 +3513,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             validateVideoForm();
 
             console.log('[Video] Mode switched to:', mode);
-          });
+          };
         });
       }
 
@@ -3499,7 +3714,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         if (customMotionSection) customMotionSection.classList.remove('hidden');
 
         // Reference Video mode button — Seedance 2.0 only (omni_reference).
-        const refModeBtn = leftStack.querySelector('#videoReferenceModeBtn');
+        const refModeBtn = document.getElementById('videoReferenceModeBtn');
         const hasReferenceVideo = !!caps.referenceVideo;
         if (refModeBtn) refModeBtn.classList.toggle('hidden', !hasReferenceVideo);
         // If we're leaving a provider that supported Reference Video while that mode
@@ -3515,12 +3730,12 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       }
 
       // Video provider switcher (main + experimental — mutually exclusive)
-      const videoProviderSwitcher = leftStack.querySelector('#videoProviderSwitcher');
-      const allProviderBtns = leftStack.querySelectorAll('#videoProviderSwitcher .video-provider-btn');
+      const videoProviderSwitcher = document.getElementById('videoProviderSwitcher');
+      const allProviderBtns = document.querySelectorAll('#videoProviderSwitcher .video-provider-btn');
 
       function selectProvider(provider, clickedBtn) {
         allProviderBtns.forEach(b => b.classList.remove('is-active'));
-        clickedBtn.classList.add('is-active');
+        if (clickedBtn) clickedBtn.classList.add('is-active');
         if (videoAIProvider) videoAIProvider.value = provider;
 
         applyProviderConfig(provider);
@@ -3532,9 +3747,9 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       }
 
       allProviderBtns.forEach(btn => {
-        btn.addEventListener('click', function () {
+        btn.onclick = function () {
           selectProvider(this.dataset.provider, this);
-        });
+        };
       });
 
       // ── Reference Video (Seedance 2.0 omni_reference) wiring ──────────────
@@ -3913,12 +4128,12 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       if (videoTextPrompt) {
         videoTextPrompt.addEventListener('input', validateVideoForm);
       }
-      if (videoSource) {
-        videoSource.addEventListener('change', () => {
-          validateVideoForm();
-          updateVideoFooter();
-        });
-      }
+      // NOTE: an `if (videoSource) { ... }` block sat here referencing an
+      // identifier that was never declared and an element id that exists
+      // nowhere in the project. It threw a ReferenceError on every video-panel
+      // render, which aborted the rest of initPanelInteractions() — motion
+      // presets, prompt templates and the gallery button never bound — and
+      // aborted activateWorkspacePanel() before switchViewer() could run.
       if (videoMotion) {
         videoMotion.addEventListener('input', validateVideoForm);
       }
@@ -5615,7 +5830,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const textureModelDrop     = leftStack.querySelector('#textureModelDrop');
       const textureModelUpload   = leftStack.querySelector('#textureModelUpload');
       const textureModelFileName = leftStack.querySelector('#textureModelFileName');
-  
+
       if (textureModelSelect && textureUploadSection) {
         textureModelSelect.addEventListener('change', function () {
           const show = this.value === 'upload';
@@ -5716,14 +5931,14 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         textureAiModel.addEventListener('change', syncTextureLightingSupport);
         syncTextureLightingSupport();
       }
-  
+
       // Remesh upload toggle
       const remeshModelSelect   = leftStack.querySelector('#remeshModelSelect');
       const remeshUploadSection = leftStack.querySelector('#remeshModelUploadSection');
       const remeshModelDrop     = leftStack.querySelector('#remeshModelDrop');
       const remeshModelUpload   = leftStack.querySelector('#remeshModelUpload');
       const remeshModelFileName = leftStack.querySelector('#remeshModelFileName');
-  
+
       if (remeshModelSelect && remeshUploadSection) {
         remeshModelSelect.addEventListener('change', function () {
           const show = this.value === 'upload';
@@ -5777,7 +5992,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       if (rigRemeshCTA) {
         rigRemeshCTA.addEventListener('click', () => {
           // Switch to remesh panel
-          const remeshBtn = workspaceRoot.querySelector('.rail-btn[data-panel="remesh"]');
+          const remeshBtn = document.querySelector('.rail-btn[data-panel="remesh"]');
           if (remeshBtn) remeshBtn.click();
         });
       }
@@ -5876,7 +6091,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       if (goToAnimateBtn) {
         goToAnimateBtn.addEventListener('click', () => {
           // Switch to animate panel via rail button click
-          const animRailBtn = workspaceRoot.querySelector('.rail-btn[data-panel="animate"]');
+          const animRailBtn = document.querySelector('.rail-btn[data-panel="animate"]');
           if (animRailBtn) animRailBtn.click();
         });
       }
@@ -6926,21 +7141,126 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         }
         btn.addEventListener('click', handleRailButtonClick);
       });
+      modelFeatureButtons.forEach((btn) => {
+        btn.addEventListener('click', handleModelFeatureClick);
+      });
     }
-  
-    /**
-     * Handles tool switching when a rail button is pressed.
-     * @param {MouseEvent} event - Click event from the rail button.
-     */
-    function handleRailButtonClick(event) {
-      const targetButton = event.currentTarget;
-      const panelType = targetButton.getAttribute('data-panel');
 
+    function isModelPanel(panelType) {
+      return ['model', 'remesh', 'texture', 'rig', 'animate'].includes(panelType);
+    }
+
+    function syncCreationDock(panelType, targetButton) {
+      const activePrimaryPanel = isModelPanel(panelType) ? 'model' : panelType;
       railButtons.forEach((button) => {
-        const isActive = button === targetButton;
+        const isActive = button === targetButton || button.getAttribute('data-panel') === activePrimaryPanel;
         button.classList.toggle('is-active', isActive);
         button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
       });
+      modelFeatureButtons.forEach((button) => {
+        const isActive = button.getAttribute('data-model-panel') === panelType;
+        button.classList.toggle('is-active', isActive);
+        button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+      });
+
+      // Drives the tray above the command bar: present only in model mode.
+      // css/nav.css owns the reveal, the stagger and the layout clearance.
+      document.body.classList.toggle('ws-model-mode', isModelPanel(panelType));
+      document.body.classList.toggle('ws-video-mode', panelType === 'video');
+
+      // Position the sliding indicator behind the active mode.
+      const primary = isModelPanel(panelType) ? 'model' : panelType;
+      const sw = document.querySelector('.ws-modes-switch');
+      if (sw) sw.setAttribute('data-mode', primary);
+
+      updateSheetHeading(panelType);
+    }
+
+    /* ------------------------------------------------------------------------
+       CONTROL SHEET
+       ------------------------------------------------------------------------
+       The tool panel is closed until a creation mode is chosen, so the
+       workspace opens with the viewport clear. Picking a mode opens it; picking
+       the mode already on screen closes it again.
+       --------------------------------------------------------------------- */
+    const SHEET_HEADINGS = {
+      model:   ['Model',   'Describe it, tune it, generate it'],
+      image:   ['Image',   'Prompt, references and provider settings'],
+      video:   ['Video',   'Motion, duration and provider settings'],
+      remesh:  ['Remesh',  'Rebuild topology for print or edit'],
+      texture: ['Texture', 'Generate PBR surfaces for the active model'],
+      rig:     ['Rig',     'Add a skeleton so the model can move'],
+      animate: ['Animate', 'Apply motion to the rigged model'],
+    };
+
+    function updateSheetHeading(panelType) {
+      const [title, sub] = SHEET_HEADINGS[panelType] || SHEET_HEADINGS.model;
+      const t = document.getElementById('wsSheetTitle');
+      const s = document.getElementById('wsSheetSub');
+      if (t) t.textContent = title;
+      if (s) s.textContent = sub;
+    }
+
+    function setSheetOpen(open) {
+      document.body.classList.toggle('ws-panel-open', !!open);
+      const sheet = document.getElementById('ws-left-panel');
+      if (sheet) sheet.setAttribute('aria-hidden', open ? 'false' : 'true');
+    }
+
+    window.TimrXSheet = {
+      open:   () => setSheetOpen(true),
+      close:  () => setSheetOpen(false),
+      isOpen: () => document.body.classList.contains('ws-panel-open'),
+    };
+
+    (function bindSheet() {
+      const closeBtn = document.getElementById('wsSheetClose');
+      if (closeBtn) closeBtn.addEventListener('click', () => setSheetOpen(false));
+
+      document.addEventListener('keydown', (e) => {
+        // Escape belongs to the palette first; only close the sheet when the
+        // palette is not the thing on screen.
+        if (e.key !== 'Escape') return;
+        if (document.body.classList.contains('ws-cmd-open')) return;
+        if (window.TimrXSheet.isOpen()) setSheetOpen(false);
+      });
+
+      /* Click-away.
+         Anything that drives the sheet has to be exempt, or the press that
+         opens it would immediately close it again:
+           .rail-btn      mode switch — its own handler toggles the sheet
+           .ws-tray       model tool tray — switches tools inside the sheet
+           .ws-cmd-*      command bar and palette — the palette hides the sheet
+                          on its own and restores it on close
+         pointerdown rather than click so the sheet dismisses on press, and so a
+         drag that starts inside and ends outside does not count as an outside
+         hit. */
+      const KEEPS_SHEET_OPEN = [
+        '#ws-left-panel',      // the sheet itself
+        '.ws-rail',            // creation modes, in the header
+        '.ws-tray',            // model tool tray (remesh / texture / rig / animate)
+        '.ws-video-tray',      // video input mode + provider tier rows
+        '.ws-cmd-trigger',     // command bar
+        '.ws-cmd',             // command palette
+        // Catch-all for any control that drives panel state but lives outside
+        // the sheet. Three such trays exist today and each one was added in a
+        // separate pass; keying off the attributes they already carry means a
+        // fourth will not silently dismiss the panel it is meant to configure.
+        '[data-panel]',
+        '[data-model-panel]',
+        '[data-mode]',
+      ].join(',');
+
+      document.addEventListener('pointerdown', (e) => {
+        if (!window.TimrXSheet.isOpen()) return;
+        if (e.target.closest && e.target.closest(KEEPS_SHEET_OPEN)) return;
+        setSheetOpen(false);
+      });
+    })();
+
+    function activateWorkspacePanel(panelType, targetButton) {
+      if (!panelType) return;
+      syncCreationDock(panelType, targetButton);
 
       // ── Clear transient generation state on rail switch ──
       // Prevents stale lock/provider/mode from bleeding into the next panel.
@@ -6955,7 +7275,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
 
       updateLeftPanel(panelType);
       switchViewer(panelType);
-      if (['model', 'remesh', 'texture', 'rig', 'animate'].includes(panelType)) {
+      if (isModelPanel(panelType)) {
         ensureThreeViewer();
       }
 
@@ -6964,6 +7284,48 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         window._updateRemeshStateLabel();
       }
     }
+
+    /**
+     * Handles tool switching when a rail button is pressed.
+     * @param {MouseEvent} event - Click event from the rail button.
+     */
+    function handleRailButtonClick(event) {
+      const targetButton = event.currentTarget;
+      const panelType = targetButton.getAttribute('data-panel');
+      // Pressing the mode already on screen closes the sheet again, so the
+      // same button both summons and dismisses its controls.
+      const samePanel = targetButton.classList.contains('is-active');
+      if (samePanel && window.TimrXSheet.isOpen()) {
+        window.TimrXSheet.close();
+        return;
+      }
+      activateWorkspacePanel(panelType, targetButton);
+      window.TimrXSheet.open();
+    }
+
+    function handleModelFeatureClick(event) {
+      const targetButton = event.currentTarget;
+      const panelType = targetButton.getAttribute('data-model-panel');
+      const sameTool = targetButton.classList.contains('is-active');
+      if (sameTool && window.TimrXSheet.isOpen()) {
+        window.TimrXSheet.close();
+        return;
+      }
+      activateWorkspacePanel(panelType, document.querySelector('.rail-btn[data-panel="model"]'));
+      window.TimrXSheet.open();
+    }
+
+    window.TimrXWorkspace = Object.assign(window.TimrXWorkspace || {}, {
+      activatePanel: function(panelType, opts) {
+        const primaryPanel = isModelPanel(panelType) ? 'model' : panelType;
+        const targetButton = document.querySelector('.rail-btn[data-panel="' + primaryPanel + '"]');
+        activateWorkspacePanel(panelType, targetButton);
+        // Restoring state on load must leave the sheet closed; an explicit
+        // request (command palette, community remix) should open it.
+        if (!opts || opts.reveal !== false) window.TimrXSheet.open();
+      },
+      isModelPanel: isModelPanel
+    });
 
     function consumePendingCommunityRemix() {
       try {
@@ -7002,13 +7364,16 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const targetBtn = document.querySelector('.timrx-3dprint .rail-btn[data-panel="' + targetPanel + '"]');
       if (targetBtn && !targetBtn.classList.contains('is-active')) {
         targetBtn.click();
+      } else if (isModelPanel(targetPanel) && targetPanel !== 'model') {
+        const modelFeatureBtn = document.querySelector('.timrx-3dprint .model-feature-btn[data-model-panel="' + targetPanel + '"]');
+        if (modelFeatureBtn) modelFeatureBtn.click();
       }
 
       requestAnimationFrame(() => {
         setTimeout(activatePanelAndFill, 120);
       });
     }
-  
+
     /**
      * Applies the markup-defined active rail button on initial load.
      */
@@ -7018,26 +7383,20 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       let targetBtn;
       if (urlPanel) {
         targetBtn = document.querySelector('.timrx-3dprint .rail-btn[data-panel="' + urlPanel + '"]');
+        if (!targetBtn && isModelPanel(urlPanel)) {
+          targetBtn = document.querySelector('.timrx-3dprint .rail-btn[data-panel="model"]');
+        }
       }
       if (!targetBtn) {
         targetBtn = document.querySelector('.timrx-3dprint .rail-btn.is-active');
       }
       if (!targetBtn) return;
 
-      // Activate the target button
-      railButtons.forEach(function(btn) {
-        var isTarget = btn === targetBtn;
-        btn.classList.toggle('is-active', isTarget);
-        btn.setAttribute('aria-pressed', isTarget ? 'true' : 'false');
-      });
-
-      var initialPanel = targetBtn.getAttribute('data-panel');
-      updateLeftPanel(initialPanel);
-      switchViewer(initialPanel);
-      ensureThreeViewer();
+      var initialPanel = urlPanel && isModelPanel(urlPanel) ? urlPanel : targetBtn.getAttribute('data-panel');
+      activateWorkspacePanel(initialPanel, targetBtn);
       applyPendingCommunityRemix();
     }
-  
+
     function initFieldHelpTooltips() { /* handled by standalone IIFE at end of file */ }
 
     /**
@@ -7050,7 +7409,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       continueUploadBtn?.addEventListener('click', handleContinueUpload);
       uploadModal?.addEventListener('click', handleBackdropClick);
       document.addEventListener('keydown', handleModalEscape);
-  
+
       if (modelDrop && customModelUpload) {
         modelDrop.addEventListener('click', () => customModelUpload.click());
         customModelUpload.addEventListener('change', (event) => {
@@ -7062,7 +7421,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         modelDrop.addEventListener('drop', handleDropZoneDrop);
       }
     }
-  
+
     /**
      * Opens the upload modal and focuses its content.
      */
@@ -7084,7 +7443,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       document.body.classList.remove('has-modal');
       resetModal();
     }
-  
+
     /**
      * Attaches the optional left-panel "New model" button when present.
      */
@@ -7092,7 +7451,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const btn = document.getElementById('openUploadModal');
       if (btn) btn.addEventListener('click', openModal);
     }
-  
+
     /**
      * Validates the form and loads the selected model into the viewer.
      */
@@ -7104,7 +7463,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         }
         return;
       }
-  
+
       const modelName = modelNameInput ? modelNameInput.value.trim() : '';
       if (!modelName) {
         if (modelFileHint) {
@@ -7113,11 +7472,11 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         }
         return;
       }
-  
+
       load3DModel(selectedFile, modelName);
       closeModal();
     }
-  
+
     /**
      * Closes the modal when clicking the backdrop.
      * @param {MouseEvent} event - Click event fired on the modal container.
@@ -7125,7 +7484,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
     function handleBackdropClick(event) {
       if (event.target === uploadModal) closeModal();
     }
-  
+
     /**
      * Provides an Escape-key fallback to close the modal.
      * @param {KeyboardEvent} event - Document keydown.
@@ -7135,7 +7494,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         closeModal();
       }
     }
-  
+
     /**
      * Highlights the drop zone while files hover over it.
      * @param {DragEvent} event - Drag event over the drop zone.
@@ -7146,7 +7505,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       modelDrop.style.borderColor = 'rgba(14, 165, 233, 0.5)';
       modelDrop.style.background  = 'rgba(14, 165, 233, 0.05)';
     }
-  
+
     /**
      * Removes drop zone highlight styles.
      */
@@ -7155,7 +7514,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       modelDrop.style.borderColor = '';
       modelDrop.style.background  = '';
     }
-  
+
     /**
      * Accepts dropped files and forwards them to the validator.
      * @param {DragEvent} event - Drop event on the zone.
@@ -7166,7 +7525,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const file = event.dataTransfer?.files && event.dataTransfer.files[0];
       if (file) handleFileSelect(file);
     }
-  
+
     /**
      * Validates the chosen file and updates helper copy.
      * @param {File} file - Uploaded GLB/GLTF/STL file.
@@ -7184,7 +7543,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         }
         return;
       }
-  
+
       if (file.size > maxSize) {
         if (modelFileHint) {
           modelFileHint.textContent = 'File too large. Maximum size is 50MB.';
@@ -7192,7 +7551,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         }
         return;
       }
-  
+
       selectedFile = file;
       if (modelFileHint) {
         modelFileHint.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
@@ -7202,7 +7561,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         modelNameInput.value = file.name.replace(/\.[^.]+$/, '');
       }
     }
-  
+
     /**
      * Clears the modal inputs and resets selection state.
      */
@@ -7215,7 +7574,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       }
       if (modelNameInput) modelNameInput.value = '';
     }
-  
+
     attachRailButtonHandlers();
     initViewerSettings();
     initModal();

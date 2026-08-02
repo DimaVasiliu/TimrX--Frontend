@@ -186,8 +186,10 @@
   width: min(100%, 340px);
   padding: 24px 22px;
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(11, 14, 18, 0.92) 0%, rgba(7, 9, 12, 0.96) 100%);
+  border: 1px solid var(--border-soft);
+  background:
+    radial-gradient(circle at 20% 0%, rgba(var(--accent-blue-rgb), 0.08), transparent 34%),
+    linear-gradient(180deg, rgba(18, 24, 26, 0.92) 0%, rgba(9, 12, 13, 0.96) 100%);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
   text-align: center;
 }
@@ -208,7 +210,7 @@
 }
 
 .timrx-3dprint .history-loading-state__ring {
-  border: 1px solid rgba(125, 211, 252, 0.18);
+  border: 1px solid rgba(var(--accent-blue-rgb), 0.2);
   animation: historyLoadingPulse 2.4s ease-in-out infinite;
 }
 
@@ -216,13 +218,13 @@
 .timrx-3dprint .history-loading-state__ring::after {
   content: "";
   inset: 12px;
-  border: 1px solid rgba(244, 114, 182, 0.18);
+  border: 1px solid rgba(var(--accent-pink-rgb), 0.2);
   animation: historyLoadingPulse 2.4s ease-in-out infinite 0.4s;
 }
 
 .timrx-3dprint .history-loading-state__ring::after {
   inset: 24px;
-  border-color: rgba(250, 204, 21, 0.22);
+  border-color: rgba(var(--accent-purple-rgb), 0.24);
   animation-delay: 0.8s;
 }
 
@@ -231,8 +233,8 @@
   inset: 32px;
   border-radius: 999px;
   background:
-    radial-gradient(circle at 35% 35%, rgba(255,255,255,0.88), rgba(125, 211, 252, 0.72) 45%, rgba(59, 130, 246, 0.28) 100%);
-  box-shadow: 0 0 26px rgba(125, 211, 252, 0.32);
+    radial-gradient(circle at 35% 35%, rgba(242, 245, 243, 0.86), rgba(var(--accent-blue-rgb), 0.68) 45%, rgba(var(--accent-blue-rgb), 0.24) 100%);
+  box-shadow: 0 0 26px rgba(var(--accent-blue-rgb), 0.26);
 }
 
 .timrx-3dprint .history-loading-state__dot {
@@ -248,17 +250,17 @@
 }
 
 .timrx-3dprint .history-loading-state__dot--a {
-  color: #7dd3fc;
+  color: var(--accent-blue);
   animation: historyLoadingOrbitA 2.8s linear infinite;
 }
 
 .timrx-3dprint .history-loading-state__dot--b {
-  color: #f472b6;
+  color: var(--accent-pink);
   animation: historyLoadingOrbitB 2.1s linear infinite;
 }
 
 .timrx-3dprint .history-loading-state__dot--c {
-  color: #facc15;
+  color: var(--accent-purple);
   animation: historyLoadingOrbitC 3.2s linear infinite;
 }
 
@@ -271,7 +273,7 @@
   margin: 0;
   font-size: 17px;
   font-weight: 700;
-  color: #f8fafc;
+  color: var(--text);
   letter-spacing: 0.01em;
 }
 
@@ -279,7 +281,7 @@
   margin: 0;
   font-size: 13px;
   line-height: 1.55;
-  color: rgba(226, 232, 240, 0.72);
+  color: var(--text-soft);
 }
 
 .timrx-3dprint .history-loading-state__chips {
@@ -293,13 +295,13 @@
 .timrx-3dprint .history-loading-state__chips span {
   padding: 7px 10px;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border-soft);
+  background: rgba(18, 24, 26, 0.66);
   font-size: 11px;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: rgba(226, 232, 240, 0.62);
+  color: var(--text-dim);
 }
 
 @keyframes historyLoadingPulse {
@@ -756,6 +758,192 @@ body.history-menu-open .timrx-3dprint .history-group-card.is-menu-open .history-
   min-width: 0;
   overflow: hidden;
   position: relative;
+}
+
+/* === Unified Assets Modal ================================================ */
+body.print3d-page > .assets-side-launcher,
+.timrx-3dprint .assets-side-launcher {
+  position: fixed !important;
+  right: max(22px, env(safe-area-inset-right, 0px)) !important;
+  bottom: 124px !important;
+  z-index: 120 !important;
+  display: inline-flex !important;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 11px 12px;
+  border-radius: 999px;
+  border: 0 !important;
+  background: transparent !important;
+  color: rgba(255, 255, 255, 0.82) !important;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none !important;
+  transform: none !important;
+  cursor: pointer;
+  transition: transform 0.22s ease, color 0.22s ease, opacity 0.22s ease;
+}
+
+body.print3d-page > .assets-side-launcher svg,
+.timrx-3dprint .assets-side-launcher svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+}
+
+body.print3d-page > .assets-side-launcher span,
+.timrx-3dprint .assets-side-launcher span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+body.print3d-page > .assets-side-launcher:hover,
+body.print3d-page > .assets-side-launcher:focus-visible,
+.timrx-3dprint .assets-side-launcher:hover,
+.timrx-3dprint .assets-side-launcher:focus-visible {
+  color: #fff;
+  background: transparent;
+  transform: translateY(-3px);
+}
+
+body.print3d-page > .assets-side-launcher:focus-visible,
+.timrx-3dprint .assets-side-launcher:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.32);
+  outline-offset: 3px;
+}
+
+.assets-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200100;
+  background: rgba(6, 9, 10, 0.72);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.assets-modal-backdrop.is-open {
+  opacity: 1;
+}
+
+body.assets-modal-open {
+  overflow: hidden;
+}
+
+body.assets-modal-open > .assets-side-launcher,
+body.assets-modal-open .timrx-3dprint .assets-side-launcher {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.timrx-3dprint .ws-right.assets-modal {
+  position: fixed;
+  inset: clamp(62px, 7vh, 92px) clamp(14px, 3vw, 42px) clamp(18px, 3vh, 32px);
+  z-index: 200150;
+  display: flex;
+  width: auto;
+  max-width: none;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(18px) scale(0.985);
+  transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s 0.24s;
+}
+
+.timrx-3dprint .ws-right.assets-modal.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+  transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s 0s;
+}
+
+.timrx-3dprint .ws-right.assets-modal .card.history {
+  width: min(100%, 1280px);
+  height: 100%;
+  margin: 0 auto;
+  padding: 18px;
+  border-radius: 24px;
+  border: 1px solid var(--border-strong);
+  background:
+    radial-gradient(circle at 8% 0%, rgba(var(--accent-blue-rgb), 0.07), transparent 34%),
+    radial-gradient(circle at 92% 0%, rgba(var(--accent-purple-rgb), 0.07), transparent 36%),
+    linear-gradient(180deg, rgba(18, 24, 26, 0.98), rgba(10, 13, 15, 0.98));
+  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(242, 245, 243, 0.05);
+}
+
+.timrx-3dprint .assets-modal-titlebar {
+  display: grid;
+  grid-template-columns: minmax(0, auto) minmax(220px, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  padding: 2px 2px 14px;
+}
+
+.timrx-3dprint .assets-modal-kicker {
+  margin: 0 0 3px;
+  color: var(--text-dim);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.timrx-3dprint .assets-modal-titlebar h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(24px, 3vw, 36px);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.timrx-3dprint .assets-modal-titlebar p:not(.assets-modal-kicker) {
+  margin: 0;
+  max-width: 48ch;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.timrx-3dprint .assets-modal-close {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 0;
+  background: transparent;
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.timrx-3dprint .assets-modal-close:hover,
+.timrx-3dprint .assets-modal-close:focus-visible {
+  color: var(--text);
+}
+
+.timrx-3dprint .assets-modal-close:focus-visible {
+  outline: 1px solid rgba(var(--accent-blue-rgb), 0.5);
+  outline-offset: 2px;
+}
+
+.timrx-3dprint .assets-modal-close svg {
+  width: 22px;
+  height: 22px;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-head {
+  flex: none;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history .history-grid {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 /* History Head */
@@ -4500,4 +4688,83 @@ body.has-modal {
 /* Grouped cards in expand view: squarer ratio fits 2x2 grid better */
 .expanded-thumb:has(.history-group-card) {
   aspect-ratio: 4 / 5;
+}
+
+/* Palette harmonization: keep history/assets on the same graphite material system. */
+.timrx-3dprint .card.output,
+.timrx-3dprint .history-empty,
+.timrx-3dprint .history-load-more__inner,
+.timrx-3dprint .card-menu,
+.timrx-3dprint .card-submenu,
+.timrx-3dprint .history-thumb,
+.timrx-3dprint .expanded-thumb,
+.timrx-3dprint .history-group-card,
+.timrx-3dprint .assets-card,
+.timrx-3dprint .asset-card,
+.timrx-3dprint .history-filter-chip,
+.timrx-3dprint .history-sort-btn,
+.timrx-3dprint .history-search-wrapper {
+  border-color: var(--border-soft);
+  background-color: rgba(18, 24, 26, 0.72);
+}
+
+.timrx-3dprint .history-search-wrapper,
+.timrx-3dprint .history-filter-chip,
+.timrx-3dprint .history-sort-btn,
+.timrx-3dprint .card-menu,
+.timrx-3dprint .card-submenu {
+  background:
+    linear-gradient(180deg, rgba(24, 32, 36, 0.8), rgba(10, 13, 15, 0.84));
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(242, 245, 243, 0.04);
+}
+
+.timrx-3dprint .history-search-wrapper:focus-within,
+.timrx-3dprint .history-filter-chip:hover,
+.timrx-3dprint .history-filter-chip.is-active,
+.timrx-3dprint .history-sort-btn:hover,
+.timrx-3dprint .history-thumb:hover,
+.timrx-3dprint .expanded-thumb:hover,
+.timrx-3dprint .history-group-card:hover {
+  border-color: rgba(var(--accent-blue-rgb), 0.22);
+}
+
+.timrx-3dprint .history-search-wrapper input,
+.timrx-3dprint .history-filter-chip,
+.timrx-3dprint .history-sort-btn,
+.timrx-3dprint .card-menu__item,
+.timrx-3dprint .card-submenu__item {
+  color: var(--text-soft);
+}
+
+.timrx-3dprint .history-search-wrapper input::placeholder,
+.timrx-3dprint .history-empty span,
+.timrx-3dprint .card-menu__license,
+.timrx-3dprint .card-menu__badge {
+  color: var(--text-dim);
+}
+
+.timrx-3dprint .history-filter-chip.is-active,
+.timrx-3dprint .card-menu__item:hover:not([disabled]),
+.timrx-3dprint .card-submenu__item:hover:not([disabled]) {
+  color: var(--text);
+  background: rgba(var(--accent-blue-rgb), 0.12);
+}
+
+.timrx-3dprint .history-thumb__stage,
+.history-group-card__stage {
+  background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.timrx-3dprint .history-thumb__menu-btn,
+.history-group-card__menu-btn {
+  background: rgba(8, 11, 12, 0.62);
+  color: var(--text-soft);
+}
+
+.timrx-3dprint .history-thumb__menu-btn:hover,
+.history-group-card__menu-btn:hover {
+  background: rgba(24, 32, 36, 0.88);
+  color: var(--text);
 }

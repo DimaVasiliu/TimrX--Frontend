@@ -1,23 +1,45 @@
 /* ===== ROOT VARIABLES ===== */
 :root {
   /* Core palette */
-  --bg: #0b0b0b;
-  --panel: #0f0f0f;
-  --card-bg: linear-gradient(135deg, #0f0f0f 0%, #151515 100%);
+  --bg: #080b0c;
+  --panel: #0d1012;
+  --card-bg: linear-gradient(135deg, #0d1012 0%, #14181b 100%);
+  --surface-0: #07090a;
+  --surface-1: #0d1012;
+  --surface-2: #121719;
+  --surface-3: #182024;
+  --surface-warm: #181611;
 
-  --text: #f5f5f5;
-  --muted: #a9a9a9;
-  --line: rgba(255, 255, 255, 0.06);
+  --text: #f2f5f3;
+  --muted: #a7b0b2;
+  --line: rgba(226, 236, 237, 0.075);
+  --border-soft: rgba(226, 236, 237, 0.09);
+  --border-strong: rgba(226, 236, 237, 0.16);
+  --text-soft: rgba(242, 245, 243, 0.74);
+  --text-dim: rgba(167, 176, 178, 0.58);
 
   /* Accent colors (for buttons, active states, history chips) */
-  --accent-blue: #0ea5e9;
-  --accent-purple: #8b5cf6;
-  --accent-pink: #ec4899;
+  --accent-blue: #7fc8c2;
+  --accent-purple: #b8a77a;
+  --accent-pink: #c9909b;
+  --accent-blue-rgb: 127, 200, 194;
+  --accent-purple-rgb: 184, 167, 122;
+  --accent-pink-rgb: 201, 144, 155;
   /* Neon accent for selected thumbnails / key highlights */
-  --accent-neo: #d4ff4f;
+  --accent-neo: #d8c879;
+
+  /* Type */
+  --font-ui: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --font-display: "Space Grotesk", Inter, system-ui, sans-serif;
 
   /* Layout */
-  --navH: 0px;
+  /* Height of the fixed workspace header. Was 0px, which meant
+     `html { scroll-padding-top }` and the expanded views' top padding both
+     resolved to nothing and content scrolled under the header.
+     --ws-navH is declared here as well so surfaces outside .timrx-3dprint
+     (the mobile menu sheet) can read it instead of guessing a fallback. */
+  --navH: 62px;
+  --ws-navH: 70px;
   --maxw: 1600px;
   --gutter: clamp(16px, 4vw, 48px);
 
@@ -35,16 +57,20 @@
   --ws-gap: 20px;                          /* Base gutter between columns */
 
   /* Card tokens */
-  --ws-card-bg: #0f0f0f;
-  --ws-card-border: rgba(255, 255, 255, 0.06);
+  --ws-card-bg: #0d1012;
+  --ws-card-border: rgba(226, 236, 237, 0.075);
 
   /* Typography tokens */
-  --ws-text: #ffffff;
-  --ws-text-muted: #8a8a8a;
+  --ws-text: #f2f5f3;
+  --ws-text-muted: #9ba6a9;
 
-  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-family: var(--font-ui);
   color: var(--ws-text);
   padding: var(--ws-navH) 0 0;
+  /* The desktop shell stays a bounded 100vh box: the panes inside are
+     `flex:1; overflow-y:auto` and only scroll internally while this box has a
+     definite height. Letting it grow instead pushed the viewer past the fold.
+     Page-level scrolling is unlocked on <body>, not here. */
   overflow: hidden;
   height: 100vh;
   box-sizing: border-box;
@@ -83,12 +109,26 @@ html {
 
 body.print3d-page {
   margin: 0;
-  background: #000;
+  background:
+    radial-gradient(ellipse at 50% 20%, rgba(var(--accent-blue-rgb), 0.075), transparent 36%),
+    radial-gradient(ellipse at 50% 62%, rgba(32, 47, 50, 0.32), transparent 54%),
+    radial-gradient(ellipse at 50% 100%, rgba(var(--accent-purple-rgb), 0.045), transparent 42%),
+    linear-gradient(180deg, #080b0c 0%, #0d1214 46%, #090c0d 100%);
   color: var(--text);
-  font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-family: var(--font-ui);
   line-height: 1.6;
-  overflow: hidden;
-  height: 100vh;
+  font-feature-settings: "cv02", "cv03", "cv04", "tnum";
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
+  /* Page scroll unblocked. This was `overflow: hidden; height: 100vh`, which
+     hard-locked the document: at 100% zoom nothing overflowed so the lock was
+     invisible, but at browser zoom or large text the overflow became
+     permanently unreachable (WCAG 1.4.4). The workspace keeps its own bounded
+     height, so at default zoom the desktop layout is unchanged — the
+     difference is that overflow is now reachable instead of clipped away. */
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 100vh;
 }
 
 /* When history / page needs to scroll (toggled by JS) */
@@ -127,7 +167,13 @@ body.print3d-page::after {
   50% { transform: translateY(-8px); }
 }
 
-/* Ensure all main content floats above the animated layer */
+/* Ensure all main content floats above the animated layer.
+   Careful with this selector: at (0,2,1) it outranks any plain class rule, so
+   every direct child of <body> that declares its own `position` loses it and
+   silently drops into flow. Do NOT add :not() clauses to carve out exceptions —
+   that raises the specificity further and starts overriding the intentional
+   rules below it (it beat `body.print3d-page > .ws-header{position:fixed}` and
+   un-pinned the header). Add an explicit restore to the block underneath. */
 body.print3d-page > *:not(.workspace-modal-overlay) {
   position: relative;
   z-index: 2;
@@ -136,6 +182,33 @@ body.print3d-page > *:not(.workspace-modal-overlay) {
 body.print3d-page > .nav {
   position: fixed;
   z-index: 1;
+}
+
+/* Restores for body children that must stay pinned to the viewport.
+   `html` prefix puts these at (0,2,2) so they beat the (0,2,1) rule above
+   regardless of stylesheet order.
+
+   .cc-banner is the reason this block exists: cookie-consent.js declares it
+   `position:fixed; bottom:0`, the rule above demoted it to `relative`, and the
+   old `body{overflow:hidden}` then made it unreachable — so the consent banner
+   could not be read or dismissed on this page at all. */
+html body.print3d-page > .cc-banner {
+  position: fixed;
+}
+
+html body.print3d-page > .ws-cmd-trigger {
+  position: fixed;
+  z-index: 60;
+}
+
+html body.print3d-page > .ws-tray {
+  position: fixed;
+  z-index: 59;
+}
+
+html body.print3d-page > .ws-cmd {
+  position: fixed;
+  z-index: 200500;
 }
 
 /* Utilities */

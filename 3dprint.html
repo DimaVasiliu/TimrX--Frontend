@@ -132,12 +132,13 @@
   <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260518a">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260802d">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260527a">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js"></script>
-  <script defer src="3dprint-modules/3dprint-app.js?v=20260518b"></script>
+  <script defer src="3dprint-modules/3dprint-app.js?v=20260801a"></script>
   <script defer src="3dprint-modules/inspire.js"></script>
   <script defer src="3dprint-modules/community-gallery.js"></script>
+  <script defer src="3dprint-modules/asset-stage.js?v=20260802b"></script>
 
   <!-- Visually Hidden Utility + Ticker Styles -->
   <style>
@@ -153,45 +154,6 @@
       border: 0;
     }
 
-    /* Header ticker (centered between brand and nav) */
-    .ticker-header {
-      position: absolute;
-      left: 12%;
-      right: 65%;
-      top: 50%;
-      transform: translateY(-50%);
-      overflow: hidden;
-      -webkit-mask-image: linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%);
-      mask-image: linear-gradient(to right, transparent 0, black 8%, black 92%, transparent 100%);
-      transition: opacity 0.3s ease, transform 0.3s ease;
-    }
-    .ticker-header.nav-hidden {
-      opacity: 0;
-      transform: translateY(calc(-50% - 20px));
-      pointer-events: none;
-    }
-    .ticker-header-track {
-      display: flex;
-      white-space: nowrap;
-      will-change: transform;
-      animation: tickerHeaderMove 24s linear infinite;
-    }
-    .ticker-header-item {
-      font-size: 0.65rem;
-      font-weight: 500;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      color: rgba(255,255,255,0.35);
-      padding-right: 50px;
-      flex-shrink: 0;
-    }
-    @keyframes tickerHeaderMove {
-      from { transform: translateX(0); }
-      to { transform: translateX(-50%); }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      .ticker-header-track { animation: none; }
-    }
   </style>
   <!-- Google Tag Manager -->
   <script>
@@ -221,44 +183,30 @@
       </a>
     </div>
 
-    <!-- SEO Ticker (absolutely centered between brand and nav) -->
-    <div class="ticker-header" aria-label="Workspace features">
-      <div class="ticker-header-track">
-        <span class="ticker-header-item">Image, video, and 3D generation in one browser workspace</span>
-        <span class="ticker-header-item">Remesh, texture, rig, animate, and preview without leaving the viewer</span>
-        <span class="ticker-header-item">History, community remix, AR, converter, and print checks built in</span>
-        <span class="ticker-header-item">Image, video, and 3D generation in one browser workspace</span>
-        <span class="ticker-header-item">Remesh, texture, rig, animate, and preview without leaving the viewer</span>
-        <span class="ticker-header-item">History, community remix, AR, converter, and print checks built in</span>
-      </div>
-    </div>
 
-    <!-- Center Links -->
-    <nav class="ws-nav" aria-label="Workspace navigation">
-      <a href="/" class="ws-nav-link">HOME</a>
-      <a href="/hub" class="ws-nav-link is-active">HUB</a>
-      <a href="/community" class="ws-nav-link">COMMUNITY</a>
-      <a href="#my-assets" class="ws-nav-link" data-open-assets>MY ASSETS</a>
-
-      <!-- Menu Dropdown (combines Learn + Resources) -->
-      <div class="ws-dropdown">
-        <button type="button" class="ws-nav-link ws-dropdown-toggle" aria-expanded="false">
-          MENU
+    <!-- Creation modes. Live in the header so the workspace grid keeps its
+         full height. .rail-btn and data-panel are unchanged: 3dprint-app.js,
+         the command palette, the community gallery and inspire.js all key
+         off them, and railButtons is document-scoped for exactly this. -->
+    <nav class="ws-rail ws-modes-switch" data-mode="model" aria-label="Creation mode">
+        <button type="button" class="rail-btn ws-mode is-active" data-panel="model"
+                aria-pressed="true" aria-label="Model workspace — Create, clean, texture, rig">
+          <span class="mode-ico mode-ico--cube" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="ws-mode__label">Model</span>
+          <span class="ws-mode__meta">Create, clean, texture, rig</span>
         </button>
-        <div class="ws-dropdown-menu">
-          <a href="/docs" class="ws-dropdown-item">Docs</a>
-          <a href="/tutorials" class="ws-dropdown-item">Tutorials</a>
-          <a href="/converter" class="ws-dropdown-item">Converter</a>
-          <a href="/company" class="ws-dropdown-item">About</a>
-          <div class="ws-dropdown-divider"></div>
-          <a href="/terms" class="ws-dropdown-item ws-dropdown-item--muted">Terms</a>
-          <a href="/privacy" class="ws-dropdown-item ws-dropdown-item--muted">Privacy</a>
-        </div>
-      </div>
-
-      <a class="ws-blog-cta" href="/blogs?tag=TimrX#filter-strip" aria-label="Blogs">
-        Blogs
-      </a>
+        <button type="button" class="rail-btn ws-mode" data-panel="video"
+                aria-pressed="false" aria-label="Video workspace — Motion and story">
+          <span class="mode-ico mode-ico--video" aria-hidden="true"><i></i><i></i></span>
+          <span class="ws-mode__label">Video</span>
+          <span class="ws-mode__meta">Motion and story</span>
+        </button>
+        <button type="button" class="rail-btn ws-mode" data-panel="image"
+                aria-pressed="false" aria-label="Image workspace — Generate and edit">
+          <span class="mode-ico mode-ico--image" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="ws-mode__label">Image</span>
+          <span class="ws-mode__meta">Generate and edit</span>
+        </button>
     </nav>
 
     <!-- Credits & Actions (top-right) -->
@@ -310,6 +258,20 @@
   <!-- Mobile menu overlay -->
   <div class="ws-mobile-menu" id="wsMobileMenu" aria-hidden="true" style="display:none">
     <div class="ws-mobile-menu-inner">
+      <!-- Credits: the header pill collapses below 900px, so balance and top-up
+           must be reachable here or they are unreachable on a phone. -->
+      <div class="ws-mobile-credits">
+        <div class="ws-mobile-credits__row">
+          <span class="ws-mobile-credits__label">General credits</span>
+          <span class="ws-mobile-credits__val" id="mobileCreditsGeneral">--</span>
+        </div>
+        <div class="ws-mobile-credits__row">
+          <span class="ws-mobile-credits__label">Video credits</span>
+          <span class="ws-mobile-credits__val" id="mobileCreditsVideo">--</span>
+        </div>
+        <a href="/hub#pricing" class="ws-mobile-credits__buy">Buy credits</a>
+      </div>
+
       <nav class="ws-mobile-nav" role="navigation" aria-label="Mobile navigation">
         <a href="/" class="ws-mobile-link">
           <span class="wml-label">Home</span>
@@ -436,28 +398,200 @@
       });
     }
 
-    // Mobile nav hide on scroll
-    if (window.innerWidth <= 768) {
-      var header = document.querySelector('.ws-header');
-      if (header) {
-        var lastY = window.scrollY;
-        var navHidden = false;
-        header.style.transition = 'transform 0.3s ease';
-        window.addEventListener('scroll', function(){
-          var y = window.scrollY;
-          if (y > lastY && y > 60 && !navHidden) {
-            header.style.transform = 'translateY(-100%)';
-            navHidden = true;
-          } else if (y < lastY && navHidden) {
-            header.style.transform = 'translateY(0)';
-            navHidden = false;
-          }
-          lastY = y;
-        }, {passive: true});
-      }
-    }
+    // NOTE: header hide-on-scroll lives in a single handler near the end of this
+    // file (search "handleScroll"). A second implementation used to live here and
+    // fought it — one set inline transforms, the other toggled .nav-hidden.
   })();
   </script>
+
+  <!-- ============================================================
+       Command palette (⌘K / Ctrl+K)
+       Replaces the header nav. Destination entries are authored as real
+       <a href> anchors so internal linking survives; JS only filters and
+       reorders them, and injects the tool/action rows on top.
+       ============================================================ -->
+  <svg class="visually-hidden" aria-hidden="true" focusable="false"><defs>
+    <symbol id="cmdi-page" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8l-5-5z"/><path d="M14 3v5h5"/></symbol>
+    <symbol id="cmdi-home" viewBox="0 0 24 24"><path d="M3 10l9-7 9 7v9a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 21v-7h6v7"/></symbol>
+    <symbol id="cmdi-people" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M2 20a7 7 0 0114 0"/><path d="M16 6a3 3 0 010 6M18 20a6 6 0 00-2-4.5"/></symbol>
+    <symbol id="cmdi-learn" viewBox="0 0 24 24"><path d="M3 6l9-3 9 3-9 3-9-3z"/><path d="M7 10v5c0 1.5 2.2 3 5 3s5-1.5 5-3v-5"/></symbol>
+    <symbol id="cmdi-tool" viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 01-5 5L4 17v3h3l5.7-5.7a4 4 0 015-5l2.6-2.6-3-3-2.6 2.6z"/></symbol>
+    <symbol id="cmdi-legal" viewBox="0 0 24 24"><path d="M12 3v18M5 7h14"/><path d="M5 7l-3 6h6zM19 7l-3 6h6z"/></symbol>
+    <symbol id="cmdi-coins" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"/><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+    <symbol id="cmdi-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></symbol>
+    <!-- Tool glyphs. Kept here rather than cloned from the rail: the rail has
+         been restructured twice (Remesh/Texture/Rig/Animate are now a
+         model-feature tray with no icons of their own), and cloning silently
+         degraded to a generic wrench when a selector stopped matching. -->
+    <symbol id="cmdi-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 01-3.4 0"/></symbol>
+    <symbol id="cmdi-model" viewBox="0 0 24 24"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></symbol>
+    <symbol id="cmdi-image" viewBox="0 0 24 24"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></symbol>
+    <symbol id="cmdi-video" viewBox="0 0 24 24"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></symbol>
+    <symbol id="cmdi-remesh" viewBox="0 0 24 24"><path d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z"/></symbol>
+    <symbol id="cmdi-texture" viewBox="0 0 24 24"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></symbol>
+    <symbol id="cmdi-rig" viewBox="0 0 24 24"><path d="M12 2a4 4 0 014 4v1h2a1 1 0 011 1v2a1 1 0 01-1 1h-1v5l1 4H6l1-4v-5H6a1 1 0 01-1-1V8a1 1 0 011-1h2V6a4 4 0 014-4z"/></symbol>
+    <symbol id="cmdi-animate" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></symbol>
+  </defs></svg>
+
+  <!-- Model tool tray — rides directly above the command bar and is only
+       present while a model panel is active. Buttons keep .model-feature-btn
+       and data-model-panel so 3dprint-app.js drives them unchanged. -->
+  <div class="ws-tray" id="wsTray" role="group" aria-label="Model tools">
+    <button type="button" class="ws-tray__btn model-feature-btn is-active" data-model-panel="model">
+      <svg class="ws-tray__icon" aria-hidden="true"><use href="#cmdi-model"></use></svg>
+      <span>Generate</span>
+    </button>
+    <button type="button" class="ws-tray__btn model-feature-btn" data-model-panel="remesh">
+      <svg class="ws-tray__icon" aria-hidden="true"><use href="#cmdi-remesh"></use></svg>
+      <span>Remesh</span>
+    </button>
+    <button type="button" class="ws-tray__btn model-feature-btn" data-model-panel="texture">
+      <svg class="ws-tray__icon" aria-hidden="true"><use href="#cmdi-texture"></use></svg>
+      <span>Texture</span>
+    </button>
+    <button type="button" class="ws-tray__btn model-feature-btn" data-model-panel="rig">
+      <svg class="ws-tray__icon" aria-hidden="true"><use href="#cmdi-rig"></use></svg>
+      <span>Rig</span>
+    </button>
+    <button type="button" class="ws-tray__btn model-feature-btn" data-model-panel="animate">
+      <svg class="ws-tray__icon" aria-hidden="true"><use href="#cmdi-animate"></use></svg>
+      <span>Animate</span>
+    </button>
+  </div>
+
+  <!-- Video choices — lives above the command bar like the model tray, while
+       the video panel keeps only the fields needed for the selected choice. -->
+  <div class="ws-video-tray" id="wsVideoTray" aria-label="Video choices">
+    <div class="ws-video-tray__row video-mode-switcher compact" id="videoModeSwitcher" role="group" aria-label="Video input mode">
+      <button type="button" class="ws-video-tray__btn video-mode-btn is-active" data-mode="text2video">
+        <svg class="ws-video-tray__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M4 12h10"/></svg>
+        <span>Text</span>
+      </button>
+      <button type="button" class="ws-video-tray__btn video-mode-btn" data-mode="image2video">
+        <svg class="ws-video-tray__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
+        <span>Animate</span>
+      </button>
+      <button type="button" class="ws-video-tray__btn video-mode-btn hidden" data-mode="reference_video" id="videoReferenceModeBtn" title="Seedance only — guide video with references">
+        <svg class="ws-video-tray__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2" fill="currentColor"/></svg>
+        <span>Reference</span>
+      </button>
+    </div>
+
+    <div class="ws-video-tray__row ws-video-tray__row--providers video-provider-switcher" id="videoProviderSwitcher" role="group" aria-label="Video model">
+      <button type="button" class="ws-video-provider video-provider-btn is-active" data-provider="vertex"><span class="vpb-name">Cinematic</span><span class="vpb-tag">Veo</span></button>
+      <button type="button" class="ws-video-provider video-provider-btn" data-provider="seedance"><span class="vpb-name">Fast / Quality</span><span class="vpb-tag">Seedance</span></button>
+      <button type="button" class="ws-video-provider video-provider-btn" data-provider="fal_seedance"><span class="vpb-name">Legacy</span><span class="vpb-tag">1.5</span></button>
+    </div>
+  </div>
+
+  <!-- Command bar. Lives at body level, not in the header: it is
+       position:fixed, and .ws-header is itself fixed with pointer-events:none. -->
+  <button type="button" class="ws-cmd-trigger" id="wsCmdTrigger"
+          aria-label="Search or command anything. Keyboard shortcut Command K">
+    <svg class="ws-cmd-trigger__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path>
+    </svg>
+    <span class="ws-cmd-trigger__label">Search or command anything&hellip;</span>
+    <span class="ws-cmd-trigger__chips" aria-hidden="true">
+      <span>Tools</span>
+      <span>Assets</span>
+      <span>Pages</span>
+    </span>
+    <kbd class="ws-cmd-trigger__kbd"><span data-cmd-mod>Ctrl</span>K</kbd>
+  </button>
+
+  <div class="ws-cmd" id="wsCmd" hidden>
+    <div class="ws-cmd__backdrop" data-cmd-close></div>
+    <div class="ws-cmd__panel" role="dialog" aria-modal="true" aria-labelledby="wsCmdLabel">
+      <h2 class="visually-hidden" id="wsCmdLabel">Search or jump to</h2>
+
+      <div class="ws-cmd__field">
+        <svg class="ws-cmd__field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.35-4.35"></path>
+        </svg>
+        <input id="wsCmdInput" type="text" autocomplete="off" spellcheck="false"
+               placeholder="Search or command anything&hellip;"
+               role="combobox" aria-expanded="true" aria-controls="wsCmdList"
+               aria-autocomplete="list" aria-describedby="wsCmdCount">
+        <button type="button" class="ws-cmd__esc" data-cmd-close aria-label="Close">Esc</button>
+      </div>
+
+      <div class="ws-cmd__list" id="wsCmdList" role="listbox" aria-label="Results">
+        <!-- Tools and workspace actions are injected here by command-palette.js -->
+
+        <div class="ws-cmd__group" data-cmd-group="go">
+          <p class="ws-cmd__group-label" role="presentation">Go to</p>
+
+          <a class="ws-cmd__item" role="option" aria-selected="false" href="/"
+             data-cmd-keywords="home landing start front page">
+            <svg class="ws-cmd__item-icon" aria-hidden="true"><use href="#cmdi-home"></use></svg>
+            <span class="ws-cmd__item-label">Home</span><span class="ws-cmd__item-meta">Page</span>
+          </a>
+          <a class="ws-cmd__item" role="option" aria-selected="false" href="/hub"
+             data-cmd-keywords="hub pricing plans 3d print hub credits buy">
+            <svg class="ws-cmd__item-icon" aria-hidden="true"><use href="#cmdi-grid"></use></svg>
+            <span class="ws-cmd__item-label">3D Print Hub</span><span class="ws-cmd__item-meta">Page</span>
+          </a>
+          <a class="ws-cmd__item" role="option" aria-selected="false" href="/community"
+             data-cmd-keywords="community creators gallery remix share showcase">
+            <svg class="ws-cmd__item-icon" aria-hidden="true"><use href="#cmdi-people"></use></svg>
+            <span class="ws-cmd__item-label">Community</span><span class="ws-cmd__item-meta">Page</span>
+          </a>
+          <a class="ws-cmd__item" role="option" aria-selected="false" href="/hub#pricing"
+             data-cmd-keywords="buy credits pricing top up purchase subscription billing">
+            <svg class="ws-cmd__item-icon" aria-hidden="true"><use href="#cmdi-coins"></use></svg>
+            <span class="ws-cmd__item-label">Buy credits</span><span class="ws-cmd__item-meta">Billing</span>
+          </a>
+          <a class="ws-cmd__item" role="option" aria-selected="false" href="/docs"
+             data-cmd-keywords="docs documentation reference api formats help">
+            <svg class="ws-cmd__item-icon" aria-hidden="true"><use href="#cmdi-page"></use></svg>
+            <span class="ws-cmd__item-label">Docs</span><span class="ws-cmd__item-meta">Page</span>
+          </a>
+          <a class="ws-cmd__item" role="option" aria-selected="false" href="/tutorials"
+             data-cmd-keywords="tutorials learn guides how to walkthrough training">
+            <svg class="ws-cmd__item-icon" aria-hidden="true"><use href="#cmdi-learn"></use></svg>
+            <span class="ws-cmd__item-label">Tutorials</span><span class="ws-cmd__item-meta">Page</span>
+          </a>
+          <a class="ws-cmd__item" role="option" aria-selected="false" href="/converter"
+             data-cmd-keywords="converter convert file format stl obj glb gltf usdz 3mf">
+            <svg class="ws-cmd__item-icon" aria-hidden="true"><use href="#cmdi-tool"></use></svg>
+            <span class="ws-cmd__item-label">File converter</span><span class="ws-cmd__item-meta">Tool</span>
+          </a>
+          <a class="ws-cmd__item" role="option" aria-selected="false" href="/blogs?tag=TimrX#filter-strip"
+             data-cmd-keywords="blog blogs articles news writing posts">
+            <svg class="ws-cmd__item-icon" aria-hidden="true"><use href="#cmdi-page"></use></svg>
+            <span class="ws-cmd__item-label">Blogs</span><span class="ws-cmd__item-meta">Page</span>
+          </a>
+          <a class="ws-cmd__item" role="option" aria-selected="false" href="/company"
+             data-cmd-keywords="about company team story contact">
+            <svg class="ws-cmd__item-icon" aria-hidden="true"><use href="#cmdi-page"></use></svg>
+            <span class="ws-cmd__item-label">About TimrX</span><span class="ws-cmd__item-meta">Page</span>
+          </a>
+          <a class="ws-cmd__item" role="option" aria-selected="false" href="/terms"
+             data-cmd-keywords="terms service legal conditions">
+            <svg class="ws-cmd__item-icon" aria-hidden="true"><use href="#cmdi-legal"></use></svg>
+            <span class="ws-cmd__item-label">Terms</span><span class="ws-cmd__item-meta">Legal</span>
+          </a>
+          <a class="ws-cmd__item" role="option" aria-selected="false" href="/privacy"
+             data-cmd-keywords="privacy policy data gdpr legal">
+            <svg class="ws-cmd__item-icon" aria-hidden="true"><use href="#cmdi-legal"></use></svg>
+            <span class="ws-cmd__item-label">Privacy</span><span class="ws-cmd__item-meta">Legal</span>
+          </a>
+        </div>
+      </div>
+
+      <p class="ws-cmd__empty" id="wsCmdEmpty" hidden>No matches. Try a tool name, or a page like &ldquo;docs&rdquo;.</p>
+      <p class="visually-hidden" id="wsCmdCount" aria-live="polite"></p>
+
+      <div class="ws-cmd__foot">
+        <span><kbd>&uarr;</kbd><kbd>&darr;</kbd> navigate</span>
+        <span><kbd>&crarr;</kbd> open</span>
+        <span><kbd>Esc</kbd> close</span>
+      </div>
+    </div>
+  </div>
 
   <!-- Visually hidden SEO content -->
   <p class="visually-hidden">Use TimrX to generate images, videos, and 3D models from text prompts or reference inputs. Assets can be remeshed, textured, rigged, animated, shared, checked for print readiness, and exported in creator and 3D print formats.</p>
@@ -490,67 +624,68 @@
   </div>
 </section>
 
+<div class="sim-viewer-bg" aria-hidden="true">
+</div>
+
+<div class="ws-corner-launcher" id="wsCornerLauncher">
+  <div class="ws-corner-launcher__menu" id="wsCornerLauncherMenu" aria-hidden="true">
+    <button type="button" class="ws-corner-launcher__item assets-side-launcher" id="assetsSideLauncher" data-open-assets>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M3 7.5A2.5 2.5 0 015.5 5h4.2l1.8 2h7A2.5 2.5 0 0121 9.5v7A2.5 2.5 0 0118.5 19h-13A2.5 2.5 0 013 16.5v-9z"/>
+        <path d="M7 13h10M7 16h6"/>
+      </svg>
+      <span>Assets</span>
+    </button>
+    <button type="button" class="ws-corner-launcher__item" id="open3dViewerBtn" data-open-3d-viewer>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/>
+        <path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/>
+      </svg>
+      <span>3D Viewer</span>
+    </button>
+  </div>
+  <button type="button" class="ws-corner-launcher__toggle" id="wsCornerLauncherToggle" aria-label="Open workspace quick actions" aria-expanded="false" aria-controls="wsCornerLauncherMenu">
+    <span class="ws-corner-launcher__pulse" aria-hidden="true"></span>
+    <svg class="ws-corner-launcher__glyph" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path class="ws-corner-launcher__glyph-frame" d="M3.9 8.4A3.7 3.7 0 0 1 7.6 4.7h5l2 2h5.8a3.7 3.7 0 0 1 3.7 3.7v9.2a3.7 3.7 0 0 1-3.7 3.7H7.6a3.7 3.7 0 0 1-3.7-3.7V8.4Z"/>
+      <path class="ws-corner-launcher__glyph-cube" d="M14 11.2 17.4 13.1v3.8L14 18.8l-3.4-1.9v-3.8L14 11.2Z"/>
+      <path class="ws-corner-launcher__glyph-cube" d="M14 15 17.4 13.1M14 15v3.8M14 15l-3.4-1.9"/>
+      <path class="ws-corner-launcher__glyph-spark" d="M21.8 5.1v2.6M20.5 6.4h2.6"/>
+    </svg>
+  </button>
+</div>
+
 <!-- Main Workspace -->
 <section class="timrx-3dprint workspace" id="workspace">
   <div class="ws-grid" role="region" aria-label="Creative workspace for image, video, and 3D generation">
 
-    <!-- Icon Rail -->
-    <nav class="ws-rail" aria-label="Tools">
-      <!-- IMAGE (now inactive by default) -->
-      <button type="button" class="rail-btn" data-panel="image" aria-pressed="false" aria-label="AI Image generation">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        </svg>
-        <span>Image</span>
-      </button>
+    <!-- Asset stage — the living field of community creations. Spans the whole
+         grid by LINE (1/1/-1/-1), so grid-template-areas stays "rail" "." and
+         the body.ws-viewer-open override in nav.css is unaffected. Must remain
+         the FIRST child so it paints under .ws-rail and .ws-viewer. -->
+    <div class="ws-stage" id="wsStage" role="region"
+         aria-label="Featured creations from the TimrX community">
+      <div class="ws-stage__inner">
+        <div class="ws-stage__wash" aria-hidden="true"></div>
+        <div class="ws-stage__field"></div>
+      </div>
+    </div>
 
-      <!-- MODEL (active on load) -->
-      <button type="button" class="rail-btn is-active" data-panel="model" aria-pressed="true" aria-label="3D Model generation">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-        </svg>
-        <span>Model</span>
-      </button>
-
-      <button type="button" class="rail-btn" data-panel="remesh" aria-pressed="false" aria-label="Remesh 3D model">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v7a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1H5a1 1 0 01-1-1v-3zM14 16a1 1 0 011-1h4a1 1 0 011 1v3a1 1 0 01-1 1h-4a1 1 0 01-1-1v-3z" />
-        </svg>
-        <span>Remesh</span>
-      </button>
-
-      <button type="button" class="rail-btn" data-panel="texture" aria-pressed="false" aria-label="Texture 3D model">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" />
-        </svg>
-        <span>Texture</span>
-      </button>
-
-      <button type="button" class="rail-btn" data-panel="rig" aria-pressed="false" aria-label="Rig 3D model">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 2a4 4 0 014 4v1h2a1 1 0 011 1v2a1 1 0 01-1 1h-1v5l1 4H6l1-4v-5H6a1 1 0 01-1-1V8a1 1 0 011-1h2V6a4 4 0 014-4z" />
-        </svg>
-        <span>Rig</span>
-      </button>
-
-      <button type="button" class="rail-btn" data-panel="animate" aria-pressed="false" aria-label="Animate 3D model">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-        </svg>
-        <span>Animate</span>
-      </button>
-
-      <button type="button" class="rail-btn" data-panel="video" aria-pressed="false" aria-label="AI Video generation">
-        <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-        </svg>
-        <span>Video</span>
-      </button>
-    </nav>
 
     <!-- Left Panel -->
-    <aside class="ws-left ws-pane" id="ws-left-panel" aria-label="Tool controls">
+    <!-- Control sheet. Closed on load; a creation mode opens it. Kept as
+         .ws-left / #leftStack because updateLeftPanel() and ~300 control ids
+         are wired to this container across ten modules. -->
+    <aside class="ws-left ws-pane" id="ws-left-panel" aria-label="Tool controls"
+           role="region" aria-hidden="true">
+      <header class="ws-sheet__head">
+        <h2 class="ws-sheet__title" id="wsSheetTitle">Model</h2>
+        <p class="ws-sheet__sub" id="wsSheetSub">Describe it, tune it, generate it</p>
+        <span class="ws-sheet__spacer"></span>
+        <button type="button" class="ws-sheet__close" id="wsSheetClose" aria-label="Close controls">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
+        </button>
+      </header>
       <div class="pane-stack" id="leftStack">
         <!-- Cards injected here -->
       </div>
@@ -567,6 +702,13 @@
             <p class="pane-sub" id="genHint">Start with a prompt or upload, then refine, share, or export from the viewer.</p>
           </div>
           <div class="pane-head-actions">
+            <button type="button" id="close3dViewerBtn" class="icon-btn viewer-close-btn" data-close-3d-viewer aria-label="Close 3D viewer">
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M18 6L6 18"></path>
+                <path d="M6 6l12 12"></path>
+              </svg>
+              <span>Close</span>
+            </button>
             <button type="button" id="openUploadModalTop" class="icon-btn" aria-label="Upload new model">
               <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1379,10 +1521,24 @@
       </div>
     </main>
 
-    <!-- Right Panel -->
-    <aside class="ws-right ws-pane" id="ws-right-panel" aria-label="Generation history">
+    <div class="assets-modal-backdrop" id="assetsModalBackdrop" data-close-assets hidden></div>
+
+    <!-- Unified Assets Modal: history cards remain the source of truth -->
+    <aside class="ws-right ws-pane assets-modal" id="ws-right-panel" aria-label="My assets" aria-hidden="true">
 
       <div class="card history" id="my-assets">
+        <div class="assets-modal-titlebar">
+          <div>
+            <p class="assets-modal-kicker">Library</p>
+            <h2>My Assets</h2>
+          </div>
+          <p>All models, images, videos, batches, and in-progress jobs.</p>
+          <button type="button" class="assets-modal-close" id="assetsModalClose" data-close-assets aria-label="Close My Assets">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
         <div class="history-head">
           <div class="history-head-top">
             <!-- Top Row: Search & Controls -->
@@ -1393,7 +1549,7 @@
                   <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
-                  <input id="historySearch" placeholder="Search generations..." aria-label="Search history"/>
+                  <input id="historySearch" placeholder="Search assets..." aria-label="Search assets"/>
                 </div>
               </div>
 
@@ -1420,12 +1576,12 @@
                 <button type="button"
                         class="history-exit-btn"
                         id="historyCollapseView"
-                        aria-label="Exit gallery view"
+                        aria-label="Close assets"
                         hidden>
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                   </svg>
-                  Exit
+                  Close
                 </button>
               </div>
             </div>
@@ -1433,7 +1589,7 @@
             <!-- Bottom Row: Filters (only visible in panel, not in expansion) -->
             <div class="history-head-row-bottom">
               <div class="history-filters">
-                <button type="button" class="filter-btn" data-filter="all" data-tooltip="Expand view" aria-label="Expand view">
+                <button type="button" class="filter-btn" data-filter="all" data-tooltip="All assets" aria-label="All assets">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                   </svg>
@@ -1480,24 +1636,25 @@
         <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
         Controls
       </button>
-      <button type="button" class="ws-mobile-tab" data-tab="history" role="tab" aria-selected="false" aria-controls="ws-right-panel">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        History
+      <button type="button" class="ws-mobile-tab" data-open-assets aria-label="Open My Assets">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 015.5 5h4.2l1.8 2h7A2.5 2.5 0 0121 9.5v7A2.5 2.5 0 0118.5 19h-13A2.5 2.5 0 013 16.5v-9z"/><path d="M7 13h10M7 16h6"/></svg>
+        Assets
       </button>
     </div>
 
   </div>
 </section>
 
-  <!-- Mobile Tab Switching (Controls / History) -->
+  <!-- Mobile controls tab + unified Assets modal -->
   <script>
   (function(){
     var tabBar = document.querySelector('.ws-mobile-tabs');
-    if (!tabBar) return;
-    var tabs   = tabBar.querySelectorAll('.ws-mobile-tab');
+    var tabs   = tabBar ? tabBar.querySelectorAll('.ws-mobile-tab[data-tab]') : [];
     var wsLeft = document.getElementById('ws-left-panel');
     var wsRight= document.getElementById('ws-right-panel');
-    if (!wsLeft || !wsRight) return;
+    var assetsBackdrop = document.getElementById('assetsModalBackdrop');
+    var cmdTrigger = document.getElementById('wsCmdTrigger');
+    var lastAssetsFocus = null;
 
     function setTabState(target) {
       tabs.forEach(function(t){
@@ -1506,21 +1663,166 @@
         t.setAttribute('aria-selected', isActive ? 'true' : 'false');
       });
 
-      if (target === 'history') {
-        wsLeft.classList.add('mob-hidden');
-        wsRight.classList.add('mob-active');
-      } else {
+      if (wsLeft) {
         wsLeft.classList.remove('mob-hidden');
-        wsRight.classList.remove('mob-active');
+      }
+      if (wsRight) wsRight.classList.remove('mob-active');
+    }
+
+    function openAssetsModal(trigger) {
+      if (!wsRight || !assetsBackdrop) return;
+      lastAssetsFocus = trigger || document.activeElement;
+      document.body.classList.add('assets-modal-open');
+      if (cmdTrigger) {
+        cmdTrigger.style.opacity = '0';
+        cmdTrigger.style.pointerEvents = 'none';
+        cmdTrigger.style.visibility = 'hidden';
+      }
+      assetsBackdrop.hidden = false;
+      wsRight.setAttribute('aria-hidden', 'false');
+      requestAnimationFrame(function(){
+        assetsBackdrop.classList.add('is-open');
+        wsRight.classList.add('is-open');
+        var search = document.getElementById('historySearch');
+        if (search && window.innerWidth > 760) search.focus({ preventScroll: true });
+      });
+    }
+
+    function closeAssetsModal() {
+      if (!wsRight || !assetsBackdrop) return;
+      wsRight.classList.remove('is-open');
+      assetsBackdrop.classList.remove('is-open');
+      document.body.classList.remove('assets-modal-open');
+      if (cmdTrigger) {
+        cmdTrigger.style.opacity = '';
+        cmdTrigger.style.pointerEvents = '';
+        cmdTrigger.style.visibility = '';
+      }
+      wsRight.setAttribute('aria-hidden', 'true');
+      setTimeout(function(){ assetsBackdrop.hidden = true; }, 180);
+      if (lastAssetsFocus && typeof lastAssetsFocus.focus === 'function') {
+        lastAssetsFocus.focus({ preventScroll: true });
       }
     }
 
-    setTabState(tabBar.querySelector('.ws-mobile-tab.is-active')?.dataset.tab || 'controls');
+    window.TimrXAssets = {
+      open: openAssetsModal,
+      close: closeAssetsModal
+    };
 
-    tabBar.addEventListener('click', function(e){
-      var tab = e.target.closest('.ws-mobile-tab');
-      if (!tab) return;
-      setTabState(tab.dataset.tab);
+    if (window.location.hash === '#my-assets') {
+      setTimeout(function(){ openAssetsModal(document.getElementById('assetsSideLauncher')); }, 0);
+    }
+
+    if (tabBar) {
+      setTabState(tabBar.querySelector('.ws-mobile-tab.is-active')?.dataset.tab || 'controls');
+
+      tabBar.addEventListener('click', function(e){
+        var assetsBtn = e.target.closest('[data-open-assets]');
+        if (assetsBtn) {
+          e.preventDefault();
+          openAssetsModal(assetsBtn);
+          return;
+        }
+        var tab = e.target.closest('.ws-mobile-tab[data-tab]');
+        if (!tab) return;
+        setTabState(tab.dataset.tab);
+      });
+    }
+
+    document.addEventListener('click', function(e){
+      var opener = e.target.closest('[data-open-assets]');
+      if (opener) {
+        e.preventDefault();
+        openAssetsModal(opener);
+        return;
+      }
+      if (e.target.closest('[data-close-assets]')) {
+        e.preventDefault();
+        closeAssetsModal();
+      }
+    });
+
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape' && document.body.classList.contains('assets-modal-open')) {
+        closeAssetsModal();
+      }
+    });
+  })();
+  </script>
+
+  <script>
+  (function(){
+    var root = document.getElementById('wsCornerLauncher');
+    var toggle = document.getElementById('wsCornerLauncherToggle');
+    var menu = document.getElementById('wsCornerLauncherMenu');
+    if (!root || !toggle || !menu) return;
+
+    function setOpen(open) {
+      root.classList.toggle('is-open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      toggle.setAttribute('aria-label', open ? 'Close workspace quick actions' : 'Open workspace quick actions');
+      menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+    }
+
+    function openViewer() {
+      setOpen(false);
+      document.body.classList.add('ws-viewer-open');
+      document.body.classList.remove('assets-modal-open');
+      if (window.TimrXAssets && typeof window.TimrXAssets.close === 'function') {
+        window.TimrXAssets.close();
+      }
+      if (window.TimrXWorkspace && typeof window.TimrXWorkspace.activatePanel === 'function') {
+        window.TimrXWorkspace.activatePanel('model', { reveal: false });
+      } else {
+        var modelBtn = document.querySelector('.rail-btn[data-panel="model"]');
+        if (modelBtn) modelBtn.click();
+      }
+      var viewer = document.querySelector('.timrx-3dprint .ws-viewer');
+      if (viewer && typeof viewer.scrollIntoView === 'function') {
+        viewer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      window.dispatchEvent(new Event('resize'));
+    }
+
+    function closeViewer() {
+      document.body.classList.remove('ws-viewer-open');
+      setOpen(false);
+      window.dispatchEvent(new Event('resize'));
+    }
+
+    toggle.addEventListener('click', function(e){
+      e.preventDefault();
+      setOpen(!root.classList.contains('is-open'));
+    });
+
+    menu.addEventListener('click', function(e){
+      if (e.target.closest('[data-open-3d-viewer]')) {
+        e.preventDefault();
+        openViewer();
+        return;
+      }
+      if (e.target.closest('[data-open-assets]')) {
+        setOpen(false);
+      }
+    });
+
+    document.addEventListener('click', function(e){
+      if (e.target.closest('[data-close-3d-viewer]')) {
+        e.preventDefault();
+        closeViewer();
+        return;
+      }
+      if (!root.contains(e.target)) setOpen(false);
+    });
+
+    document.addEventListener('keydown', function(e){
+      if (e.key !== 'Escape') return;
+      if (document.body.classList.contains('ws-viewer-open')) {
+        closeViewer();
+        return;
+      }
+      setOpen(false);
     });
   })();
   </script>
@@ -1558,58 +1860,6 @@
   </script>
 
 
-  <!-- Dropdown Navigation Script -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const dropdowns = document.querySelectorAll('.nav-dropdown');
-
-      dropdowns.forEach(dropdown => {
-        const toggle = dropdown.querySelector('.nav-dropdown-toggle');
-        const menu = dropdown.querySelector('.nav-dropdown-menu');
-
-        // Toggle dropdown on button click
-        toggle.addEventListener('click', function(e) {
-          e.stopPropagation();
-          const isOpen = dropdown.classList.contains('open');
-
-          // Close all other dropdowns
-          dropdowns.forEach(d => d.classList.remove('open'));
-
-          // Toggle current dropdown
-          if (!isOpen) {
-            dropdown.classList.add('open');
-            toggle.setAttribute('aria-expanded', 'true');
-          } else {
-            dropdown.classList.remove('open');
-            toggle.setAttribute('aria-expanded', 'false');
-          }
-        });
-      });
-
-      // Close dropdowns when clicking outside
-      document.addEventListener('click', function(e) {
-        if (!e.target.closest('.nav-dropdown')) {
-          dropdowns.forEach(dropdown => {
-            dropdown.classList.remove('open');
-            const toggle = dropdown.querySelector('.nav-dropdown-toggle');
-            if (toggle) toggle.setAttribute('aria-expanded', 'false');
-          });
-        }
-      });
-
-      // Close dropdowns on escape key
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-          dropdowns.forEach(dropdown => {
-            dropdown.classList.remove('open');
-            const toggle = dropdown.querySelector('.nav-dropdown-toggle');
-            if (toggle) toggle.setAttribute('aria-expanded', 'false');
-          });
-        }
-      });
-    });
-  </script>
-
   <!-- Expanded Views Script -->
   <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -1617,12 +1867,10 @@
       const viewHandles = [];
       const bodyViewClasses = new Set();
 
+      // The header nav dropdown was replaced by the command palette; closing an
+      // open palette is the equivalent step when entering an expanded view.
       const closeDropdowns = () => {
-        document.querySelectorAll('.nav-dropdown.open, .ws-dropdown.open').forEach(dropdown => {
-          dropdown.classList.remove('open');
-          const toggle = dropdown.querySelector('.nav-dropdown-toggle') || dropdown.querySelector('.ws-dropdown-toggle');
-          toggle?.setAttribute('aria-expanded', 'false');
-        });
+        window.TimrXCommand?.close?.();
       };
 
       const setHash = (value = '') => {
@@ -3367,6 +3615,7 @@
   <script type="module" src="./js/main.js?v=20260528a"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
+  <script src="js/command-palette.js?v=20260801a" defer></script>
 
   <!-- UI helper scripts -->
   <script>
@@ -3406,12 +3655,11 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Nav hide on scroll — expansion views (all sizes) + mobile/tablet (all views)
       const wsHeader = document.querySelector('.ws-header');
-      const nav = document.querySelector('.ws-nav');
+      const cmdTrigger = document.querySelector('.ws-cmd-trigger');
       const headerLeft = document.querySelector('.ws-header-left');
       const creditsGroup = document.querySelector('.ws-credits');
-      const tickerHeader = document.querySelector('.ticker-header');
       const accountShield = document.querySelector('.account-shield-ws');
-      const hideableElements = [nav, headerLeft, creditsGroup, tickerHeader, accountShield].filter(Boolean);
+      const hideableElements = [cmdTrigger, headerLeft, creditsGroup, accountShield].filter(Boolean);
 
       if (wsHeader) {
         let ticking = false;

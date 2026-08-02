@@ -2885,9 +2885,7 @@ function wireGallery() {
       closeActiveHistoryMenu();
       const filterType = btn.getAttribute('data-filter');
       if (filterType === 'all') {
-        State.historyState.galleryExpanded = State.historyState.filter === 'all'
-          ? !State.historyState.galleryExpanded
-          : true;
+        State.historyState.galleryExpanded = false;
         State.historyState.filter = 'all';
       } else {
         State.historyState.galleryExpanded = false;

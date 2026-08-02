@@ -2252,13 +2252,7 @@ function _renderHistoryImpl() {
     return false;
   });
 
-  const srcForLineage = (historyState.filter === 'all' && !isGallery)
-    ? srcFiltered.filter(item => {
-        const type = item.type || (item.glb_url ? 'model' : item.image_url ? 'image' : item.video_url ? 'video' : 'model');
-        if (type === 'model') return true;
-        return _IN_PROGRESS_STATUSES.has(item.status);
-      })
-    : srcFiltered;
+  const srcForLineage = srcFiltered;
   const lineages = groupByLineage(srcForLineage);
   const currentLineageKeys = new Set(lineages.map(l => String(l.rootId || l.id)));
   historyLineageCounts.forEach((_, key) => {
@@ -2282,8 +2276,8 @@ function _renderHistoryImpl() {
             <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M6 11h12M10 15h4M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
           </svg>
         </div>
-        <p>No models yet</p>
-        <span>Run your first generation to fill this timeline.</span>
+        <p>No assets yet</p>
+        <span>Run your first generation to fill this library.</span>
       </div>
     `;
     if (pageLabel) pageLabel.textContent = skeletonMarkup ? 'Loading...' : '0/0';

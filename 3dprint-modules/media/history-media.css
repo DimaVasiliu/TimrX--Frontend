@@ -570,3 +570,148 @@
     bottom: max(24px, env(safe-area-inset-bottom));
   }
 }
+
+/* Unified Assets modal overrides. These intentionally run after the old
+   mobile history-tab rules so the modal is no longer controlled by mob-active. */
+@media (max-width: 1280px) {
+  .timrx-3dprint .assets-modal-close {
+    position: fixed;
+    top: 66px;
+    right: 18px;
+    z-index: 200400;
+    color: #fff;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-head-right {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  body.print3d-page > .assets-side-launcher,
+  .timrx-3dprint .assets-side-launcher {
+    right: 12px !important;
+    bottom: 174px !important;
+    z-index: 140 !important;
+    transform: none !important;
+  }
+
+  body.print3d-page > .assets-side-launcher:hover,
+  body.print3d-page > .assets-side-launcher:focus-visible,
+  .timrx-3dprint .assets-side-launcher:hover,
+  .timrx-3dprint .assets-side-launcher:focus-visible {
+    transform: translateY(-2px);
+  }
+
+  .timrx-3dprint .ws-right.assets-modal,
+  .timrx-3dprint .ws-right.assets-modal:not(.mob-active) {
+    display: flex !important;
+    position: fixed !important;
+    inset: 58px 10px max(96px, calc(env(safe-area-inset-bottom, 0px) + 84px));
+  }
+
+  .timrx-3dprint .ws-right.assets-modal.is-open,
+  .timrx-3dprint .ws-right.assets-modal.is-open:not(.mob-active) {
+    display: flex !important;
+    position: fixed !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transform: none !important;
+    z-index: 200150 !important;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .card.history {
+    width: 100% !important;
+    min-width: 0;
+    padding: 14px;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .timrx-3dprint .assets-modal-titlebar {
+    position: relative;
+    display: block;
+    min-width: 0;
+    padding-right: 52px;
+  }
+
+  .timrx-3dprint .assets-modal-close {
+    position: fixed;
+    top: 66px;
+    right: 18px;
+    z-index: 200400;
+    width: 44px;
+    height: 44px;
+    color: #fff;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-head-row-top {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-head-center {
+    min-width: 0;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-head-right {
+    min-width: 0;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-search-wrapper {
+    min-width: 0;
+    width: min(100%, calc(100vw - 40px));
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-search-wrapper input {
+    min-width: 0;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-sort-btn {
+    display: none;
+  }
+
+  .timrx-3dprint .assets-modal-titlebar > p:not(.assets-modal-kicker) {
+    display: none;
+  }
+}
+
+@media (max-width: 560px) {
+  body.print3d-page > .assets-side-launcher,
+  .timrx-3dprint .assets-side-launcher {
+    right: 10px !important;
+    bottom: 164px !important;
+    z-index: 140 !important;
+    min-height: 44px;
+    padding: 10px 12px;
+  }
+
+  body.print3d-page > .assets-side-launcher span,
+  .timrx-3dprint .assets-side-launcher span {
+    display: none;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal,
+  .timrx-3dprint .ws-right.assets-modal:not(.mob-active) {
+    inset: 50px 8px max(96px, calc(env(safe-area-inset-bottom, 0px) + 84px));
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .card.history {
+    padding: 12px;
+    border-radius: 18px;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-head-right {
+    display: none;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-search-wrapper {
+    width: calc(100vw - 40px);
+  }
+
+  .timrx-3dprint .assets-modal-titlebar h2 {
+    font-size: 25px;
+  }
+}

@@ -1464,15 +1464,18 @@ export function updateCreditsUI() {
     creditsValue.textContent = effectiveAvailable.toLocaleString();
   }
 
-  // Update hover tooltip with pool breakdown
-  const tooltipGeneral = document.getElementById('tooltipGeneral');
-  const tooltipVideo = document.getElementById('tooltipVideo');
-  if (tooltipGeneral) {
-    tooltipGeneral.textContent = effectiveAvailable.toLocaleString();
-  }
-  if (tooltipVideo) {
-    tooltipVideo.textContent = creditsState.wallet.videoAvailable.toLocaleString();
-  }
+  // Update hover tooltip with pool breakdown.
+  // The mobile menu mirrors these because the header pill collapses below 900px.
+  const generalText = effectiveAvailable.toLocaleString();
+  const videoText = creditsState.wallet.videoAvailable.toLocaleString();
+  ['tooltipGeneral', 'mobileCreditsGeneral'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = generalText;
+  });
+  ['tooltipVideo', 'mobileCreditsVideo'].forEach((id) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = videoText;
+  });
 
   // Show/hide reserved indicator
   if (reservedIndicator) {
