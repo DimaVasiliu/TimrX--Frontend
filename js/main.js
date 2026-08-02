@@ -2876,6 +2876,53 @@ function showWorkspacePanelForViewer(panelType) {
   document.querySelector(`.rail-btn[data-panel="${panelType}"]`)?.click();
 }
 
+// History records have existed in a few shapes over time. Keep viewer opening
+// tolerant of both the current flat API response and older payload-wrapped
+// records, while reserving thumbnail_url for visual cards only.
+function getHistoryAssetSources(item = {}) {
+  const payload = item?.payload && typeof item.payload === 'object' ? item.payload : {};
+  const meta = item?.meta && typeof item.meta === 'object' ? item.meta : {};
+  const values = [item, payload, meta];
+  const first = (...keys) => {
+    for (const source of values) {
+      for (const key of keys) {
+        const value = source?.[key];
+        if (typeof value === 'string' && value.trim()) return value.trim();
+      }
+    }
+    return '';
+  };
+
+  const glb = first('glb_proxy', 'glb_url', 'model_url', 'model_glb_url', 'rigged_character_glb_url', 'animation_glb_url');
+  const stl = first('stl_url', 'model_stl_url', 'print_url');
+  const image = first('image_url', 'original_url', 'output_url');
+  const video = first('video_url', 'output_video_url');
+  const media = first('media_url', 'asset_url');
+  const explicitType = String(first('type', 'item_type', 'asset_type', 'kind')).toLowerCase();
+  const type = glb || stl || explicitType === 'model'
+    ? 'model'
+    : explicitType === 'video' || video || (!image && explicitType !== 'image' && media)
+      ? 'video'
+      : 'image';
+
+  return {
+    type,
+    glb,
+    stl,
+    image: image || (type === 'image' ? media : ''),
+    video: video || (type === 'video' ? media : ''),
+  };
+}
+
+function setHistoryViewerMeta(item, type) {
+  const title = shortTitle(item) || `${type === 'model' ? '3D model' : type} preview`;
+  const hint = item?.prompt || item?.root_prompt || item?.title || `Opened from My Assets · ${type}`;
+  const titleEl = byId('viewerTitle');
+  const hintEl = byId('genHint');
+  if (titleEl) titleEl.textContent = title;
+  if (hintEl) hintEl.textContent = hint;
+}
+
 function wireGallery() {
   const grid = document.getElementById('historyGrid');
   const q = document.getElementById('historySearch');
@@ -3263,7 +3310,9 @@ function wireGallery() {
         return;
       }
 
-      const glbUrl = item.glb_proxy || item.glb_url;
+      const asset = getHistoryAssetSources(item);
+      const glbUrl = asset.glb;
+      const modelUrl = glbUrl || asset.stl;
 
       // Handle actions
       if (act === 'open') {
@@ -3280,14 +3329,15 @@ function wireGallery() {
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
-        // Handle video type
-        if (item.type === 'video' || item.video_url) {
-          const videoUrl = item.video_url;
+        // Handle video type. A thumbnail is never used as the video source.
+        if (asset.type === 'video') {
+          const videoUrl = asset.video;
           if (videoUrl) {
             State.setHistoryActiveModelId(id);
             _suppressHistoryFilterReset = true;
             showWorkspacePanelForViewer('video');
             _suppressHistoryFilterReset = false;
+            setHistoryViewerMeta(item, 'video');
             Viewer.showVideoInViewer(videoUrl, {
               title: shortTitle(item) || 'Video Preview',
               hint: item.prompt || 'Generated video',
@@ -3297,32 +3347,37 @@ function wireGallery() {
           return;
         }
 
-        // Handle image type
-        if (!glbUrl && (item.type === 'image' || item.image_url)) {
+        // Handle image type. Prefer the original/output URL, using a thumbnail
+        // only when the record truly has no full-size image URL.
+        if (!modelUrl && asset.type === 'image') {
           State.setHistoryActiveModelId(id);
-          const imgSrc = item.image_url || item.thumbnail_url || '';
+          const imgSrc = asset.image || item.thumbnail_url || '';
           if (imgSrc) {
             _suppressHistoryFilterReset = true;
             showWorkspacePanelForViewer('image');
             _suppressHistoryFilterReset = false;
+            setHistoryViewerMeta(item, 'image');
             Viewer.showImageInViewer(imgSrc);
           }
           if (!wasGallery) renderHistory();
           return;
         }
 
-        if (!glbUrl) return;
+        if (!modelUrl) return;
 
         _suppressHistoryFilterReset = true;
         showWorkspacePanelForViewer('model');
         _suppressHistoryFilterReset = false;
 
         const genHintEl = byId('genHint');
-        if (genHintEl) genHintEl.textContent = 'Loading model...';
+        setHistoryViewerMeta(item, 'model');
+        if (genHintEl) genHintEl.textContent = `Loading ${shortTitle(item) || 'model'}...`;
         State.setHistoryActiveModelId(id);
 
         // Reset version stack for this model and hide action bar
-        const loadUrl = item.glb_proxy || getLoadableModelUrl(item.glb_url);
+        const loadUrl = asset.glb === item.glb_proxy
+          ? item.glb_proxy
+          : (asset.glb ? getLoadableModelUrl(asset.glb) : asset.stl);
         State.resetModelVersionStack({
           id,
           glb_url: loadUrl,
@@ -3334,9 +3389,13 @@ function wireGallery() {
         if (actionBar) actionBar.classList.add('hidden');
 
         const primary = loadUrl;
-        const fallback = (item.glb_url && item.glb_url !== primary) ? item.glb_url : null;
+        const fallback = asset.glb && asset.glb !== primary ? asset.glb : null;
         try {
-          await Viewer.loadModelWithFallback(primary, fallback);
+          if (asset.stl && !asset.glb) {
+            await Viewer.loadStlFromUrl(primary);
+          } else {
+            await Viewer.loadModelWithFallback(primary, fallback);
+          }
           if (genHintEl) genHintEl.textContent = 'Loaded from history.';
         } catch (err) {
           console.warn('[History] Failed to load model into viewer:', err);
@@ -3419,11 +3478,12 @@ function wireGallery() {
           renderHistory();
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }
-        const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
+        const videoUrl = btn.getAttribute('data-video-url') || getHistoryAssetSources(item).video;
         if (videoUrl) {
           _suppressHistoryFilterReset = true;
           showWorkspacePanelForViewer('video');
           _suppressHistoryFilterReset = false;
+          setHistoryViewerMeta(item, 'video');
           Viewer.showVideoInViewer(videoUrl, {
             title: shortTitle(item) || 'Video Preview',
             hint: item.prompt || 'Generated video',
@@ -3798,6 +3858,12 @@ function wireGallery() {
     if (insideMenu || onToggle) return;
     closeActiveHistoryMenu();
   });
+
+  // Keep the floating menu attached to its thumbnail while the modal or its
+  // grid scrolls, and while the viewport changes size.
+  const repositionHistoryMenu = () => updateActiveHistoryMenuPosition();
+  window.addEventListener('resize', repositionHistoryMenu, { passive: true });
+  document.addEventListener('scroll', repositionHistoryMenu, { passive: true, capture: true });
 
   // ESC to close menus/gallery
   document.addEventListener('keydown', (evt) => {

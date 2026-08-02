@@ -492,6 +492,22 @@ body.history-menu-open .timrx-3dprint .history-group-card.is-menu-open .history-
   transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s 0s;
 }
 
+/* Menus are positioned with viewport coordinates in history.js. Expanded
+   gallery cards animate with transform, which would otherwise create a new
+   containing block for position:fixed and make the menu appear far from the
+   thumbnail that opened it. Once open, remove that containing transform. */
+.timrx-3dprint .history-thumb.is-menu-open,
+.timrx-3dprint .expanded-thumb.is-menu-open,
+.timrx-3dprint .history-group-card.is-menu-open,
+.timrx-3dprint .card-menu.is-open {
+  transform: none !important;
+}
+
+.timrx-3dprint .expanded-thumb.is-menu-open {
+  animation: none !important;
+  opacity: 1;
+}
+
 .timrx-3dprint .card-menu__list {
   display: flex;
   flex-direction: column;

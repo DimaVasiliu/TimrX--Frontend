@@ -513,6 +513,19 @@ function getHistoryMenuHost(node) {
   return node?.closest?.('.history-thumb, .expanded-thumb, .history-group-card') || null;
 }
 
+function getHistoryMenuHosts(node) {
+  const host = getHistoryMenuHost(node);
+  if (!host) return [];
+  const hosts = [host];
+  // Group cards sit inside an animated .expanded-thumb wrapper in the All
+  // gallery. Both ancestors must lose their transform while a fixed menu is
+  // open, otherwise the outer wrapper still becomes the fixed-positioning
+  // containing block.
+  const outer = host.closest('.expanded-thumb');
+  if (outer && outer !== host) hosts.push(outer);
+  return hosts;
+}
+
 // Export getters for menu state (needed by main.js)
 export function getGroupedCardItems(groupId) {
   return _groupedCardData.get(String(groupId)) || null;
@@ -948,8 +961,7 @@ export function closeActiveHistoryMenu() {
   if (activeHistoryMenuBtn) {
     activeHistoryMenuBtn.setAttribute('aria-expanded', 'false');
     activeHistoryMenuBtn.classList.remove('is-open');
-    const host = getHistoryMenuHost(activeHistoryMenuBtn);
-    if (host) host.classList.remove('is-menu-open');
+    getHistoryMenuHosts(activeHistoryMenuBtn).forEach((host) => host.classList.remove('is-menu-open'));
   }
   if (activeHistoryMenu) {
     activeHistoryMenu.classList.remove('is-open');
@@ -969,8 +981,7 @@ export function openHistoryMenu(menuBtn, menu) {
   closeActiveHistoryMenu();
   menuBtn.setAttribute('aria-expanded', 'true');
   menuBtn.classList.add('is-open');
-  const host = getHistoryMenuHost(menuBtn);
-  if (host) host.classList.add('is-menu-open');
+  getHistoryMenuHosts(menuBtn).forEach((host) => host.classList.add('is-menu-open'));
   menu.classList.add('is-open');
   activeHistoryMenuBtn = menuBtn;
   activeHistoryMenu = menu;
