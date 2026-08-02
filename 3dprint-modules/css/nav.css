@@ -2161,3 +2161,87 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
   .gen-card__ico{animation:none !important}
   .gen-card.is-indeterminate .gen-card__bar i{animation:none;width:100% !important;opacity:.5}
 }
+
+/* ==========================================================================
+   MODE SWITCH — weight and presence
+   --------------------------------------------------------------------------
+   The unframed version read as quiet to the point of being missable: 13px
+   labels at 42% opacity with 22px glyphs, packed 10px apart. With no container
+   to carry them, the type and the icons have to do that work themselves.
+   ========================================================================== */
+
+.ws-modes-switch{
+  gap:22px;                       /* was 10px — they were reading as one blob */
+}
+
+.timrx-3dprint .ws-modes-switch .ws-mode,
+.ws-modes-switch .ws-mode{
+  padding:10px 20px;
+  gap:0 13px;
+  /* Inactive modes were nearly invisible at .42; they are navigation, not
+     decoration, and have to look clickable before you hover them. */
+  color:rgba(255,255,255,.58);
+}
+
+.ws-mode:hover{color:rgba(255,255,255,.92)}
+.ws-mode.is-active{color:#fff}
+
+.ws-mode__label{
+  font-size:15px;
+  font-weight:650;
+  letter-spacing:-.005em;
+}
+
+.ws-mode.is-active .ws-mode__label{
+  font-weight:750;
+  letter-spacing:0;
+}
+
+.ws-mode__meta{
+  font-size:11px;
+  color:rgba(255,255,255,.46);
+}
+
+.mode-ico{width:26px;height:26px}
+
+/* Glyph strokes scale with the icon, or a 26px icon drawn at 1.6px reads
+   thinner than the 22px one it replaced. */
+.mode-ico--cube i{inset:4px;border-width:1.9px}
+.mode-ico--cube i:nth-child(1){transform:translate(-3px,-3px)}
+.mode-ico--cube i:nth-child(3){transform:translate(3px,3px)}
+.ws-mode:hover .mode-ico--cube i:nth-child(1){transform:translate(-4.2px,-4.2px) rotate(-6deg)}
+.ws-mode:hover .mode-ico--cube i:nth-child(3){transform:translate(4.2px,4.2px) rotate(6deg)}
+.ws-mode.is-active .mode-ico--cube i:nth-child(1){transform:translate(-2.4px,-2.4px)}
+.ws-mode.is-active .mode-ico--cube i:nth-child(3){transform:translate(2.4px,2.4px)}
+
+.mode-ico--video i:nth-child(1){left:1px;top:6px;width:15px;height:14px;border-width:1.9px}
+.mode-ico--video i:nth-child(2){
+  right:1px;top:9.5px;
+  border-top-width:4px;border-bottom-width:4px;border-left-width:6.5px;
+}
+
+.mode-ico--image i:nth-child(1){inset:3px;border-width:1.9px}
+.mode-ico--image i:nth-child(2){left:7px;top:7px;width:3.6px;height:3.6px}
+.mode-ico--image i:nth-child(3){left:4.5px;right:4.5px;bottom:6.5px;height:1.9px}
+
+/* Keep the active cube's breathing amplitude proportional to the new size. */
+@keyframes modeCubeA{
+  0%,100%{transform:translate(-2.4px,-2.4px)}
+  50%    {transform:translate(-4px,-4px) rotate(-4deg)}
+}
+@keyframes modeCubeB{
+  0%,100%{transform:translate(2.4px,2.4px)}
+  50%    {transform:translate(4px,4px) rotate(4deg)}
+}
+
+@media (max-width:1180px){
+  .ws-modes-switch{gap:14px}
+  .ws-modes-switch .ws-mode{padding:9px 16px}
+  .ws-mode__label{font-size:14px}
+}
+
+@media (max-width:900px){
+  .ws-modes-switch{gap:10px}
+  .ws-modes-switch .ws-mode{padding:9px 13px}
+  .mode-ico{width:24px;height:24px}
+}

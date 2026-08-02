@@ -132,13 +132,13 @@
   <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260802k">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260802n">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
   <script defer src="3dprint-modules/3dprint-app.js?v=20260802h"></script>
   <script defer src="3dprint-modules/inspire.js?v=20260802f"></script>
   <script defer src="3dprint-modules/community-gallery.js?v=20260802f"></script>
-  <script defer src="3dprint-modules/asset-stage.js?v=20260802h"></script>
+  <script defer src="3dprint-modules/asset-stage.js?v=20260802i"></script>
 
   <!-- Visually Hidden Utility + Ticker Styles -->
   <style>
@@ -1707,6 +1707,7 @@
       }
       wsRight.setAttribute('aria-hidden', 'true');
       setTimeout(function(){ assetsBackdrop.hidden = true; }, 180);
+      window.dispatchEvent(new Event('timrx:assets-closed'));
       if (lastAssetsFocus && typeof lastAssetsFocus.focus === 'function') {
         lastAssetsFocus.focus({ preventScroll: true });
       }
@@ -3640,11 +3641,13 @@
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260802g"></script>
+  <script type="module" src="./js/main.js?v=20260802i"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
   <script src="js/command-palette.js?v=20260802f" defer></script>
   <script src="js/generation-tracker.js?v=20260802a" defer></script>
+  <script src="js/thought-engine.js?v=20260802c" defer></script>
+  <script src="js/hero-sequence.js?v=20260802d" defer></script>
 
   <!-- UI helper scripts -->
   <script>

@@ -101,11 +101,24 @@ body.ws-video-mode.ws-intro-done .ws-stage{
 .af__slot{
   position:absolute;left:var(--x);top:var(--y);width:var(--w);
   translate:-50% -50%;
-  transform:translate3d(calc(var(--afx) * var(--par)),calc(var(--afy) * var(--par)),0);
-  transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .55s ease,width .45s cubic-bezier(.22,1,.36,1);
+  /* Composed, not overwritten: --afx/--afy are the existing pointer parallax
+     (written once per frame on the stage root); --hx/--hy/--hr are the hero
+     sequence's magnetic displacement (written per card by hero-sequence.js).
+     Keeping them as separate custom properties means neither system has to
+     know about the other, and both stay on the compositor. */
+  transform:
+    translate3d(
+      calc(var(--afx) * var(--par) + var(--hx, 0px) + var(--tx, 0px)),
+      calc(var(--afy) * var(--par) + var(--hy, 0px) + var(--ty, 0px)),
+      var(--tz, 0px))
+    rotate(var(--hr, 0deg)) rotate(var(--tr, 0deg))
+    scale(var(--hs, 1)) scale(var(--ts, 1));
+  /* The springs own the travel. A second CSS tween here adds lag and makes
+     the first typed impulse look frozen before it catches up. */
+  transition:opacity .55s ease,width .45s cubic-bezier(.22,1,.36,1);
   z-index:var(--z);
-  opacity:calc(var(--o) * var(--af-in) * var(--af-dim));
-  filter:blur(var(--blur));
+  opacity:calc(var(--o) * var(--af-in) * var(--af-dim) * var(--dop, 1));
+  filter:blur(calc(var(--blur) + var(--dbl, 0px)));
   will-change:transform;
 }
 .af__slot.is-swapping{opacity:0;transition:opacity .45s ease}
@@ -516,6 +529,7 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
    ========================================================================== */
 @media (prefers-reduced-motion:reduce){
   .ws-stage__wash,.af__float{animation:none!important}
+  .af__slot.is-awake .af__card{animation:none!important}
   .af-settings,
   .af-settings__toggle,
   .af-settings__toggle::before,
@@ -563,7 +577,7 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
   .ws-stage__field:hover .af__slot{
     opacity:calc(var(--o) * .26 * var(--af-in) * var(--af-dim));
     filter:blur(calc(var(--blur) + 1.4px));
-    transform:translate3d(calc(var(--afx) * var(--par)),calc(var(--afy) * var(--par)),0) scale(.965);
+    transform:translate3d(calc(var(--afx) * var(--par) + var(--hx, 0px) + var(--tx, 0px)),calc(var(--afy) * var(--par) + var(--hy, 0px) + var(--ty, 0px)),var(--tz, 0px)) rotate(var(--hr, 0deg)) rotate(var(--tr, 0deg)) scale(.965) scale(var(--ts, 1));
   }
 }
 
@@ -613,7 +627,7 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
 /* --- dealing: staggered swap on a full reshuffle -------------------------- */
 .ws-stage.af--dealing .af__slot.is-swapping{
   opacity:0;
-  transform:translate3d(calc(var(--afx) * var(--par)),calc(var(--afy) * var(--par) + 18px),0) scale(.9);
+  transform:translate3d(calc(var(--afx) * var(--par) + var(--hx, 0px) + var(--tx, 0px)),calc(var(--afy) * var(--par) + var(--hy, 0px) + var(--ty, 18px)),var(--tz, 0px)) rotate(var(--hr, 0deg)) rotate(var(--tr, 0deg)) scale(.9) scale(var(--ts, 1));
   transition:opacity .3s ease var(--deal,0ms), transform .3s cubic-bezier(.22,1,.36,1) var(--deal,0ms);
 }
 .ws-stage.af--dealing .af__slot:not(.is-swapping){
@@ -694,4 +708,301 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
    marks it as the focused card; drop the cast shadow like all the others. */
 .ws-stage.af--spotlight .af__slot.is-hero .af__card{
   box-shadow:0 0 0 1px rgba(var(--accent-blue-rgb,127,200,194),.24);
+}
+
+/* A rare projector cue: one creation wakes for a moment, then returns to the
+   ambient field. Keep this as a ring and a slight lift, not a permanent glow. */
+.af__slot.is-awake .af__card{
+  animation:afCardAwake 2.1s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes afCardAwake{
+  0%,100%{transform:translateY(0) scale(1);box-shadow:0 0 0 0 rgba(var(--accent-blue-rgb,127,200,194),0)}
+  24%{transform:translateY(-6px) scale(1.035);box-shadow:0 0 0 1px rgba(var(--accent-blue-rgb,127,200,194),.42),0 0 28px rgba(var(--accent-blue-rgb,127,200,194),.14)}
+  62%{transform:translateY(-3px) scale(1.018);box-shadow:0 0 0 1px rgba(var(--accent-blue-rgb,127,200,194),.22),0 0 18px rgba(var(--accent-blue-rgb,127,200,194),.08)}
+}
+
+/* ==========================================================================
+   HERO SEQUENCE — projected line + think pulse
+   --------------------------------------------------------------------------
+   Not a text block sitting on top of the field: light cast into the same space
+   the cards float in. No box, no background, no border — the glow is the only
+   thing that says it is there.
+   ========================================================================== */
+
+.hero-seq{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+  z-index:35;
+  opacity:1;
+  transition:opacity .5s cubic-bezier(.22,1,.36,1);
+}
+.hero-seq.is-gone{opacity:0}
+
+.hero-seq__line{
+  position:relative;z-index:4;
+  margin:0;
+  max-width:min(78vw,900px);
+  min-height:1.1em;
+  text-align:center;
+  font-family:var(--font-display,Inter,system-ui,sans-serif);
+  font-size:clamp(26px,4.4vw,58px);
+  font-weight:600;
+  letter-spacing:0;
+  line-height:1.1;
+  color:transparent;
+  transition:opacity .6s cubic-bezier(.22,1,.36,1),
+             filter .6s cubic-bezier(.22,1,.36,1),
+             transform .7s cubic-bezier(.22,1,.36,1);
+}
+
+/* Dissolve: the line loses focus and lifts, rather than cutting out. */
+.hero-seq__line.is-out{
+  opacity:0;
+  filter:blur(14px);
+  transform:translateY(-16px) scale(1.03);
+}
+
+.hero-seq__particles{
+  position:absolute;inset:0;z-index:3;pointer-events:none;overflow:visible;
+}
+.hero-seq__particle{
+  position:absolute;left:50%;top:50%;display:block;
+  width:var(--ps,2px);height:var(--ps,2px);border-radius:50%;
+  background:rgba(224,250,246,.94);
+  box-shadow:0 0 8px rgba(var(--accent-blue-rgb,127,200,194),.78);
+  opacity:0;transform:translate3d(0,0,0) scale(.2);
+  --particle-scale:1;
+  animation:heroParticle 1.1s cubic-bezier(.2,.8,.25,1) var(--pd,0ms) both;
+  will-change:transform,opacity;
+}
+@keyframes heroParticle{
+  0%{opacity:0;transform:translate3d(0,0,0) scale(.2)}
+  18%{opacity:.9}
+  100%{opacity:0;transform:translate3d(calc(var(--px) * var(--particle-scale)),calc(var(--py) * var(--particle-scale)),0) scale(1)}
+}
+
+.hero-seq.is-scroll-out .hero-seq__line{
+  opacity:0;filter:blur(18px);transform:translate3d(0,-24px,0) scale(1.04);
+}
+.hero-seq.is-scroll-out .hero-seq__particle{
+  animation-duration:.7s;
+  --particle-scale:2.8;
+}
+
+/* --- per-character materialisation --------------------------------------- */
+.hero-ch{
+  display:inline-block;
+  white-space:pre;
+  color:rgba(240,252,250,.96);
+  /* The projected look: a tight core glow plus a wide soft bloom, so the
+     glyph reads as light in air rather than as filled type. */
+  text-shadow:
+    0 0 10px rgba(var(--accent-blue-rgb,127,200,194),.55),
+    0 0 34px rgba(var(--accent-blue-rgb,127,200,194),.28),
+    0 0 70px rgba(var(--accent-blue-rgb,127,200,194),.14);
+  animation:heroCh .62s cubic-bezier(.2,1.5,.4,1) backwards;
+  will-change:transform,opacity,filter;
+}
+
+.hero-ch.is-space{text-shadow:none;animation:none}
+
+/* Overshoot, then settle. Starts blurred and slightly forward, as if the
+   projector is pulling it into focus. */
+@keyframes heroCh{
+  0%{
+    opacity:0;
+    filter:blur(9px);
+    transform:translateY(.14em) scale(1.22);
+  }
+  55%{
+    opacity:1;
+    filter:blur(0);
+    transform:translateY(-.045em) scale(.985);
+  }
+  100%{
+    opacity:1;
+    filter:blur(0);
+    transform:none;
+  }
+}
+
+/* Once complete the whole line breathes very slightly — nothing on this page
+   should be perfectly still. */
+.hero-seq__line.is-complete .hero-ch{
+  animation:heroBreathe 5.5s ease-in-out 1.2s infinite;
+}
+@keyframes heroBreathe{
+  0%,100%{opacity:1}
+  50%    {opacity:.86}
+}
+
+/* --- think pulse ---------------------------------------------------------- */
+.hero-seq__pulse{
+  position:absolute;
+  left:50%;top:50%;
+  width:min(60vw,760px);
+  aspect-ratio:1;
+  translate:-50% -50%;
+  border-radius:50%;
+  opacity:0;
+  pointer-events:none;
+  background:radial-gradient(circle,
+    rgba(var(--accent-blue-rgb,127,200,194),.13) 0%,
+    rgba(var(--accent-blue-rgb,127,200,194),.05) 38%,
+    transparent 62%);
+}
+
+.hero-seq__pulse.is-on{animation:heroPulse 2.6s cubic-bezier(.22,1,.36,1)}
+@keyframes heroPulse{
+  0%  {opacity:0;transform:scale(.24)}
+  22% {opacity:1}
+  100%{opacity:0;transform:scale(1.5)}
+}
+
+@media (max-width:640px){
+  .hero-seq__line{font-size:clamp(22px,7vw,34px);max-width:86vw}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .hero-ch{animation:none !important;filter:none}
+  .hero-seq__line.is-complete .hero-ch{animation:none !important}
+  .hero-seq__pulse{display:none}
+  .hero-seq__particles{display:none}
+  .hero-seq__line.is-out{transform:none;filter:none}
+}
+
+/* ==========================================================================
+   MODEL CARD FLOOR
+   --------------------------------------------------------------------------
+   The generated fallback tiles paint a perspective grid into their SVG, which
+   is why they read as objects standing in a studio. A real model thumbnail is
+   a render on a void background, so it floats. This lays the same floor under
+   it in CSS — three receding rails and three converging verticals, matching
+   the geometry the SVG uses (horizontals at 79/87/95% of the tile, verticals
+   fanning out from the same vanishing point).
+   ========================================================================== */
+
+.af__floor{
+  position:absolute;
+  left:0;right:0;bottom:0;
+  height:34%;
+  pointer-events:none;
+  z-index:1;
+  opacity:.55;
+
+  background-image:
+    /* receding rails — spacing widens toward the viewer */
+    linear-gradient(to bottom,
+      transparent 0 34%,
+      rgba(var(--accent-blue-rgb,127,200,194),.11) 34% 34.6%,
+      transparent 34.6% 62%,
+      rgba(var(--accent-blue-rgb,127,200,194),.09) 62% 62.7%,
+      transparent 62.7% 88%,
+      rgba(var(--accent-blue-rgb,127,200,194),.07) 88% 88.8%,
+      transparent 88.8%),
+    /* ground haze so the object sits in something, not on a line drawing */
+    linear-gradient(to top, rgba(0,0,0,.55), transparent 70%);
+
+  /* Fade the grid out toward the horizon rather than cutting it. */
+  -webkit-mask-image:linear-gradient(to top,#000 22%,rgba(0,0,0,.55) 62%,transparent 100%);
+  mask-image:linear-gradient(to top,#000 22%,rgba(0,0,0,.55) 62%,transparent 100%);
+}
+
+/* The converging verticals need real perspective, so they live in their own
+   layer with a 3D transform rather than being faked with skew. */
+.af__floor::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(to right,
+      transparent 0 15%,
+      rgba(var(--accent-blue-rgb,127,200,194),.09) 15% 15.5%,
+      transparent 15.5% 49.7%,
+      rgba(var(--accent-blue-rgb,127,200,194),.10) 49.7% 50.3%,
+      transparent 50.3% 84.5%,
+      rgba(var(--accent-blue-rgb,127,200,194),.09) 84.5% 85%,
+      transparent 85%);
+  transform:perspective(120px) rotateX(52deg);
+  transform-origin:50% 0%;
+  -webkit-mask-image:linear-gradient(to top,#000 10%,transparent 92%);
+  mask-image:linear-gradient(to top,#000 10%,transparent 92%);
+}
+
+/* The card's own caption sits above the floor. */
+.af__card .af__cap{position:relative;z-index:2}
+
+/* On hover the floor brightens with the card, so it reads as one object. */
+@media (hover:hover){
+  .af__card:hover .af__floor,
+  .af__card:focus-visible .af__floor{opacity:.8}
+}
+
+/* The image must not cover it: model thumbnails are contained above the floor
+   rather than cropped to fill the whole card. */
+.af__card[data-asset-type="model"] img{
+  object-fit:contain;
+  object-position:50% 42%;
+  padding:6% 8% 22%;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .af__floor{transition:none}
+}
+
+/* ==========================================================================
+   DEPTH TRAVEL — a few cards approach from far back
+   --------------------------------------------------------------------------
+   The tiers place cards at a fixed depth and hold them there, so the field
+   drifts sideways but never toward you. A minority of cards now make the trip
+   in: they start small, faint and out of focus, and take the better part of a
+   minute to arrive, then recede and begin again.
+
+   Only a third of the field does this. If they all travelled it would read as
+   a zoom rather than as depth — the still cards are what the moving ones are
+   measured against.
+
+   --dz / --dop / --dbl are registered so they can actually animate; without
+   @property a custom property is a string and interpolates in one jump. They
+   compose into the transform, opacity and filter the slot already builds, so
+   this stacks with the pointer parallax and the hero displacement rather than
+   competing with any of them.
+   ========================================================================== */
+
+@property --ts  { syntax:'<number>'; inherits:false; initial-value:1 }
+@property --dop { syntax:'<number>'; inherits:false; initial-value:1 }
+@property --dbl { syntax:'<length>'; inherits:false; initial-value:0px }
+
+.af__slot.is-travelling{
+  animation:afApproach var(--travel,52s) cubic-bezier(.42,0,.4,1) var(--travel-delay,0s) infinite;
+  /* The card is moving in depth, so its shadowless flat look needs the blur to
+     carry the distance instead. */
+  will-change:transform,opacity,filter;
+}
+
+@keyframes afApproach{
+  /* far: barely there, well out of focus */
+  0%   { --ts:.46; --dop:.24; --dbl:2.6px }
+  /* the long middle of the journey is where most of the time goes, so the
+     approach reads as steady rather than as an arrival */
+  55%  { --ts:.82; --dop:.72; --dbl:.7px }
+  /* front: full presence, in focus, briefly the nearest thing in the field */
+  74%  { --ts:1.12; --dop:1; --dbl:0px }
+  /* and back out, faster than it came — recession is less interesting to watch */
+  100% { --ts:.46; --dop:.24; --dbl:2.6px }
+}
+
+/* A travelling card at its closest should sit above the static ones. */
+.af__slot.is-travelling{ z-index:calc(var(--z) + 4) }
+
+/* Hovering a travelling card pauses its journey, so it can be read. */
+@media (hover:hover){
+  .af__slot.is-travelling:hover{animation-play-state:paused}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .af__slot.is-travelling{animation:none}
 }

@@ -4916,3 +4916,131 @@ body.has-modal {
   }
   .timrx-3dprint .ws-right.assets-modal .history-head-row-top{flex-wrap:wrap}
 }
+
+/* ==========================================================================
+   ASSET FAMILY SECTIONS — modal gallery
+   --------------------------------------------------------------------------
+   The gallery keeps one card geometry for every asset type, while the family
+   rows provide the visual grouping that the old chronological stream lacked.
+   ========================================================================== */
+.timrx-3dprint .ws-right.assets-modal .expanded-thumbs-grid {
+  grid-template-columns: repeat(auto-fill, minmax(186px, 1fr));
+  gap: 16px;
+  align-content: start;
+  padding: 6px 4px 22px;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-family-heading {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  min-height: 30px;
+  padding: 12px 2px 6px;
+  border-bottom: 1px solid rgba(226, 236, 237, 0.08);
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-family-heading[hidden] {
+  display: none;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-family-heading__title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 750;
+  letter-spacing: 0.01em;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-family-heading__marker {
+  width: 7px;
+  height: 7px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  box-shadow: 0 0 0 4px rgba(var(--accent-blue-rgb), 0.09);
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-family-heading__marker[data-family="image"] {
+  background: var(--accent-purple);
+  box-shadow: 0 0 0 4px rgba(var(--accent-purple-rgb), 0.09);
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-family-heading__marker[data-family="animated"],
+.timrx-3dprint .ws-right.assets-modal .history-family-heading__marker[data-family="video"] {
+  background: var(--accent-pink);
+  box-shadow: 0 0 0 4px rgba(var(--accent-pink-rgb), 0.09);
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-family-heading__meta {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text-dim);
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-family-heading__count {
+  margin-left: auto;
+  color: var(--text-dim);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Every family uses the same square footprint. Menus remain available in the
+   modal and are positioned by the existing fixed menu controller. */
+.timrx-3dprint .ws-right.assets-modal .expanded-thumb {
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+}
+
+.timrx-3dprint .ws-right.assets-modal .expanded-thumb__menu-wrap {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 20;
+  display: flex;
+  align-items: flex-start;
+}
+
+.timrx-3dprint .ws-right.assets-modal .expanded-thumb__menu-btn {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: rgba(6, 9, 10, 0.58);
+  color: var(--text-soft);
+  cursor: pointer;
+}
+
+.timrx-3dprint .ws-right.assets-modal .expanded-thumb__menu-btn svg {
+  width: 15px;
+  height: 15px;
+}
+
+.timrx-3dprint .ws-right.assets-modal .expanded-thumb__menu-btn:hover,
+.timrx-3dprint .ws-right.assets-modal .expanded-thumb__menu-btn:focus-visible {
+  background: rgba(var(--accent-blue-rgb), 0.18);
+  color: var(--text);
+  outline: none;
+}
+
+@media (max-width: 760px) {
+  .timrx-3dprint .ws-right.assets-modal .expanded-thumbs-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-family-heading {
+    gap: 8px;
+    padding-top: 10px;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-family-heading__meta {
+    display: none;
+  }
+}

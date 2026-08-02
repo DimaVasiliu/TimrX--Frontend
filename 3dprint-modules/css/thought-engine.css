@@ -1,0 +1,107 @@
+/* ============================================================================
+   AI Thought Engine
+   A quiet, abstract creative core. Geometry carries the motion; light only
+   marks the state, so the object does not become a generic neon orb.
+   ============================================================================ */
+.thought-engine{
+  --thought-progress:0;
+  --thought-scale:.92;
+  --core-scale:.94;
+  position:absolute;left:50%;top:50%;z-index:1;
+  width:clamp(168px,24vw,330px);aspect-ratio:1;
+  translate:-50% -50%;pointer-events:none;opacity:.78;
+  transform:translate3d(0,0,0) scale(var(--thought-scale));
+  transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1);
+  will-change:transform,opacity;
+}
+.thought-engine::before{
+  content:"";position:absolute;inset:28%;border-radius:50%;
+  background:rgba(var(--accent-blue-rgb,127,200,194),.065);
+  box-shadow:0 0 42px rgba(var(--accent-blue-rgb,127,200,194),.12);
+  animation:thoughtBreath 5.8s ease-in-out infinite;
+}
+.thought-engine__body,
+.thought-engine__orbit,
+.thought-engine__filament,
+.thought-engine__thought,
+.thought-engine__axis,
+.thought-engine__particles{position:absolute;inset:0;display:block}
+.thought-engine__body{animation:thoughtFloat 8.5s ease-in-out infinite}
+.thought-engine__core{
+  position:absolute;left:32%;top:32%;width:36%;height:36%;
+  border:1px solid rgba(213,239,235,.42);border-radius:48% 52% 46% 54%;
+  background:radial-gradient(circle at 36% 29%,rgba(236,255,250,.78),rgba(127,200,194,.28) 22%,rgba(21,41,41,.48) 64%,rgba(7,12,13,.18));
+  box-shadow:0 0 24px rgba(var(--accent-blue-rgb,127,200,194),.25),inset 0 0 18px rgba(242,249,246,.16);
+  transform:rotate(18deg) scale(var(--core-scale));
+  transition:transform .55s cubic-bezier(.2,1.35,.4,1),box-shadow .55s ease;
+}
+.thought-engine__core i,
+.thought-engine__core b{position:absolute;display:block;border-radius:50%;font-style:normal}
+.thought-engine__core i{left:20%;top:18%;width:22%;height:18%;background:rgba(255,255,255,.42);filter:blur(2px)}
+.thought-engine__core b{right:17%;bottom:19%;width:16%;height:16%;background:rgba(216,200,121,.55);filter:blur(3px)}
+.thought-engine__spark{
+  position:absolute;
+  left:48%;top:16%;width:4%;height:68%;border-radius:50%;
+  background:rgba(222,249,244,.36);filter:blur(4px);opacity:.5;
+  transform:rotate(38deg);animation:thoughtSpark 3.6s ease-in-out infinite;
+}
+.thought-engine__scan{
+  position:absolute;left:34%;top:49%;width:32%;height:1px;
+  background:rgba(224,249,244,.62);box-shadow:0 0 9px rgba(var(--accent-blue-rgb,127,200,194),.6);
+  opacity:.18;transform:translateX(-70%);animation:thoughtScan 3.8s ease-in-out infinite;
+}
+.thought-engine__orbit{border:1px solid rgba(var(--accent-blue-rgb,127,200,194),.22);border-radius:48% 52% 46% 54%;opacity:.8}
+.thought-engine__orbit--a{inset:17%;transform:rotate(24deg) scaleY(.58);animation:thoughtOrbitA 13s linear infinite}
+.thought-engine__orbit--b{inset:8%;border-color:rgba(216,200,121,.16);transform:rotate(-31deg) scaleY(.38);animation:thoughtOrbitB 17s linear infinite}
+.thought-engine__orbit--c{inset:25%;border-color:rgba(201,144,155,.16);transform:rotate(72deg) scaleX(.56);animation:thoughtOrbitC 11s linear infinite reverse}
+.thought-engine__filament{inset:20%;border-top:1px solid rgba(223,247,242,.2);border-radius:50%;transform:rotate(-28deg) scaleY(.42);opacity:.55}
+.thought-engine__filament--a{animation:thoughtFilamentA 7s ease-in-out infinite}
+.thought-engine__filament--b{transform:rotate(62deg) scaleY(.34);border-color:rgba(216,200,121,.2);animation:thoughtFilamentB 9s ease-in-out infinite reverse}
+.thought-engine__thought{
+  left:50%;top:50%;inset:auto;width:8px;height:3px;border-radius:999px;
+  background:rgba(225,250,245,.82);box-shadow:0 0 8px rgba(var(--accent-blue-rgb,127,200,194),.72),-8px 0 7px rgba(var(--accent-blue-rgb,127,200,194),.18);
+  opacity:.5;will-change:transform,opacity;
+}
+.thought-engine__thought--a{--thought-radius:clamp(65px,9vw,122px);animation:thoughtTravelA 9.5s linear infinite}
+.thought-engine__thought--b{--thought-radius:clamp(52px,7vw,96px);animation:thoughtTravelB 7.4s linear 1.4s infinite}
+.thought-engine__thought--c{--thought-radius:clamp(80px,11vw,148px);animation:thoughtTravelC 12.5s linear 2.3s infinite}
+.thought-engine__axis{left:50%;top:50%;inset:auto;width:clamp(112px,17vw,224px);height:1px;transform-origin:0 50%;background:rgba(223,247,242,.13);opacity:.5}
+.thought-engine__axis--x{transform:rotate(19deg) translateX(-50%)}
+.thought-engine__axis--y{transform:rotate(109deg) translateX(-50%);background:rgba(216,200,121,.12)}
+.thought-engine__particle{
+  position:absolute;left:calc(50% + var(--particle-x));top:calc(50% + var(--particle-y));
+  width:var(--particle-size);height:var(--particle-size);border-radius:50%;
+  background:rgba(223,248,243,.7);box-shadow:0 0 7px rgba(var(--accent-blue-rgb,127,200,194),.44);
+  opacity:.3;animation:thoughtParticle 4.8s ease-in-out var(--particle-delay) infinite;
+  will-change:transform,opacity;
+}
+.thought-engine[data-state="thinking"]{opacity:.96}
+.thought-engine[data-state="thinking"] .thought-engine__core{box-shadow:0 0 34px rgba(var(--accent-blue-rgb,127,200,194),.38),inset 0 0 20px rgba(242,249,246,.2)}
+.thought-engine[data-state="thinking"] .thought-engine__orbit{opacity:1}
+.thought-engine[data-state="returning"]{opacity:.82}
+.thought-engine.is-pulsing::after{
+  content:"";position:absolute;left:50%;top:50%;width:27%;aspect-ratio:1;
+  translate:-50% -50%;border:1px solid rgba(var(--accent-blue-rgb,127,200,194),.44);border-radius:50%;
+  animation:thoughtWave 1.8s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes thoughtBreath{0%,100%{opacity:.48;transform:scale(.9)}50%{opacity:.9;transform:scale(1.08)}}
+@keyframes thoughtFloat{0%,100%{transform:translate3d(0,2px,0) rotate(-1deg)}50%{transform:translate3d(0,-5px,0) rotate(1deg)}}
+@keyframes thoughtOrbitA{from{rotate:0deg}to{rotate:360deg}}
+@keyframes thoughtOrbitB{from{rotate:360deg}to{rotate:0deg}}
+@keyframes thoughtOrbitC{from{rotate:0deg}to{rotate:360deg}}
+@keyframes thoughtFilamentA{0%,100%{transform:rotate(-28deg) scaleY(.42)}50%{transform:rotate(-12deg) scaleY(.58)}}
+@keyframes thoughtFilamentB{0%,100%{transform:rotate(62deg) scaleY(.34)}50%{transform:rotate(82deg) scaleY(.48)}}
+@keyframes thoughtSpark{0%,100%{opacity:.25;transform:rotate(38deg) translateY(5%)}50%{opacity:.8;transform:rotate(38deg) translateY(-8%)}}
+@keyframes thoughtScan{0%,100%{opacity:.08;transform:translateX(-70%)}48%{opacity:.82;transform:translateX(70%)}60%{opacity:.12;transform:translateX(70%)}}
+@keyframes thoughtTravelA{0%{opacity:0;transform:translate(-50%,-50%) rotate(-22deg) translateX(var(--thought-radius)) scale(.45)}12%{opacity:.7}50%{opacity:.85}88%{opacity:.36}100%{opacity:0;transform:translate(-50%,-50%) rotate(338deg) translateX(var(--thought-radius)) scale(.8)}}
+@keyframes thoughtTravelB{0%{opacity:0;transform:translate(-50%,-50%) rotate(115deg) translateX(var(--thought-radius)) scale(.3)}18%{opacity:.62}70%{opacity:.5}100%{opacity:0;transform:translate(-50%,-50%) rotate(-245deg) translateX(var(--thought-radius)) scale(.65)}}
+@keyframes thoughtTravelC{0%{opacity:0;transform:translate(-50%,-50%) rotate(205deg) translateX(var(--thought-radius)) scale(.35)}16%{opacity:.48}60%{opacity:.7}100%{opacity:0;transform:translate(-50%,-50%) rotate(-155deg) translateX(var(--thought-radius)) scale(.7)}}
+@keyframes thoughtParticle{0%,100%{opacity:.18;transform:translate3d(0,4px,0) scale(.7)}50%{opacity:.72;transform:translate3d(2px,-7px,0) scale(1.2)}}
+@keyframes thoughtWave{0%{opacity:.7;transform:translate(-50%,-50%) scale(.4)}100%{opacity:0;transform:translate(-50%,-50%) scale(3.4)}}
+@media (max-width:640px){
+  .thought-engine{width:clamp(142px,43vw,220px);opacity:.66}
+}
+@media (prefers-reduced-motion:reduce){
+  .thought-engine,.thought-engine__body,.thought-engine__orbit,.thought-engine__filament,.thought-engine__thought,.thought-engine__particle,.thought-engine::before,.thought-engine__spark,.thought-engine__scan{animation:none!important}
+  .thought-engine.is-pulsing::after{display:none}
+}

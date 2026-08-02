@@ -359,6 +359,11 @@
     btn.dataset.assetType = t;
     btn.innerHTML =
       '<img src="'+esc(asset.thumbnail)+'" alt="" loading="lazy" decoding="async"/>'+
+      /* Model cards get the same studio floor the fallback tiles draw into
+         their SVG — a perspective grid the object appears to stand on. Images
+         and videos are captures of a scene and already have their own ground;
+         a 3D model is an object in a void and reads as floating without it. */
+      (t === 'model' ? '<span class="af__floor" aria-hidden="true"></span>' : '')+
       '<span class="af__chip is-'+t+'">'+ICON[t]+'<span>'+t+'</span></span>'+
       '<span class="af__cap">'+esc(asset.prompt||'Untitled creation')+'</span>';
     btn.firstChild.addEventListener('error', function(){
@@ -413,6 +418,17 @@
 
       var btn = document.createElement('button');
       btn.type = 'button'; btn.className = 'af__card';
+      /* Depth travel: about a third of the field makes the journey in from
+         the back. Chosen per slot, with its own duration and phase so the
+         approaches never sync up into a pulse. Skipped for the near tier —
+         a card that is already at the front has nowhere to come from. */
+      if (sp.tier < 2 && Math.random() < 0.34) {
+        slot.classList.add('is-travelling');
+        slot.style.setProperty('--travel', (38 + Math.random() * 34).toFixed(1) + 's');
+        // Negative delay starts each card mid-journey, so they are already
+        // spread through the cycle instead of all departing together.
+        slot.style.setProperty('--travel-delay', (-Math.random() * 40).toFixed(1) + 's');
+      }
       btn.style.setProperty('--shy', tier.shy+'px');
       btn.style.setProperty('--shb', tier.shb+'px');
       fillCard(btn, asset);
@@ -943,8 +959,10 @@
     applySettings({ skipBuild:true });
 
     var reduce  = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    var lowCore = (navigator.hardwareConcurrency || 8) <= 4;
-    if (reduce || lowCore) setStill(true);
+    /* Keep the live field animated on modest machines too. The stage already
+       limits card density; only an explicit accessibility preference should
+       disable the motion system automatically. */
+    if (reduce) setStill(true);
 
     /* The stage is pointer-events:none so it never eats clicks meant for the
        dock; the parallax listener therefore has to live on the workspace. */

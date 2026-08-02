@@ -42,7 +42,7 @@
 @import url('media/viewer-media.css?v=20260802f');
 
 /* 6. History Panel */
-@import url('css/history.css?v=20260802g');
+@import url('css/history.css?v=20260802h');
 @import url('media/history-media.css?v=20260802f');
 
 /* 7. Tutorials Styles */
@@ -75,4 +75,5 @@
 @import url('css/panel.css?v=20260802f');
 
 /* 15. Asset stage — the living asset field behind the workspace */
-@import url('css/asset-stage.css?v=20260802i');
+@import url('css/asset-stage.css?v=20260802l');
+@import url('css/thought-engine.css?v=20260802c');

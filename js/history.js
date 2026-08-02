@@ -490,6 +490,7 @@ export function resetGalleryInfiniteScroll(filter) {
     const hidden = filter !== 'all' && thumb.getAttribute('data-asset-type') !== filter;
     thumb.classList.toggle('is-gallery-hidden', hidden);
   });
+  syncGalleryFamilyHeadings(grid);
 
   // If few visible cards remain, try fetching more
   const visible = grid.querySelectorAll('.expanded-thumb:not(.is-gallery-hidden)').length;
@@ -1106,6 +1107,10 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   if (!models.length) return '';
 
   const thumbPrefix = isExpanded ? 'expanded-thumb' : 'history-thumb';
+  // Gallery cards still need their full action menus when they are rendered
+  // inside the Assets modal. The old expanded gallery hid them because it was
+  // a read-only page, but the modal is now the primary history workspace.
+  const showActions = !isExpanded || document.body?.classList.contains('assets-modal-open');
   const activeModel = historyActiveModelId
     ? models.find((m) => m && m.id === historyActiveModelId)
     : null;
@@ -1189,7 +1194,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
             <span class="${thumbPrefix}__error-text">${displayError}</span>
           </div>
           <span class="${thumbPrefix}__name">${name}</span>
-          ${!isExpanded ? `
+          ${showActions ? `
           <div class="${thumbPrefix}__menu-wrap">
             <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Image actions" data-history-menu>
               <svg viewBox="0 0 24 24" fill="currentColor">
@@ -1238,7 +1243,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           </div>
         ` : ''}
         <span class="${thumbPrefix}__name">${name}</span>
-        ${!isExpanded ? `
+        ${showActions ? `
         <div class="${thumbPrefix}__menu-wrap">
           <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Image actions" data-history-menu>
             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -1373,7 +1378,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
             </button>
           </div>
           <span class="${thumbPrefix}__name">${name}</span>
-          ${!isExpanded ? `
+          ${showActions ? `
           <div class="${thumbPrefix}__menu-wrap">
             <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
               <svg viewBox="0 0 24 24" fill="currentColor">
@@ -1432,7 +1437,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
             <span class="${thumbPrefix}__video-status">${videoProcessingLabel}</span>
           </div>
         ` : ''}
-        ${!isExpanded ? `
+        ${showActions ? `
         <div class="${thumbPrefix}__menu-wrap">
           <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Video actions" data-history-menu>
             <svg viewBox="0 0 24 24" fill="currentColor">
@@ -1584,7 +1589,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
         </div>
       ` : ''}
       ${stageLabel ? `<span class="${thumbPrefix}__stage" data-stage="${(stageVal || '').toLowerCase()}">${stageLabel}</span>` : ''}
-      ${!isExpanded ? `
+      ${showActions ? `
       <div class="${thumbPrefix}__menu-wrap">
         <button class="${thumbPrefix}__menu-btn" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Model actions" data-history-menu>
           <svg viewBox="0 0 24 24" fill="currentColor">
@@ -1721,6 +1726,14 @@ function _getItemAssetType(item) {
   return 'model';
 }
 
+const GALLERY_FAMILY_ORDER = Object.freeze(['model', 'image', 'animated', 'video']);
+const GALLERY_FAMILY_META = Object.freeze({
+  model: { label: '3D models', description: 'Generations, refinements, and model versions' },
+  image: { label: 'Images', description: 'Generated and edited stills' },
+  animated: { label: 'Animated assets', description: 'Rigged and motion-ready outputs' },
+  video: { label: 'Videos', description: 'Motion and story generations' },
+});
+
 /**
  * Build individual gallery card objects from lineages.
  * Each card has { id, status, html } for surgical DOM patching.
@@ -1749,8 +1762,14 @@ function _buildGalleryCards(lineages) {
       };
       _groupedCardData.set(String(group.id), sortedBatch);
       const cardHtml = buildGroupedCardHTML(group, sortedBatch);
-      const html = `<div class="expanded-thumb" data-gid="${groupKey}" style="animation-delay: ${delay}s">${cardHtml}</div>`;
-      cards.push({ id: groupKey, status: getGroupedCardState(group, sortedBatch).statusKey, html });
+      const html = `<div class="expanded-thumb" data-gid="${groupKey}" data-asset-type="model" style="animation-delay: ${delay}s">${cardHtml}</div>`;
+      cards.push({
+        id: groupKey,
+        family: 'model',
+        order: globalIndex,
+        status: getGroupedCardState(group, sortedBatch).statusKey,
+        html,
+      });
       return;
     }
 
@@ -1768,10 +1787,63 @@ function _buildGalleryCards(lineages) {
         /class="expanded-thumb/,
         `style="animation-delay: ${delay}s" data-asset-type="${assetType}" data-gid="${displayModel.id || ''}" class="expanded-thumb${groupClass}`
       );
-      cards.push({ id: displayModel.id || '', status: displayModel.status || 'finished', html });
+      cards.push({
+        id: displayModel.id || '',
+        family: assetType,
+        order: globalIndex,
+        status: displayModel.status || 'finished',
+        html,
+      });
     });
   });
-  return cards;
+
+  // Keep the modal readable as the feed grows: each asset family occupies its
+  // own run of the grid instead of models, images, and videos interleaving by
+  // creation time.
+  return cards.sort((a, b) => {
+    const familyA = GALLERY_FAMILY_ORDER.indexOf(a.family);
+    const familyB = GALLERY_FAMILY_ORDER.indexOf(b.family);
+    return (familyA - familyB) || (a.order - b.order);
+  });
+}
+
+function syncGalleryFamilyHeadings(grid) {
+  if (!grid) return;
+  grid.querySelectorAll('[data-family-heading]').forEach((heading) => {
+    const family = heading.getAttribute('data-family-heading');
+    const familyCards = Array.from(grid.querySelectorAll(`.expanded-thumb[data-asset-type="${family}"]`));
+    const visibleCards = familyCards.filter((card) => !card.classList.contains('is-gallery-hidden'));
+    const count = heading.querySelector('.history-family-heading__count');
+    if (count) count.textContent = String(familyCards.length);
+    const hasVisibleCards = visibleCards.length > 0;
+    heading.hidden = !hasVisibleCards;
+  });
+}
+
+function ensureGalleryFamilyHeadings(grid, cards = []) {
+  if (!grid || !Array.isArray(cards)) return;
+  const existing = new Set(Array.from(grid.querySelectorAll('[data-family-heading]'))
+    .map((heading) => heading.getAttribute('data-family-heading')));
+  cards.forEach((card) => {
+    const family = card?.family || 'model';
+    if (existing.has(family)) return;
+    const meta = GALLERY_FAMILY_META[family] || GALLERY_FAMILY_META.model;
+    const heading = document.createElement('div');
+    heading.className = 'history-family-heading';
+    heading.dataset.familyHeading = family;
+    heading.innerHTML = `
+      <div class="history-family-heading__title">
+        <span class="history-family-heading__marker" data-family="${family}" aria-hidden="true"></span>
+        <span>${meta.label}</span>
+      </div>
+      <span class="history-family-heading__meta">${meta.description}</span>
+      <span class="history-family-heading__count">0</span>
+    `;
+    const firstFamilyCard = grid.querySelector(`.expanded-thumb[data-asset-type="${family}"]`);
+    grid.insertBefore(heading, firstFamilyCard || null);
+    existing.add(family);
+  });
+  syncGalleryFamilyHeadings(grid);
 }
 
 /**
@@ -1827,6 +1899,27 @@ function buildExpandedHistoryGallery(cards = []) {
     </div>
   `;
 
+  const familyCounts = cards.reduce((counts, card) => {
+    const family = card.family || 'model';
+    counts[family] = (counts[family] || 0) + 1;
+    return counts;
+  }, {});
+  const familyHeadings = GALLERY_FAMILY_ORDER
+    .filter((family) => familyCounts[family])
+    .map((family) => {
+      const meta = GALLERY_FAMILY_META[family];
+      return `
+        <div class="history-family-heading" data-family-heading="${family}">
+          <div class="history-family-heading__title">
+            <span class="history-family-heading__marker" data-family="${family}" aria-hidden="true"></span>
+            <span>${meta.label}</span>
+          </div>
+          <span class="history-family-heading__meta">${meta.description}</span>
+          <span class="history-family-heading__count">${familyCounts[family]}</span>
+        </div>
+      `;
+    }).join('');
+
   const filterBar = `
     <div class="expanded-filter-bar">
       <div class="expanded-filter-bar__pills">
@@ -1857,7 +1950,7 @@ function buildExpandedHistoryGallery(cards = []) {
     <div class="expanded-section" data-lineage-root="gallery-view">
       ${galleryHeader}
       ${filterBar}
-      <div class="expanded-thumbs-grid"></div>
+      <div class="expanded-thumbs-grid">${familyHeadings}</div>
     </div>
   `;
 }
@@ -2442,6 +2535,7 @@ function _renderHistoryImpl() {
         });
         builtGrid.appendChild(fragment);
         bindGroupedCardEvents(builtGrid);
+        syncGalleryFamilyHeadings(builtGrid);
       }
       _bindGalleryScroll();
       // Show sentinel if DB has more pages
@@ -2449,6 +2543,7 @@ function _renderHistoryImpl() {
     } else if (hasNewCards && existingGrid) {
       // Append only the NEW cards (from loadMoreHistory) without disturbing existing ones
       _galleryAllCards = galleryCards;
+      ensureGalleryFamilyHeadings(existingGrid, galleryCards);
       const fragment = document.createDocumentFragment();
       let appendCount = 0;
       galleryCards.forEach((c) => {
@@ -2467,6 +2562,7 @@ function _renderHistoryImpl() {
         }
       });
       existingGrid.appendChild(fragment);
+      syncGalleryFamilyHeadings(existingGrid);
       // Update sentinel
       _updateGallerySentinel(historyHasMore(), existingGrid.children.length);
       // Update header stats count

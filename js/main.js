@@ -21,7 +21,7 @@ import {
   getActiveHistorySubmenu,
   getGroupedCardItems,
   resetGalleryInfiniteScroll
-} from './history.js?v=20260525a';
+} from './history.js?v=20260802b';
 import * as API from './api.js?v=20260802g';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
@@ -3141,6 +3141,9 @@ function wireGallery() {
         const groupId = btn.getAttribute('data-group-id');
         if (groupId && typeof window.openGroupedViewer === 'function') {
           closeActiveHistoryMenu();
+          if (document.body.classList.contains('assets-modal-open')) {
+            window.TimrXAssets?.close?.();
+          }
           if (State.historyState.galleryExpanded) {
             State.historyState.galleryExpanded = false;
             renderHistory();
@@ -3234,6 +3237,9 @@ function wireGallery() {
 
       // Handle actions
       if (act === 'open') {
+        if (document.body.classList.contains('assets-modal-open')) {
+          window.TimrXAssets?.close?.();
+        }
         const wasGallery = !!State.historyState.galleryExpanded;
 
         // Close expanded gallery FIRST — remove body class + re-render immediately
@@ -3376,6 +3382,9 @@ function wireGallery() {
       }
 
       if (act === 'open-video') {
+        if (document.body.classList.contains('assets-modal-open')) {
+          window.TimrXAssets?.close?.();
+        }
         // Collapse expanded gallery first (viewer is hidden in expanded mode)
         const wasGalleryV = !!State.historyState.galleryExpanded;
         if (wasGalleryV) {
@@ -3938,6 +3947,15 @@ window.addEventListener('DOMContentLoaded', () => {
         renderHistory();
         window.scrollTo({ top: 0, behavior: 'smooth' });
       });
+    });
+
+    // The modal owns the gallery state while it is open. Closing it must return
+    // to the workspace instead of leaving the old full-page history view behind.
+    window.addEventListener('timrx:assets-closed', () => {
+      if (!State.historyState.galleryExpanded) return;
+      State.historyState.galleryExpanded = false;
+      State.historyState.page = 1;
+      renderHistory();
     });
 
     // Set up generate button listeners
