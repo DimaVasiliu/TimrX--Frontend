@@ -112,9 +112,26 @@
     document.body.appendChild(host);
   }
 
+  /* A figure that walks the bar as the job advances: limbs swing, the body
+     bobs, and it stands wherever the progress is. A bar that only fills says
+     "something is happening"; a walker says how far along the road it is, and
+     keeps moving even while a slow provider sits on the same percentage. */
+  var WALKER =
+    '<svg class="gen-walk" viewBox="0 0 20 23" fill="none" stroke="currentColor" ' +
+    'stroke-width="2.1" stroke-linecap="round" aria-hidden="true">' +
+      '<circle class="gen-walk__head" cx="10" cy="4.2" r="3.1" fill="currentColor" stroke="none"/>' +
+      '<path class="gen-walk__torso" d="M10 8v7.4"/>' +
+      '<path class="gen-walk__limb gen-walk__arm-a" d="M10 10.2 6.2 13.8"/>' +
+      '<path class="gen-walk__limb gen-walk__arm-b" d="M10 10.2 13.8 13.2"/>' +
+      '<path class="gen-walk__limb gen-walk__leg-a" d="M10 15.4 6.4 21.8"/>' +
+      '<path class="gen-walk__limb gen-walk__leg-b" d="M10 15.4 13.6 21.8"/>' +
+    '</svg>';
+
   function cardHTML(j) {
     var known = j.pct != null && j.pct > 0;
     var icon = ICONS[j.kind] || ICONS.model;
+    // Keep the figure clear of both ends so it never hangs half off the track.
+    var walkAt = known ? Math.min(97, Math.max(3, j.pct)) : 3;
     return '' +
       '<article class="gen-card' + (known ? '' : ' is-indeterminate') + '" data-job="' + esc(j.id) + '">' +
         '<span class="gen-card__ico" aria-hidden="true">' +
@@ -127,7 +144,10 @@
             '<span class="gen-card__pct">' + (known ? j.pct + '%' : esc(elapsed(j.started))) + '</span>' +
           '</span>' +
           '<span class="gen-card__prompt">' + esc(j.prompt) + '</span>' +
-          '<span class="gen-card__bar"><i style="width:' + (known ? j.pct : 100) + '%"></i></span>' +
+          '<span class="gen-card__track">' +
+            '<span class="gen-card__walker" style="left:' + walkAt + '%">' + WALKER + '</span>' +
+            '<span class="gen-card__bar"><i style="width:' + (known ? j.pct : 100) + '%"></i></span>' +
+          '</span>' +
         '</span>' +
       '</article>';
   }

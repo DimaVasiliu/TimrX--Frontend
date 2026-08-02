@@ -187,23 +187,31 @@
     var cfg = INTENTS[p.plan.intent] || { label: p.plan.intent };
     var costTxt = p.cost.credits != null ? p.cost.credits + ' credits' : 'cost unavailable';
     var blocked = !p.quote.available || p.cost.credits <= 0;
-    var settings = Object.keys(p.plan).filter(function (key) {
-      return !['intent', 'prompt'].includes(key) && p.plan[key] !== '' && p.plan[key] != null;
-    }).map(function (key) {
-      return '<span class="cmdai__chip">' + esc(key.replaceAll('_', ' ') + ': ' + p.plan[key]) + '</span>';
+    var visibleSettings = [
+      ['aspect_ratio', 'Format'],
+      ['image_size', 'Quality'],
+      ['video_duration_seconds', 'Length', function (value) { return value + ' seconds'; }],
+      ['video_resolution', 'Resolution'],
+      ['model_type', 'Build'],
+      ['pose_mode', 'Pose']
+    ];
+    var settings = visibleSettings.filter(function (item) {
+      return p.plan[item[0]] !== '' && p.plan[item[0]] != null;
+    }).map(function (item) {
+      var value = item[2] ? item[2](p.plan[item[0]]) : p.plan[item[0]];
+      return '<span class="cmdai__chip"><span class="cmdai__chip-label">' +
+        esc(item[1]) + '</span> ' + esc(value) + '</span>';
     }).join('');
 
+    var displayPrompt = hideProviderNames(p.plan.prompt);
     listEl.innerHTML =
       '<div class="cmdai" role="group" aria-label="Confirm generation">' +
         '<div class="cmdai__head">' +
           '<span class="cmdai__kind">' + esc(cfg.label) + '</span>' +
           '<span class="cmdai__cost' + (blocked ? ' is-blocked' : '') + '">' + esc(costTxt) + '</span>' +
         '</div>' +
-        '<p class="cmdai__prompt">' + esc(p.plan.prompt) + '</p>' +
+        '<p class="cmdai__prompt">' + esc(displayPrompt) + '</p>' +
         (settings ? '<div class="cmdai__chips">' + settings + '</div>' : '') +
-        (p.plan.rejected && p.plan.rejected.length
-          ? '<p class="cmdai__note">Ignored (not offered by this provider): ' +
-            esc(p.plan.rejected.join(', ')) + '</p>' : '') +
         '<div class="cmdai__actions">' +
           '<button type="button" class="cmdai__btn cmdai__btn--go" data-cmdai="run"' +
             (blocked ? ' disabled' : '') + '>' +
@@ -212,6 +220,16 @@
         '</div>' +
         '<p class="cmdai__fine">The server rechecks provider availability and reserves the quoted credits only after you confirm.</p>' +
       '</div>';
+  }
+
+  function hideProviderNames(value) {
+    var prompt = String(value == null ? '' : value)
+      .replace(/\b(?:nano\s*-?\s*banana|openai|gemini|imagen|vertex|veo|seedance(?:\s*(?:1\.5|2(?:\.5)?))?|meshy(?:\s*[56])?)\b/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .replace(/\s+([,.])/g, '$1')
+      .replace(/([,.])\s*([,.])/g, '$1')
+      .trim();
+    return prompt || 'Your requested creation';
   }
 
   function esc(s) {
@@ -233,7 +251,7 @@
     });
     if (!refreshed.ok || !refreshed.data?.ok) {
       if (button) { button.disabled = false; button.textContent = 'Quote unavailable'; }
-      throw new Error(refreshed.error || 'quote failed');
+      throw new Error(refreshed.data?.message || refreshed.error || 'quote failed');
     }
     pending.plan_token = refreshed.data.plan_token;
     pending.quote = refreshed.data.quote;
@@ -243,8 +261,8 @@
       headers: { 'Idempotency-Key': key }, timeout: 30000, retry: false
     });
     if (!result.ok || !result.data?.ok) {
-      if (button) { button.disabled = false; button.textContent = result.error || 'Could not start'; }
-      throw new Error(result.error || result.data?.message || 'generation failed');
+      if (button) { button.disabled = false; button.textContent = result.data?.message || result.error || 'Could not start'; }
+      throw new Error(result.data?.message || result.error || 'generation failed');
     }
     registerCommandJob(result.data, pending.plan);
     if (window.TimrXCommand && window.TimrXCommand.close) window.TimrXCommand.close();

@@ -2350,10 +2350,14 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
 .gen-track{
   position:fixed;
   left:50%;
+  /* Lifted well clear of the command bar: at 16px it sat in the bar's shadow
+     and covered the bottom row of whatever was behind it. */
   bottom:calc(max(var(--ws-cmdbar-gap),env(safe-area-inset-bottom,0px))
-              + var(--ws-cmdbar-h) + var(--ws-tray-h,0px) + 16px);
+              + var(--ws-cmdbar-h) + var(--ws-tray-h,0px) + clamp(28px,9vh,96px));
   transform:translateX(-50%);
-  z-index:57;
+  /* Above the Assets modal (200150) so a running job stays visible while the
+     library is open; below the command palette (200500). */
+  z-index:200200;
   width:min(560px,calc(100vw - 32px));
   pointer-events:none;
 }
@@ -2420,19 +2424,65 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 
+/* The track carries the road and the figure walking it, so the bar itself can
+   keep clipping its fill while the walker stands above the clip. */
+.gen-card__track{
+  position:relative;display:block;
+  padding-top:20px;                 /* headroom for the figure */
+}
+
 .gen-card__bar{
-  position:relative;display:block;height:3px;border-radius:999px;
-  background:rgba(255,255,255,.08);overflow:hidden;
+  position:relative;display:block;height:4px;border-radius:999px;
+  background:
+    repeating-linear-gradient(90deg,
+      rgba(255,255,255,.14) 0 5px, rgba(255,255,255,0) 5px 11px);
+  overflow:hidden;
 }
 
 .gen-card__bar i{
   position:absolute;inset:0 auto 0 0;display:block;border-radius:inherit;
   background:linear-gradient(90deg,var(--accent-blue,#7fc8c2),var(--accent-purple,#b8a77a));
+  box-shadow:0 0 10px rgba(127,200,194,.35);
   transition:width .5s cubic-bezier(.22,1,.36,1);
 }
 
-/* No percentage from the provider yet: sweep instead of sitting at zero, so
-   the bar never implies "stuck". */
+/* --- the walker ----------------------------------------------------------- */
+.gen-card__walker{
+  position:absolute;
+  bottom:2px;                        /* feet on the road */
+  transform:translateX(-50%);
+  color:var(--accent-blue,#7fc8c2);
+  /* Matches the fill's easing so the figure and the head of the bar arrive
+     together rather than the walker snapping ahead. */
+  transition:left .5s cubic-bezier(.22,1,.36,1);
+  filter:drop-shadow(0 0 6px rgba(127,200,194,.32));
+}
+
+.gen-walk{
+  display:block;width:17px;height:19px;
+  animation:genBob .29s ease-in-out infinite alternate;
+}
+
+@keyframes genBob{
+  from{transform:translateY(0)}
+  to  {transform:translateY(-1.3px)}
+}
+
+/* Limbs pivot at the shoulder and the hip, arms counter-swinging the legs. */
+.gen-walk__limb{transform-box:view-box}
+.gen-walk__arm-a,.gen-walk__arm-b{transform-origin:10px 10.2px}
+.gen-walk__leg-a,.gen-walk__leg-b{transform-origin:10px 15.4px}
+
+.gen-walk__leg-a,.gen-walk__arm-b{animation:genStride .56s ease-in-out infinite}
+.gen-walk__leg-b,.gen-walk__arm-a{animation:genStride .56s ease-in-out infinite reverse}
+
+@keyframes genStride{
+  0%,100%{transform:rotate(19deg)}
+  50%    {transform:rotate(-19deg)}
+}
+
+/* No percentage from the provider yet: the fill sweeps and the figure paces
+   the whole road, turning at each end, so a long queue never reads as stuck. */
 .gen-card.is-indeterminate .gen-card__bar i{
   width:38% !important;
   animation:genSweep 1.5s cubic-bezier(.65,0,.35,1) infinite;
@@ -2440,6 +2490,18 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
 @keyframes genSweep{
   0%  {transform:translateX(-105%)}
   100%{transform:translateX(275%)}
+}
+
+.gen-card.is-indeterminate .gen-card__walker{
+  transition:none;
+  animation:genPace 4.2s ease-in-out infinite;
+}
+@keyframes genPace{
+  0%      {left:3%;  transform:translateX(-50%) scaleX(1)}
+  46%     {left:97%; transform:translateX(-50%) scaleX(1)}
+  50%,52% {left:97%; transform:translateX(-50%) scaleX(-1)}
+  96%     {left:3%;  transform:translateX(-50%) scaleX(-1)}
+  100%    {left:3%;  transform:translateX(-50%) scaleX(1)}
 }
 
 @media (max-width:560px){
@@ -2451,6 +2513,9 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
   .gen-card{animation:none}
   .gen-card__ico{animation:none !important}
   .gen-card.is-indeterminate .gen-card__bar i{animation:none;width:100% !important;opacity:.5}
+  /* The figure stays — standing at the current progress — but stops moving. */
+  .gen-walk,.gen-walk__limb{animation:none !important}
+  .gen-card.is-indeterminate .gen-card__walker{animation:none;left:50%}
 }
 
 /* ==========================================================================
@@ -2548,6 +2613,7 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
 .cmdai__chips{display:flex;flex-wrap:wrap;gap:6px}
 .cmdai__chip{padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:600;
   color:rgba(255,255,255,.72);background:rgba(255,255,255,.07)}
+.cmdai__chip-label{color:rgba(255,255,255,.48);font-weight:500;margin-right:2px}
 .cmdai__note{margin:0;font-size:11.5px;color:#e0a23c}
 .cmdai__actions{display:flex;gap:8px;margin-top:2px}
 .cmdai__btn{padding:11px 18px;border:0;border-radius:999px;font:inherit;font-size:13px;
