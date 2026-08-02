@@ -142,6 +142,16 @@ body.ws-video-mode.ws-intro-done .ws-stage{
   box-shadow:0 0 24px rgba(var(--accent-blue-rgb,127,200,194),.11) inset;
 }
 
+/* During the thought line, focus belongs to the projection, not to a
+   thumbnail. This is the same visual grammar as card hover: the field recedes
+   with a soft opacity and blur shift while the text and core stay crisp. */
+.ws-stage.is-thought-focus .ws-stage__field .af__slot{
+  opacity:calc(var(--o) * .26 * var(--af-in) * var(--af-dim) * var(--dop, 1));
+  filter:blur(calc(var(--blur) + 1.4px + var(--dbl, 0px)));
+  transition:opacity .78s ease,filter .78s ease;
+}
+.ws-stage.is-thought-focus .thought-engine{z-index:2}
+
 /* --- layer 2: endless organic drift (compositor only) ------------------- */
 .af__float{
   animation:var(--drift) var(--dur) ease-in-out infinite alternate;
@@ -744,12 +754,12 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
 .hero-seq__line{
   position:relative;z-index:4;
   margin:0;
-  max-width:min(78vw,900px);
+  max-width:min(84vw,1100px);
   min-height:1.1em;
   text-align:center;
   font-family:var(--font-display,Inter,system-ui,sans-serif);
-  font-size:clamp(26px,4.4vw,58px);
-  font-weight:600;
+  font-size:clamp(30px,5.4vw,72px);
+  font-weight:650;
   letter-spacing:0;
   line-height:1.1;
   color:transparent;
@@ -796,13 +806,18 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
 .hero-ch{
   display:inline-block;
   white-space:pre;
-  color:rgba(240,252,250,.96);
+  /* Warm pearl is distinct from the teal field and remains readable for the
+     common colour-vision deficiencies that make cyan-on-blue ambiguous. */
+  color:rgba(255,239,193,.98);
+  -webkit-text-stroke:1px rgba(4,10,11,.48);
+  paint-order:stroke fill;
   /* The projected look: a tight core glow plus a wide soft bloom, so the
      glyph reads as light in air rather than as filled type. */
   text-shadow:
-    0 0 10px rgba(var(--accent-blue-rgb,127,200,194),.55),
-    0 0 34px rgba(var(--accent-blue-rgb,127,200,194),.28),
-    0 0 70px rgba(var(--accent-blue-rgb,127,200,194),.14);
+    0 1px 1px rgba(2,7,8,.72),
+    0 0 8px rgba(255,239,193,.62),
+    0 0 30px rgba(216,200,121,.34),
+    0 0 72px rgba(216,200,121,.16);
   animation:heroCh .62s cubic-bezier(.2,1.5,.4,1) backwards;
   will-change:transform,opacity,filter;
 }
@@ -863,7 +878,7 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
 }
 
 @media (max-width:640px){
-  .hero-seq__line{font-size:clamp(22px,7vw,34px);max-width:86vw}
+  .hero-seq__line{font-size:clamp(24px,7.5vw,38px);max-width:88vw}
 }
 
 @media (prefers-reduced-motion:reduce){

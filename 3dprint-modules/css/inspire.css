@@ -943,3 +943,150 @@ model-viewer.inspire-model::part(default-progress-bar) {
 model-viewer.inspire-model::part(default-progress-mask) {
   background: rgba(255, 255, 255, 0.3);
 }
+
+/* ==========================================================================
+   INSPIRE — full-bleed, centred, current palette
+   --------------------------------------------------------------------------
+   The overlay was positioned with
+
+     left: calc(12px + 44px + 12px + clamp(265px,21vw,345px) + 12px)
+
+   i.e. it started after the icon rail and the left control column. Neither
+   exists any more — the rail moved into the header and the control column
+   became a floating sheet — so the panel was sitting ~400px right of centre
+   with dead space beside it. It now uses the same inset the assets modal uses,
+   which is symmetric by construction and needs no knowledge of the layout.
+   ========================================================================== */
+
+.inspire-overlay{
+  top:clamp(54px,6vh,78px) !important;
+  left:clamp(12px,2.4vw,32px) !important;
+  right:clamp(12px,2.4vw,32px) !important;
+  bottom:clamp(14px,2.4vh,26px) !important;
+
+  border:0 !important;
+  border-radius:26px !important;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(var(--accent-blue-rgb,127,200,194),.07), transparent 34%),
+    radial-gradient(circle at 92% 0%, rgba(var(--accent-purple-rgb,184,167,122),.06), transparent 36%),
+    linear-gradient(180deg, rgba(18,24,26,.985), rgba(10,13,15,.985)) !important;
+  -webkit-backdrop-filter:blur(26px) saturate(1.15);
+  backdrop-filter:blur(26px) saturate(1.15);
+  box-shadow:
+    0 34px 110px rgba(0,0,0,.58),
+    inset 0 1px 0 rgba(242,245,243,.05) !important;
+}
+
+/* Content sits on a measured column inside the full-bleed panel rather than
+   stretching edge to edge on a wide display. */
+.inspire-overlay > *{
+  width:100%;
+  max-width:1360px;
+  margin-inline:auto;
+}
+
+/* --- palette: teal / sand, matching the rest of the workspace ------------- */
+.inspire-overlay{
+  --insp-line:rgba(242,245,243,.075);
+  --insp-raised:rgba(242,245,243,.045);
+  --insp-raised-hi:rgba(242,245,243,.085);
+  --insp-text:#f2f5f3;
+  --insp-muted:#a7b0b2;
+  color:var(--insp-text);
+}
+
+.inspire-overlay h1,.inspire-overlay h2,.inspire-overlay h3{color:var(--insp-text)}
+.inspire-overlay p,.inspire-overlay span:not([class*="chip"]){color:var(--insp-muted)}
+
+/* Chips, tabs and pills pick up the workspace's active treatment: teal fill,
+   dark ink — the same language the mode switch and section tabs use.
+
+   Scoped to button/a: [class*="filter"] on its own also matched the container
+   .inspire-filters and painted the whole row, which is what put a trough
+   behind the chips and outranked the rule meant to remove it. */
+.inspire-overlay :is(button,a)[class*="chip"].is-active,
+.inspire-overlay :is(button,a)[class*="tab"].is-active,
+.inspire-overlay :is(button,a)[class*="filter"].active,
+.inspire-overlay :is(button,a)[class*="pill"].is-active{
+  color:#04141d !important;
+  background:linear-gradient(180deg,
+    var(--accent-blue,#7fc8c2),
+    color-mix(in srgb, var(--accent-blue,#7fc8c2) 82%, #000)) !important;
+  border-color:transparent !important;
+}
+
+.inspire-overlay :is(button,a)[class*="chip"]:not(.is-active),
+.inspire-overlay :is(button,a)[class*="tab"]:not(.is-active),
+.inspire-overlay :is(button,a)[class*="filter"]:not(.active){
+  background:var(--insp-raised) !important;
+  border-color:transparent !important;
+  color:var(--insp-muted) !important;
+}
+
+.inspire-overlay :is(button,a)[class*="chip"]:not(.is-active):hover,
+.inspire-overlay :is(button,a)[class*="tab"]:not(.is-active):hover,
+.inspire-overlay :is(button,a)[class*="filter"]:not(.active):hover{
+  background:var(--insp-raised-hi) !important;
+  color:var(--insp-text) !important;
+}
+
+/* Focus follows the page's accent rather than the old blue. */
+.inspire-overlay :focus-visible{
+  outline:2px solid var(--accent-blue,#7fc8c2) !important;
+  outline-offset:2px;
+}
+
+/* Dividers and card edges lose the hard white lines. */
+.inspire-overlay [class*="divider"],
+.inspire-overlay hr{background:var(--insp-line) !important;border:0 !important}
+
+@media (max-width:760px){
+  .inspire-overlay{
+    top:8px !important;left:8px !important;right:8px !important;bottom:8px !important;
+    border-radius:20px !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Sit under the navbar, not through it
+   --------------------------------------------------------------------------
+   clamp(54px,6vh,78px) resolved to 60px at a 1000px viewport while the header
+   ends at 72px — the panel was overlapping the navbar by 12px, and the amount
+   changed with viewport height. Measured off the header token instead, so it
+   clears by a fixed margin at every size.
+   -------------------------------------------------------------------------- */
+.inspire-overlay{
+  top:calc(var(--navH, 62px) + 16px) !important;
+}
+
+/* --------------------------------------------------------------------------
+   Filter row: centred, no trough
+   -------------------------------------------------------------------------- */
+.inspire-overlay .inspire-filters{
+  display:flex !important;
+  justify-content:center !important;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:8px !important;
+  background:none !important;
+  border:0 !important;
+  border-radius:0 !important;
+  padding:4px 0 !important;
+  margin-bottom:6px;
+}
+
+/* The chips carry the group now that the strip behind them is gone, so they
+   need a little more presence than they had sitting on a panel. */
+.inspire-overlay .inspire-filters > *{
+  padding:9px 18px !important;
+  font-size:13px !important;
+  font-weight:600 !important;
+  border-radius:999px !important;
+}
+
+/* "EXPLORE" was a left-aligned label under a left-aligned row; centre it with
+   the group it introduces. */
+.inspire-overlay [class*="section-label"],
+.inspire-overlay [class*="explore"]{
+  text-align:center;
+}

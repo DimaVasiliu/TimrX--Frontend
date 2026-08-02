@@ -2245,3 +2245,26 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
   .ws-modes-switch .ws-mode{padding:9px 13px}
   .mode-ico{width:24px;height:24px}
 }
+
+/* --- command AI confirmation ---------------------------------------------- */
+.cmdai{padding:16px 18px;display:grid;gap:11px}
+.cmdai__head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+.cmdai__kind{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--accent-blue,#7fc8c2)}
+.cmdai__cost{font-size:13px;font-weight:700;color:rgba(255,255,255,.9);font-variant-numeric:tabular-nums}
+.cmdai__cost.is-blocked{color:#e0a23c}
+.cmdai__prompt{margin:0;font-size:15px;line-height:1.45;color:rgba(255,255,255,.92)}
+.cmdai__chips{display:flex;flex-wrap:wrap;gap:6px}
+.cmdai__chip{padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:600;
+  color:rgba(255,255,255,.72);background:rgba(255,255,255,.07)}
+.cmdai__note{margin:0;font-size:11.5px;color:#e0a23c}
+.cmdai__actions{display:flex;gap:8px;margin-top:2px}
+.cmdai__btn{padding:11px 18px;border:0;border-radius:999px;font:inherit;font-size:13px;
+  font-weight:650;cursor:pointer;background:rgba(255,255,255,.08);color:rgba(255,255,255,.85)}
+.cmdai__btn--go{flex:1 1 auto;color:#04141d;
+  background:linear-gradient(180deg,var(--accent-blue,#7fc8c2),
+    color-mix(in srgb,var(--accent-blue,#7fc8c2) 82%,#000))}
+.cmdai__btn:disabled{opacity:.45;cursor:not-allowed;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
+.cmdai__btn:hover:not(:disabled){filter:brightness(1.08)}
+.cmdai__fine{margin:0;font-size:10.5px;color:rgba(255,255,255,.34)}
+.cmdai__thinking{padding:22px 18px;font-size:13.5px;color:rgba(255,255,255,.5);text-align:center}

@@ -30,15 +30,25 @@
 .thought-engine__core{
   position:absolute;left:32%;top:32%;width:36%;height:36%;
   border:1px solid rgba(213,239,235,.42);border-radius:48% 52% 46% 54%;
+  overflow:hidden;
   background:radial-gradient(circle at 36% 29%,rgba(236,255,250,.78),rgba(127,200,194,.28) 22%,rgba(21,41,41,.48) 64%,rgba(7,12,13,.18));
   box-shadow:0 0 24px rgba(var(--accent-blue-rgb,127,200,194),.25),inset 0 0 18px rgba(242,249,246,.16);
   transform:rotate(18deg) scale(var(--core-scale));
   transition:transform .55s cubic-bezier(.2,1.35,.4,1),box-shadow .55s ease;
 }
+.thought-engine__human{
+  position:absolute;left:-18%;top:-18%;width:136%;height:136%;
+  object-fit:contain;opacity:.58;mix-blend-mode:screen;
+  filter:saturate(.72) drop-shadow(0 0 7px rgba(var(--accent-blue-rgb,127,200,194),.42));
+  transform-origin:50% 50%;
+  transform:rotate(-18deg) scale(.92);
+  animation:thoughtHuman 6.4s ease-in-out infinite;
+  z-index:0;
+}
 .thought-engine__core i,
 .thought-engine__core b{position:absolute;display:block;border-radius:50%;font-style:normal}
-.thought-engine__core i{left:20%;top:18%;width:22%;height:18%;background:rgba(255,255,255,.42);filter:blur(2px)}
-.thought-engine__core b{right:17%;bottom:19%;width:16%;height:16%;background:rgba(216,200,121,.55);filter:blur(3px)}
+.thought-engine__core i{left:20%;top:18%;width:22%;height:18%;background:rgba(255,255,255,.42);filter:blur(2px);z-index:2}
+.thought-engine__core b{right:17%;bottom:19%;width:16%;height:16%;background:rgba(216,200,121,.55);filter:blur(3px);z-index:2}
 .thought-engine__spark{
   position:absolute;
   left:48%;top:16%;width:4%;height:68%;border-radius:50%;
@@ -92,6 +102,7 @@
 @keyframes thoughtFilamentA{0%,100%{transform:rotate(-28deg) scaleY(.42)}50%{transform:rotate(-12deg) scaleY(.58)}}
 @keyframes thoughtFilamentB{0%,100%{transform:rotate(62deg) scaleY(.34)}50%{transform:rotate(82deg) scaleY(.48)}}
 @keyframes thoughtSpark{0%,100%{opacity:.25;transform:rotate(38deg) translateY(5%)}50%{opacity:.8;transform:rotate(38deg) translateY(-8%)}}
+@keyframes thoughtHuman{0%,100%{opacity:.48;transform:rotate(-18deg) scale(.9)}50%{opacity:.72;transform:rotate(-18deg) scale(1)}}
 @keyframes thoughtScan{0%,100%{opacity:.08;transform:translateX(-70%)}48%{opacity:.82;transform:translateX(70%)}60%{opacity:.12;transform:translateX(70%)}}
 @keyframes thoughtTravelA{0%{opacity:0;transform:translate(-50%,-50%) rotate(-22deg) translateX(var(--thought-radius)) scale(.45)}12%{opacity:.7}50%{opacity:.85}88%{opacity:.36}100%{opacity:0;transform:translate(-50%,-50%) rotate(338deg) translateX(var(--thought-radius)) scale(.8)}}
 @keyframes thoughtTravelB{0%{opacity:0;transform:translate(-50%,-50%) rotate(115deg) translateX(var(--thought-radius)) scale(.3)}18%{opacity:.62}70%{opacity:.5}100%{opacity:0;transform:translate(-50%,-50%) rotate(-245deg) translateX(var(--thought-radius)) scale(.65)}}

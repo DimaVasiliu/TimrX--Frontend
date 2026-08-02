@@ -27,17 +27,23 @@
     'Describe. Generate. Build.',
     'Images. Models. Video.',
     'From imagination to production.',
-    'Create once. Export anywhere.'
+    'Create once. Export anywhere.',
+    'Imagine. Build. Share.',
+    'Make the invisible visible.',
+    'Think beyond the frame.',
+    'Shape the next idea.',
+    'Make. Refine. Repeat.',
+    'One thought. Infinite forms.'
   ];
 
   var CFG = {
     CHAR_MS      : 58,      // per character
-    HOLD_MS      : 3600,    // how long the finished line sits before releasing
+    HOLD_MS      : 2600,    // keep the thought present without a long dead pause
     FORCE_RADIUS : 460,     // px — how far the text's push reaches
     FORCE_MAX    : 190,     // px — displacement at the very centre
     SPRING_K     : 0.048,   // stiffness per normalized frame
     DAMPING      : 0.89,    // 1 = frictionless
-    PULSE_MS     : 24000,
+    PULSE_MS     : 18000,
     SETTLE_EPS   : 0.12     // px — below this a card counts as parked
   };
 
@@ -52,6 +58,7 @@
   var typeTimer = null, pulseTimer = null, releaseTimer = null, surpriseTimer = null;
   var cycleTimer = null, engineTimer = null;
   var destroyed = false, measured = false, scrollDismissed = false;
+  var lastLineIndex = -1;
 
   function $(sel, ctx) { return (ctx || document).querySelector(sel); }
 
@@ -162,6 +169,7 @@
 
   // ------------------------------------------------------------------- typing
   function typeLine(text, done) {
+    if (stage) stage.classList.add('is-thought-focus');
     lineEl.textContent = '';
     lineEl.classList.remove('is-out', 'is-complete');
     if (particleEl) particleEl.textContent = '';
@@ -220,7 +228,12 @@
   function runSequence() {
     if (destroyed || !lineEl) return;
     clearTimeout(cycleTimer);
-    var text = LINES[Math.floor(Math.random() * LINES.length)];
+    var lineIndex = Math.floor(Math.random() * LINES.length);
+    if (LINES.length > 1 && lineIndex === lastLineIndex) {
+      lineIndex = (lineIndex + 1) % LINES.length;
+    }
+    lastLineIndex = lineIndex;
+    var text = LINES[lineIndex];
 
     if (reduce.matches) {
       // No typing, no push — the line simply states itself.
@@ -235,6 +248,7 @@
         // Cards drift back; the line dissolves.
         forceTarget = 0;
         wake();
+        if (stage) stage.classList.remove('is-thought-focus');
         if (thoughtEngine) {
           thoughtEngine.setState('returning');
           thoughtEngine.setProgress(0);
@@ -244,7 +258,7 @@
           }, 1300);
         }
         lineEl.classList.add('is-out');
-        cycleTimer = setTimeout(runSequence, 4300);
+        cycleTimer = setTimeout(runSequence, 2300);
       }, CFG.HOLD_MS);
     });
   }
@@ -313,6 +327,7 @@
     clearTimeout(typeTimer); clearTimeout(releaseTimer); clearInterval(pulseTimer);
     clearTimeout(surpriseTimer);
     clearTimeout(cycleTimer); clearTimeout(engineTimer);
+    if (stage) stage.classList.remove('is-thought-focus');
     if (rafId) cancelAnimationFrame(rafId);
     if (host) {
       host.classList.toggle('is-scroll-out', scrollDismissed);

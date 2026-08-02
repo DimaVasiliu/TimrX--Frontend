@@ -46,7 +46,10 @@
       '<span class="thought-engine__axis thought-engine__axis--x"></span>' +
       '<span class="thought-engine__axis thought-engine__axis--y"></span>' +
       '<span class="thought-engine__body">' +
-        '<span class="thought-engine__core"><i></i><b></b></span>' +
+        '<span class="thought-engine__core">' +
+          '<img class="thought-engine__human" src="assets/thought-human-silhouette.png" alt="" aria-hidden="true">' +
+          '<i></i><b></b>' +
+        '</span>' +
         '<span class="thought-engine__scan"></span>' +
         '<span class="thought-engine__spark"></span>' +
       '</span>';

@@ -25,14 +25,16 @@
     DENSITY       : 'cozy'
   };
 
-  var SETTINGS_KEY = 'timrx_asset_stage_settings_v1';
+  /* Spotlight is now opt-in. Bump the preference key so an older saved
+     spotlight:true value cannot silently override the new first-visit state. */
+  var SETTINGS_KEY = 'timrx_asset_stage_settings_v2';
   var MODE_PRESETS = {
     calm    : { density:'calm', ms:11000, count:1, parallax:14, still:false, spotlight:true },
     balanced: { density:'cozy', ms:6800,  count:2, parallax:22, still:false, spotlight:true },
     awe     : { density:'rich', ms:4300,  count:3, parallax:30, still:false, spotlight:true },
     still   : { density:'calm', ms:0,     count:0, parallax:0,  still:true,  spotlight:true }
   };
-  var DEFAULT_SETTINGS = { mode:'balanced', type:'all', spotlight:true, controlsOpen:false };
+  var DEFAULT_SETTINGS = { mode:'balanced', type:'all', spotlight:false, controlsOpen:false };
 
   /* Depth tiers, tuned down from the old page: the new shell is hairline
      borders and muted surfaces, so the field rests quiet and earns contrast
@@ -621,7 +623,7 @@
           controlButton('type','video','Video')+
         '</div></div>'+
         '<div class="af-settings__foot">'+
-          '<button type="button" class="af-settings__soft is-active" data-af-spotlight aria-pressed="true">Spotlight</button>'+
+          '<button type="button" class="af-settings__soft" data-af-spotlight aria-pressed="false">Spotlight</button>'+
           '<button type="button" class="af-settings__soft" data-af-refresh>Refresh feed</button>'+
         '</div>'+
       '</section>';
