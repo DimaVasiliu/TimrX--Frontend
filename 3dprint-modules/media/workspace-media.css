@@ -45,7 +45,7 @@
   /* --- Grid reflow --- */
   .timrx-3dprint .ws-grid {
     gap: 0;
-    padding: 8px;
+    padding: 0 8px 8px;
   }
 
   /* --- Ordering: Rail(1) -> Viewer(2) -> Tabs(3) -> Left(4) -> Right(5) --- */
@@ -210,7 +210,7 @@
 @media (max-width: 1024px) {
   .timrx-3dprint .ws-grid {
     gap: 10px;
-    padding: 10px 10px 18px;
+    padding: 0 10px 18px;
   }
 
   .timrx-3dprint .ws-rail {
@@ -296,7 +296,7 @@
 }
 @media (max-width: 768px) {
   .timrx-3dprint .ws-grid {
-    padding-inline: 8px;
+    padding: 0 8px 8px;
   }
 
   .timrx-3dprint .ws-mobile-tabs,
@@ -327,7 +327,7 @@
 @media (max-width: 540px) {
   .timrx-3dprint .ws-grid {
     gap: 8px;
-    padding: 8px 8px 16px;
+    padding: 0 8px 16px;
   }
 
   .timrx-3dprint .ws-viewer,
@@ -551,7 +551,7 @@
 
   .timrx-3dprint .ws-grid {
     gap: 8px;
-    padding: 6px 8px 14px;
+    padding: 0 8px 14px;
   }
 
   .timrx-3dprint .ws-rail {

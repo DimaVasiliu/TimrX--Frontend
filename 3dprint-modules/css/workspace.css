@@ -486,8 +486,7 @@ html body.print3d-page > .sim-viewer-bg {
   grid-template-rows: minmax(0, 1fr);
   grid-template-areas: "viewer";
   gap: 14px 12px;
-  padding: 12px;
-  padding-top: 24px;
+  padding: 0 12px 12px;
   height: calc(100vh - var(--ws-navH));
   overflow: hidden;
 }

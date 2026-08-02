@@ -2047,3 +2047,117 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
 @media (prefers-reduced-motion: reduce) {
   .ws-mode.is-active .mode-ico i { animation: none !important; }
 }
+
+/* ==========================================================================
+   GENERATION TRACKER
+   --------------------------------------------------------------------------
+   Sits above the command bar, on the same rail as the trays, so everything
+   that reports on the current job lives in one band. Present only while
+   something is running.
+   ========================================================================== */
+
+.gen-track{
+  position:fixed;
+  left:50%;
+  bottom:calc(max(var(--ws-cmdbar-gap),env(safe-area-inset-bottom,0px))
+              + var(--ws-cmdbar-h) + var(--ws-tray-h,0px) + 16px);
+  transform:translateX(-50%);
+  z-index:57;
+  width:min(560px,calc(100vw - 32px));
+  pointer-events:none;
+}
+
+.gen-track[hidden]{display:none}
+
+.gen-track__list{display:flex;flex-direction:column;gap:8px}
+
+.gen-card{
+  display:grid;
+  grid-template-columns:34px minmax(0,1fr);
+  align-items:center;
+  gap:12px;
+  padding:11px 16px 11px 12px;
+  border-radius:16px;
+  background:rgba(16,17,21,.9);
+  -webkit-backdrop-filter:blur(20px) saturate(1.15);
+  backdrop-filter:blur(20px) saturate(1.15);
+  animation:genCardIn .42s cubic-bezier(.34,1.28,.64,1) backwards;
+}
+
+@keyframes genCardIn{
+  from{opacity:0;transform:translateY(14px) scale(.97)}
+  to{opacity:1;transform:none}
+}
+
+.gen-card__ico{
+  width:34px;height:34px;
+  display:grid;place-items:center;
+  border-radius:11px;
+  background:rgba(255,255,255,.06);
+  color:var(--accent-blue,#7fc8c2);
+}
+.gen-card__ico svg{width:17px;height:17px}
+
+/* The icon breathes while work is happening — a still icon beside a moving
+   bar reads as a stalled job. */
+.gen-card:not(.is-done) .gen-card__ico{animation:genPulse 2.4s ease-in-out infinite}
+@keyframes genPulse{
+  0%,100%{opacity:.72;transform:scale(1)}
+  50%    {opacity:1;transform:scale(1.07)}
+}
+
+.gen-card__body{display:grid;gap:5px;min-width:0}
+
+.gen-card__top{
+  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+}
+
+.gen-card__stage{
+  font-size:12.5px;font-weight:700;letter-spacing:.01em;
+  color:rgba(255,255,255,.92);
+}
+
+.gen-card__pct{
+  font-size:12px;font-weight:600;
+  color:var(--accent-blue,#7fc8c2);
+  font-variant-numeric:tabular-nums;
+}
+
+.gen-card__prompt{
+  font-size:11.5px;line-height:1.35;
+  color:rgba(255,255,255,.42);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+}
+
+.gen-card__bar{
+  position:relative;display:block;height:3px;border-radius:999px;
+  background:rgba(255,255,255,.08);overflow:hidden;
+}
+
+.gen-card__bar i{
+  position:absolute;inset:0 auto 0 0;display:block;border-radius:inherit;
+  background:linear-gradient(90deg,var(--accent-blue,#7fc8c2),var(--accent-purple,#b8a77a));
+  transition:width .5s cubic-bezier(.22,1,.36,1);
+}
+
+/* No percentage from the provider yet: sweep instead of sitting at zero, so
+   the bar never implies "stuck". */
+.gen-card.is-indeterminate .gen-card__bar i{
+  width:38% !important;
+  animation:genSweep 1.5s cubic-bezier(.65,0,.35,1) infinite;
+}
+@keyframes genSweep{
+  0%  {transform:translateX(-105%)}
+  100%{transform:translateX(275%)}
+}
+
+@media (max-width:560px){
+  .gen-track{width:calc(100vw - 20px)}
+  .gen-card__prompt{display:none}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .gen-card{animation:none}
+  .gen-card__ico{animation:none !important}
+  .gen-card.is-indeterminate .gen-card__bar i{animation:none;width:100% !important;opacity:.5}
+}

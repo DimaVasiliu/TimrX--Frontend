@@ -4826,3 +4826,93 @@ body.has-modal {
   background: rgba(24, 32, 36, 0.88);
   color: var(--text);
 }
+
+/* ==========================================================================
+   ASSETS MODAL — full-bleed library
+   --------------------------------------------------------------------------
+   The modal is the library now. It fills the viewport, renders in gallery
+   layout from the moment it opens, and the expand/collapse step is gone: that
+   control only existed to grow a 335px side column into something readable,
+   and there is no side column any more.
+   ========================================================================== */
+
+.timrx-3dprint .ws-right.assets-modal{
+  inset:clamp(54px,6vh,78px) clamp(12px,2.4vw,32px) clamp(14px,2.4vh,26px);
+}
+
+/* Was capped at 1280px, which left rails of dead space on a wide display while
+   the grid below stayed cramped. */
+.timrx-3dprint .ws-right.assets-modal .card.history{
+  width:100%;
+  max-width:none;
+  padding:20px 22px 16px;
+  border-radius:26px;
+}
+
+/* --- retire the expansion controls --------------------------------------- */
+/* The "All assets" filter doubled as an expand trigger and sat in a group of
+   type filters, so it read as a fourth filter that also changed the layout.
+   Inside a full-size modal it is just the All filter. */
+.timrx-3dprint .ws-right.assets-modal #historyCollapseView,
+.timrx-3dprint .ws-right.assets-modal .history-pager{
+  display:none !important;
+}
+
+/* --- grid: one consistent thumbnail size --------------------------------- */
+.timrx-3dprint .ws-right.assets-modal .history .history-grid{
+  display:grid !important;
+  grid-template-columns:repeat(auto-fill,minmax(196px,1fr));
+  gap:14px;
+  align-content:start;
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding:4px 4px 20px;
+  scrollbar-width:thin;
+  scrollbar-color:rgba(255,255,255,.16) transparent;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history .history-grid::-webkit-scrollbar{width:10px}
+.timrx-3dprint .ws-right.assets-modal .history .history-grid::-webkit-scrollbar-thumb{
+  background:rgba(255,255,255,.14);
+  border:3px solid transparent;
+  background-clip:content-box;
+  border-radius:999px;
+}
+
+/* Thumbs share one aspect and one radius, whatever their type. */
+.timrx-3dprint .ws-right.assets-modal .history-thumb,
+.timrx-3dprint .ws-right.assets-modal .expanded-thumb,
+.timrx-3dprint .ws-right.assets-modal .history-group-card{
+  width:100%;
+  margin:0;
+  border-radius:16px;
+  overflow:hidden;
+}
+
+/* --- head: search / sort / filters on one line --------------------------- */
+.timrx-3dprint .ws-right.assets-modal .history-head-row-top{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-head-center{flex:1 1 auto;min-width:0}
+.timrx-3dprint .ws-right.assets-modal .history-search-wrapper{width:100%;max-width:none}
+
+.timrx-3dprint .ws-right.assets-modal .history-head-row-bottom{
+  margin-top:10px;
+  padding-top:10px;
+  border-top:1px solid rgba(255,255,255,.055);
+}
+
+@media (max-width:760px){
+  .timrx-3dprint .ws-right.assets-modal{inset:8px}
+  .timrx-3dprint .ws-right.assets-modal .card.history{padding:14px 14px 10px;border-radius:20px}
+  .timrx-3dprint .ws-right.assets-modal .history .history-grid{
+    grid-template-columns:repeat(auto-fill,minmax(136px,1fr));
+    gap:10px;
+  }
+  .timrx-3dprint .ws-right.assets-modal .history-head-row-top{flex-wrap:wrap}
+}

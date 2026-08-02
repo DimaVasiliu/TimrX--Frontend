@@ -26,6 +26,19 @@
   pointer-events: none;
 }
 
+/* Keep the shared page separator visible without adding a pixel to the
+   header's reserved height or introducing a second border on the grid. */
+.ws-header::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 1px;
+  background: rgba(226, 236, 237, 0.08);
+  pointer-events: none;
+}
+
 .ws-header > * {
   pointer-events: auto;
 }
