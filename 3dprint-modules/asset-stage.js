@@ -18,7 +18,7 @@
     FEED_URL      : BACKEND + '/api/_mod/inspire/feed',
     FEED_LIMIT    : 36,
     FEED_TIMEOUT  : 6000,
-    CACHE_KEY     : 'timrx_inspire_cache',   // Inspire already warms this
+    CACHE_KEY     : 'timrx_inspire_cache_v2', // v2 includes real model URLs
     SHUFFLE_MS    : 6800,
     SHUFFLE_COUNT : 2,
     PARALLAX_MAX  : 22,
@@ -38,9 +38,9 @@
      borders and muted surfaces, so the field rests quiet and earns contrast
      on hover instead of at rest. */
   var TIERS = [
-    /* far  */ { s:0.48, o:0.30, blur:1.0, par:0.18, z:10, shy:8,  shb:22 },
-    /* mid  */ { s:0.76, o:0.55, blur:0.2, par:0.52, z:20, shy:14, shb:34 },
-    /* near */ { s:1.14, o:0.86, blur:0.0, par:1.00, z:30, shy:22, shb:50 }
+    /* far  */ { s:0.54, o:0.32, blur:1.2, par:0.18, z:10, shy:10, shb:26 },
+    /* mid  */ { s:0.84, o:0.60, blur:0.2, par:0.52, z:20, shy:16, shb:40 },
+    /* near */ { s:1.26, o:0.92, blur:0.0, par:1.00, z:30, shy:26, shb:60 }
   ];
   var DRIFTS  = ['af-drift-a','af-drift-b','af-drift-c','af-drift-d'];
   var ASPECTS = { square:1, portrait:0.78, landscape:1.42 };
@@ -141,13 +141,28 @@
 
   function normalize(cards){
     return (cards||[]).map(function(c){
+      var payload = c.payload || c.meta || {};
+      var modelUrls = c.model_urls || payload.model_urls || {};
+      var texturedModelUrls = c.textured_model_urls || payload.textured_model_urls || {};
+      var rawType = c.type || c.asset_type || c.kind || '';
+      var modelUrl = c.glb_url || c.glb_proxy || c.model_url || c.modelUrl ||
+        c.animation_glb_url || c.rigged_character_glb_url || c.stl_url ||
+        modelUrls.glb || modelUrls.gltf || modelUrls.stl ||
+        texturedModelUrls.glb || texturedModelUrls.gltf || texturedModelUrls.stl ||
+        payload.glb_url || payload.glb_proxy || payload.model_url || c.url || '';
+      var glbUrl = modelUrl;
+      var videoUrl = c.video_url || c.videoUrl || '';
+      var imageUrl = c.thumb_refined || c.image_url || c.imageUrl || c.url || '';
+      var type = /vid/i.test(rawType) || videoUrl ? 'video' :
+        /ima?g/i.test(rawType) || (imageUrl && !glbUrl) ? 'image' : 'model';
       return {
         id       : c.id,
-        type     : /vid/i.test(c.type) ? 'video' : /ima?g/i.test(c.type) ? 'image' : 'model',
+        type     : type,
         thumbnail: c.thumb_preview || c.thumb_url || c.thumbnail || c.thumbnail_url || '',
-        video_url: c.video_url || c.videoUrl || '',
-        glb_url  : c.glb_url || c.glb_proxy || c.model_url || c.url || '',
-        image_url: c.thumb_refined || c.image_url || c.imageUrl || c.url || '',
+        video_url: videoUrl,
+        glb_url  : glbUrl,
+        model_url: modelUrl,
+        image_url: imageUrl,
         prompt   : c.prompt || c.title || '',
         title    : c.title || c.prompt || '',
         aspect   : c.aspect || 'square'
@@ -324,7 +339,9 @@
     /* size against the band actually used, not the full stage — otherwise the
        mobile cards come out desktop-sized and overlap into a pile */
     var per = Math.sqrt((w * h * (band.y1 - band.y0)) / Math.max(1,count));
-    return Math.max(w < 560 ? 68 : 84, Math.min(215, per * 0.60));
+    /* Larger by design: the field is the page's hero, and at the old 215px cap
+       a 3D model read as a thumbnail rather than a piece of work. */
+    return Math.max(w < 560 ? 92 : 118, Math.min(330, per * 0.80));
   }
 
   // ================================================================== RENDER
@@ -491,6 +508,76 @@
     if (e.key === 'Escape') closeControls();
   }
 
+  /* Side controls.
+     The field reshuffles on a timer, which is ambient but gives the viewer no
+     way to say "not this — show me something else". Two edge buttons make that
+     explicit: one cycles a few cards, the other rebuilds the whole field. */
+  function buildSideRail(){
+    if (!root || root.querySelector('.af-rail')) return;
+
+    function mk(side, label, path, onClick){
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'af-rail af-rail--' + side;
+      b.setAttribute('aria-label', label);
+      b.title = label;
+      b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+                    'stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" ' +
+                    'aria-hidden="true">' + path + '</svg>';
+      b.addEventListener('click', function(e){
+        e.stopPropagation();
+        b.classList.remove('is-spun');
+        void b.offsetWidth;          // restart the spin on repeat presses
+        b.classList.add('is-spun');
+        onClick();
+      });
+      root.appendChild(b);
+      return b;
+    }
+
+    // left: swap a handful of cards
+    mk('prev', 'Shuffle a few creations',
+       '<path d="M3 8h13l-3.5-3.5M21 16H8l3.5 3.5"/>',
+       function(){ shuffleTick(); });
+
+    // right: rebuild the entire field
+    mk('next', 'Reshuffle the whole field',
+       '<path d="M21 12a9 9 0 11-3.2-6.9M21 3v5h-5"/>',
+       function(){ reshuffleAll(); });
+  }
+
+  /* Rebuild every slot with a staggered fade so the change reads as a deck
+     being dealt rather than a repaint. `slots` holds { el, btn, spot } records,
+     not elements — the first version of this treated them as nodes and threw
+     on the first press. */
+  function reshuffleAll(){
+    if (destroyed || !slots.length || !pool.length) return;
+    if (root) root.classList.add('af--dealing');
+
+    slots.forEach(function(s, i){
+      if (!s || !s.el) return;
+      s.el.style.setProperty('--deal', (i % 12) * 40 + 'ms');
+      s.el.classList.add('is-swapping');
+    });
+
+    setTimeout(function(){
+      slots.forEach(function(s){
+        if (destroyed || !s || !s.el || !s.el.isConnected) return;
+        cursor = (cursor + 1 + Math.floor(Math.random() * 3)) % pool.length;
+        fillCard(s.btn, pool[cursor]);
+        /* re-jitter within the same cell, exactly as the timed shuffle does,
+           so the field recomposes without anything crossing the stage */
+        var nx = Math.max(0.05, Math.min(0.95, s.spot.x + (Math.random() - 0.5) * 0.08));
+        var ny = Math.max(0.06, Math.min(0.94, s.spot.y + (Math.random() - 0.5) * 0.08));
+        s.spot.x = nx; s.spot.y = ny;
+        s.el.style.setProperty('--x', (nx * 100).toFixed(2) + '%');
+        s.el.style.setProperty('--y', (ny * 100).toFixed(2) + '%');
+        s.el.classList.remove('is-swapping');
+      });
+      setTimeout(function(){ if (root) root.classList.remove('af--dealing'); }, 700);
+    }, 340);
+  }
+
   function buildControls(){
     if (!root || controlsEl) return;
     controlsEl = document.createElement('div');
@@ -624,6 +711,7 @@
   }
 
   function showViewerShell(type){
+    stopViewerMedia();
     document.body.classList.add('ws-viewer-open');
     document.body.classList.remove('assets-modal-open');
     if (window.TimrXAssets && typeof window.TimrXAssets.close === 'function'){
@@ -638,9 +726,53 @@
     window.dispatchEvent(new Event('resize'));
   }
 
+  function stopViewerMedia(){
+    document.querySelectorAll('video, audio').forEach(function(media){
+      try { media.pause(); } catch(e){}
+      try { media.currentTime = 0; } catch(e){}
+      media.removeAttribute('src');
+      media.src = '';
+      media.querySelectorAll('source').forEach(function(source){
+        source.removeAttribute('src');
+        source.src = '';
+      });
+      try { media.load(); } catch(e){}
+      media.classList.add('hidden');
+    });
+    var videoPh = document.getElementById('videoPlaceholder');
+    if (videoPh) videoPh.classList.remove('hidden');
+    if (window.TimrXViewer && typeof window.TimrXViewer.clearVideoViewer === 'function'){
+      try { window.TimrXViewer.clearVideoViewer(); } catch(e){}
+    }
+  }
+
   function hideViewerShell(){
+    stopViewerMedia();
     document.body.classList.remove('ws-viewer-open');
     window.dispatchEvent(new Event('resize'));
+  }
+
+  function setViewerInfo(asset, type){
+    var viewerId = type === 'video' ? 'videoViewer' : type === 'image' ? 'imageViewer' : 'model3dViewer';
+    var wrap = document.getElementById(viewerId);
+    if (!wrap) return;
+    var info = wrap.querySelector('.af-viewer-info');
+    if (!info){
+      info = document.createElement('div');
+      info.className = 'af-viewer-info';
+      wrap.appendChild(info);
+    }
+    var label = type === 'video' ? 'Video' : type === 'image' ? 'Image' : '3D model';
+    var title = asset.title || label + ' asset';
+    var prompt = asset.prompt && asset.prompt !== title ? asset.prompt : '';
+    info.innerHTML =
+      '<span class="af-viewer-info__type">'+esc(label)+'</span>'+
+      '<strong>'+esc(title)+'</strong>'+
+      (prompt ? '<p>'+esc(prompt)+'</p>' : '');
+    var headerTitle = document.getElementById('viewerTitle');
+    var hint = document.getElementById('genHint');
+    if (headerTitle) headerTitle.textContent = title;
+    if (hint) hint.textContent = prompt || ('Opened from the live asset stage.');
   }
 
   function ensureAuxViewerClose(viewerId){
@@ -650,6 +782,7 @@
     btn.type = 'button';
     btn.className = 'icon-btn viewer-close-btn af-viewer-close';
     btn.setAttribute('data-af-close-viewer', '');
+    btn.setAttribute('data-close-3d-viewer', '');
     btn.setAttribute('aria-label', 'Close viewer');
     btn.innerHTML =
       '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+
@@ -663,8 +796,10 @@
     var imageUrl = asset.image_url || asset.thumbnail;
     if (!imageUrl) return false;
     showViewerShell('image');
-    if (window.Viewer && typeof window.Viewer.showImageInViewer === 'function'){
-      window.Viewer.showImageInViewer(imageUrl);
+    var showImage = (window.TimrXViewer && window.TimrXViewer.showImageInViewer) ||
+      (window.Viewer && window.Viewer.showImageInViewer);
+    if (typeof showImage === 'function'){
+      showImage(imageUrl);
     } else {
       var modelV = document.getElementById('model3dViewer');
       var imageV = document.getElementById('imageViewer');
@@ -684,6 +819,7 @@
       if (fitToggle) fitToggle.classList.remove('hidden', 'is-fill');
     }
     ensureAuxViewerClose('imageViewer');
+    setViewerInfo(asset, 'image');
     return true;
   }
 
@@ -691,8 +827,10 @@
     var videoUrl = asset.video_url || asset.url;
     if (!videoUrl) return false;
     showViewerShell('video');
-    if (window.Viewer && typeof window.Viewer.showVideoInViewer === 'function'){
-      window.Viewer.showVideoInViewer(videoUrl, {
+    var showVideo = (window.TimrXViewer && window.TimrXViewer.showVideoInViewer) ||
+      (window.Viewer && window.Viewer.showVideoInViewer);
+    if (typeof showVideo === 'function'){
+      showVideo(videoUrl, {
         title: asset.title || 'Video Preview',
         hint: asset.prompt || 'Platform video asset',
         autoplay: true
@@ -716,11 +854,37 @@
       if (ph) ph.classList.add('hidden');
     }
     ensureAuxViewerClose('videoViewer');
+    setViewerInfo(asset, 'video');
     return true;
   }
 
+  function modelLoaderFor(url){
+    var isStl = /\.stl(?:[?#]|$)/i.test(String(url || ''));
+    var viewer = window.TimrXViewer || window.Viewer || {};
+    return isStl
+      ? (viewer.loadStlFromUrl || window.loadStlFromUrl)
+      : (viewer.loadGlbFromUrl || window.loadGlbFromUrl);
+  }
+
+  function waitForModelLoader(url){
+    var started = Date.now();
+    return new Promise(function(resolve){
+      (function check(){
+        var loader = modelLoaderFor(url);
+        // The viewer loader performs its own WebGL readiness check and can
+        // initialize the scene after the panel opens. Do not require a
+        // pre-existing scene here or the first card click races initialization.
+        if (typeof loader === 'function' || Date.now() - started > 4200) {
+          resolve(loader);
+          return;
+        }
+        setTimeout(check, 80);
+      })();
+    });
+  }
+
   function showModelAsset(asset){
-    var glbUrl = asset.glb_url || asset.model_url || asset.url;
+    var modelUrl = asset.model_url || asset.glb_url || asset.stl_url || asset.url;
     showViewerShell('model');
     var modelV = document.getElementById('model3dViewer');
     var imageV = document.getElementById('imageViewer');
@@ -728,19 +892,28 @@
     if (modelV) modelV.classList.remove('hidden');
     if (imageV) imageV.classList.add('hidden');
     if (videoV) videoV.classList.add('hidden');
-    if (glbUrl){
-      var loader = (window.TimrXViewer && window.TimrXViewer.loadGlbFromUrl) ||
-        (window.Viewer && window.Viewer.loadGlbFromUrl) ||
-        window.loadGlbFromUrl;
-      if (typeof loader === 'function'){
-        Promise.resolve(loader(glbUrl)).catch(function(err){
-          console.warn('[AssetStage] model viewer load failed, showing thumbnail', err && err.message);
-          showImageAsset(asset);
+    setViewerInfo(asset, 'model');
+    if (modelUrl){
+      setViewerInfo(Object.assign({}, asset, { prompt:'Loading the original 3D asset...' }), 'model');
+      waitForModelLoader(modelUrl).then(function(loader){
+        if (typeof loader !== 'function'){
+          console.warn('[AssetStage] no model loader available for', modelUrl);
+          setViewerInfo(Object.assign({}, asset, { prompt:'The 3D viewer is still initializing. Please try again.' }), 'model');
+          return;
+        }
+        Promise.resolve(loader(modelUrl)).then(function(){
+          setViewerInfo(asset, 'model');
+        }).catch(function(err){
+          console.warn('[AssetStage] model viewer load failed', err && err.message);
+          setViewerInfo(Object.assign({}, asset, { prompt:'The original 3D file could not be opened.' }), 'model');
+          if (window.showToast) window.showToast('Could not open this 3D model.', 'error');
         });
-        return true;
-      }
+      });
+      return true;
     }
-    return showImageAsset(asset);
+    setViewerInfo(Object.assign({}, asset, { prompt:'No 3D file is available for this asset.' }), 'model');
+    if (window.showToast) window.showToast('This asset has no original 3D file.', 'error');
+    return true;
   }
 
   function openAsset(asset){
@@ -766,6 +939,7 @@
     fieldEl = root.querySelector('.ws-stage__field');
     if (!fieldEl) return;
     buildControls();
+    buildSideRail();
     applySettings({ skipBuild:true });
 
     var reduce  = window.matchMedia('(prefers-reduced-motion: reduce)').matches;

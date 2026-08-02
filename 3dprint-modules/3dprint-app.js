@@ -2449,7 +2449,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       // Guard: Check WebGL availability first
       if (!webglAvailable) {
         console.warn('[Viewer] Cannot load model: WebGL not available');
-        return;
+        return Promise.reject(new Error('WebGL not available'));
       }
 
       ensureThreeViewer();
@@ -2467,26 +2467,49 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       if (!loadViaViewer) {
         console.error('[Viewer] No viewer load function available');
         URL.revokeObjectURL(blobUrl);
-        return;
+        return Promise.reject(new Error('No viewer load function available'));
       }
 
       if (genHint) genHint.textContent = 'Loading model...';
 
-      loadViaViewer(blobUrl)
+      return Promise.resolve(loadViaViewer(blobUrl))
         .then(() => {
+          const openedTitle = modelName || file.name;
           window._timrxViewerUploadSource = {
             kind: 'upload',
-            title: modelName || file.name,
+            title: openedTitle,
             fileName: file.name,
             format: ext.replace('.', ''),
           };
-          if (genHint) genHint.textContent = `Loaded: ${modelName || file.name}`;
-          console.log('[Viewer] Local model loaded:', modelName || file.name);
+          if (viewerTitle) viewerTitle.textContent = openedTitle;
+          if (genHint) genHint.textContent = `Loaded: ${openedTitle}`;
+          const modelViewer = document.getElementById('model3dViewer');
+          if (modelViewer) {
+            let info = modelViewer.querySelector('.af-viewer-info');
+            if (!info) {
+              info = document.createElement('div');
+              info.className = 'af-viewer-info';
+              modelViewer.appendChild(info);
+            }
+            info.textContent = '';
+            const type = document.createElement('span');
+            type.className = 'af-viewer-info__type';
+            type.textContent = 'Uploaded model';
+            const title = document.createElement('strong');
+            title.textContent = openedTitle;
+            const detail = document.createElement('p');
+            detail.textContent = `${ext.replace('.', '').toUpperCase()} file opened in the 3D viewer.`;
+            info.append(type, title, detail);
+          }
+          console.log('[Viewer] Local model loaded:', openedTitle);
         })
         .catch((err) => {
           console.error('[Viewer] Error loading local model:', err);
-          alert('Failed to load model. Please check the file format and try again.');
-          if (genHint) genHint.textContent = 'Enter a descriptive prompt, then Generate.';
+          if (genHint) genHint.textContent = 'Failed to load model. Check the file and try again.';
+          if (typeof window.showToast === 'function') {
+            window.showToast('Failed to load model. Please check the file format and try again.', 'error');
+          }
+          throw err;
         })
         .finally(() => {
           URL.revokeObjectURL(blobUrl);
@@ -3734,6 +3757,13 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const allProviderBtns = document.querySelectorAll('#videoProviderSwitcher .video-provider-btn');
 
       function selectProvider(provider, clickedBtn) {
+        if (clickedBtn?.disabled) {
+          const label = clickedBtn.querySelector('.vpb-tag')?.textContent || clickedBtn.textContent || provider;
+          if (window.UI?.toast) {
+            UI.toast(`${label.trim()} is currently unavailable. Check provider configuration.`, 'info');
+          }
+          return;
+        }
         allProviderBtns.forEach(b => b.classList.remove('is-active'));
         if (clickedBtn) clickedBtn.classList.add('is-active');
         if (videoAIProvider) videoAIProvider.value = provider;
@@ -4041,9 +4071,21 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           const enabled = new Set(Array.isArray(result.data.enabled_providers) ? result.data.enabled_providers : []);
           if (enabled.size) {
             allProviderBtns.forEach(btn => {
-              const isEnabled = enabled.has(btn.dataset.provider);
+              const providerKey = btn.dataset.provider;
+              const providerMeta = result.data.providers?.[providerKey] || {};
+              const isKnownProvider = Object.prototype.hasOwnProperty.call(result.data.providers || {}, providerKey);
+              const isEnabled = enabled.has(providerKey) || providerMeta.enabled === true;
+              btn.hidden = false;
+              btn.classList.remove('hidden');
               btn.disabled = !isEnabled;
-              btn.classList.toggle('hidden', !isEnabled);
+              btn.classList.toggle('is-unavailable', !isEnabled);
+              btn.setAttribute('aria-disabled', String(!isEnabled));
+              btn.title = isEnabled
+                ? `${providerMeta.provider_label || providerMeta.label || providerKey} is available`
+                : `${providerMeta.provider_label || providerMeta.label || providerKey} is configured in the UI but disabled on the server`;
+              if (!isKnownProvider) {
+                btn.title = `${providerKey} is not present in the server provider catalog`;
+              }
             });
             const current = videoAIProvider?.value || 'vertex';
             if (!enabled.has(current)) {
@@ -7473,8 +7515,22 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         return;
       }
 
-      load3DModel(selectedFile, modelName);
-      closeModal();
+      if (continueUploadBtn) {
+        continueUploadBtn.disabled = true;
+        continueUploadBtn.dataset.originalText = continueUploadBtn.textContent || 'Load Model';
+        continueUploadBtn.textContent = 'Loading...';
+      }
+
+      load3DModel(selectedFile, modelName)
+        .then(() => closeModal())
+        .catch(() => {})
+        .finally(() => {
+          if (continueUploadBtn) {
+            continueUploadBtn.disabled = false;
+            continueUploadBtn.textContent = continueUploadBtn.dataset.originalText || 'Load Model';
+            delete continueUploadBtn.dataset.originalText;
+          }
+        });
     }
 
     /**
@@ -7482,7 +7538,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
      * @param {MouseEvent} event - Click event fired on the modal container.
      */
     function handleBackdropClick(event) {
-      if (event.target === uploadModal) closeModal();
+      if (event.target === uploadModal || event.target?.classList?.contains('modal-backdrop')) closeModal();
     }
 
     /**
@@ -7502,8 +7558,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
     function handleDropZoneHover(event) {
       event.preventDefault();
       if (!modelDrop) return;
-      modelDrop.style.borderColor = 'rgba(14, 165, 233, 0.5)';
-      modelDrop.style.background  = 'rgba(14, 165, 233, 0.05)';
+      modelDrop.classList.add('is-dragover');
     }
 
     /**
@@ -7511,8 +7566,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
      */
     function handleDropZoneLeave() {
       if (!modelDrop) return;
-      modelDrop.style.borderColor = '';
-      modelDrop.style.background  = '';
+      modelDrop.classList.remove('is-dragover');
     }
 
     /**
@@ -7553,6 +7607,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       }
 
       selectedFile = file;
+      if (modelDrop) modelDrop.classList.add('is-selected');
       if (modelFileHint) {
         modelFileHint.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
         modelFileHint.style.color = '#7dd3fc';
@@ -7567,6 +7622,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
      */
     function resetModal() {
       selectedFile = null;
+      if (modelDrop) modelDrop.classList.remove('is-selected', 'is-dragover');
       if (customModelUpload) customModelUpload.value = '';
       if (modelFileHint) {
         modelFileHint.textContent = '';

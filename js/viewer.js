@@ -56,8 +56,15 @@ function isViewerReady() {
     if (window.timrxViewerAvailable === false) {
         return false;
     }
+    if ((!scene || !renderer) && window.timrx3D?.scene && window.timrx3D?.renderer) {
+        initViewer();
+    }
     // Check if scene and renderer exist
     return !!(scene && renderer);
+}
+
+function isLocalModelUrl(url = '') {
+    return String(url || '').startsWith('blob:') || String(url || '').startsWith('data:');
 }
 
 /**
@@ -257,20 +264,22 @@ export async function loadGlbFromUrl(url) {
 
     // Defensive check: pre-validate URL returns binary/model data, not HTML
     try {
-        const fetchOpts = { method: 'HEAD', mode: 'cors' };
-        if (!isTimrxS3Url(url)) fetchOpts.credentials = 'include';
-        const headRes = await fetch(url, fetchOpts);
-        const contentType = headRes.headers.get('content-type') || '';
-        if (contentType.includes('text/html')) {
-            const err = new Error(`Model URL returned HTML (likely 404 or redirect): ${url}`);
-            err.isHtmlResponse = true;
-            console.error('[Viewer]', err.message);
-            throw err;
-        }
-        if (!headRes.ok) {
-            const err = new Error(`Model URL returned ${headRes.status}: ${url}`);
-            console.error('[Viewer]', err.message);
-            throw err;
+        if (!isLocalModelUrl(url)) {
+            const fetchOpts = { method: 'HEAD', mode: 'cors' };
+            if (!isTimrxS3Url(url)) fetchOpts.credentials = 'include';
+            const headRes = await fetch(url, fetchOpts);
+            const contentType = headRes.headers.get('content-type') || '';
+            if (contentType.includes('text/html')) {
+                const err = new Error(`Model URL returned HTML (likely 404 or redirect): ${url}`);
+                err.isHtmlResponse = true;
+                console.error('[Viewer]', err.message);
+                throw err;
+            }
+            if (!headRes.ok) {
+                const err = new Error(`Model URL returned ${headRes.status}: ${url}`);
+                console.error('[Viewer]', err.message);
+                throw err;
+            }
         }
     } catch (prefetchErr) {
         if (prefetchErr.isHtmlResponse) throw prefetchErr;
@@ -283,7 +292,9 @@ export async function loadGlbFromUrl(url) {
     // the 3MF is available via download from payload.three_mf_url.
 
     const loader = new THREE.GLTFLoader();
-    if (!isTimrxS3Url(url)) {
+    if (isLocalModelUrl(url)) {
+        loader.setCrossOrigin('anonymous');
+    } else if (!isTimrxS3Url(url)) {
         loader.setCrossOrigin('use-credentials');
         loader.setWithCredentials(true);
     } else {
@@ -359,7 +370,9 @@ export async function loadStlFromUrl(url) {
     }
 
     const loader = new THREE.STLLoader();
-    if (!isTimrxS3Url(url)) {
+    if (isLocalModelUrl(url)) {
+        loader.setCrossOrigin('anonymous');
+    } else if (!isTimrxS3Url(url)) {
         loader.setCrossOrigin('use-credentials');
         loader.setWithCredentials?.(true);
     } else {
@@ -688,8 +701,15 @@ export function clearVideoViewer() {
     const videoPh = byId('videoPlaceholder');
 
     if (genVideo) {
-        genVideo.pause();
+        try { genVideo.pause(); } catch (err) {}
+        try { genVideo.currentTime = 0; } catch (err) {}
+        genVideo.removeAttribute('src');
         genVideo.src = '';
+        genVideo.querySelectorAll('source').forEach(source => {
+            source.removeAttribute('src');
+            source.src = '';
+        });
+        try { genVideo.load(); } catch (err) {}
         genVideo.classList.add('hidden');
     }
     if (videoPh) videoPh.classList.remove('hidden');

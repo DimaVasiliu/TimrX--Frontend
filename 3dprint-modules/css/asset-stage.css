@@ -449,6 +449,48 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-close{
   z-index:12;
 }
 
+body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
+  position:absolute;
+  left:clamp(16px,2.2vw,28px);
+  bottom:clamp(16px,2.2vh,28px);
+  z-index:11;
+  max-width:min(520px,calc(100% - 160px));
+  padding:13px 15px;
+  border:1px solid rgba(226,236,237,.09);
+  border-radius:14px;
+  color:rgba(241,246,244,.88);
+  background:linear-gradient(145deg,rgba(9,13,14,.76),rgba(16,22,24,.58));
+  box-shadow:0 18px 46px rgba(0,0,0,.38);
+  -webkit-backdrop-filter:blur(16px) saturate(1.08);
+  backdrop-filter:blur(16px) saturate(1.08);
+  pointer-events:none;
+}
+.af-viewer-info__type{
+  display:inline-flex;
+  margin-bottom:6px;
+  color:var(--accent-blue,#7fc8c2);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.af-viewer-info strong{
+  display:block;
+  font-size:14px;
+  line-height:1.25;
+  font-weight:760;
+}
+.af-viewer-info p{
+  margin:6px 0 0;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  color:rgba(241,246,244,.62);
+  font-size:12px;
+  line-height:1.35;
+}
+
 /* Below 1280px `media/workspace-media.css` turns .ws-grid into
    `display:flex; height:auto` and unlocks page scroll, so grid-line placement
    is meaningless and the stage collapses to zero height. Pin it to the
@@ -515,3 +557,107 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-close{
 .ws-stage.af--still .ws-stage__wash,.ws-stage.af--still .af__float{animation:none!important}
 .ws-stage.af--still .af__slot{transform:none!important}
 .ws-stage.af--still .af__card:hover{transform:none!important}
+
+/* ==========================================================================
+   HOVER FOCUS + SIDE RAIL
+   --------------------------------------------------------------------------
+   The old hover was a 4% lift and a 6% image nudge, which at thumbnail size
+   read as nothing at all. Cards are larger now and the hovered one genuinely
+   comes forward: it scales, sheds its depth blur, lifts out of the stack, and
+   the rest of the field steps back and shrinks a little so the focus is a
+   change in the whole field rather than a highlight on one tile.
+   ========================================================================== */
+
+@media (hover:hover){
+  .af__card:hover,
+  .af__card:focus-visible{
+    transform:translateY(-14px) scale(1.16);
+    box-shadow:0 40px 90px rgba(0,0,0,.66), 0 0 0 1px rgba(255,255,255,.07);
+    transition:transform .42s cubic-bezier(.34,1.28,.64,1), box-shadow .42s cubic-bezier(.22,1,.36,1);
+  }
+  .af__card:hover img,
+  .af__card:focus-visible img{transform:scale(1.1)}
+
+  /* The hovered slot leaves its depth tier entirely — no blur, full opacity,
+     and above everything else in the field. */
+  .ws-stage__field .af__slot:has(.af__card:hover),
+  .ws-stage__field .af__slot:has(.af__card:focus-visible){
+    z-index:60;
+    opacity:calc(var(--af-in) * var(--af-dim));
+    filter:blur(0);
+  }
+
+  /* …and the rest recede further than before. */
+  .ws-stage__field:hover .af__slot{
+    opacity:calc(var(--o) * .26 * var(--af-in) * var(--af-dim));
+    filter:blur(calc(var(--blur) + 1.4px));
+    transform:translate3d(calc(var(--afx) * var(--par)),calc(var(--afy) * var(--par)),0) scale(.965);
+  }
+}
+
+/* --- side rail ----------------------------------------------------------- */
+.af-rail{
+  position:absolute;
+  top:50%;
+  translate:0 -50%;
+  z-index:44;
+  width:46px;height:46px;
+  display:grid;place-items:center;
+  border:0;border-radius:50%;
+  background:rgba(18,20,23,.62);
+  -webkit-backdrop-filter:blur(16px) saturate(1.15);
+  backdrop-filter:blur(16px) saturate(1.15);
+  color:rgba(255,255,255,.62);
+  cursor:pointer;
+  pointer-events:auto;          /* the stage itself is pointer-events:none */
+  opacity:0;
+  transition:opacity .3s cubic-bezier(.22,1,.36,1),
+             transform .3s cubic-bezier(.34,1.3,.64,1),
+             color .2s ease, background .2s ease;
+}
+
+.af-rail--prev{left:clamp(10px,2vw,26px); transform:translateX(-8px)}
+.af-rail--next{right:clamp(10px,2vw,26px); transform:translateX(8px)}
+
+.af-rail svg{width:19px;height:19px}
+
+/* Present on approach, not permanently — the field is the subject. */
+.ws-stage:hover .af-rail,
+.af-rail:focus-visible{opacity:1;transform:translateX(0)}
+
+.af-rail:hover{
+  color:#fff;
+  background:rgba(28,31,35,.82);
+  transform:translateX(0) scale(1.09);
+}
+
+.af-rail:active{transform:translateX(0) scale(.95)}
+.af-rail:focus-visible{outline:2px solid var(--accent-blue,#7fc8c2);outline-offset:3px}
+
+/* The icon turns once per press, so a repeat tap still reads as an action. */
+.af-rail.is-spun svg{animation:afRailSpin .62s cubic-bezier(.34,1.24,.64,1)}
+@keyframes afRailSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* --- dealing: staggered swap on a full reshuffle -------------------------- */
+.ws-stage.af--dealing .af__slot.is-swapping{
+  opacity:0;
+  transform:translate3d(calc(var(--afx) * var(--par)),calc(var(--afy) * var(--par) + 18px),0) scale(.9);
+  transition:opacity .3s ease var(--deal,0ms), transform .3s cubic-bezier(.22,1,.36,1) var(--deal,0ms);
+}
+.ws-stage.af--dealing .af__slot:not(.is-swapping){
+  transition:opacity .46s cubic-bezier(.22,1,.36,1) var(--deal,0ms),
+             transform .58s cubic-bezier(.34,1.26,.64,1) var(--deal,0ms);
+}
+
+@media (max-width:900px){
+  .af-rail{width:40px;height:40px}
+  .af-rail svg{width:17px;height:17px}
+  /* No hover on touch — keep them visible so the control is reachable. */
+  .af-rail{opacity:.85;transform:translateX(0)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .af__card:hover,.af__card:focus-visible{transform:none}
+  .af-rail.is-spun svg{animation:none}
+  .ws-stage.af--dealing .af__slot{transition-duration:.01ms}
+}

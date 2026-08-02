@@ -1072,6 +1072,27 @@ body.assets-modal-open .ws-video-tray {
   border: 0;
 }
 
+.ws-video-provider.is-unavailable,
+.ws-video-provider:disabled {
+  opacity: 0.52;
+  cursor: not-allowed;
+  transform: none;
+  filter: grayscale(0.35);
+}
+
+.ws-video-provider.is-unavailable .vpb-tag::after,
+.ws-video-provider:disabled .vpb-tag::after {
+  content: " off";
+  color: rgba(167, 176, 178, 0.62);
+  text-transform: uppercase;
+}
+
+.ws-video-provider.is-unavailable:hover,
+.ws-video-provider:disabled:hover {
+  color: var(--text-dim);
+  transform: none;
+}
+
 .ws-tray__btn {
   display: inline-flex;
   align-items: center;

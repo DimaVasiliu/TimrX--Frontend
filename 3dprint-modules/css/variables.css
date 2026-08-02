@@ -194,6 +194,8 @@ body.print3d-page > .nav {
    could not be read or dismissed on this page at all. */
 html body.print3d-page > .cc-banner {
   position: fixed;
+  inset: 0;
+  z-index: 2147483647;
 }
 
 html body.print3d-page > .ws-cmd-trigger {

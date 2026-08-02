@@ -132,13 +132,13 @@
   <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260802f">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260802h">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
-  <script defer src="3dprint-modules/3dprint-app.js?v=20260802f"></script>
+  <script defer src="3dprint-modules/3dprint-app.js?v=20260802h"></script>
   <script defer src="3dprint-modules/inspire.js?v=20260802f"></script>
   <script defer src="3dprint-modules/community-gallery.js?v=20260802f"></script>
-  <script defer src="3dprint-modules/asset-stage.js?v=20260802f"></script>
+  <script defer src="3dprint-modules/asset-stage.js?v=20260802h"></script>
 
   <!-- Visually Hidden Utility + Ticker Styles -->
   <style>
@@ -1785,7 +1785,28 @@
       window.dispatchEvent(new Event('resize'));
     }
 
+    function stopViewerMedia() {
+      document.querySelectorAll('video, audio').forEach(function(media) {
+        try { media.pause(); } catch (e) {}
+        try { media.currentTime = 0; } catch (e) {}
+        media.removeAttribute('src');
+        media.src = '';
+        media.querySelectorAll('source').forEach(function(source) {
+          source.removeAttribute('src');
+          source.src = '';
+        });
+        try { media.load(); } catch (e) {}
+        media.classList.add('hidden');
+      });
+      var videoPh = document.getElementById('videoPlaceholder');
+      if (videoPh) videoPh.classList.remove('hidden');
+      if (window.TimrXViewer && typeof window.TimrXViewer.clearVideoViewer === 'function') {
+        try { window.TimrXViewer.clearVideoViewer(); } catch (e) {}
+      }
+    }
+
     function closeViewer() {
+      stopViewerMedia();
       document.body.classList.remove('ws-viewer-open');
       setOpen(false);
       window.dispatchEvent(new Event('resize'));
@@ -1808,7 +1829,7 @@
     });
 
     document.addEventListener('click', function(e){
-      if (e.target.closest('[data-close-3d-viewer]')) {
+      if (e.target.closest('[data-close-3d-viewer], [data-af-close-viewer]')) {
         e.preventDefault();
         closeViewer();
         return;
@@ -2112,10 +2133,10 @@
   <!-- Upload Model Modal (positioned at document root for proper z-index stacking) -->
   <div id="uploadModal" class="modal" inert>
     <div class="modal-backdrop"></div>
-    <div class="modal-content">
+    <div class="modal-content" tabindex="-1">
       <div class="modal-header">
         <h2>Upload 3D Model</h2>
-        <button class="modal-close" id="closeUpload" aria-label="Close">
+        <button type="button" class="modal-close" id="closeUpload" aria-label="Close">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
@@ -2152,8 +2173,8 @@
       </div>
 
       <div class="modal-footer" style="display:flex;justify-content:flex-end;gap:10px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);margin-top:16px">
-        <button class="btn-secondary" id="cancelUpload" style="padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);color:#e0e0e0">Cancel</button>
-        <button class="btn-primary" id="continueUpload" style="padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:0;color:#fff;box-shadow:0 4px 12px rgba(14,165,233,.25)">Load Model</button>
+        <button type="button" class="btn-secondary" id="cancelUpload" style="padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.1);color:#e0e0e0">Cancel</button>
+        <button type="button" class="btn-primary" id="continueUpload" style="padding:10px 18px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:0;color:#fff;box-shadow:0 4px 12px rgba(14,165,233,.25)">Load Model</button>
       </div>
     </div>
   </div>
@@ -3612,7 +3633,7 @@
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260528a"></script>
+  <script type="module" src="./js/main.js?v=20260802g"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
   <script src="js/command-palette.js?v=20260802f" defer></script>
@@ -3713,7 +3734,7 @@
       }
     });
   </script>
-  <script src="js/cookie-consent.js" defer></script>
+  <script src="js/cookie-consent.js?v=20260802a" defer></script>
 
 
   <!-- Back to top for expanded views -->

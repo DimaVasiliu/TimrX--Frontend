@@ -2947,9 +2947,12 @@ body.history-expanded .timrx-3dprint .history-pager {
   display: none !important;
   place-items: center;
   z-index: 99999 !important;
-  background: rgba(0, 0, 0, 0.7);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
+  padding: clamp(16px, 3vw, 42px);
+  background:
+    radial-gradient(900px 520px at 50% 18%, rgba(var(--accent-blue-rgb,127,200,194), 0.12), transparent 68%),
+    rgba(0, 0, 0, 0.76);
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+  backdrop-filter: blur(18px) saturate(1.08);
   pointer-events: none;
 }
 
@@ -2960,18 +2963,27 @@ body.history-expanded .timrx-3dprint .history-pager {
   opacity: 1 !important;
 }
 
+#uploadModal .modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
 /* Modal shell — matches workspace .card styling */
 #uploadModal .modal-content {
   position: relative;
-  width: min(440px, 90vw);
+  z-index: 1;
+  width: min(760px, 94vw);
   max-height: 86vh;
   overflow: auto;
-  background: linear-gradient(135deg, rgba(15, 15, 15, 0.97) 0%, rgba(18, 18, 20, 0.97) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 12px;
-  padding: 20px;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.6);
-  animation: modalPop 0.2s ease-out;
+  background:
+    linear-gradient(180deg, rgba(18, 24, 26, 0.96), rgba(8, 11, 12, 0.97));
+  border: 1px solid rgba(226, 236, 237, 0.1);
+  border-radius: 22px;
+  padding: clamp(22px, 3vw, 34px);
+  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(255,255,255,.045);
+  animation: modalPop 0.24s cubic-bezier(.22,1,.36,1);
   outline: none;
 }
 
@@ -2986,16 +2998,16 @@ body.history-expanded .timrx-3dprint .history-pager {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 22px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(226, 236, 237, 0.08);
 }
 
 #uploadModal .modal-header h2 {
   margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: clamp(22px, 2vw, 28px);
+  font-weight: 780;
+  color: rgba(245, 249, 248, 0.94);
   letter-spacing: -0.01em;
 }
 
@@ -3004,19 +3016,20 @@ body.history-expanded .timrx-3dprint .history-pager {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 44px;
+  height: 44px;
   border: none;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.05);
-  color: rgba(255, 255, 255, 0.5);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.055);
+  color: rgba(255, 255, 255, 0.64);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: transform .2s ease, background .2s ease, color .2s ease;
 }
 
 #uploadModal .modal-close:hover {
-  background: rgba(255, 60, 60, 0.12);
-  color: #ff6b6b;
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
 }
 
 /* Body */
@@ -3025,26 +3038,31 @@ body.history-expanded .timrx-3dprint .history-pager {
 }
 
 #uploadModal .modal-body .modal-instructions {
-  margin-bottom: 14px !important;
-  padding: 10px 12px !important;
-  background: rgba(255, 255, 255, 0.02) !important;
-  border: 1px solid rgba(255, 255, 255, 0.06) !important;
-  border-radius: 8px !important;
+  margin-bottom: 24px !important;
+  padding: 18px 20px !important;
+  background:
+    linear-gradient(145deg, rgba(127, 200, 194, 0.08), rgba(255,255,255,0.025)) !important;
+  border: 1px solid rgba(226, 236, 237, 0.08) !important;
+  border-radius: 16px !important;
 }
 
 #uploadModal .modal-body .modal-instructions p {
-  font-size: 12px !important;
-  color: rgba(255, 255, 255, 0.6) !important;
-  line-height: 1.5 !important;
+  font-size: 15px !important;
+  color: rgba(245, 249, 248, 0.76) !important;
+  line-height: 1.55 !important;
 }
 
 #uploadModal .modal-body .modal-instructions ul {
-  font-size: 11px !important;
-  color: rgba(255, 255, 255, 0.4) !important;
+  font-size: 13px !important;
+  color: rgba(245, 249, 248, 0.5) !important;
 }
 
 #uploadModal .modal-body .form-field {
-  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px 22px;
+  margin-bottom: 22px;
 }
 
 #uploadModal .modal-body .form-field:last-child {
@@ -3052,77 +3070,97 @@ body.history-expanded .timrx-3dprint .history-pager {
 }
 
 #uploadModal .modal-body label {
-  font-size: 11px !important;
-  font-weight: 600 !important;
-  color: rgba(255, 255, 255, 0.5) !important;
+  font-size: 13px !important;
+  font-weight: 760 !important;
+  color: rgba(245, 249, 248, 0.66) !important;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
 }
 
 #uploadModal .modal-body input[type="text"] {
-  background-color: rgba(0, 0, 0, 0.3) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-radius: 8px !important;
-  padding: 9px 12px !important;
-  font-size: 13px !important;
+  min-height: 54px;
+  background-color: rgba(0, 0, 0, 0.28) !important;
+  border: 1px solid rgba(226, 236, 237, 0.09) !important;
+  border-radius: 14px !important;
+  padding: 14px 16px !important;
+  font-size: 15px !important;
   color: #fff !important;
-  transition: border-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow .2s ease, background .2s ease;
 }
 
 #uploadModal .modal-body input[type="text"]:focus {
-  border-color: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(var(--accent-blue-rgb,127,200,194), 0.52) !important;
+  box-shadow: 0 0 0 4px rgba(var(--accent-blue-rgb,127,200,194), 0.08);
   outline: none;
 }
 
 /* Drop zone — workspace style */
 #uploadModal .drop-zone {
-  border: 1px dashed rgba(255, 255, 255, 0.1) !important;
-  border-radius: 8px !important;
-  padding: 20px !important;
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgba(226, 236, 237, 0.16) !important;
+  border-radius: 16px !important;
+  padding: 28px !important;
   background: rgba(0, 0, 0, 0.2) !important;
   transition: all 0.2s ease !important;
 }
 
-#uploadModal .drop-zone:hover {
-  border-color: rgba(14, 165, 233, 0.3) !important;
-  background: rgba(14, 165, 233, 0.03) !important;
+#uploadModal .drop-zone:hover,
+#uploadModal .drop-zone.is-dragover {
+  border-color: rgba(var(--accent-blue-rgb,127,200,194), 0.5) !important;
+  background: rgba(var(--accent-blue-rgb,127,200,194), 0.055) !important;
+  box-shadow: inset 0 0 0 1px rgba(var(--accent-blue-rgb,127,200,194), 0.12);
+}
+
+#uploadModal .drop-zone.is-selected {
+  border-style: solid !important;
+  border-color: rgba(var(--accent-blue-rgb,127,200,194), 0.42) !important;
+  background: rgba(var(--accent-blue-rgb,127,200,194), 0.075) !important;
 }
 
 #uploadModal .drop-zone p {
-  font-size: 13px !important;
-  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 16px !important;
+  color: rgba(245, 249, 248, 0.72) !important;
 }
 
 #uploadModal .drop-zone span {
-  font-size: 11px !important;
-  color: rgba(255, 255, 255, 0.3) !important;
+  font-size: 13px !important;
+  color: rgba(245, 249, 248, 0.4) !important;
+}
+
+#uploadModal .drop-zone svg {
+  color: var(--accent-blue, #7fc8c2) !important;
+  opacity: .58 !important;
+  filter: drop-shadow(0 10px 24px rgba(var(--accent-blue-rgb,127,200,194), .18));
 }
 
 /* Footer — workspace button styles */
 #uploadModal .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 8px;
-  padding-top: 14px;
-  margin-top: 14px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  gap: 14px;
+  padding-top: 22px !important;
+  margin-top: 26px !important;
+  border-top: 1px solid rgba(226, 236, 237, 0.08) !important;
 }
 
 #uploadModal .btn-primary,
 #uploadModal .btn-secondary {
-  padding: 9px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 12px;
+  min-height: 52px;
+  padding: 13px 22px !important;
+  border-radius: 14px !important;
+  font-weight: 760 !important;
+  font-size: 15px !important;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 #uploadModal .btn-primary {
-  background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
-  border: 0;
-  color: #fff;
-  box-shadow: 0 2px 8px rgba(14, 165, 233, 0.2);
+  background: linear-gradient(180deg, rgba(141,211,205,.95), rgba(105,177,171,.92)) !important;
+  border: 0 !important;
+  color: #071111 !important;
+  box-shadow: 0 16px 36px rgba(var(--accent-blue-rgb,127,200,194), 0.18) !important;
 }
 
 #uploadModal .btn-primary:hover {
@@ -3130,16 +3168,36 @@ body.history-expanded .timrx-3dprint .history-pager {
   box-shadow: 0 4px 14px rgba(14, 165, 233, 0.3);
 }
 
+#uploadModal .btn-primary:disabled,
+#uploadModal .btn-secondary:disabled {
+  opacity: .58 !important;
+  cursor: progress !important;
+  transform: none !important;
+}
+
 #uploadModal .btn-secondary {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.035) !important;
+  border: 1px solid rgba(226, 236, 237, 0.1) !important;
+  color: rgba(245, 249, 248, 0.78) !important;
 }
 
 #uploadModal .btn-secondary:hover {
   background: rgba(255, 255, 255, 0.06);
   border-color: rgba(255, 255, 255, 0.12);
   color: #fff;
+}
+
+@media (max-width: 720px) {
+  #uploadModal .modal-body .form-field {
+    grid-template-columns: 1fr;
+  }
+  #uploadModal .modal-footer {
+    flex-direction: column-reverse;
+  }
+  #uploadModal .btn-primary,
+  #uploadModal .btn-secondary {
+    width: 100%;
+  }
 }
 
 /* When any modal is open, freeze page scroll */
