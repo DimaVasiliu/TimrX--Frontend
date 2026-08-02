@@ -308,9 +308,14 @@ function bindGroupedCardEvents(container) {
         renderHistory();
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
-      // Switch to model panel to ensure the 3D viewer is visible
-      const modelRailBtn = document.querySelector('[data-panel="model"]');
-      if (modelRailBtn) modelRailBtn.click();
+      // Switch to the model panel WITHOUT opening its control sheet — the rail
+      // button's own handler pops the Prompt/Settings sheet over the viewer.
+      try { window.TimrXSheet?.close?.(); } catch (_) { /* sheet not booted */ }
+      if (typeof window.TimrXWorkspace?.activatePanel === 'function') {
+        window.TimrXWorkspace.activatePanel('model', { reveal: false });
+      } else {
+        document.querySelector('.rail-btn[data-panel="model"]')?.click();
+      }
       // Ensure the 3D viewer wrapper is visible (not hidden by image/video mode)
       const model3dViewer = document.getElementById('model3dViewer');
       if (model3dViewer) model3dViewer.classList.remove('hidden');

@@ -21,7 +21,7 @@ import {
   getActiveHistorySubmenu,
   getGroupedCardItems,
   resetGalleryInfiniteScroll
-} from './history.js?v=20260802d';
+} from './history.js?v=20260802e';
 import * as API from './api.js?v=20260802g';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
@@ -2854,6 +2854,28 @@ function initUi() {
 // HISTORY GALLERY WIRING
 // ============================================================================
 
+/**
+ * Switch the workspace to a panel WITHOUT summoning its control sheet.
+ *
+ * Opening an asset used to do this by clicking the rail button, but that
+ * button's handler (handleRailButtonClick in 3dprint-app.js) also calls
+ * TimrXSheet.open() — so picking a model or a video in My Assets slid the
+ * Prompt / Settings sheet straight over the viewer we were loading into, and
+ * the click read as "opens the settings, not the viewer".
+ *
+ * TimrXWorkspace.activatePanel(panel, { reveal: false }) is the same panel
+ * switch with the sheet left alone; the rail click stays as a fallback for the
+ * case where 3dprint-app.js has not booted yet.
+ */
+function showWorkspacePanelForViewer(panelType) {
+  try { window.TimrXSheet?.close?.(); } catch (_) { /* sheet not booted */ }
+  if (typeof window.TimrXWorkspace?.activatePanel === 'function') {
+    window.TimrXWorkspace.activatePanel(panelType, { reveal: false });
+    return;
+  }
+  document.querySelector(`.rail-btn[data-panel="${panelType}"]`)?.click();
+}
+
 function wireGallery() {
   const grid = document.getElementById('historyGrid');
   const q = document.getElementById('historySearch');
@@ -3164,8 +3186,7 @@ function wireGallery() {
           const videoViewer = document.getElementById('videoViewer');
           if (imageViewer) imageViewer.classList.add('hidden');
           if (videoViewer) videoViewer.classList.add('hidden');
-          const modelRailBtn = document.querySelector('[data-panel="model"]');
-          if (modelRailBtn) modelRailBtn.click();
+          showWorkspacePanelForViewer('model');
           if (window.timrx3D?.resize) window.timrx3D.resize();
           requestAnimationFrame(() => {
             let groupItems = getGroupedCardItems(groupId);
@@ -3265,8 +3286,7 @@ function wireGallery() {
           if (videoUrl) {
             State.setHistoryActiveModelId(id);
             _suppressHistoryFilterReset = true;
-            const videoRailBtn = document.querySelector('[data-panel="video"]');
-            if (videoRailBtn) videoRailBtn.click();
+            showWorkspacePanelForViewer('video');
             _suppressHistoryFilterReset = false;
             Viewer.showVideoInViewer(videoUrl, {
               title: shortTitle(item) || 'Video Preview',
@@ -3283,8 +3303,7 @@ function wireGallery() {
           const imgSrc = item.image_url || item.thumbnail_url || '';
           if (imgSrc) {
             _suppressHistoryFilterReset = true;
-            const imageRailBtn = document.querySelector('[data-panel="image"]');
-            if (imageRailBtn) imageRailBtn.click();
+            showWorkspacePanelForViewer('image');
             _suppressHistoryFilterReset = false;
             Viewer.showImageInViewer(imgSrc);
           }
@@ -3295,8 +3314,7 @@ function wireGallery() {
         if (!glbUrl) return;
 
         _suppressHistoryFilterReset = true;
-        const modelRailBtn = document.querySelector('[data-panel="model"]');
-        if (modelRailBtn) modelRailBtn.click();
+        showWorkspacePanelForViewer('model');
         _suppressHistoryFilterReset = false;
 
         const genHintEl = byId('genHint');
@@ -3404,8 +3422,7 @@ function wireGallery() {
         const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
         if (videoUrl) {
           _suppressHistoryFilterReset = true;
-          const videoRailBtn = document.querySelector('[data-panel="video"]');
-          if (videoRailBtn) videoRailBtn.click();
+          showWorkspacePanelForViewer('video');
           _suppressHistoryFilterReset = false;
           Viewer.showVideoInViewer(videoUrl, {
             title: shortTitle(item) || 'Video Preview',
