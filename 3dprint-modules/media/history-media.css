@@ -573,16 +573,13 @@
 
 /* Unified Assets modal overrides. These intentionally run after the old
    mobile history-tab rules so the modal is no longer controlled by mob-active. */
+/* The close button used to be pinned to the viewport at (66px, 18px) and the
+   refresh/sort pair was dropped below 1280px, both because the toolbar was two
+   stacked rows that ran out of width. It is one row now and the filters shed
+   their labels at 1024px, so the controls fit and the close button can stay
+   where it belongs — in the modal's own titlebar. */
 @media (max-width: 1280px) {
-  .timrx-3dprint .assets-modal-close {
-    position: fixed;
-    top: 66px;
-    right: 18px;
-    z-index: 200400;
-    color: #fff;
-  }
-
-  .timrx-3dprint .ws-right.assets-modal .history-head-right {
+  .timrx-3dprint .ws-right.assets-modal .history-sort-btn__label {
     display: none;
   }
 }
@@ -607,7 +604,7 @@
   .timrx-3dprint .ws-right.assets-modal:not(.mob-active) {
     display: flex !important;
     position: fixed !important;
-    inset: 58px 10px max(96px, calc(env(safe-area-inset-bottom, 0px) + 84px));
+    inset: calc(var(--ws-header-h, 58px) + 8px) 10px max(96px, calc(env(safe-area-inset-bottom, 0px) + 84px));
   }
 
   .timrx-3dprint .ws-right.assets-modal.is-open,
@@ -631,24 +628,18 @@
 
   .timrx-3dprint .assets-modal-titlebar {
     position: relative;
-    display: block;
     min-width: 0;
-    padding-right: 52px;
   }
 
-  .timrx-3dprint .assets-modal-close {
-    position: fixed;
-    top: 66px;
-    right: 18px;
-    z-index: 200400;
+  .timrx-3dprint .ws-right.assets-modal .assets-modal-close {
     width: 44px;
     height: 44px;
     color: #fff;
   }
 
   .timrx-3dprint .ws-right.assets-modal .history-head-row-top {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
+    display: flex;
+    flex-wrap: wrap;
     gap: 8px;
   }
 
@@ -667,10 +658,6 @@
 
   .timrx-3dprint .ws-right.assets-modal .history-search-wrapper input {
     min-width: 0;
-  }
-
-  .timrx-3dprint .ws-right.assets-modal .history-sort-btn {
-    display: none;
   }
 
   .timrx-3dprint .assets-modal-titlebar > p:not(.assets-modal-kicker) {
@@ -695,7 +682,7 @@
 
   .timrx-3dprint .ws-right.assets-modal,
   .timrx-3dprint .ws-right.assets-modal:not(.mob-active) {
-    inset: 50px 8px max(96px, calc(env(safe-area-inset-bottom, 0px) + 84px));
+    inset: calc(var(--ws-header-h, 50px) + 6px) 8px max(96px, calc(env(safe-area-inset-bottom, 0px) + 84px));
   }
 
   .timrx-3dprint .ws-right.assets-modal .card.history {
@@ -703,12 +690,8 @@
     border-radius: 18px;
   }
 
-  .timrx-3dprint .ws-right.assets-modal .history-head-right {
-    display: none;
-  }
-
   .timrx-3dprint .ws-right.assets-modal .history-search-wrapper {
-    width: calc(100vw - 40px);
+    width: 100%;
   }
 
   .timrx-3dprint .assets-modal-titlebar h2 {

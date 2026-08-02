@@ -8586,6 +8586,8 @@ if (typeof document !== 'undefined') {
 // EXPOSE GLOBALLY (for backward compatibility)
 // ============================================================================
 window.watchJob = watchJob;
+window.watchImageJob = watchImageJob;
+window.watchVideoJob = watchVideoJob;
 window.watchMeshyTask = watchMeshyTask;
 window.watchMultiColorPrintJob = watchMultiColorPrintJob;
 window.startRigFromPanel = startRigFromPanel;

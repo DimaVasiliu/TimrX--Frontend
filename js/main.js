@@ -21,7 +21,7 @@ import {
   getActiveHistorySubmenu,
   getGroupedCardItems,
   resetGalleryInfiniteScroll
-} from './history.js?v=20260802b';
+} from './history.js?v=20260802c';
 import * as API from './api.js?v=20260802g';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
@@ -2889,7 +2889,10 @@ function wireGallery() {
       closeActiveHistoryMenu();
       const filterType = btn.getAttribute('data-filter');
       if (filterType === 'all') {
-        State.historyState.galleryExpanded = false;
+        // Inside the Assets modal, All is the family-grouped gallery — the same
+        // view the modal opens on. Dropping out of gallery mode here meant the
+        // tab you landed on and the tab you clicked rendered differently.
+        State.historyState.galleryExpanded = document.body.classList.contains('assets-modal-open');
         State.historyState.filter = 'all';
       } else {
         State.historyState.galleryExpanded = false;

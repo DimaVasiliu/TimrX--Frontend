@@ -3,23 +3,10 @@
    -----------------------------------------------------------------------------
    "Generate an image of an ethereal human silhouette, 9:16, 4K"
 
-   CREDIT SAFETY — the load-bearing decision in this file:
-
-   This module never prices anything and never deducts anything. It sets
-   settings, lets the existing machinery recompute the cost, shows the user
-   that number, and then CLICKS THE REAL GENERATE BUTTON. Credits are reserved
-   server-side by exactly the same path as a manual click
-   (credits.js → reservationId / insufficient), so there is one pricing
-   authority and no parallel arithmetic that can drift from it.
-
-   Consequences that fall out of that choice, all deliberate:
-     · quality/duration/model changes are priced by updateButtonCosts(), which
-       already reads /api/billing/action-costs — we just read the badge it fills
-     · an insufficient balance raises the existing modal, not a bespoke one
-     · if a provider changes its rate, this file needs no edit
-
-   It also never fires without confirmation. A misparse that silently spends
-   48 credits is far worse than one extra keystroke.
+   CREDIT SAFETY:
+   The backend owns planning, provider validation, quoting, idempotency, and
+   reservations. This module only renders the signed plan and calls execute
+   after explicit confirmation. It never computes or deducts credits locally.
    ========================================================================== */
 (function () {
   'use strict';
@@ -27,8 +14,8 @@
   var CHAT_API = (window.TIMRX_ENV && window.TIMRX_ENV.chatApiBase) ||
                  window.TIMRX_API_BASE || 'https://chat.timrx.live';
 
-  /* Each intent maps to the button main.js already delegates on. Clicking it
-     is what keeps the credit path identical to a manual generation. */
+  /* Labels used by the confirmation surface. Execution is handled by the
+     authenticated command endpoint, not by simulated panel clicks. */
   var INTENTS = {
     image:   { panel: 'image',   btn: 'generateImageBtn',    label: 'Image' },
     model:   { panel: 'model',   btn: 'generateModelBtn',    label: '3D model' },
@@ -154,64 +141,18 @@
   }
 
   async function parse(text) {
-    /* Two passes. The first only decides the intent, because the option
-       vocabulary differs per panel and we cannot send all of it. The second
-       runs once the right panel is live and its real options are readable. */
-    var sys1 = 'You route requests in a generative media tool. Reply with ONLY one ' +
-               'word from: ' + Object.keys(INTENTS).join(', ') + '. ' +
-               'If the request is not asking to create or modify media, reply: none.';
-
-    var intentRes = await chat([
-      { role: 'system', content: sys1 },
-      { role: 'user', content: text }
-    ]);
-    var intent = String(intentRes || '').toLowerCase().replace(/[^a-z]/g, '');
-    if (!INTENTS[intent]) return null;
-
-    // Bring the panel up so its real options exist to be read and set.
-    if (window.TimrXWorkspace && window.TimrXWorkspace.activatePanel) {
-      window.TimrXWorkspace.activatePanel(intent);
-      await new Promise(function (r) { setTimeout(r, 260); });
-    }
-
-    var vocab = readVocabulary(intent);
-    var sys2 = 'Extract a generation request as JSON: {"prompt": "...", "settings": {...}}.\n' +
-      'settings keys MUST come from this vocabulary, and each value MUST be one of ' +
-      'the listed option values. Omit any setting the user did not ask for. ' +
-      'Strip formatting instructions (aspect ratio, quality, model name) out of prompt.\n' +
-      'VOCABULARY:\n' + JSON.stringify(vocab, null, 0) + '\n' +
-      'Reply with JSON only, no prose.';
-
-    var raw = await chat([
-      { role: 'system', content: sys2 },
-      { role: 'user', content: text }
-    ]);
-
-    var parsed = {};
-    try {
-      parsed = JSON.parse(String(raw).replace(/^```(?:json)?|```$/gm, '').trim());
-    } catch (e) {
-      parsed = { prompt: text };     // fall back to the raw text as the prompt
-    }
-
-    // Resolve every proposed value against the real options; drop what does
-    // not match rather than passing a guess through to a paid API call.
-    var resolved = {}, rejected = [];
-    Object.keys(parsed.settings || {}).forEach(function (id) {
-      var opts = vocab[id];
-      if (!Array.isArray(opts)) return;
-      var val = resolveOption(opts, parsed.settings[id]);
-      if (val !== null) resolved[id] = val;
-      else rejected.push(id + '=' + parsed.settings[id]);
+    var api = window.TimrXApi && window.TimrXApi.apiFetch;
+    if (typeof api !== 'function') throw new Error('workspace API is not ready');
+    var result = await api('/api/_mod/command/plan', {
+      method: 'POST',
+      body: { text: text },
+      timeout: 45000,
+      retry: false
     });
-
-    return {
-      intent: intent,
-      prompt: (parsed.prompt || text).trim(),
-      settings: resolved,
-      rejected: rejected,
-      vocab: vocab
-    };
+    if (!result.ok || !result.data || !result.data.ok) {
+      throw new Error(result.error || result.data?.message || 'planning failed');
+    }
+    return result.data;
   }
 
   async function chat(messages) {
@@ -231,44 +172,26 @@
 
   // ------------------------------------------------------------------ confirm
   function stage(plan) {
-    var cfg = INTENTS[plan.intent];
-
-    // Fill the prompt field, then the settings, then let the cost settle.
-    var pf = PROMPT_FIELD[plan.intent];
-    if (pf && q(pf)) {
-      q(pf).value = plan.prompt;
-      q(pf).dispatchEvent(new Event('input', { bubbles: true }));
-    }
-    var applied = [];
-    Object.keys(plan.settings).forEach(function (id) {
-      if (applyControl(id, plan.settings[id], plan.intent)) {
-        applied.push({ id: id, value: plan.settings[id] });
-      }
-    });
-
-    if (window.WorkspaceCredits && window.WorkspaceCredits.updateButtonCosts) {
-      window.WorkspaceCredits.updateButtonCosts();
-    }
-
-    setTimeout(function () {
-      var cost = readCost(plan.intent);
-      pending = { plan: plan, cost: cost, applied: applied };
-      render(pending);
-    }, 220);
+    pending = {
+      plan: plan.plan,
+      quote: plan.quote,
+      plan_token: plan.plan_token,
+      cost: plan.quote,
+      applied: []
+    };
+    render(pending);
   }
 
   function render(p) {
     if (!listEl) return;
-    var cfg = INTENTS[p.plan.intent];
-    var chips = p.applied.map(function (a) {
-      var el = q(a.id);
-      var label = el && el.selectedOptions && el.selectedOptions[0]
-        ? el.selectedOptions[0].textContent.trim() : a.value;
-      return '<span class="cmdai__chip">' + esc(label) + '</span>';
+    var cfg = INTENTS[p.plan.intent] || { label: p.plan.intent };
+    var costTxt = p.cost.credits != null ? p.cost.credits + ' credits' : 'cost unavailable';
+    var blocked = !p.quote.available || p.cost.credits <= 0;
+    var settings = Object.keys(p.plan).filter(function (key) {
+      return !['intent', 'prompt'].includes(key) && p.plan[key] !== '' && p.plan[key] != null;
+    }).map(function (key) {
+      return '<span class="cmdai__chip">' + esc(key.replaceAll('_', ' ') + ': ' + p.plan[key]) + '</span>';
     }).join('');
-
-    var costTxt = p.cost.credits != null ? p.cost.credits + ' credits' : 'cost pending';
-    var blocked = p.cost.disabled;
 
     listEl.innerHTML =
       '<div class="cmdai" role="group" aria-label="Confirm generation">' +
@@ -277,18 +200,17 @@
           '<span class="cmdai__cost' + (blocked ? ' is-blocked' : '') + '">' + esc(costTxt) + '</span>' +
         '</div>' +
         '<p class="cmdai__prompt">' + esc(p.plan.prompt) + '</p>' +
-        (chips ? '<div class="cmdai__chips">' + chips + '</div>' : '') +
-        (p.plan.rejected.length
+        (settings ? '<div class="cmdai__chips">' + settings + '</div>' : '') +
+        (p.plan.rejected && p.plan.rejected.length
           ? '<p class="cmdai__note">Ignored (not offered by this provider): ' +
             esc(p.plan.rejected.join(', ')) + '</p>' : '') +
         '<div class="cmdai__actions">' +
           '<button type="button" class="cmdai__btn cmdai__btn--go" data-cmdai="run"' +
             (blocked ? ' disabled' : '') + '>' +
-            (blocked ? 'Not ready' : 'Generate · ' + esc(costTxt)) + '</button>' +
+            (blocked ? esc(p.quote.availability_error || 'Not ready') : 'Generate · ' + esc(costTxt)) + '</button>' +
           '<button type="button" class="cmdai__btn" data-cmdai="edit">Edit in panel</button>' +
         '</div>' +
-        '<p class="cmdai__fine">Runs the same Generate button as the panel — ' +
-          'credits are reserved server-side at the current rate.</p>' +
+        '<p class="cmdai__fine">The server rechecks provider availability and reserves the quoted credits only after you confirm.</p>' +
       '</div>';
   }
 
@@ -298,18 +220,54 @@
     });
   }
 
-  /* The only thing that spends credits: the real button. */
-  function run() {
+  /* Execute only after the user confirms the server-generated quote. */
+  async function run() {
     if (!pending) return;
-    var btn = q(INTENTS[pending.plan.intent].btn);
-    if (!btn || btn.disabled) return;
+    if (!pending.quote.available || pending.quote.credits <= 0) return;
+    var button = listEl && listEl.querySelector('[data-cmdai="run"]');
+    if (button) { button.disabled = true; button.textContent = 'Starting…'; }
+    var api = window.TimrXApi && window.TimrXApi.apiFetch;
+    if (typeof api !== 'function') return;
+    var refreshed = await api('/api/_mod/command/quote', {
+      method: 'POST', body: { plan_token: pending.plan_token }, retry: false
+    });
+    if (!refreshed.ok || !refreshed.data?.ok) {
+      if (button) { button.disabled = false; button.textContent = 'Quote unavailable'; }
+      throw new Error(refreshed.error || 'quote failed');
+    }
+    pending.plan_token = refreshed.data.plan_token;
+    pending.quote = refreshed.data.quote;
+    var key = (window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : 'cmd-' + Date.now());
+    var result = await api('/api/_mod/command/execute', {
+      method: 'POST', body: { plan_token: pending.plan_token, idempotency_key: key },
+      headers: { 'Idempotency-Key': key }, timeout: 30000, retry: false
+    });
+    if (!result.ok || !result.data?.ok) {
+      if (button) { button.disabled = false; button.textContent = result.error || 'Could not start'; }
+      throw new Error(result.error || result.data?.message || 'generation failed');
+    }
+    registerCommandJob(result.data, pending.plan);
     if (window.TimrXCommand && window.TimrXCommand.close) window.TimrXCommand.close();
     pending = null;
-    btn.click();
+  }
+
+  function registerCommandJob(data, plan) {
+    var id = data.job_id || data.id;
+    if (!id) return;
+    var meta = {
+      type: plan.intent, kind: plan.intent, stage: 'queued', status: 'queued',
+      prompt: plan.prompt, provider: plan.provider, model: plan.model,
+      reservation_id: data.reservation_id, created_at: Date.now()
+    };
+    if (window.savePendingMeta) window.savePendingMeta(id, meta);
+    if (window.addActiveJob) window.addActiveJob(id);
+    if (plan.intent === 'model' && window.watchJob) window.watchJob(id);
+    if (plan.intent === 'image' && window.watchImageJob) window.watchImageJob(id, data.reservation_id, meta);
+    if (plan.intent === 'video' && window.watchVideoJob) window.watchVideoJob(id, data.reservation_id, meta);
   }
 
   function looksLikeGenerationRequest(text) {
-    if (!text || text.length < 8) return false;
+    if (!text || text.length < 3) return false;
     if (/\b(generate|create|make|render|build|turn|animate|remesh|texture|rig)\b/i.test(text)) {
       return true;
     }
@@ -323,7 +281,7 @@
   function handleGenerationEnter(e) {
     if (e.key !== 'Enter' || e.shiftKey || e.isComposing || e.repeat) return false;
     var text = input.value.trim();
-    if (!looksLikeGenerationRequest(text) || parsing) return false;
+    if (text.length < 3 || parsing) return false;
 
     // command-palette.js also handles Enter on the panel. Stop the event here
     // during capture so a generation request cannot accidentally activate a
@@ -361,7 +319,11 @@
       var a = e.target.closest('[data-cmdai]');
       if (!a) return;
       e.preventDefault();
-      if (a.dataset.cmdai === 'run') run();
+      if (a.dataset.cmdai === 'run') {
+        run().catch(function (err) {
+          listEl.innerHTML = '<p class="cmdai__thinking">' + esc(err.message || 'Could not start generation.') + '</p>';
+        });
+      }
       if (a.dataset.cmdai === 'edit') {
         if (window.TimrXCommand) window.TimrXCommand.close();
         if (window.TimrXSheet) window.TimrXSheet.open();

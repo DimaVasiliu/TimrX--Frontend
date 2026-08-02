@@ -132,7 +132,7 @@
   <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260802p">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260802q">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
   <script defer src="3dprint-modules/3dprint-app.js?v=20260802h"></script>
@@ -653,6 +653,38 @@
       <path class="ws-corner-launcher__glyph-spark" d="M21.8 5.1v2.6M20.5 6.4h2.6"/>
     </svg>
   </button>
+</div>
+
+<div class="ws-prompt-guide-launcher" id="wsPromptGuideLauncher">
+  <button type="button" class="ws-corner-launcher__guide" id="wsPromptGuideBtn" aria-label="Open prompt guide" aria-expanded="false" aria-controls="wsPromptGuide">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M9 18h6M10 21h4"/>
+      <path d="M8.2 14.8a6.5 6.5 0 1 1 7.6 0c-.9.7-1.3 1.5-1.5 2.2H9.7c-.2-.7-.6-1.5-1.5-2.2Z"/>
+      <path d="M12 2v1.5M4.9 4.9 6 6M19.1 4.9 18 6"/>
+    </svg>
+    <span>Prompt guide</span>
+  </button>
+  <section class="ws-prompt-guide" id="wsPromptGuide" role="dialog" aria-modal="false" aria-hidden="true" aria-labelledby="wsPromptGuideTitle" hidden>
+    <div class="ws-prompt-guide__head">
+      <div>
+        <span class="ws-prompt-guide__eyebrow">Command bar</span>
+        <h2 id="wsPromptGuideTitle">Write a clear creation brief</h2>
+      </div>
+      <button type="button" class="ws-prompt-guide__close" data-close-prompt-guide aria-label="Close prompt guide">&times;</button>
+    </div>
+    <p class="ws-prompt-guide__intro">Use one sentence with the output, provider, subject, and settings. The AI will route it to the right generator.</p>
+    <ol class="ws-prompt-guide__steps">
+      <li><b>Output</b><span>image, video, or 3D model</span></li>
+      <li><b>Provider</b><span>Nano Banana, Veo, Seedance, or Meshy</span></li>
+      <li><b>Settings</b><span>aspect ratio, duration, quality, or version</span></li>
+    </ol>
+    <div class="ws-prompt-guide__examples" aria-label="Prompt examples">
+      <button type="button" data-prompt-example="Generate a Nano Banana image of an ethereal human silhouette, portrait 9:16, 4K."><span>Image</span> Ethereal human, 9:16, 4K</button>
+      <button type="button" data-prompt-example="Create a Veo video of an ethereal human silhouette moving through light, 8 seconds, landscape 16:9, 1080p."><span>Video</span> Veo scene, 8 seconds, 16:9</button>
+      <button type="button" data-prompt-example="Create a Seedance 2.5 video of an ethereal human silhouette, 10 seconds, 720p, 16:9."><span>Video</span> Seedance 2.5, 10 seconds</button>
+      <button type="button" data-prompt-example="Create a Meshy 6 3D model of an ethereal human silhouette, clean topology, printable."><span>Model</span> Meshy 6, printable model</button>
+    </div>
+  </section>
 </div>
 
 <!-- Main Workspace -->
@@ -1541,8 +1573,40 @@
         </div>
         <div class="history-head">
           <div class="history-head-top">
-            <!-- Top Row: Search & Controls -->
+            <!-- One toolbar line: type filters, search, refresh, sort. The
+                 filters used to live on a second row below the search box,
+                 which stacked two half-empty lines across a full-width modal. -->
             <div class="history-head-row-top">
+              <!-- Left: type filters -->
+              <div class="history-head-row-bottom">
+                <div class="history-filters">
+                  <button type="button" class="filter-btn" data-filter="all" data-tooltip="All assets" aria-label="All assets">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                    </svg>
+                    <span class="filter-btn__label">All</span>
+                  </button>
+                  <button type="button" class="filter-btn" data-filter="image" data-tooltip="Images" aria-label="Images only">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span class="filter-btn__label">Images</span>
+                  </button>
+                  <button type="button" class="filter-btn" data-filter="video" data-tooltip="Videos" aria-label="Videos only">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    <span class="filter-btn__label">Videos</span>
+                  </button>
+                  <button type="button" class="filter-btn active" data-filter="model" data-tooltip="3D Models" aria-label="3D models only">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                    </svg>
+                    <span class="filter-btn__label">Models</span>
+                  </button>
+                </div>
+              </div>
+
               <!-- Center: Search -->
               <div class="history-head-center">
                 <div class="history-search-wrapper">
@@ -1585,41 +1649,17 @@
                 </button>
               </div>
             </div>
-
-            <!-- Bottom Row: Filters (only visible in panel, not in expansion) -->
-            <div class="history-head-row-bottom">
-              <div class="history-filters">
-                <button type="button" class="filter-btn" data-filter="all" data-tooltip="All assets" aria-label="All assets">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                  </svg>
-                </button>
-                <button type="button" class="filter-btn" data-filter="image" data-tooltip="Images" aria-label="Images only">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </button>
-                <button type="button" class="filter-btn" data-filter="video" data-tooltip="Videos" aria-label="Videos only">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                  </svg>
-                </button>
-                <button type="button" class="filter-btn active" data-filter="model" data-tooltip="3D Models" aria-label="3D models only">
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                  </svg>
-                </button>
-              </div>
-            </div>
           </div>
         </div>
         <div class="history-grid" id="historyGrid" data-title-variant="thumbs-only"></div>
         <div class="history-pager">
+          <!-- Page sizes are multiples of the modal's column count so a page
+               always ends on a full row instead of a ragged one. -->
           <select id="historyPageSize" class="page-size-select" aria-label="Items per page">
-            <option value="9">9</option>
-            <option value="12" selected>12</option>
-            <option value="15">15</option>
-            <option value="24">24</option>
+            <option value="18">18</option>
+            <option value="27" selected>27</option>
+            <option value="36">36</option>
+            <option value="54">54</option>
           </select>
           <div class="history-pager-nav">
             <button type="button" id="historyPrev" aria-label="Previous page">‹</button>
@@ -1656,6 +1696,22 @@
     var cmdTrigger = document.getElementById('wsCmdTrigger');
     var lastAssetsFocus = null;
 
+    /* The modal's top edge is a function of the real header height — the bar
+       grows with the brand/credits cluster and shrinks on mobile, so a hard
+       clamp() either clipped the header's bottom rule or left a gap under it.
+       Measure once on open and keep it in sync while the modal is up. */
+    var wsHeaderEl = document.querySelector('.ws-header');
+    function syncHeaderOffset() {
+      if (!wsHeaderEl) return;
+      var h = Math.round(wsHeaderEl.getBoundingClientRect().height);
+      if (h > 0) document.documentElement.style.setProperty('--ws-header-h', h + 'px');
+    }
+    if (wsHeaderEl && typeof ResizeObserver === 'function') {
+      new ResizeObserver(syncHeaderOffset).observe(wsHeaderEl);
+    }
+    window.addEventListener('resize', syncHeaderOffset);
+    syncHeaderOffset();
+
     function setTabState(target) {
       tabs.forEach(function(t){
         var isActive = t.dataset.tab === target;
@@ -1672,6 +1728,7 @@
     function openAssetsModal(trigger) {
       if (!wsRight || !assetsBackdrop) return;
       lastAssetsFocus = trigger || document.activeElement;
+      syncHeaderOffset();
       document.body.classList.add('assets-modal-open');
       if (cmdTrigger) {
         cmdTrigger.style.opacity = '0';
@@ -1764,6 +1821,9 @@
     var root = document.getElementById('wsCornerLauncher');
     var toggle = document.getElementById('wsCornerLauncherToggle');
     var menu = document.getElementById('wsCornerLauncherMenu');
+    var guideRoot = document.getElementById('wsPromptGuideLauncher');
+    var guideBtn = document.getElementById('wsPromptGuideBtn');
+    var guide = document.getElementById('wsPromptGuide');
     if (!root || !toggle || !menu) return;
 
     function setOpen(open) {
@@ -1771,6 +1831,18 @@
       toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
       toggle.setAttribute('aria-label', open ? 'Close workspace quick actions' : 'Open workspace quick actions');
       menu.setAttribute('aria-hidden', open ? 'false' : 'true');
+    }
+
+    function setGuideOpen(open) {
+      if (!guide || !guideBtn) return;
+      if (open) guide.hidden = false;
+      if (guideRoot) guideRoot.classList.toggle('guide-open', open);
+      guideBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      guide.setAttribute('aria-hidden', open ? 'false' : 'true');
+      if (open) setOpen(false);
+      else window.setTimeout(function(){
+        if (!guideRoot || !guideRoot.classList.contains('guide-open')) guide.hidden = true;
+      }, 320);
     }
 
     function openViewer() {
@@ -1822,8 +1894,42 @@
 
     toggle.addEventListener('click', function(e){
       e.preventDefault();
+      setGuideOpen(false);
       setOpen(!root.classList.contains('is-open'));
     });
+
+    if (guideBtn) {
+      guideBtn.addEventListener('click', function(e){
+        e.preventDefault();
+        setGuideOpen(!guideRoot || !guideRoot.classList.contains('guide-open'));
+      });
+    }
+
+    if (guide) {
+      guide.addEventListener('click', function(e){
+        var example = e.target.closest('[data-prompt-example]');
+        if (e.target.closest('[data-close-prompt-guide]')) {
+          e.preventDefault();
+          setGuideOpen(false);
+          if (guideBtn) guideBtn.focus();
+          return;
+        }
+        if (!example) return;
+        e.preventDefault();
+        var prompt = example.getAttribute('data-prompt-example') || '';
+        setGuideOpen(false);
+        if (window.TimrXCommand && typeof window.TimrXCommand.open === 'function') {
+          window.TimrXCommand.open();
+          window.setTimeout(function(){
+            var input = document.getElementById('wsCmdInput');
+            if (!input) return;
+            input.value = prompt;
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+            input.focus();
+          }, 170);
+        }
+      });
+    }
 
     menu.addEventListener('click', function(e){
       if (e.target.closest('[data-open-3d-viewer]')) {
@@ -1842,7 +1948,10 @@
         closeViewer();
         return;
       }
-      if (!root.contains(e.target)) setOpen(false);
+      if (!root.contains(e.target) && (!guideRoot || !guideRoot.contains(e.target))) {
+        setOpen(false);
+        setGuideOpen(false);
+      }
     });
 
     document.addEventListener('keydown', function(e){
@@ -1852,6 +1961,7 @@
         return;
       }
       setOpen(false);
+      setGuideOpen(false);
     });
   })();
   </script>
@@ -3641,7 +3751,7 @@
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260802i"></script>
+  <script type="module" src="./js/main.js?v=20260802j"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
   <script src="js/command-palette.js?v=20260802f" defer></script>

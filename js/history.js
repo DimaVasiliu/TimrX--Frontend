@@ -2424,7 +2424,7 @@ function _renderHistoryImpl() {
       const lineageTitle = shortTitle(lineage.title || sortedBatchModels[0] || '');
       const groupedState = getGroupedCardState(group, sortedBatchModels);
       return `
-        <div class="history-collection" data-lineage-root="${rowKey}">
+        <div class="history-collection" data-lineage-root="${rowKey}" data-thumb-count="1">
           <span class="history-collection__divider" aria-hidden="true"></span>
           <div class="history-collection__head">
             <div class="history-collection__title" title="${lineageTitle}">${lineageTitle}</div>
@@ -2477,8 +2477,11 @@ function _renderHistoryImpl() {
           ${showBump ? `<span class="history-collection__counter">+${delta}</span>` : ''}
         </span>`;
 
+    // data-thumb-count drives how many columns the collection claims in the
+    // Assets modal grid, so a one-thumb lineage occupies one tile and a
+    // three-thumb lineage occupies three — every thumbnail the same square.
     return `
-      <div class="history-collection" data-lineage-root="${rowKey}">
+      <div class="history-collection" data-lineage-root="${rowKey}" data-thumb-count="${visibleBundles.length || 1}">
         <span class="history-collection__divider" aria-hidden="true"></span>
         <div class="history-collection__head" aria-label="${lineage.models.length} version${lineage.models.length > 1 ? 's' : ''}">
           <div class="history-collection__title" title="${lineageTitle}">${lineageTitle}</div>

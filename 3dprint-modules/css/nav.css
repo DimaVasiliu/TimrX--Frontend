@@ -1293,31 +1293,305 @@ body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(5) { tran
    Bottom-right workspace launcher
    ========================================================================== */
 .ws-corner-launcher,
-.ws-corner-launcher * {
+.ws-corner-launcher *,
+.ws-prompt-guide-launcher,
+.ws-prompt-guide-launcher * {
   box-sizing: border-box;
 }
 
 html body.print3d-page > .ws-corner-launcher {
   position: fixed !important;
-  right: max(
-    14px,
-    env(safe-area-inset-right, 0px),
-    calc((100vw - min(var(--ws-cmdbar-w), calc(100vw - 40px))) / 2 - var(--ws-cmdbar-h) - 14px)
-  ) !important;
+  left: calc(50% + (min(var(--ws-cmdbar-w), calc(100vw - 40px)) / 2) + 24px) !important;
+  right: auto !important;
   bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px)) !important;
-  left: auto !important;
   top: auto !important;
-  z-index: 120;
-  display: grid;
-  justify-items: end;
+  z-index: 10000 !important;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
   gap: 12px;
   width: auto !important;
   height: auto !important;
   pointer-events: none;
 }
 
+.ws-prompt-guide-launcher {
+  position: fixed !important;
+  left: calc(50% + (min(var(--ws-cmdbar-w), calc(100vw - 40px)) / 2) + var(--ws-cmdbar-h) + 36px) !important;
+  right: auto !important;
+  bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px)) !important;
+  top: auto !important;
+  z-index: 10000 !important;
+  display: inline-flex;
+  align-items: flex-end;
+  width: auto !important;
+  height: auto !important;
+  pointer-events: none;
+  animation: wsCornerLauncherArrive var(--ws-arrive-dur) var(--ws-arrive-ease) 760ms backwards;
+  transform-origin: 50% 50%;
+}
+
+.ws-corner-launcher__guide,
+.ws-prompt-guide,
+.ws-prompt-guide * {
+  box-sizing: border-box;
+}
+
+.ws-corner-launcher__guide {
+  position: relative;
+  order: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: var(--ws-cmdbar-h);
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  color: rgba(226, 237, 235, 0.78);
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  font: inherit;
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    color 0.22s ease,
+    background 0.22s ease,
+    transform 0.28s var(--ws-arrive-ease),
+    filter 0.22s ease;
+}
+
+.ws-corner-launcher__guide svg {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  color: var(--accent);
+  filter: drop-shadow(0 4px 10px rgba(var(--accent-blue-rgb), 0.18));
+}
+
+.ws-corner-launcher__guide:hover,
+.ws-corner-launcher__guide:focus-visible,
+.ws-prompt-guide-launcher.guide-open .ws-corner-launcher__guide {
+  color: var(--text);
+  background: transparent;
+  transform: translateY(-3px);
+  filter: drop-shadow(0 8px 16px rgba(var(--accent-blue-rgb), 0.15));
+}
+
+.ws-corner-launcher__guide:focus-visible {
+  outline: 2px solid rgba(var(--accent-blue-rgb), 0.48);
+  outline-offset: 4px;
+}
+
+.ws-prompt-guide {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 12px);
+  width: min(348px, calc(100vw - 24px));
+  padding: 18px;
+  border: 1px solid rgba(154, 191, 187, 0.2);
+  border-radius: 18px;
+  color: var(--text);
+  background:
+    linear-gradient(145deg, rgba(22, 31, 33, 0.96), rgba(9, 13, 15, 0.97));
+  -webkit-backdrop-filter: blur(22px) saturate(1.08);
+  backdrop-filter: blur(22px) saturate(1.08);
+  box-shadow:
+    0 20px 44px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(242, 245, 243, 0.06);
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  transform-origin: 92% 100%;
+  pointer-events: none;
+  transition:
+    opacity 0.22s ease,
+    transform 0.3s var(--ws-arrive-ease);
+}
+
+.ws-prompt-guide-launcher.guide-open .ws-prompt-guide {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.ws-prompt-guide__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid rgba(154, 191, 187, 0.12);
+}
+
+.ws-prompt-guide__eyebrow {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--accent-blue);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.ws-prompt-guide h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 16px;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.ws-prompt-guide__close {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  color: var(--text-soft);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ws-prompt-guide__close:hover,
+.ws-prompt-guide__close:focus-visible {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.ws-prompt-guide__close:focus-visible {
+  outline: 2px solid rgba(var(--accent-blue-rgb), 0.48);
+  outline-offset: 2px;
+}
+
+.ws-prompt-guide__intro {
+  margin: 14px 0 13px;
+  color: var(--text-soft);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.ws-prompt-guide__steps {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: prompt-step;
+}
+
+.ws-prompt-guide__steps li {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  gap: 8px;
+  color: var(--text-soft);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.ws-prompt-guide__steps li::before {
+  counter-increment: prompt-step;
+  content: "0" counter(prompt-step);
+  grid-row: 1;
+  grid-column: 1;
+  color: var(--accent);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.ws-prompt-guide__steps b {
+  grid-column: 1;
+  padding-left: 22px;
+  color: var(--text);
+  font-weight: 760;
+}
+
+.ws-prompt-guide__steps span {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.ws-prompt-guide__examples {
+  display: grid;
+  gap: 7px;
+  margin-top: 15px;
+  padding-top: 13px;
+  border-top: 1px solid rgba(154, 191, 187, 0.12);
+}
+
+.ws-prompt-guide__examples button {
+  display: block;
+  width: 100%;
+  padding: 9px 10px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--text-soft);
+  background: rgba(255, 255, 255, 0.045);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.ws-prompt-guide__examples button span {
+  display: inline-block;
+  margin-right: 7px;
+  color: var(--accent-blue);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.ws-prompt-guide__examples button:hover,
+.ws-prompt-guide__examples button:focus-visible {
+  color: var(--text);
+  background: rgba(var(--accent-blue-rgb), 0.12);
+  transform: translateX(2px);
+}
+
+.ws-prompt-guide__examples button:focus-visible {
+  outline: 2px solid rgba(var(--accent-blue-rgb), 0.44);
+  outline-offset: 2px;
+}
+
+@media (max-width: 560px) {
+  .ws-corner-launcher__guide {
+    width: var(--ws-cmdbar-h);
+    padding: 0;
+  }
+
+  .ws-corner-launcher__guide span {
+    display: none;
+  }
+
+  .ws-prompt-guide {
+    right: -4px;
+    width: min(348px, calc(100vw - 20px));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ws-corner-launcher__guide,
+  .ws-prompt-guide {
+    transition-duration: 0.01ms;
+  }
+}
+
 .ws-corner-launcher__toggle {
   position: relative;
+  order: 1;
   width: var(--ws-cmdbar-h);
   height: var(--ws-cmdbar-h);
   display: grid;
@@ -1359,6 +1633,12 @@ html body.print3d-page > .ws-corner-launcher {
   background: rgba(var(--accent-blue-rgb), 0.12);
   opacity: 0;
   animation: cornerLauncherPulse 5.8s ease-out 1910ms infinite;
+}
+
+.ws-corner-launcher__menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 10px);
 }
 
 .ws-corner-launcher__glyph {
@@ -1508,7 +1788,9 @@ html body.print3d-page > .ws-corner-launcher {
 }
 
 body.assets-modal-open .ws-corner-launcher,
-body.ws-cmd-open .ws-corner-launcher {
+body.ws-cmd-open .ws-corner-launcher,
+body.assets-modal-open .ws-prompt-guide-launcher,
+body.ws-cmd-open .ws-prompt-guide-launcher {
   opacity: 0;
   pointer-events: none;
 }
@@ -1542,6 +1824,7 @@ body.ws-viewer-open .timrx-3dprint .ws-left,
 body.ws-viewer-open .timrx-3dprint .ws-right,
 body.ws-viewer-open .ws-mobile-tabs,
 body.ws-viewer-open .ws-corner-launcher,
+body.ws-viewer-open .ws-prompt-guide-launcher,
 html body.print3d-page.ws-viewer-open > .cc-banner {
   opacity: 0 !important;
   visibility: hidden !important;
@@ -1725,6 +2008,13 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
 
 @media (max-width: 560px) {
   html body.print3d-page > .ws-corner-launcher {
+    left: auto !important;
+    right: calc(max(12px, env(safe-area-inset-right, 0px)) + var(--ws-cmdbar-h) + 12px) !important;
+    bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  html body.print3d-page > .ws-prompt-guide-launcher {
+    left: auto !important;
     right: max(12px, env(safe-area-inset-right, 0px)) !important;
     bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px)) !important;
   }
@@ -1741,6 +2031,7 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
 
 @media (prefers-reduced-motion: reduce) {
   .ws-corner-launcher__toggle,
+  .ws-prompt-guide-launcher,
   .ws-corner-launcher__toggle::before,
   .ws-corner-launcher__pulse,
   .ws-corner-launcher__glyph-cube,

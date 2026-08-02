@@ -1312,6 +1312,16 @@ body.assets-modal-open .timrx-3dprint .assets-side-launcher {
   stroke-width: 1.6;
 }
 
+/* Icon-only by default; the Assets modal turns the labels on because it has the
+   room and four unlabelled glyphs are a guessing game. */
+.timrx-3dprint .filter-btn__label {
+  display: none;
+}
+
+.timrx-3dprint .ws-right.assets-modal .filter-btn__label {
+  display: inline;
+}
+
 .timrx-3dprint .filter-btn:hover {
   color: rgba(255, 255, 255, 0.8);
 }
@@ -4836,8 +4846,41 @@ body.has-modal {
    and there is no side column any more.
    ========================================================================== */
 
-.timrx-3dprint .ws-right.assets-modal{
-  inset:clamp(54px,6vh,78px) clamp(12px,2.4vw,32px) clamp(14px,2.4vh,26px);
+/* .ws-pane is on the same element — it is here to outweigh the
+   `body.history-expanded .timrx-3dprint .ws-right` block and the @supports
+   safe-area override in media/history-media.css, both of which style the modal
+   as if it were still the full-page history view. */
+.timrx-3dprint .ws-pane.ws-right.assets-modal{
+  /* One tile size and one gutter for every layout the modal can render — the
+     lineage rows, the image grid, the video grid and the gallery all read these
+     two numbers, so a thumbnail is the same square wherever it appears and each
+     row lines up on the same column edges.
+
+     --ws-header-h is measured from the real header by the modal script in
+     3dprint.html; the fallback keeps the modal clear of the bar if that script
+     never runs. The modal used to start at a hard 54–78px and clipped the
+     header's bottom rule. */
+  --assets-tile:158px;
+  --assets-gap:14px;
+  inset:calc(var(--ws-header-h,68px) + 12px) clamp(12px,2.4vw,32px) clamp(14px,2.4vh,26px);
+  /* body.history-expanded (set whenever the gallery renders) caps .ws-right at
+     1600px and pads it — sized for the old full-page history view. In the modal
+     that shrank the All tab relative to every other tab, and its width:100%
+     pushed the right edge 32px past the viewport. */
+  width:auto;
+  max-width:none;
+  height:auto;
+  margin:0;
+  padding:0;
+}
+
+/* Below 1024px, media/history-media.css hides `.ws-right:not(.mob-active)` for
+   any body that is not .history-expanded — a rule from the days when this pane
+   was a side column. Switching from All to Images inside the modal drops the
+   gallery flag, so on a tablet the modal blanked itself mid-session. An open
+   modal is always visible. */
+body.assets-modal-open .timrx-3dprint .ws-pane.ws-right.assets-modal{
+  display:flex !important;
 }
 
 /* Was capped at 1280px, which left rails of dead space on a wide display while
@@ -4845,30 +4888,151 @@ body.has-modal {
 .timrx-3dprint .ws-right.assets-modal .card.history{
   width:100%;
   max-width:none;
-  padding:20px 22px 16px;
+  padding:18px 22px 14px;
   border-radius:26px;
+  display:flex;
+  flex-direction:column;
 }
 
 /* --- retire the expansion controls --------------------------------------- */
 /* The "All assets" filter doubled as an expand trigger and sat in a group of
    type filters, so it read as a fourth filter that also changed the layout.
    Inside a full-size modal it is just the All filter. */
-.timrx-3dprint .ws-right.assets-modal #historyCollapseView,
-.timrx-3dprint .ws-right.assets-modal .history-pager{
+.timrx-3dprint .ws-right.assets-modal #historyCollapseView{
   display:none !important;
+}
+
+/* The pager is dead weight in gallery mode (that view scrolls infinitely) but
+   the Images/Videos/Models tabs are still paginated — hiding it there stranded
+   everything past the first page. */
+.timrx-3dprint .ws-right.assets-modal .history-pager{
+  display:flex;
+  flex:none;
+  justify-content:flex-end;
+  gap:8px;
+  margin:0;
+  padding:10px 2px 0;
+  border-top:1px solid rgba(255,255,255,.055);
+}
+
+body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
+  display:none;
+}
+
+/* --- titlebar ------------------------------------------------------------ */
+/* Kicker, title and blurb read as one horizontal line instead of a title block
+   with a caption floating beside it. */
+.timrx-3dprint .ws-right.assets-modal .assets-modal-titlebar{
+  grid-template-columns:minmax(0,auto) minmax(0,1fr) auto;
+  gap:20px;
+  padding:0 0 14px;
+  margin-bottom:14px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.timrx-3dprint .ws-right.assets-modal .assets-modal-titlebar p:not(.assets-modal-kicker){
+  align-self:end;
+  padding-bottom:3px;
+  max-width:none;
+}
+
+.timrx-3dprint .ws-right.assets-modal .assets-modal-close{
+  width:38px;
+  height:38px;
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,.08);
+  background:rgba(255,255,255,.03);
+  transition:background .15s ease,border-color .15s ease,color .15s ease;
+}
+
+.timrx-3dprint .ws-right.assets-modal .assets-modal-close:hover{
+  background:rgba(255,255,255,.08);
+  border-color:rgba(255,255,255,.16);
+}
+
+/* --- head: filters / search / refresh / sort on one line ------------------ */
+/* Filters used to sit on their own row below the search box, stretched edge to
+   edge by `justify-content:space-between` — four icons marooned at quarter
+   points of a 1600px modal. They are now a segmented control at the head of a
+   single toolbar row. */
+.timrx-3dprint .ws-right.assets-modal .history-head{
+  flex:none;
+  gap:0;
+  margin-bottom:14px;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-head-top{
+  display:block;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-head-row-bottom{
+  flex:0 0 auto;
+  width:auto;
+  margin:0;
+  padding:0;
+  border:0;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-head-row-top{
+  display:flex;
+  align-items:center;
+  flex-wrap:nowrap;
+  gap:12px;
+  min-width:0;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-head-center{flex:1 1 auto;min-width:0}
+.timrx-3dprint .ws-right.assets-modal .history-search-wrapper{width:100%;max-width:none}
+
+.timrx-3dprint .ws-right.assets-modal .history-filters{
+  width:auto;
+  justify-content:flex-start;
+  gap:2px;
+  padding:3px;
+  border-radius:12px;
+  border:1px solid rgba(255,255,255,.06);
+  background:rgba(255,255,255,.025);
+}
+
+.timrx-3dprint .ws-right.assets-modal .filter-btn{
+  width:auto;
+  height:34px;
+  gap:7px;
+  padding:0 12px;
+  border-radius:9px;
+  font-size:12px;
+  font-weight:600;
+  letter-spacing:.01em;
+  transition:background .15s ease,color .15s ease;
+}
+
+.timrx-3dprint .ws-right.assets-modal .filter-btn svg{
+  width:17px;
+  height:17px;
+  stroke-width:1.8;
+}
+
+.timrx-3dprint .ws-right.assets-modal .filter-btn:hover{
+  background:rgba(255,255,255,.05);
+}
+
+.timrx-3dprint .ws-right.assets-modal .filter-btn.active{
+  color:var(--text);
+  background:rgba(var(--accent-blue-rgb),.16);
+  box-shadow:inset 0 0 0 1px rgba(var(--accent-blue-rgb),.28);
 }
 
 /* --- grid: one consistent thumbnail size --------------------------------- */
 .timrx-3dprint .ws-right.assets-modal .history .history-grid{
   display:grid !important;
-  grid-template-columns:repeat(auto-fill,minmax(196px,1fr));
-  gap:14px;
+  grid-template-columns:repeat(auto-fill,minmax(var(--assets-tile),1fr));
+  gap:var(--assets-gap);
   align-content:start;
   flex:1 1 auto;
   min-height:0;
   overflow-y:auto;
   overflow-x:hidden;
-  padding:4px 4px 20px;
+  padding:2px 4px 20px;
   scrollbar-width:thin;
   scrollbar-color:rgba(255,255,255,.16) transparent;
 }
@@ -4881,40 +5045,137 @@ body.has-modal {
   border-radius:999px;
 }
 
+/* Anything that is not a tile takes the full width of the grid rather than
+   being squeezed into one column: the image/video wrappers, the gallery
+   section, empty states and the loading panel. */
+.timrx-3dprint .ws-right.assets-modal .history .history-grid > .history-image-grid,
+.timrx-3dprint .ws-right.assets-modal .history .history-grid > .history-video-grid,
+.timrx-3dprint .ws-right.assets-modal .history .history-grid > .expanded-section,
+.timrx-3dprint .ws-right.assets-modal .history .history-grid > .history-empty,
+.timrx-3dprint .ws-right.assets-modal .history .history-grid > .history-loading-state{
+  grid-column:1 / -1;
+  min-width:0;
+}
+
+/* The Images and Videos tabs shipped a hard 3-column grid sized for the old
+   335px side panel, so twelve thumbnails huddled in the left ninth of the
+   modal. They now use the same auto-fill track as everything else. */
+.timrx-3dprint .ws-right.assets-modal .history-image-grid,
+.timrx-3dprint .ws-right.assets-modal .history-video-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(var(--assets-tile),1fr));
+  gap:var(--assets-gap);
+  padding:0;
+  width:100%;
+}
+
+/* --- lineage rows become grid citizens ----------------------------------- */
+/* A collection is a titled cluster of up to three thumbs. Rather than laying it
+   out as a full-width band (one tile per screen row) or letting it sit in a
+   single column (three 50px thumbs stacked inside one tile), it spans exactly
+   as many columns as it has thumbs and repeats the parent's track inside. */
+.timrx-3dprint .ws-right.assets-modal .history-collection{
+  grid-column:span 1;
+  min-width:0;
+  padding:0;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-collection[data-thumb-count="2"]{grid-column:span 2}
+.timrx-3dprint .ws-right.assets-modal .history-collection[data-thumb-count="3"]{grid-column:span 3}
+
+/* The pulsing 65%-wide divider made sense between stacked rows; between grid
+   cells it is just noise. */
+.timrx-3dprint .ws-right.assets-modal .history-collection::after,
+.timrx-3dprint .ws-right.assets-modal .history-collection__divider{
+  display:none;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-collection__head{
+  padding:0 2px 8px;
+  margin:0;
+  gap:10px;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-collection__title{
+  max-width:none;
+  flex:1 1 auto;
+  font-size:12px;
+  color:var(--text-soft);
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-collection__count{
+  flex:none;
+  font-size:11px;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-collection__thumbs,
+.timrx-3dprint .ws-right.assets-modal .history-collection__thumbs-extra{
+  grid-template-columns:repeat(1,minmax(0,1fr));
+  gap:var(--assets-gap);
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-collection[data-thumb-count="2"] .history-collection__thumbs,
+.timrx-3dprint .ws-right.assets-modal .history-collection[data-thumb-count="2"] .history-collection__thumbs-extra{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-collection[data-thumb-count="3"] .history-collection__thumbs,
+.timrx-3dprint .ws-right.assets-modal .history-collection[data-thumb-count="3"] .history-collection__thumbs-extra{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-collection__thumbs-extra{
+  margin-top:var(--assets-gap);
+}
+
 /* Thumbs share one aspect and one radius, whatever their type. */
 .timrx-3dprint .ws-right.assets-modal .history-thumb,
 .timrx-3dprint .ws-right.assets-modal .expanded-thumb,
 .timrx-3dprint .ws-right.assets-modal .history-group-card{
   width:100%;
   margin:0;
+  aspect-ratio:1 / 1;
   border-radius:16px;
   overflow:hidden;
 }
 
-/* --- head: search / sort / filters on one line --------------------------- */
-.timrx-3dprint .ws-right.assets-modal .history-head-row-top{
-  display:flex;
-  align-items:center;
-  gap:12px;
+/* --- responsive tile steps ----------------------------------------------- */
+@media (max-width:1280px){
+  .timrx-3dprint .ws-right.assets-modal{--assets-tile:152px;--assets-gap:12px}
 }
 
-.timrx-3dprint .ws-right.assets-modal .history-head-center{flex:1 1 auto;min-width:0}
-.timrx-3dprint .ws-right.assets-modal .history-search-wrapper{width:100%;max-width:none}
-
-.timrx-3dprint .ws-right.assets-modal .history-head-row-bottom{
-  margin-top:10px;
-  padding-top:10px;
-  border-top:1px solid rgba(255,255,255,.055);
+@media (max-width:1024px){
+  .timrx-3dprint .ws-right.assets-modal{--assets-tile:138px;--assets-gap:10px}
+  .timrx-3dprint .ws-right.assets-modal .filter-btn{padding:0 10px;gap:0}
+  .timrx-3dprint .ws-right.assets-modal .filter-btn__label{display:none}
+  .timrx-3dprint .ws-right.assets-modal .filter-btn svg{width:19px;height:19px}
 }
 
 @media (max-width:760px){
-  .timrx-3dprint .ws-right.assets-modal{inset:8px}
+  .timrx-3dprint .ws-right.assets-modal{inset:8px;--assets-tile:118px;--assets-gap:8px}
   .timrx-3dprint .ws-right.assets-modal .card.history{padding:14px 14px 10px;border-radius:20px}
-  .timrx-3dprint .ws-right.assets-modal .history .history-grid{
-    grid-template-columns:repeat(auto-fill,minmax(136px,1fr));
+  .timrx-3dprint .ws-right.assets-modal .assets-modal-titlebar{
+    grid-template-columns:minmax(0,1fr) auto;
     gap:10px;
+    padding-bottom:10px;
+    margin-bottom:10px;
+  }
+  .timrx-3dprint .ws-right.assets-modal .assets-modal-titlebar p:not(.assets-modal-kicker){
+    display:none;
   }
   .timrx-3dprint .ws-right.assets-modal .history-head-row-top{flex-wrap:wrap}
+  .timrx-3dprint .ws-right.assets-modal .history-head-row-bottom{width:100%}
+  /* Full-width segmented control: each tab takes an equal share instead of the
+     four icons drifting apart across the row. */
+  .timrx-3dprint .ws-right.assets-modal .history-filters{width:100%}
+  .timrx-3dprint .ws-right.assets-modal .filter-btn{flex:1 1 0;min-width:0}
+  .timrx-3dprint .ws-right.assets-modal .history-head-center{flex:1 1 160px}
+  /* A titled cluster never spans more columns than the screen has. */
+  .timrx-3dprint .ws-right.assets-modal .history-collection[data-thumb-count="3"]{grid-column:span 2}
+  .timrx-3dprint .ws-right.assets-modal .history-collection[data-thumb-count="3"] .history-collection__thumbs,
+  .timrx-3dprint .ws-right.assets-modal .history-collection[data-thumb-count="3"] .history-collection__thumbs-extra{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
 }
 
 /* ==========================================================================
@@ -4924,10 +5185,30 @@ body.has-modal {
    rows provide the visual grouping that the old chronological stream lacked.
    ========================================================================== */
 .timrx-3dprint .ws-right.assets-modal .expanded-thumbs-grid {
-  grid-template-columns: repeat(auto-fill, minmax(186px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(var(--assets-tile), 1fr));
+  gap: var(--assets-gap);
   align-content: start;
-  padding: 6px 4px 22px;
+  padding: 0 0 6px;
+}
+
+/* The gallery ships its own "Your Creations" masthead with type counts, which
+   is the third title on a screen that already says LIBRARY / My Assets and
+   carries the same counts on the filter row. */
+.timrx-3dprint .ws-right.assets-modal .expanded-gallery-header {
+  display: none;
+}
+
+/* Family pills stay — they are the only way to isolate Animated — but they sit
+   flush with the grid and stick to the top of the scroll area. */
+.timrx-3dprint .ws-right.assets-modal .expanded-filter-bar {
+  padding: 0 0 12px;
+  /* The responsive rules bleed this bar out over the panel padding with
+     `margin: 0 -20px`; the modal has no such padding to bleed into. */
+  margin: 0 0 12px;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .timrx-3dprint .ws-right.assets-modal .history-family-heading {
@@ -5030,11 +5311,6 @@ body.has-modal {
 }
 
 @media (max-width: 760px) {
-  .timrx-3dprint .ws-right.assets-modal .expanded-thumbs-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-
   .timrx-3dprint .ws-right.assets-modal .history-family-heading {
     gap: 8px;
     padding-top: 10px;
