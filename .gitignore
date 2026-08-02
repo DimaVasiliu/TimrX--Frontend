@@ -26,3 +26,7 @@ __pycache__/
 venv/
 .env
 *.env
+
+# Oversized / unused 3D assets — Cloudflare Pages hard-fails at 25 MiB per file
+3dprint-modules/3dmodels/TX-a-vintage-film-camera-pr-550.glb
+img/duck.glb.orig-bak
