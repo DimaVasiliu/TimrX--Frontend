@@ -208,6 +208,15 @@ html body.print3d-page > .ws-tray {
   z-index: 59;
 }
 
+/* generation-tracker.js appends .gen-track to <body>, so the (0,2,1) rule above
+   demoted it to `position:relative` — on this page the tracker never was fixed.
+   Its `bottom` then offset it from wherever it landed in flow, which put the
+   progress bar underneath the command bar (z-index 60) and out of sight. */
+html body.print3d-page > .gen-track {
+  position: fixed;
+  z-index: 200200;
+}
+
 html body.print3d-page > .ws-cmd {
   position: fixed;
   z-index: 200500;

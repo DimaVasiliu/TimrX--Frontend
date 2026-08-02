@@ -297,6 +297,11 @@ function bindGroupedCardEvents(container) {
         return; // Don't stop propagation — let grid delegation handle it
       }
       e.stopPropagation();
+      // The library sits on top of the workspace; leaving it open meant the
+      // grouped viewer loaded behind it and the click looked like it did nothing.
+      if (document.body.classList.contains('assets-modal-open')) {
+        window.TimrXAssets?.close?.();
+      }
       // Close expanded gallery view first so the 3D viewer is visible
       if (historyState.galleryExpanded) {
         historyState.galleryExpanded = false;

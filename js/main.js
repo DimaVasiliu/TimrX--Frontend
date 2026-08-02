@@ -21,7 +21,7 @@ import {
   getActiveHistorySubmenu,
   getGroupedCardItems,
   resetGalleryInfiniteScroll
-} from './history.js?v=20260802c';
+} from './history.js?v=20260802d';
 import * as API from './api.js?v=20260802g';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
@@ -3112,16 +3112,22 @@ function wireGallery() {
         return;
       }
 
-      // Expanded gallery: clicking ANYWHERE on a card opens it in the viewer
-      // Delegate to the first data-act button inside the card.
-      if (State.historyState.galleryExpanded) {
-        const expandedCard = e.target.closest('.expanded-thumb');
-        if (expandedCard && !e.target.closest('[data-act]') && !e.target.closest('[data-history-menu]')) {
-          const innerBtn = expandedCard.querySelector('[data-act="open"], [data-act="open-video"]');
-          if (innerBtn && !innerBtn.disabled) {
-            innerBtn.click();
-            return;
-          }
+      // Clicking ANYWHERE on a card opens it in the workspace viewer.
+      // This used to be gated on gallery mode and limited to .expanded-thumb, so
+      // in the Images / Videos / Models tabs only the thumbnail image itself was
+      // live — the date bar, the name and the card padding did nothing. Delegate
+      // to the card's own open button so every tab behaves the same.
+      const openCard = e.target.closest('.expanded-thumb, .history-thumb');
+      if (openCard &&
+          !e.target.closest('[data-act]') &&
+          !e.target.closest('[data-history-menu]') &&
+          !e.target.closest('[data-submenu-open]') &&
+          !e.target.closest('.card-menu') &&
+          !e.target.closest('.card-submenu')) {
+        const innerBtn = openCard.querySelector('[data-act="open"], [data-act="open-video"]');
+        if (innerBtn && !innerBtn.disabled) {
+          innerBtn.click();
+          return;
         }
       }
 

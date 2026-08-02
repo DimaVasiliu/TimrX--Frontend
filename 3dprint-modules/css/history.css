@@ -5137,6 +5137,38 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   aspect-ratio:1 / 1;
   border-radius:16px;
   overflow:hidden;
+  /* The whole card opens the asset, so the whole card has to look like it
+     does — the pointer used to appear only over the thumbnail image. */
+  cursor:pointer;
+  transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease;
+}
+
+.timrx-3dprint .ws-right.assets-modal .history-thumb:hover,
+.timrx-3dprint .ws-right.assets-modal .expanded-thumb:hover,
+.timrx-3dprint .ws-right.assets-modal .history-group-card:hover{
+  transform:translateY(-2px);
+  border-color:rgba(var(--accent-blue-rgb),.34);
+  box-shadow:0 12px 30px rgba(0,0,0,.42);
+}
+
+/* Menus and their triggers are not "open the asset". */
+.timrx-3dprint .ws-right.assets-modal .card-menu,
+.timrx-3dprint .ws-right.assets-modal .card-submenu,
+.timrx-3dprint .ws-right.assets-modal [data-history-menu]{
+  cursor:default;
+}
+
+.timrx-3dprint .ws-right.assets-modal [data-history-menu],
+.timrx-3dprint .ws-right.assets-modal .card-menu__item{
+  cursor:pointer;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .timrx-3dprint .ws-right.assets-modal .history-thumb:hover,
+  .timrx-3dprint .ws-right.assets-modal .expanded-thumb:hover,
+  .timrx-3dprint .ws-right.assets-modal .history-group-card:hover{
+    transform:none;
+  }
 }
 
 /* --- responsive tile steps ----------------------------------------------- */
