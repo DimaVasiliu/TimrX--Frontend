@@ -1592,10 +1592,20 @@ body.ws-viewer-open {
   overflow: hidden !important;
 }
 
+/* The viewer owns its action dock while expanded. Keep it hidden until
+   viewer.js marks a real model as loaded, then restore the existing controls
+   above the canvas footer. The command bar is hidden in this mode, so the
+   normal page-level clearance is no longer needed. */
 body.ws-viewer-open .timrx-3dprint .viewer-toolbar {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
+  bottom: clamp(18px, 3vh, 36px);
+  z-index: 80;
+}
+
+body.ws-viewer-open .timrx-3dprint .viewer-toolbar.visible {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  transform: translateX(-50%) translateY(0);
 }
 
 body.ws-viewer-open .viewer-close-btn {
@@ -1636,6 +1646,19 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
 
   body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-sub {
     display: none;
+  }
+
+  body.ws-viewer-open .timrx-3dprint .viewer-toolbar {
+    left: 12px;
+    right: 12px;
+    max-width: calc(100% - 24px);
+    overflow-x: auto;
+    justify-content: flex-start;
+    transform: translateY(20px);
+  }
+
+  body.ws-viewer-open .timrx-3dprint .viewer-toolbar.visible {
+    transform: translateY(0);
   }
 }
 

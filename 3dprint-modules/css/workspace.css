@@ -459,10 +459,10 @@ html body.print3d-page > .sim-viewer-bg {
   animation: simGridDrift 22s linear infinite;
 }
 
+/* Keep the simulation grid, but remove the full-viewport vignette. The
+   previous radial overlay darkened every corner of the asset field. */
 .sim-viewer-bg::after {
-  inset: 0;
-  background: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.46) 78%);
-  opacity: 0.8;
+  display: none;
 }
 
 @keyframes simGridDrift {

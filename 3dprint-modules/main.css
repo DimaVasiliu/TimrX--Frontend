@@ -34,7 +34,7 @@
 @import url('media/components-media.css?v=20260802f');
 
 /* 4. Workspace Grid & Cards */
-@import url('css/workspace.css?v=20260802f');
+@import url('css/workspace.css?v=20260802h');
 @import url('media/workspace-media.css?v=20260802f');
 
 /* 5. 3D Viewer Controls */
@@ -69,10 +69,10 @@
 @import url('css/multi-color-print.css?v=20260802f');
 
 /* 13. Workspace navigation — command trigger + command palette */
-@import url('css/nav.css?v=20260802h');
+@import url('css/nav.css?v=20260802i');
 
 /* 14. Control sheet — the tool panel */
 @import url('css/panel.css?v=20260802f');
 
 /* 15. Asset stage — the living asset field behind the workspace */
-@import url('css/asset-stage.css?v=20260802g');
+@import url('css/asset-stage.css?v=20260802i');

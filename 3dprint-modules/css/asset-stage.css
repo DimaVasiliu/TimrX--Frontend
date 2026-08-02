@@ -48,23 +48,10 @@
      is measured from the grid bottom and cards sit behind the command bar. */
   --af-overflow:0px;
 
-  /* Vertical mask: fade out behind the creation dock and above the command
-     bar, so the field never competes with either. Reads --ws-cmdbar-zone, so
-     resizing the bar in nav.css moves this automatically. */
-  -webkit-mask-image:linear-gradient(180deg,
-    transparent 0,
-    rgba(0,0,0,.45) 6%,
-    #000 var(--af-clear-top),
-    #000 calc(100% - var(--af-clear-bottom) - var(--af-overflow) - 70px),
-    rgba(0,0,0,.28) calc(100% - var(--af-clear-bottom) - var(--af-overflow) - 16px),
-    transparent calc(100% - var(--af-clear-bottom) - var(--af-overflow) + 12px));
-  mask-image:linear-gradient(180deg,
-    transparent 0,
-    rgba(0,0,0,.45) 6%,
-    #000 var(--af-clear-top),
-    #000 calc(100% - var(--af-clear-bottom) - var(--af-overflow) - 70px),
-    rgba(0,0,0,.28) calc(100% - var(--af-clear-bottom) - var(--af-overflow) - 16px),
-    transparent calc(100% - var(--af-clear-bottom) - var(--af-overflow) + 12px));
+  /* The field is intentionally edge-to-edge. Chrome is layered above it, so
+     no page mask is needed to create clearance. */
+  -webkit-mask-image:none;
+  mask-image:none;
   transition:opacity .45s ease,filter .45s ease;
 }
 
@@ -79,8 +66,8 @@ body.ws-video-mode.ws-intro-done .ws-stage{
    mask-composite, which is still uneven across engines. */
 .ws-stage__inner{
   position:absolute;inset:0;
-  -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 9%,#000 91%,transparent 100%);
-  mask-image:linear-gradient(90deg,transparent 0,#000 9%,#000 91%,transparent 100%);
+  -webkit-mask-image:none;
+  mask-image:none;
 }
 
 /* --- ambient wash, tuned to the new palette ----------------------------- */
@@ -106,12 +93,8 @@ body.ws-video-mode.ws-intro-done .ws-stage{
    soft ellipse over the dock instead. */
 .ws-stage__field{
   position:absolute;inset:0;
-  /* Sized in px, not %, on purpose: the dock is `width:min(100%,740px)`, so a
-     percentage punch is far too wide at 2560px and too narrow at 1100px. */
-  -webkit-mask-image:radial-gradient(520px 210px at 50% 0%,
-    transparent 0,transparent 68%,rgba(0,0,0,.55) 86%,#000 100%);
-  mask-image:radial-gradient(520px 210px at 50% 0%,
-    transparent 0,transparent 68%,rgba(0,0,0,.55) 86%,#000 100%);
+  -webkit-mask-image:none;
+  mask-image:none;
 }
 
 /* --- layer 1: placement + pointer parallax ------------------------------ */
@@ -512,17 +495,6 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
    ========================================================================== */
 @media (max-width:900px){
   .af__cap{display:none}              /* no hover on touch — dead weight */
-  /* the dock stacks into one tall column, so the punch-out follows it */
-  .ws-stage__field{
-    -webkit-mask-image:radial-gradient(300px 46% at 50% 0%,
-      transparent 0,transparent 70%,rgba(0,0,0,.5) 86%,#000 100%);
-    mask-image:radial-gradient(300px 46% at 50% 0%,
-      transparent 0,transparent 70%,rgba(0,0,0,.5) 86%,#000 100%);
-  }
-  .ws-stage__inner{
-    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 4%,#000 96%,transparent 100%);
-    mask-image:linear-gradient(90deg,transparent 0,#000 4%,#000 96%,transparent 100%);
-  }
 }
 @media (max-width:560px){
   .ws-stage__wash{filter:blur(22px)}   /* cheaper blur on small GPUs */
@@ -660,4 +632,66 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
   .af__card:hover,.af__card:focus-visible{transform:none}
   .af-rail.is-spun svg{animation:none}
   .ws-stage.af--dealing .af__slot{transition-duration:.01ms}
+}
+
+/* ==========================================================================
+   NO VIGNETTE, NO DROP SHADOWS
+   --------------------------------------------------------------------------
+   Three masks were stacking — a vertical fade on .ws-stage, a horizontal fade
+   on .ws-stage__inner, and a dock punch-out on .ws-stage__field. Where two
+   meet they multiply, so the corners went dark and the whole field read as if
+   it sat in a bowl.
+
+   The stage now runs edge to edge. Chrome remains above it through stacking
+   order and its own backdrop, so no mask is needed and the corners stay clear.
+
+   Card drop shadows go with it: depth is already carried by scale, opacity
+   and blur across the three tiers, so the shadow was only muddying the
+   artwork it sat under.
+   ========================================================================== */
+
+.ws-stage{
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+
+/* Edge-to-edge: the field is the page, it should not float in a lozenge. */
+.ws-stage__inner{
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+
+/* The dock punch-out was the third multiplier. The vertical cut above already
+   clears the dock, so this is redundant. */
+.ws-stage__field{
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+
+/* --- cards: flat, no cast shadow ---------------------------------------- */
+.af__card{
+  box-shadow:none;
+}
+
+.af__card::after{
+  box-shadow:none;
+}
+
+@media (hover:hover){
+  /* Hover keeps its lift and its hairline, but reads as the card coming
+     forward — not as a shadow being switched on underneath it. */
+  .af__card:hover,
+  .af__card:focus-visible{
+    box-shadow:0 0 0 1px rgba(255,255,255,.09);
+  }
+  .af__card:hover::after,
+  .af__card:focus-visible::after{
+    box-shadow:none;
+  }
+}
+
+/* The spotlight hero carried its own 72px drop shadow. Keep the ring that
+   marks it as the focused card; drop the cast shadow like all the others. */
+.ws-stage.af--spotlight .af__slot.is-hero .af__card{
+  box-shadow:0 0 0 1px rgba(var(--accent-blue-rgb,127,200,194),.24);
 }
