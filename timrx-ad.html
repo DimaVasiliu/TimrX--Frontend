@@ -4,10 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>TimrX — Ad scene (serve over localhost · any resolution)</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/png" href="img/favicon-logo-32.png">
+<link rel="preload" href="fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fonts/space-grotesk-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="modulepreload" href="js/model-viewer-3.5.0.module.min.js">
+<link rel="preload" href="img/ad-vintage-camera-recording.glb" as="fetch" type="model/gltf-binary" crossorigin>
 <style>
+  @font-face{font-family:Inter;src:url("fonts/inter-variable.woff2") format("woff2");font-weight:100 900;font-display:swap}
+  @font-face{font-family:"Space Grotesk";src:url("fonts/space-grotesk-700-latin.woff2") format("woff2");font-weight:700;font-display:swap}
   :root{
     --bg:#0a0a0a; --ink:#f4f1ea; --muted:#a39b8f; --warm:#55b7ea; --blue:#4f8fd6; --cyan:#55d6e8; --violet:#9678e8; --line:rgba(244,241,234,.1);
     --disp:"Space Grotesk",-apple-system,system-ui,sans-serif;
@@ -30,6 +34,12 @@
          background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.4'/%3E%3C/svg%3E");
          background-size:14vmin 14vmin;mix-blend-mode:soft-light}
   .bar{position:absolute;top:0;left:0;height:.6vmin;background:var(--ink);width:0;z-index:9;box-shadow:0 0 1.5vmin rgba(244,241,234,.35)}
+  .preflight{position:absolute;inset:0;z-index:100;display:grid;place-items:center;background:#070706;transition:opacity .35s ease}
+  .preflight.ready{opacity:0;pointer-events:none}
+  .preflight-inner{display:grid;place-items:center;gap:2.2vmin;color:var(--muted);font-family:var(--mono);font-size:1.8vmin;letter-spacing:.08em;text-transform:uppercase}
+  .preflight-logo{display:flex;align-items:center;gap:1.4vmin;color:var(--ink);font-family:var(--disp);font-size:4vmin;font-weight:700;letter-spacing:-.04em;text-transform:none}
+  .preflight-logo img{width:5.6vmin;height:5.6vmin}.preflight-logo b{color:var(--warm)}
+  .preflight-spin{width:4.4vmin;height:4.4vmin;border:1px solid rgba(244,241,234,.14);border-top-color:var(--warm);border-radius:50%;animation:modelspin .8s linear infinite}
 
   .scene{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;
          text-align:center;padding:7vmin 6vmin;opacity:0;transform:translateY(1.4vmin);
@@ -84,6 +94,7 @@
   .src-card img{width:100%;height:100%;object-fit:cover}
   .model-card{position:relative;flex:0 0 auto;width:54vmin;aspect-ratio:1;max-width:64vw;border-radius:2.6vmin;overflow:hidden;border:1px solid var(--line);background:radial-gradient(circle at 50% 42%,rgba(85,183,234,.13),transparent 55%),#0e0f13;box-shadow:0 5vmin 12vmin rgba(0,0,0,.5);opacity:0;transform:scale(.93)}
   .model-card model-viewer{width:100%;height:100%;background:transparent;--poster-color:transparent}
+  .model-state{position:absolute;z-index:2;inset:0;display:grid;place-items:center;color:#8b8f97;font-family:var(--mono);font-size:2vmin;letter-spacing:.03em;transition:opacity .3s ease;pointer-events:none}.model-state::before{content:"";position:absolute;width:7vmin;height:7vmin;border:1px solid rgba(85,214,232,.18);border-top-color:var(--warm);border-radius:50%;animation:modelspin 1s linear infinite}.model-ready .model-state{opacity:0}.model-error .model-state{color:#ef9b91}.model-error .model-state::before{display:none}@keyframes modelspin{to{transform:rotate(1turn)}}
   .pill3d{position:absolute;z-index:3;left:1.6vmin;top:1.6vmin;display:inline-flex;align-items:center;gap:1vmin;padding:1vmin 1.8vmin;border:1px solid var(--line);border-radius:99px;background:rgba(8,9,13,.62);backdrop-filter:blur(8px);font-family:var(--mono);font-size:2vmin;color:#dcd8d1}
   .pill3d i{width:1.1vmin;height:1.1vmin;border-radius:50%;background:var(--warm);box-shadow:0 0 1vmin var(--warm)}
   .rotate-hint{position:absolute;z-index:3;right:1.6vmin;bottom:1.6vmin;padding:.9vmin 1.6vmin;border:1px solid var(--line);border-radius:99px;background:rgba(8,9,13,.5);font-family:var(--mono);font-size:1.9vmin;color:#9a9da3}
@@ -161,6 +172,7 @@
     <div class="glow"></div>
     <div class="grain"></div>
     <div class="bar" id="bar"></div>
+    <div class="preflight" id="preflight"><div class="preflight-inner"><div class="preflight-logo"><img src="img/logo.png" alt=""><span>Timr<b>X</b></span></div><span class="preflight-spin"></span><span>Preparing smooth playback</span></div></div>
 
     <!-- 1 HOOK -->
     <section class="scene" data-dur="3400">
@@ -190,9 +202,9 @@
     <section class="scene scene3d" data-dur="5800">
       <div class="caption">Turn that image into a <b>3D model.</b></div>
       <div class="stage3d">
-        <figure class="src-card"><span class="pill3d"><i></i> source image</span><img src="vid/image-to-3d/vintage-camera.png" alt=""></figure>
+        <figure class="src-card"><span class="pill3d"><i></i> source image</span><img src="vid/image-to-3d/vintage-camera.png" alt="Vintage camera source image"></figure>
         <span class="flow"><svg viewBox="0 0 48 24" fill="none"><path d="M2 12h40M34 4l8 8-8 8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <figure class="model-card"><span class="pill3d"><i></i> interactive 3D</span><model-viewer src="img/ad-vintage-camera.glb" poster="vid/image-to-3d/vintage-camera.png" alt="3D model of a vintage camera" auto-rotate auto-rotate-delay="0" rotation-per-second="24deg" camera-controls disable-zoom disable-pan interaction-prompt="none" shadow-intensity="0.9" exposure="1.05" environment-image="neutral" camera-orbit="-25deg 78deg 105%" loading="eager"></model-viewer><span class="rotate-hint">drag to rotate ↻</span></figure>
+        <figure class="model-card"><span class="pill3d"><i></i> interactive 3D</span><span class="model-state">Loading 3D model…</span><model-viewer src="img/ad-vintage-camera-recording.glb" alt="Interactive 3D model of a vintage camera" auto-rotate auto-rotate-delay="0" rotation-per-second="24deg" camera-controls disable-zoom disable-pan interaction-prompt="none" shadow-intensity=".8" shadow-softness=".8" exposure="1.05" environment-image="neutral" camera-orbit="-34deg 68deg 118%" field-of-view="30deg" loading="eager" reveal="auto"></model-viewer><span class="rotate-hint">drag to rotate ↻</span></figure>
       </div>
       <div class="chips"><span class="chip">STL</span><span class="chip">OBJ</span><span class="chip">GLB</span><span class="chip">3MF</span><span class="chip">print-ready</span></div>
     </section>
@@ -202,11 +214,11 @@
       <div class="caption">Bring it to life — <b>generate video.</b></div>
       <div class="vid">
         <span class="vbadge"><span class="dot"></span>AI video</span>
-        <video src="vid/hero-1.mp4" autoplay muted loop playsinline></video>
+        <video src="vid/hero-1.mp4" preload="auto" muted loop playsinline></video>
       </div>
       <div class="filmstrip">
-        <video src="vid/hero-2.mp4" autoplay muted loop playsinline></video>
-        <video src="vid/hero-3.mp4" autoplay muted loop playsinline></video>
+        <video src="vid/hero-2.mp4" preload="auto" muted loop playsinline></video>
+        <video src="vid/hero-3.mp4" preload="auto" muted loop playsinline></video>
       </div>
     </section>
 
@@ -247,25 +259,71 @@
     <div class="tag">Serve over localhost · resize window to your ratio · loops automatically</div>
   </div>
 
-<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+<script type="module" src="js/model-viewer-3.5.0.module.min.js"></script>
 <script>
   const scenes=[...document.querySelectorAll('.scene')];
   const bar=document.getElementById('bar');
+  const preflight=document.getElementById('preflight');
   let i=0;
+  let sceneTimer=0;
+  let sceneDeadline=0;
+  let playbackReady=false;
   function play(){
     const s=scenes[i],dur=+s.dataset.dur;
+    clearTimeout(sceneTimer);
     scenes.forEach(x=>x.classList.remove('on'));
+    document.querySelectorAll('video').forEach(v=>{if(!s.contains(v))v.pause()});
     void s.offsetWidth;
     s.classList.add('on');
-    s.querySelectorAll('video').forEach(v=>{try{v.currentTime=0;v.play();}catch(e){}});
+    s.querySelectorAll('video').forEach(v=>{try{v.currentTime=0;v.play().catch(()=>{});}catch(e){}});
     bar.style.transition='none';bar.style.width=(i/scenes.length*100)+'%';
     void bar.offsetWidth;
     bar.style.transition='width '+dur+'ms linear';
     bar.style.width=((i+1)/scenes.length*100)+'%';
     i=(i+1)%scenes.length;
-    setTimeout(play,dur);
+    sceneDeadline=performance.now()+dur;
+    sceneTimer=setTimeout(play,dur);
   }
-  play();
+  setInterval(()=>{if(playbackReady&&performance.now()>sceneDeadline+1000)play()},500);
+  document.addEventListener('visibilitychange',()=>{if(playbackReady&&!document.hidden){i=0;play()}});
+  const waitForModel=viewer=>new Promise(resolve=>{
+    const frame=viewer.parentElement,state=frame.querySelector('.model-state');
+    let settled=false;
+    const finish=ok=>{
+      if(settled)return;
+      settled=true;
+      frame.classList.add(ok?'model-ready':'model-error');
+      if(!ok&&state)state.textContent='Unable to load 3D model';
+      resolve(ok);
+    };
+    viewer.addEventListener('load',()=>finish(true),{once:true});
+    viewer.addEventListener('error',()=>finish(false),{once:true});
+    if(viewer.loaded)finish(true);
+    setTimeout(()=>finish(false),15000);
+  });
+  const waitForImage=img=>img.complete&&img.naturalWidth?Promise.resolve(img.decode?.()).catch(()=>{}):new Promise(resolve=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',resolve,{once:true})});
+  const waitForVideo=video=>new Promise(resolve=>{
+    if(video.readyState>=3)return resolve();
+    const done=()=>resolve();
+    video.addEventListener('canplay',done,{once:true});
+    video.addEventListener('error',done,{once:true});
+    video.load();
+    setTimeout(done,8000);
+  });
+  async function prepare(){
+    const viewers=[...document.querySelectorAll('model-viewer')];
+    await Promise.race([customElements.whenDefined('model-viewer'),new Promise(resolve=>setTimeout(resolve,5000))]);
+    await Promise.allSettled([
+      document.fonts?.ready,
+      ...[...document.images].map(waitForImage),
+      ...[...document.querySelectorAll('video')].map(waitForVideo),
+      ...viewers.map(waitForModel)
+    ]);
+    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+    preflight.classList.add('ready');
+    setTimeout(()=>{preflight.remove();playbackReady=true;play()},400);
+  }
+  prepare();
 </script>
 </body>
 </html>

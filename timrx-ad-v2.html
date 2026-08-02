@@ -8,6 +8,8 @@
   <link rel="icon" type="image/png" href="img/favicon-logo-32.png">
   <link rel="preload" href="fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="fonts/space-grotesk-700-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="modulepreload" href="js/model-viewer-3.5.0.module.min.js">
+  <link rel="preload" href="img/ad-vintage-camera-recording.glb" as="fetch" type="model/gltf-binary" crossorigin>
   <style>
     @font-face{font-family:Inter;src:url("fonts/inter-variable.woff2") format("woff2");font-weight:100 900;font-display:swap}
     @font-face{font-family:"Space Grotesk";src:url("fonts/space-grotesk-700-latin.woff2") format("woff2");font-weight:700;font-display:swap}
@@ -21,6 +23,7 @@
 
     .topline{position:absolute;top:0;left:0;z-index:30;width:100%;height:3px;background:rgba(255,255,255,.08)}
     .topline i{display:block;width:0;height:100%;background:linear-gradient(90deg,var(--cyan),#a78bfa,#f4f1ea);box-shadow:0 0 18px rgba(85,214,232,.5)}
+    .preflight{position:absolute;inset:0;z-index:100;display:grid;place-items:center;background:#07080b;transition:opacity .35s ease}.preflight.ready{opacity:0;pointer-events:none}.preflight-inner{display:grid;place-items:center;gap:14px;color:#777a82;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}.preflight-logo{display:flex;align-items:center;gap:10px;color:var(--ink);font:700 28px/1 "Space Grotesk";letter-spacing:-.04em;text-transform:none}.preflight-logo img{width:42px}.preflight-logo b{color:#71c9ee}.preflight-spin{width:34px;height:34px;border:1px solid rgba(255,255,255,.13);border-top-color:var(--cyan);border-radius:50%;animation:modelspin .8s linear infinite}
     .ad-brand{position:absolute;z-index:25;left:clamp(18px,3vw,48px);top:clamp(16px,3vh,34px);display:flex;align-items:center;gap:10px;font-family:"Space Grotesk",sans-serif;font-weight:700;letter-spacing:-.04em;font-size:clamp(16px,1.4vw,22px);transition:opacity .5s ease}
     .ad-brand img{width:clamp(32px,3vw,44px);height:clamp(32px,3vw,44px)}
     .ad-brand b{color:#71c9ee}
@@ -99,16 +102,17 @@
     .threed figure{position:relative;margin:0;border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:0 34px 80px rgba(0,0,0,.55)}
     .t-src{width:20%;aspect-ratio:1;background:#f2efe9;opacity:0;transform:translateY(12px);transition:.6s var(--ease)}.t-src img{width:100%;height:100%;object-fit:cover}.threed.is-on .t-src{opacity:1;transform:none}
     .t-arrow{width:5%;color:var(--cyan);opacity:0;transition:.5s var(--ease) .25s}.t-arrow svg{width:100%;display:block}.threed.is-on .t-arrow{opacity:1;animation:tflow 1.7s ease-in-out 1s infinite}
-    .t-model{width:44%;aspect-ratio:1;background:radial-gradient(circle at 50% 42%,rgba(85,183,234,.13),transparent 55%),#0d0f14;opacity:0;transform:scale(.93);transition:.7s var(--ease) .35s}.t-model model-viewer{width:100%;height:100%;--poster-color:transparent;background:transparent}.threed.is-on .t-model{opacity:1;transform:none}
+    .t-model{width:44%;aspect-ratio:1;background:radial-gradient(circle at 50% 42%,rgba(85,183,234,.13),transparent 55%),#0d0f14;opacity:0;transform:scale(.93);transition:.7s var(--ease) .35s}.t-model model-viewer{width:100%;height:100%;--poster-color:transparent;background:transparent}.threed.is-on .t-model{opacity:1;transform:none}.model-state{position:absolute;z-index:2;inset:0;display:grid;place-items:center;color:#8b8f97;font-size:clamp(6px,.7vw,11px);font-weight:700;transition:opacity .3s ease;pointer-events:none}.model-state::before{content:"";position:absolute;width:18%;aspect-ratio:1;border:1px solid rgba(85,214,232,.18);border-top-color:var(--cyan);border-radius:50%;animation:modelspin 1s linear infinite}.model-ready .model-state{opacity:0}.model-error .model-state{color:#ef9b91}.model-error .model-state::before{display:none}@keyframes modelspin{to{transform:rotate(1turn)}}
     .t-tag{position:absolute;z-index:3;left:7%;top:7%;display:inline-flex;align-items:center;gap:6px;padding:.6em 1em;border:1px solid var(--line);border-radius:99px;background:rgba(8,9,13,.6);backdrop-filter:blur(8px);font-size:clamp(6px,.6vw,10px);font-weight:800;color:#dcd8d1}.t-tag i{width:5px;height:5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 8px var(--cyan)}
     .t-hint{position:absolute;z-index:3;right:7%;bottom:7%;padding:.55em .9em;border:1px solid var(--line);border-radius:99px;background:rgba(8,9,13,.5);font-size:clamp(5px,.5vw,8px);color:#9a9da3}
     @keyframes tflow{0%,100%{transform:translateX(-3px)}50%{transform:translateX(4px)}}
-    @media(prefers-reduced-motion:reduce){.ad *{animation:none!important;transition-duration:.01ms!important}}
+    .ad.reduce-motion *{animation:none!important;transition-duration:.01ms!important}
   </style>
 </head>
 <body>
   <main class="ad" id="ad" aria-label="TimrX product journey advert">
     <div class="topline" aria-hidden="true"><i id="progress"></i></div>
+    <div class="preflight" id="preflight"><div class="preflight-inner"><div class="preflight-logo"><img src="img/logo.png" alt=""><span>Timr<b>X</b></span></div><span class="preflight-spin"></span><span>Preparing smooth playback</span></div></div>
     <div class="ad-brand" id="adBrand"><img src="img/logo.png" alt=""><span>Timr<b>X</b></span></div>
     <div class="scene-label" id="sceneLabel">01 / IDEA</div>
 
@@ -182,9 +186,9 @@
         <span class="cursor" id="cursor" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M4 2l21 16-9 1.8 5 8-4.3 2.5-5-8.3-5.2 6z" fill="#f4f1ea" stroke="#090a0d" stroke-width="1.5" stroke-linejoin="round"/></svg></span>
         <span class="click-ring" id="clickRing" aria-hidden="true"></span>
         <div class="threed" id="threed">
-          <figure class="t-src"><span class="t-tag"><i></i> source</span><img src="vid/image-to-3d/vintage-camera.png" alt=""></figure>
+          <figure class="t-src"><span class="t-tag"><i></i> source image</span><img src="vid/image-to-3d/vintage-camera.png" alt="Vintage camera source image"></figure>
           <span class="t-arrow"><svg viewBox="0 0 48 24" fill="none"><path d="M2 12h40M34 4l8 8-8 8" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-          <figure class="t-model"><span class="t-tag"><i></i> interactive 3D</span><model-viewer src="img/ad-vintage-camera.glb" poster="vid/image-to-3d/vintage-camera.png" alt="3D camera" auto-rotate auto-rotate-delay="0" rotation-per-second="24deg" camera-controls disable-zoom disable-pan interaction-prompt="none" shadow-intensity="0.9" exposure="1.05" environment-image="neutral" camera-orbit="-25deg 78deg 105%" loading="eager"></model-viewer><span class="t-hint">drag to rotate ↻</span></figure>
+          <figure class="t-model"><span class="t-tag"><i></i> interactive 3D</span><span class="model-state">Loading 3D model…</span><model-viewer src="img/ad-vintage-camera-recording.glb" alt="Interactive 3D model of a vintage camera" auto-rotate auto-rotate-delay="0" rotation-per-second="24deg" camera-controls disable-zoom disable-pan interaction-prompt="none" shadow-intensity=".8" shadow-softness=".8" exposure="1.05" environment-image="neutral" camera-orbit="-34deg 68deg 118%" field-of-view="30deg" loading="eager" reveal="auto"></model-viewer><span class="t-hint">drag to rotate ↻</span></figure>
         </div>
       </div>
     </div>
@@ -206,13 +210,14 @@
     </div>
   </main>
 
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <script type="module" src="js/model-viewer-3.5.0.module.min.js"></script>
   <script>
     (()=>{
       const $=id=>document.getElementById(id);
       const progress=$('progress'),intro=$('introCopy'),browser=$('browserWrap'),landing=$('landingScreen'),workspace=$('workspaceScreen'),address=$('addressText'),prompt=$('landingPrompt'),promptText=$('promptText'),cursor=$('cursor'),ring=$('clickRing'),generation=$('generation'),genStatus=$('genStatus'),result=$('result'),video=$('resultVideo'),modal=$('exportModal'),chapter=$('chapter'),chapterText=$('chapterText'),finale=$('finale'),label=$('sceneLabel'),brand=$('adBrand'),threed=$('threed');
       const duration=30000,promptCopy='A cinematic red panda meets a crane at dusk';
       let timers=[];
+      let playbackReady=false,playbackStartedAt=0;
       const later=(fn,delay)=>timers.push(setTimeout(fn,delay));
       const reset=()=>{
         timers.forEach(clearTimeout);timers=[];progress.style.transition='none';progress.style.width='0';
@@ -226,7 +231,7 @@
       const clickEl=el=>{const c=pointAt(el);if(c){ring.style.left=c.cx+'px';ring.style.top=c.cy+'px';}cursor.classList.add('is-clicking');ring.classList.remove('pop');void ring.offsetWidth;ring.classList.add('pop');later(()=>cursor.classList.remove('is-clicking'),380)};
       const typePrompt=()=>{let i=0;prompt.classList.add('is-typing');const tick=()=>{promptText.textContent=promptCopy.slice(0,i++);if(i<=promptCopy.length)timers.push(setTimeout(tick,38));else prompt.classList.remove('is-typing')};tick()};
       const play=()=>{
-        reset();void progress.offsetWidth;progress.style.transition=`width ${duration}ms linear`;progress.style.width='100%';
+        playbackStartedAt=performance.now();reset();void progress.offsetWidth;progress.style.transition=`width ${duration}ms linear`;progress.style.width='100%';
         later(()=>intro.classList.add('is-on'),200);
         later(()=>browser.classList.add('is-on'),1200);
         later(()=>{intro.classList.add('is-away');browser.classList.add('is-centred');label.textContent='02 / PROMPT'},4300);
@@ -244,13 +249,35 @@
         later(()=>{clickEl(exportBtn);modal.classList.add('is-on');label.textContent='05 / EXPORT'},18300);
         later(()=>{chapterText.innerHTML='Create. Refine. <b>Export.</b>';chapter.classList.add('is-on')},19000);
         later(()=>{chapter.classList.remove('is-on');cursor.classList.remove('is-on');modal.classList.remove('is-on')},21000);
-        later(()=>{threed.classList.add('is-on');address.textContent='timrx.live/image-to-3d';label.textContent='06 / 3D';chapterText.innerHTML='Not just video — <b>real, interactive 3D.</b>';chapter.classList.add('is-on')},21600);
+        later(()=>{video.pause();threed.classList.add('is-on');address.textContent='timrx.live/image-to-3d';label.textContent='06 / 3D';chapterText.innerHTML='Not just video — <b>real, interactive 3D.</b>';chapter.classList.add('is-on')},21600);
         later(()=>chapter.classList.remove('is-on'),24800);
         later(()=>{threed.classList.remove('is-on');finale.classList.add('is-on');brand.style.opacity='0';label.textContent='';video.pause()},25400);
         later(play,duration);
       };
+      setInterval(()=>{if(playbackReady&&performance.now()>playbackStartedAt+duration+1000)play()},1000);
+      document.addEventListener('visibilitychange',()=>{if(playbackReady&&!document.hidden)play()});
+      const preflight=$('preflight');
+      const waitForModel=viewer=>new Promise(resolve=>{
+        const frame=viewer.parentElement,state=frame.querySelector('.model-state');
+        let settled=false;
+        const finish=ok=>{if(settled)return;settled=true;frame.classList.add(ok?'model-ready':'model-error');if(!ok&&state)state.textContent='Unable to load 3D model';resolve(ok)};
+        viewer.addEventListener('load',()=>finish(true),{once:true});
+        viewer.addEventListener('error',()=>finish(false),{once:true});
+        if(viewer.loaded)finish(true);
+        setTimeout(()=>finish(false),15000);
+      });
+      const waitForImage=img=>img.complete&&img.naturalWidth?Promise.resolve(img.decode?.()).catch(()=>{}):new Promise(resolve=>{img.addEventListener('load',resolve,{once:true});img.addEventListener('error',resolve,{once:true})});
+      const waitForVideo=media=>new Promise(resolve=>{if(media.readyState>=3)return resolve();const done=()=>resolve();media.addEventListener('canplay',done,{once:true});media.addEventListener('error',done,{once:true});media.load();setTimeout(done,8000)});
+      const prepare=async()=>{
+        const viewers=[...document.querySelectorAll('model-viewer')];
+        await Promise.race([customElements.whenDefined('model-viewer'),new Promise(resolve=>setTimeout(resolve,5000))]);
+        await Promise.allSettled([document.fonts?.ready,...[...document.images].map(waitForImage),...([...document.querySelectorAll('video')].map(waitForVideo)),...viewers.map(waitForModel)]);
+        await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+        preflight.classList.add('ready');
+        setTimeout(()=>{preflight.remove();playbackReady=true;play()},400);
+      };
       $('replayButton').addEventListener('click',play);
-      play();
+      prepare();
     })();
   </script>
 </body>
