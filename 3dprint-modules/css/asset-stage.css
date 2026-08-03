@@ -1081,7 +1081,7 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
      by the pad on each side and hand the pad back as inline padding, so the
      content box — and every card in it — keeps its exact size and position
      while the clip line moves outward past the zoom overhang. */
-  --af-zoom-pad:18px;
+  --af-zoom-pad:48px;
   left:calc(var(--zx0) - var(--af-zoom-pad));
   width:calc(var(--zw) + var(--af-zoom-pad) * 2);
   padding-inline:var(--af-zoom-pad);
