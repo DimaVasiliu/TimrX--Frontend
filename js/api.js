@@ -16,9 +16,9 @@ import {
   isTimrxS3Url
 } from './config.js';
 import * as State from './state.js?v=20260407e';
-import * as Viewer from './viewer.js?v=20260802g';
+import * as Viewer from './viewer.js?v=20260803a';
 import * as UI from './ui-utils.js';
-import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260802b';
+import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260803a';
 
 // ============================================================================
 // LOCKS & STATE
@@ -1801,20 +1801,44 @@ function updateThumbnailProgress(jobId, pct) {
 
   // Grouped cards render aggregated progress from local history state, so
   // re-render them when a multi-model batch advances.
+  //
+  // Only push into the grouped viewer while it is actually showing THIS batch.
+  // upsertItem re-opens the whole grouped view when its group id does not match
+  // (viewer.js), and dispose() nulls that id — so once the user opened a single
+  // model or an image, every poll tick was rebuilding the 4-up grid on top of
+  // whatever they had chosen to look at.
+  const groupedShowingThisBatch = batchGroupId
+    && window.GroupedViewer?.isActive?.()
+    && window.GroupedViewer?.getState?.()?.groupId === batchGroupId;
+
   if (batchGroupId && batchCount > 1) {
-    window.GroupedViewer?.upsertItem?.(batchGroupId, {
-      ...(historyItem || {}),
-      ...pendingMeta,
-      id: jobId,
-      batch_count: batchCount,
-      batch_group_id: batchGroupId,
-      batch_slot: pendingMeta.batch_slot || historyItem?.batch_slot || 1,
-      progress_pct: roundedPct,
-      status: historyItem?.status || inferProgressStatus(pendingMeta?.stage),
-      status_label: `${roundedPct}%`,
-    });
+    if (groupedShowingThisBatch) {
+      window.GroupedViewer.upsertItem(batchGroupId, {
+        ...(historyItem || {}),
+        ...pendingMeta,
+        id: jobId,
+        batch_count: batchCount,
+        batch_group_id: batchGroupId,
+        batch_slot: pendingMeta.batch_slot || historyItem?.batch_slot || 1,
+        progress_pct: roundedPct,
+        status: historyItem?.status || inferProgressStatus(pendingMeta?.stage),
+        status_label: `${roundedPct}%`,
+      });
+    }
     renderHistory();
   }
+}
+
+/**
+ * A viewer header title for a finished asset.
+ *
+ * shortTitle() returns the literal string '(untitled)' rather than '' when it
+ * has nothing to work with, so `shortTitle(x) || fallback` never reaches the
+ * fallback — hence this wrapper.
+ */
+function viewerTitleFor(promptLike, fallback) {
+  const t = shortTitle(promptLike);
+  return !t || t === '(untitled)' ? fallback : t;
 }
 
 /**
@@ -2845,18 +2869,25 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
           State.historyFreshThumbs.delete(job_id);
           renderHistory();
         }, 1800);
-        if (!isRecovery) {
-          State.setHistoryActiveModelId(job_id);
-        }
+        State.setHistoryActiveModelId(job_id);
         renderHistory();
 
-        if (!isRecovery) {
+        {
           const isBatchPreview = historyData.batch_group_id && historyData.batch_count > 1;
           prog.jump(99, isBatchPreview ? `Loading variant ${historyData.batch_slot}/${historyData.batch_count}...` : 'Downloading model...');
           if (isBatchPreview) {
             window.GroupedViewer?.upsertItem?.(historyData.batch_group_id, historyData);
           } else {
-            await Viewer.loadModelWithFallback(glbProxy, st.glb_url);
+            // presentAsset brings the 3D panel forward, re-measures the canvas
+            // and swallows load failures. It must never throw: this callback
+            // runs inside the poller's try block, so an exception here would be
+            // read as a poll error and the job would be re-polled instead of
+            // completing.
+            await Viewer.presentAsset('model', glbProxy, {
+              fallbackUrl: st.glb_url,
+              title: viewerTitleFor(meta, '3D Preview'),
+              hint: meta.prompt || 'Generated model',
+            });
           }
           const doneLabel = isBatchPreview
             ? `Loaded variant ${historyData.batch_slot}/${historyData.batch_count}.`
@@ -2866,8 +2897,6 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
             : '';
           prog.done(doneLabel + durationSuffix);
           renderHistory();
-        } else {
-          prog.clear();
         }
 
         if (!isRecovery && (stage === 'remesh' || stage === 'texture')) {
@@ -3046,9 +3075,7 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
         if (State.historyHasJobId(job_id)) State.updateHistoryItem(job_id, historyData);
         else State.addHistoryItem(historyData);
 
-        if (!isRecovery) {
-          State.setHistoryActiveModelId(job_id);
-        }
+        State.setHistoryActiveModelId(job_id);
         State.historyFreshThumbs.add(job_id);
         setTimeout(() => {
           State.historyFreshThumbs.delete(job_id);
@@ -3056,15 +3083,17 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
         }, 1800);
         renderHistory();
 
-        if (!isRecovery && glbDirect) {
+        if (glbDirect) {
           prog.jump(99, 'Downloading model...');
-          await Viewer.loadModelWithFallback(glbProxy || glbDirect, glbDirect);
-          prog.done(`${stageLabel} complete.`);
-        } else if (isRecovery) {
-          prog.clear();
-        } else {
-          prog.done(`${stageLabel} complete.`);
+          // presentAsset never throws — see the note in watchJob. A viewer
+          // failure here must not be mistaken for a poll failure.
+          await Viewer.presentAsset('model', glbProxy || glbDirect, {
+            fallbackUrl: glbDirect,
+            title: titleCandidate || `${stageLabel} result`,
+            hint: promptCandidate || `${stageLabel} complete.`,
+          });
         }
+        prog.done(`${stageLabel} complete.`);
 
         if (!isRecovery && kind === 'texture' && shouldShowDiscordPrompt()) {
           markDiscordPromptShown();
@@ -3173,7 +3202,20 @@ export function watchMultiColorPrintJob(job_id, { isRecovery = false } = {}) {
           State.historyFreshThumbs.delete(job_id);
           renderHistory();
         }, 1800);
+        State.setHistoryActiveModelId(job_id);
         renderHistory();
+
+        // The 3MF itself is a download artifact (Three.js r160 cannot parse
+        // Meshy's composite 3MF), but the job still yields a viewable model —
+        // show the source GLB so the result is on screen, not just in history.
+        if (sourceProxy || sourceModelUrl) {
+          await Viewer.presentAsset('model', sourceProxy || sourceModelUrl, {
+            fallbackUrl: sourceModelUrl,
+            title,
+            hint: 'Multi-color 3MF ready to download.',
+          });
+        }
+
         prog.done('Meshy 3MF ready.');
         if (!isRecovery && window.showToast) window.showToast('Meshy 3MF is ready.', 'success');
         return 'done';
@@ -4067,9 +4109,17 @@ export async function startGeminiImageGeneration() {
       State.setHistoryActiveModelId(imageId);
     } else {
       State.updateHistoryItem(tempId, finalItem);
+      State.setHistoryActiveModelId(tempId);
     }
 
     renderHistory();
+    // A synchronous provider response is still a finished generation — present
+    // it exactly like the polled path does, or the image only ever shows up in
+    // My Assets while the viewer sits on its placeholder.
+    await Viewer.presentAsset('image', imageUrl, {
+      title: viewerTitleFor(promptRaw, 'Image Preview'),
+      hint: promptRaw || 'Generated image',
+    });
     prog.done('Image generated!');
 
     // Update balance from response - backend is authoritative
@@ -4440,9 +4490,15 @@ async function startAsyncImageProvider({
       State.setHistoryActiveModelId(imageId);
     } else {
       State.updateHistoryItem(tempId, finalItem);
+      State.setHistoryActiveModelId(tempId);
     }
 
     renderHistory();
+    // Synchronous provider response — present it like the polled path does.
+    await Viewer.presentAsset('image', imageUrl, {
+      title: viewerTitleFor(prompt, 'Image Preview'),
+      hint: prompt || 'Generated image',
+    });
     prog.done(successLabel);
 
     if (typeof data.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {
@@ -5033,7 +5089,13 @@ export function watchImageJob(jobId, reservationId, meta = {}) {
 
         State.setHistoryActiveModelId(jobId);
         renderHistory();
-        Viewer.showImageInViewer(imageUrl);
+        // presentAsset also brings the Image panel forward — showImageInViewer
+        // alone only un-hides the element, so a user who switched panels while
+        // the job ran was left looking at a different viewer.
+        await Viewer.presentAsset('image', imageUrl, {
+          title: viewerTitleFor(meta.prompt || '', 'Image Preview'),
+          hint: meta.prompt || 'Generated image',
+        });
         prog.done('Image ready.');
         confirmCreditsReservation(reservationId, jobId);
 
@@ -5772,16 +5834,18 @@ async function watchVideoJob(jobId, reservationId, meta, { isRecovery = false } 
           provider: 'google',
           upstream_id: data.upstream_id || jobId
         });
-        if (!isRecovery) {
-          State.setHistoryActiveModelId(jobId);
-        }
+        State.setHistoryActiveModelId(jobId);
         renderHistory();
 
-        if (!isRecovery && data.video_url) {
-          const videoRailBtn = document.querySelector('[data-panel="video"]');
-          if (videoRailBtn) videoRailBtn.click();
-          Viewer.showVideoInViewer(data.video_url, {
-            title: shortTitle(meta.prompt || 'Video') || 'Video Preview',
+        if (data.video_url) {
+          // Was a raw rail-button .click(): that handler also opens the
+          // Prompt/Settings sheet straight over the viewer, re-runs the history
+          // filter switch bound to the same button, and — when the video panel
+          // was already active with the sheet open — early-returns without
+          // switching the viewer at all. presentAsset does the panel switch
+          // directly and leaves the sheet closed.
+          await Viewer.presentAsset('video', data.video_url, {
+            title: viewerTitleFor(meta.prompt || '', 'Video Preview'),
             hint: meta.prompt || 'Generated video',
             autoplay: true
           });
@@ -7020,13 +7084,12 @@ async function _handleRigComplete(job_id, st, prog) {
   // Load rigged model into 3D viewer FIRST so we can capture a thumbnail
   let viewerLoaded = false;
   if (glbUrl) {
-    try {
-      prog.jump(99, 'Downloading model...');
-      await Viewer.loadModelWithFallback(glbProxy || glbUrl, glbUrl);
-      viewerLoaded = true;
-    } catch (err) {
-      console.warn('[Rig] Failed to load model in viewer:', err);
-    }
+    prog.jump(99, 'Downloading model...');
+    viewerLoaded = await Viewer.presentAsset('model', glbProxy || glbUrl, {
+      fallbackUrl: glbUrl,
+      title: pendingMeta.prompt || 'Rigged Model',
+      hint: 'Rigging complete.',
+    });
   }
 
   // Thumbnail resolution chain: viewer capture > Meshy thumbnail > source thumbnail
@@ -7470,13 +7533,12 @@ async function _handleAnimComplete(job_id, st, prog) {
   // Load animated model into viewer FIRST so we can capture a thumbnail
   let viewerLoaded = false;
   if (animGlbUrl) {
-    try {
-      prog.jump(99, 'Loading animation...');
-      await Viewer.loadModelWithFallback(glbProxy || animGlbUrl, animGlbUrl);
-      viewerLoaded = true;
-    } catch (err) {
-      console.warn('[Anim] Failed to load animation in viewer:', err);
-    }
+    prog.jump(99, 'Loading animation...');
+    viewerLoaded = await Viewer.presentAsset('model', glbProxy || animGlbUrl, {
+      fallbackUrl: animGlbUrl,
+      title: pendingMeta.title || pendingMeta.prompt || 'Animated Model',
+      hint: 'Animation complete.',
+    });
   }
 
   // Capture fresh thumbnail from the animated model in the viewer

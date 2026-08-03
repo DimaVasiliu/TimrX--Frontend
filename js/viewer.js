@@ -156,6 +156,91 @@ function disposeGroupedViewerIfActive() {
     restoreSingleModelChrome();
 }
 
+// ═══════════════════════════════════════════════════════════════
+// WORKSPACE PANEL + PRESENTATION
+// ═══════════════════════════════════════════════════════════════
+//
+// Showing an asset is three things, not one: pick the workspace panel that
+// owns the viewer, make the right viewer element visible, and load the media.
+// Every caller used to open-code some subset of that, so assets kept landing
+// in a viewer nobody could see. presentAsset() is the one door.
+//
+// Panel switching never goes through a rail-button .click(): that handler also
+// pops the Prompt/Settings sheet over the viewer we are filling and re-runs the
+// history filter switch bound to the same button.
+
+const PANEL_FOR_ASSET_TYPE = { image: 'image', video: 'video', model: 'model' };
+
+function normalizeAssetType(type) {
+    const t = String(type || '').toLowerCase();
+    return t === 'image' || t === 'video' ? t : 'model';
+}
+
+/** The workspace panel currently on screen, per the rail's own active state. */
+function currentWorkspacePanel() {
+    const btn = document.querySelector('.rail-btn.is-active[data-panel]');
+    return btn?.getAttribute('data-panel') || '';
+}
+
+/**
+ * True when the panel already on screen owns this asset type. The model family
+ * (remesh / texture / rig / animate) all share the 3D viewer, so a texture job
+ * completing must not yank the user back to the plain Model panel.
+ */
+function workspacePanelAlreadyShowing(type) {
+    const current = currentWorkspacePanel();
+    if (!current) return false;
+    if (type === 'model') {
+        return window.TimrXWorkspace?.isModelPanel?.(current) === true;
+    }
+    return current === PANEL_FOR_ASSET_TYPE[type];
+}
+
+/**
+ * Switch the workspace to the panel that owns `type`, leaving the control
+ * sheet closed. No-ops when that panel is already up — which also avoids
+ * needlessly clearing transient generation state while another job is in
+ * flight (activateWorkspacePanel resets it on every switch).
+ */
+export function activateWorkspacePanelForViewer(type) {
+    const assetType = normalizeAssetType(type);
+    if (workspacePanelAlreadyShowing(assetType)) return;
+
+    try { window.TimrXSheet?.close?.(); } catch (_) { /* sheet not booted */ }
+
+    const panel = PANEL_FOR_ASSET_TYPE[assetType];
+    if (typeof window.TimrXWorkspace?.activatePanel === 'function') {
+        window.TimrXWorkspace.activatePanel(panel, { reveal: false });
+        return;
+    }
+    // 3dprint-app.js has not booted yet — fall back to the rail button and
+    // undo the two side effects its click handler carries: the control sheet
+    // it opens, and the history-filter switch bound to the same button (which
+    // would silently move the user off the My Assets tab they are browsing).
+    // The flag brackets the click synchronously so it can never leak.
+    window._timrxSuppressHistoryFilterReset = true;
+    try {
+        document.querySelector(`.rail-btn[data-panel="${panel}"]`)?.click();
+    } finally {
+        window._timrxSuppressHistoryFilterReset = false;
+    }
+    try { window.TimrXSheet?.close?.(); } catch (_) { /* sheet not booted */ }
+}
+
+/**
+ * Re-measure the WebGL canvas. The renderer is only resized on window resize
+ * (3dprint-app.js binds no ResizeObserver), so a viewer that was hidden when
+ * the page laid out keeps a stale — often zero — size and renders nothing.
+ */
+export function resizeViewerCanvas() {
+    try {
+        if (typeof window.timrx3D?.resize === 'function') window.timrx3D.resize();
+        window.GroupedViewer?.resize?.();
+    } catch (err) {
+        console.warn('[Viewer] Canvas resize failed:', err);
+    }
+}
+
 function activateModelViewer() {
     disposeGroupedViewerIfActive();
     restoreSingleModelChrome();
@@ -174,6 +259,91 @@ function activateModelViewer() {
         fitToggle.classList.add('hidden');
         fitToggle.classList.remove('is-fill');
     }
+
+    // The canvas may have been laid out while hidden behind the image/video
+    // viewer; without this the model loads into a zero-size renderer.
+    resizeViewerCanvas();
+}
+
+/**
+ * Present a finished asset in the workspace viewer.
+ *
+ * The single entry point for "an asset is ready, show it" — used by the job
+ * watchers when polling returns and by My Assets when a card is opened.
+ *
+ * @param {'model'|'image'|'video'} type
+ * @param {string} url            Primary URL to load.
+ * @param {object} [meta]
+ * @param {string} [meta.title]      Viewer header title.
+ * @param {string} [meta.hint]       Viewer header subtitle.
+ * @param {string} [meta.fallbackUrl] Secondary model URL if the primary fails.
+ * @param {boolean} [meta.autoplay=true] Video autoplay.
+ * @param {boolean} [meta.isStl]     Force the STL loader.
+ * @returns {Promise<boolean>} Whether the asset was presented.
+ */
+export async function presentAsset(type, url, meta = {}) {
+    const assetType = normalizeAssetType(type);
+    const clean = (v) => (typeof v === 'string' ? v.trim() : '');
+    // A caller's "primary" can resolve empty (e.g. a proxy URL builder that
+    // bailed) while the direct URL is fine — use whichever we actually have.
+    const src = clean(url) || clean(meta.fallbackUrl);
+    const fallback = clean(meta.fallbackUrl) !== src ? clean(meta.fallbackUrl) : '';
+
+    if (!src) {
+        console.warn(`[Viewer] presentAsset: no ${assetType} URL to present`);
+        return false;
+    }
+
+    activateWorkspacePanelForViewer(assetType);
+
+    if (assetType === 'image') {
+        showImageInViewer(src, meta);
+        return true;
+    }
+
+    if (assetType === 'video') {
+        showVideoInViewer(src, { autoplay: true, ...meta });
+        return true;
+    }
+
+    // Model. Set the loading hint before the (possibly slow) fetch so the
+    // header never sits on the panel's generic placeholder text.
+    setViewerHeader({
+        title: meta.title,
+        hint: `Loading ${meta.title || 'model'}...`,
+    });
+
+    const useStl = meta.isStl ?? /\.stl(?:[?#]|$)/i.test(src);
+    try {
+        if (useStl) {
+            await loadStlFromUrl(src);
+        } else {
+            await loadModelWithFallback(src, fallback || null);
+        }
+        setViewerHeader({
+            title: meta.title,
+            hint: meta.hint || 'Model loaded.',
+        });
+        return true;
+    } catch (err) {
+        // Never rethrow. Callers include the job pollers, whose surrounding
+        // try/catch would read a viewer failure as a poll failure and re-poll a
+        // job that has already completed.
+        console.warn('[Viewer] presentAsset: model load failed:', err);
+        setViewerHeader({ title: meta.title, hint: 'Failed to load model.' });
+        if (window.showToast) {
+            window.showToast('Model failed to load. Please try again.', 'error');
+        }
+        return false;
+    }
+}
+
+/** Write the viewer header. Undefined fields are left untouched. */
+export function setViewerHeader(meta = {}) {
+    const titleEl = byId('viewerTitle');
+    const hintEl = byId('genHint');
+    if (titleEl && meta.title) titleEl.textContent = meta.title;
+    if (hintEl && meta.hint) hintEl.textContent = meta.hint;
 }
 
 export function clearModel() {
@@ -543,21 +713,37 @@ function fitCameraToObject(object, offset = 0.48) {
     }
 }
 
-export function showImageInViewer(url) {
+/**
+ * Show an image in the viewer panel.
+ * @param {string} url - URL of the image to display.
+ * @param {object} [meta] - Optional { title, hint, alt }.
+ */
+export function showImageInViewer(url, meta = {}) {
+    // The grouped multi-model view owns the canvas chrome and short-circuits
+    // the main render loop while it is active. Switching to the image viewer
+    // without tearing it down left the upload/gear buttons and the viewer
+    // header hidden, and froze the 3D scene behind us.
+    disposeGroupedViewerIfActive();
+
     // Hide 3D, Show Image Logic
     const modelV = byId('model3dViewer');
     const imageV = byId('imageViewer');
     const videoV = byId('videoViewer');
     const genImg = byId('generatedImage');
+    const genVideo = byId('generatedVideo');
     const ph = byId('imagePlaceholder');
     const fitToggle = byId('imageFitToggle');
 
     if (modelV) modelV.classList.add('hidden');
     if (videoV) videoV.classList.add('hidden');
     if (imageV) imageV.classList.remove('hidden');
+    if (genVideo && !genVideo.paused) {
+        try { genVideo.pause(); } catch (err) { /* not playable */ }
+    }
 
     if (genImg) {
         genImg.src = url;
+        if (meta.alt || meta.title) genImg.alt = meta.alt || meta.title;
         genImg.classList.remove('hidden');
         // Reset to Fit mode when showing new image
         genImg.classList.remove('fill-mode');
@@ -570,6 +756,8 @@ export function showImageInViewer(url) {
         const label = fitToggle.querySelector('span');
         if (label) label.textContent = 'Fit';
     }
+
+    setViewerHeader(meta);
 
     log('[Viewer] Showing image:', url);
 }
@@ -658,6 +846,10 @@ export function clearImageViewer() {
  * @param {object} meta - Optional metadata { title, hint, autoplay }
  */
 export function showVideoInViewer(videoUrl, meta = {}) {
+    // See showImageInViewer — the grouped view must be torn down or it keeps
+    // the viewer chrome hidden and the main render loop suspended.
+    disposeGroupedViewerIfActive();
+
     const modelV = byId('model3dViewer');
     const imageV = byId('imageViewer');
     const videoV = byId('videoViewer');
@@ -665,11 +857,16 @@ export function showVideoInViewer(videoUrl, meta = {}) {
     const videoPh = byId('videoPlaceholder');
     const viewerTitle = byId('viewerTitle');
     const genHint = byId('genHint');
+    const fitToggle = byId('imageFitToggle');
 
     // Hide other viewers, show video viewer
     if (modelV) modelV.classList.add('hidden');
     if (imageV) imageV.classList.add('hidden');
     if (videoV) videoV.classList.remove('hidden');
+    if (fitToggle) {
+        fitToggle.classList.add('hidden');
+        fitToggle.classList.remove('is-fill');
+    }
 
     // Update title and hint
     if (viewerTitle) viewerTitle.textContent = meta.title || 'Video Preview';

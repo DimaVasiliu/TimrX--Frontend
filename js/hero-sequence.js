@@ -66,10 +66,27 @@
   /* Measured on mount and on resize only. Reading getBoundingClientRect in the
      loop would be a layout read per card per frame — the exact thing that
      turns a field like this into 20fps. */
+  /* Only the centre zone is pushed.
+     The stage groups its assets now: videos run in a film strip on one rail and
+     images sit in a contact sheet on the other, both of them deliberate
+     compositions. Shoving those aside with the text force would undo the
+     organisation the grouping exists to create — so the thought engine moves
+     the model field and nothing else. asset-stage.js tags every slot with
+     data-af-zone; "core" is the model scatter in the middle. */
+  var CORE_SLOTS = '.af__slot[data-af-zone="core"]';
+
+  function coreSlots(scope) {
+    if (!scope) return [];
+    var found = scope.querySelectorAll(CORE_SLOTS);
+    // Older markup (or a stage that has not rebuilt yet) has no zone tags —
+    // fall back to every slot so the sequence still has something to move.
+    return found.length ? found : scope.querySelectorAll('.af__slot');
+  }
+
   function measure() {
     if (!stage) return;
     var host = $('.ws-stage__field', stage) || stage;
-    var slots = host.querySelectorAll('.af__slot');
+    var slots = coreSlots(host);
     var sr = stage.getBoundingClientRect();
     origin.x = sr.width / 2;
     origin.y = sr.height / 2;
@@ -103,7 +120,7 @@
        how this first shipped: the line typed, the springs ran, and not a single
        card moved. Re-measure whenever the set we hold has gone stale. */
     if (!cards.length || !cards[0].el.isConnected ||
-        cards.length !== (stage ? stage.querySelectorAll('.af__slot').length : 0)) {
+        cards.length !== (stage ? coreSlots(stage).length : 0)) {
       measure();
       if (!cards.length) return true;
     }

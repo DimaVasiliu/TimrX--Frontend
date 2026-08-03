@@ -7,7 +7,7 @@
 import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url, BACKEND } from './config.js';
 import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, triggerBrowserDownload } from './download-utils.js';
 import * as State from './state.js?v=20260407e';
-import * as Viewer from './viewer.js?v=20260802g';
+import * as Viewer from './viewer.js?v=20260803a';
 import * as UI from './ui-utils.js';
 import {
   renderHistory,
@@ -21,8 +21,8 @@ import {
   getActiveHistorySubmenu,
   getGroupedCardItems,
   resetGalleryInfiniteScroll
-} from './history.js?v=20260802e';
-import * as API from './api.js?v=20260802g';
+} from './history.js?v=20260803a';
+import * as API from './api.js?v=20260803a';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
@@ -113,10 +113,15 @@ function getThreeMfUrl(item = {}) {
 // HISTORY FILTER SWITCHING
 // ============================================================================
 
+// Set while something other than the user is driving a rail button, so the
+// filter listeners bound to those buttons don't move the user off the My
+// Assets tab they are browsing. viewer.js sets the window flag around its
+// pre-boot rail-click fallback; both are only ever held across synchronous
+// work, never across an await.
 let _suppressHistoryFilterReset = false;
 
 function switchHistoryFilter(filter = 'all') {
-  if (_suppressHistoryFilterReset) return;
+  if (_suppressHistoryFilterReset || window._timrxSuppressHistoryFilterReset) return;
   // Only reset page if filter actually changed
   if (State.historyState.filter !== filter) {
     // Collapse expanded gallery when switching away from 'all'
@@ -570,6 +575,10 @@ window.showContentFilteredPopup = showContentFilteredPopup;
 
 // Expose viewer for 3dprint-app.js (IIFE can't import ES modules)
 window.TimrXViewer = {
+  presentAsset: Viewer.presentAsset,
+  activateWorkspacePanelForViewer: Viewer.activateWorkspacePanelForViewer,
+  resizeViewerCanvas: Viewer.resizeViewerCanvas,
+  setViewerHeader: Viewer.setViewerHeader,
   loadModelWithFallback: Viewer.loadModelWithFallback,
   loadGlbFromUrl: Viewer.loadGlbFromUrl,
   loadStlFromUrl: Viewer.loadStlFromUrl,
@@ -578,8 +587,19 @@ window.TimrXViewer = {
   clearImageViewer: Viewer.clearImageViewer,
   clearVideoViewer: Viewer.clearVideoViewer,
   clearModel: Viewer.clearModel,
+  captureViewerThumbnail: Viewer.captureViewerThumbnail,
   checkViewerAvailable: Viewer.checkViewerAvailable,
 };
+
+// Legacy global. inspire.js, tutorials.js and asset-stage.js probe
+// window.Viewer / window.loadGlbFromUrl first and only fall back to hand-rolled
+// DOM poking when they are missing. Those globals used to come from the
+// standalone Frontend/viewer.js, which no page loads any more — so every one of
+// those modules was silently taking its degraded path (no clearModel, no camera
+// fit, no viewer chrome). Alias them to the real module instead.
+window.Viewer = window.TimrXViewer;
+window.loadGlbFromUrl = Viewer.loadGlbFromUrl;
+window.loadStlFromUrl = Viewer.loadStlFromUrl;
 
 // ============================================================================
 // FILE HANDLERS
@@ -2863,17 +2883,11 @@ function initUi() {
  * Prompt / Settings sheet straight over the viewer we were loading into, and
  * the click read as "opens the settings, not the viewer".
  *
- * TimrXWorkspace.activatePanel(panel, { reveal: false }) is the same panel
- * switch with the sheet left alone; the rail click stays as a fallback for the
- * case where 3dprint-app.js has not booted yet.
+ * Thin wrapper over the viewer module so the panel-switch rule lives in exactly
+ * one place; Viewer.presentAsset() calls the same function internally.
  */
 function showWorkspacePanelForViewer(panelType) {
-  try { window.TimrXSheet?.close?.(); } catch (_) { /* sheet not booted */ }
-  if (typeof window.TimrXWorkspace?.activatePanel === 'function') {
-    window.TimrXWorkspace.activatePanel(panelType, { reveal: false });
-    return;
-  }
-  document.querySelector(`.rail-btn[data-panel="${panelType}"]`)?.click();
+  Viewer.activateWorkspacePanelForViewer(panelType);
 }
 
 // History records have existed in a few shapes over time. Keep viewer opening
@@ -2897,7 +2911,7 @@ function getHistoryAssetSources(item = {}) {
   const stl = first('stl_url', 'model_stl_url', 'print_url');
   const image = first('image_url', 'original_url', 'output_url');
   const video = first('video_url', 'output_video_url');
-  const media = first('media_url', 'asset_url');
+  const media = first('media_url', 'asset_url', 'url', 'output_url', 'original_url');
   const explicitType = String(first('type', 'item_type', 'asset_type', 'kind')).toLowerCase();
   const type = glb || stl || explicitType === 'model'
     ? 'model'
@@ -2905,27 +2919,153 @@ function getHistoryAssetSources(item = {}) {
       ? 'video'
       : 'image';
 
+  // Type detection is wider than the per-type URL lists (a record can be typed
+  // "video" off media_url/output_url alone), so each type falls back to the
+  // generic media URL. Without this a card resolved to an empty URL and the
+  // click looked like a dead thumbnail.
+  const looksLikeVideo = (url) => /\.(mp4|webm|mov|m4v)(?:[?#]|$)/i.test(url || '');
+
   return {
     type,
     glb,
     stl,
-    image: image || (type === 'image' ? media : ''),
-    video: video || (type === 'video' ? media : ''),
+    image: image && !looksLikeVideo(image)
+      ? image
+      : (type === 'image' ? (media || '') : ''),
+    video: video || (type === 'video' ? (media || (looksLikeVideo(image) ? image : '')) : ''),
   };
 }
 
-function setHistoryViewerMeta(item, type) {
-  const title = shortTitle(item) || `${type === 'model' ? '3D model' : type} preview`;
-  const hint = item?.prompt || item?.root_prompt || item?.title || `Opened from My Assets · ${type}`;
-  const titleEl = byId('viewerTitle');
+/**
+ * A viewer header title for a history item.
+ *
+ * shortTitle() answers '(untitled)' rather than '' when it has nothing, so the
+ * usual `shortTitle(item) || fallback` idiom never reaches its fallback.
+ */
+function viewerTitleFor(item, fallback) {
+  const t = shortTitle(item);
+  return !t || t === '(untitled)' ? fallback : t;
+}
+
+function setViewerHint(text) {
   const hintEl = byId('genHint');
-  if (titleEl) titleEl.textContent = title;
-  if (hintEl) hintEl.textContent = hint;
+  if (hintEl) hintEl.textContent = text;
+}
+
+/**
+ * A card was clicked but the record carries no usable URL for its type.
+ *
+ * Every one of these branches used to `return` silently, which reads to the
+ * user as "the thumbnail is dead" — the card is only visibly disabled while a
+ * job is still processing, so a finished-but-unresolvable record looks live.
+ * Say what happened instead.
+ */
+function reportUnopenableAsset(item, type) {
+  const label = type === 'model' ? '3D model' : type;
+  console.warn(`[History] No ${type} URL on item ${item?.id || '(unknown)'} — cannot open in the viewer.`, item);
+  if (window.showToast) {
+    window.showToast(
+      `This ${label} has no playable file yet. Try refreshing your assets from the database.`,
+      'error'
+    );
+  }
+}
+
+function historyItemFromButton(btn, id, act) {
+  const data = btn?.dataset || {};
+  return {
+    id,
+    type: data.assetType || (act === 'open-video' ? 'video' : 'model'),
+    title: data.title || '',
+    prompt: data.prompt || '',
+    root_prompt: data.prompt || '',
+    thumbnail_url: data.thumbnailUrl || '',
+    image_url: data.imageUrl || '',
+    video_url: data.videoUrl || '',
+    glb_url: data.glbUrl || '',
+    glb_proxy: data.glbProxy || '',
+    stl_url: data.stlUrl || '',
+  };
+}
+
+async function openHistoryAsset(item, btn, preferredType = '') {
+  if (!item || !btn) return false;
+  const data = btn.dataset || {};
+  const mergedItem = {
+    ...item,
+    ...(data.imageUrl ? { image_url: data.imageUrl } : {}),
+    ...(data.videoUrl ? { video_url: data.videoUrl } : {}),
+    ...(data.glbUrl ? { glb_url: data.glbUrl } : {}),
+    ...(data.glbProxy ? { glb_proxy: data.glbProxy } : {}),
+    ...(data.stlUrl ? { stl_url: data.stlUrl } : {}),
+    ...(data.assetType ? { type: data.assetType } : {}),
+  };
+  const asset = getHistoryAssetSources(mergedItem);
+  const type = preferredType || data.assetType || asset.type;
+  const wasGallery = !!State.historyState.galleryExpanded;
+
+  if (document.body.classList.contains('assets-modal-open')) {
+    window.TimrXAssets?.close?.();
+  }
+  if (wasGallery) {
+    State.historyState.galleryExpanded = false;
+    renderHistory();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  State.setHistoryActiveModelId(mergedItem.id);
+  if (type === 'video') {
+    if (!asset.video) {
+      reportUnopenableAsset(mergedItem, 'video');
+      return false;
+    }
+    await Viewer.presentAsset('video', asset.video, {
+      title: viewerTitleFor(mergedItem, 'Video Preview'),
+      hint: mergedItem.prompt || mergedItem.root_prompt || 'Generated video',
+      autoplay: true,
+    });
+    return true;
+  }
+
+  if (type === 'image') {
+    if (!asset.image) {
+      reportUnopenableAsset(mergedItem, 'image');
+      return false;
+    }
+    await Viewer.presentAsset('image', asset.image, {
+      title: viewerTitleFor(mergedItem, 'Image Preview'),
+      hint: mergedItem.prompt || mergedItem.root_prompt || 'Generated image',
+    });
+    return true;
+  }
+
+  const primary = asset.glb ? getLoadableModelUrl(asset.glb) : asset.stl;
+  if (!primary) {
+    reportUnopenableAsset(mergedItem, 'model');
+    return false;
+  }
+  State.resetModelVersionStack({
+    id: mergedItem.id,
+    glb_url: primary,
+    thumbnail_url: mergedItem.thumbnail_url || data.thumbnailUrl || '',
+    stage: mergedItem.stage || 'preview',
+    prompt: mergedItem.prompt || '',
+  });
+  byId('viewerActionBar')?.classList.add('hidden');
+  const opened = await Viewer.presentAsset('model', primary, {
+    fallbackUrl: asset.glb && asset.glb !== primary ? asset.glb : '',
+    isStl: !!(asset.stl && !asset.glb),
+    title: viewerTitleFor(mergedItem, '3D Preview'),
+    hint: mergedItem.prompt || mergedItem.root_prompt || 'Loaded from My Assets.',
+  });
+  if (opened) setViewerHint('Loaded from My Assets.');
+  return opened;
 }
 
 function wireGallery() {
   const grid = document.getElementById('historyGrid');
   const q = document.getElementById('historySearch');
+  const searchClear = document.getElementById('historySearchClear');
   const size = document.getElementById('historyPageSize');
   const prev = document.getElementById('historyPrev');
   const next = document.getElementById('historyNext');
@@ -2934,10 +3074,24 @@ function wireGallery() {
 
   // Search input
   if (q) {
+    if (searchClear) searchClear.hidden = !q.value;
     q.addEventListener('input', e => {
       State.historyState.query = e.target.value.trim().toLowerCase();
       State.historyState.page = 1;
+      if (searchClear) searchClear.hidden = !e.target.value;
       renderHistory();
+    });
+  }
+
+  if (searchClear) {
+    searchClear.addEventListener('click', () => {
+      if (!q) return;
+      q.value = '';
+      State.historyState.query = '';
+      State.historyState.page = 1;
+      searchClear.hidden = true;
+      renderHistory();
+      q.focus();
     });
   }
 
@@ -2950,32 +3104,6 @@ function wireGallery() {
       renderHistory();
     });
   }
-
-  // Filter buttons
-  const filterBtns = document.querySelectorAll('.filter-btn');
-  filterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      closeActiveHistoryMenu();
-      const filterType = btn.getAttribute('data-filter');
-      if (filterType === 'all') {
-        // Inside the Assets modal, All is the family-grouped gallery — the same
-        // view the modal opens on. Dropping out of gallery mode here meant the
-        // tab you landed on and the tab you clicked rendered differently.
-        State.historyState.galleryExpanded = document.body.classList.contains('assets-modal-open');
-        State.historyState.filter = 'all';
-      } else {
-        State.historyState.galleryExpanded = false;
-        State.historyState.filter = filterType;
-      }
-      State.historyState.page = 1;
-      renderHistory();
-      // If a media tab hasn't fetched its own data yet, load it from DB
-      // then re-render to replace the skeleton with actual content.
-      if (filterType !== 'all' && !State.historyTabLoaded()) {
-        State.loadHistoryTab(filterType).then(() => renderHistory());
-      }
-    });
-  });
 
   // Sort toggle
   const sortToggle = document.getElementById('historySortToggle');
@@ -3138,7 +3266,11 @@ function wireGallery() {
       if (galleryFilterBtn) {
         const filterType = galleryFilterBtn.getAttribute('data-gallery-filter');
         const bar = galleryFilterBtn.closest('.expanded-filter-bar');
-        if (bar) bar.querySelectorAll('.expanded-filter-btn').forEach(b => b.classList.toggle('active', b === galleryFilterBtn));
+        if (bar) bar.querySelectorAll('.expanded-filter-btn').forEach(b => {
+          const active = b === galleryFilterBtn;
+          b.classList.toggle('active', active);
+          b.setAttribute('aria-pressed', active ? 'true' : 'false');
+        });
         // Reset infinite scroll with the selected filter
         resetGalleryInfiniteScroll(filterType);
         // Scroll to top of grid smoothly
@@ -3304,106 +3436,19 @@ function wireGallery() {
         return;
       }
 
-      const item = State.findHistoryItem(id);
-      if (!item) {
-        console.warn(`[CardAction] Item not found in cache: id=${id} act=${act}`);
+      const cachedItem = State.findHistoryItem(id);
+      const item = cachedItem || historyItemFromButton(btn, id, act);
+      const itemSources = getHistoryAssetSources(item);
+      if (!cachedItem && !itemSources.glb && !itemSources.stl && !itemSources.image && !itemSources.video) {
+        console.warn(`[CardAction] Item not found in cache and has no source data: id=${id} act=${act}`);
         return;
       }
 
-      const asset = getHistoryAssetSources(item);
-      const glbUrl = asset.glb;
-      const modelUrl = glbUrl || asset.stl;
+      const asset = itemSources;
 
       // Handle actions
-      if (act === 'open') {
-        if (document.body.classList.contains('assets-modal-open')) {
-          window.TimrXAssets?.close?.();
-        }
-        const wasGallery = !!State.historyState.galleryExpanded;
-
-        // Close expanded gallery FIRST — remove body class + re-render immediately
-        // so the viewer panel becomes visible before we load content into it.
-        if (wasGallery) {
-          State.historyState.galleryExpanded = false;
-          renderHistory();                        // toggles body.history-expanded off
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-
-        // Handle video type. A thumbnail is never used as the video source.
-        if (asset.type === 'video') {
-          const videoUrl = asset.video;
-          if (videoUrl) {
-            State.setHistoryActiveModelId(id);
-            _suppressHistoryFilterReset = true;
-            showWorkspacePanelForViewer('video');
-            _suppressHistoryFilterReset = false;
-            setHistoryViewerMeta(item, 'video');
-            Viewer.showVideoInViewer(videoUrl, {
-              title: shortTitle(item) || 'Video Preview',
-              hint: item.prompt || 'Generated video',
-              autoplay: true
-            });
-          }
-          return;
-        }
-
-        // Handle image type. Prefer the original/output URL, using a thumbnail
-        // only when the record truly has no full-size image URL.
-        if (!modelUrl && asset.type === 'image') {
-          State.setHistoryActiveModelId(id);
-          const imgSrc = asset.image || item.thumbnail_url || '';
-          if (imgSrc) {
-            _suppressHistoryFilterReset = true;
-            showWorkspacePanelForViewer('image');
-            _suppressHistoryFilterReset = false;
-            setHistoryViewerMeta(item, 'image');
-            Viewer.showImageInViewer(imgSrc);
-          }
-          if (!wasGallery) renderHistory();
-          return;
-        }
-
-        if (!modelUrl) return;
-
-        _suppressHistoryFilterReset = true;
-        showWorkspacePanelForViewer('model');
-        _suppressHistoryFilterReset = false;
-
-        const genHintEl = byId('genHint');
-        setHistoryViewerMeta(item, 'model');
-        if (genHintEl) genHintEl.textContent = `Loading ${shortTitle(item) || 'model'}...`;
-        State.setHistoryActiveModelId(id);
-
-        // Reset version stack for this model and hide action bar
-        const loadUrl = asset.glb === item.glb_proxy
-          ? item.glb_proxy
-          : (asset.glb ? getLoadableModelUrl(asset.glb) : asset.stl);
-        State.resetModelVersionStack({
-          id,
-          glb_url: loadUrl,
-          thumbnail_url: item.thumbnail_url || '',
-          stage: item.stage || 'preview',
-          prompt: item.prompt || ''
-        });
-        const actionBar = byId('viewerActionBar');
-        if (actionBar) actionBar.classList.add('hidden');
-
-        const primary = loadUrl;
-        const fallback = asset.glb && asset.glb !== primary ? asset.glb : null;
-        try {
-          if (asset.stl && !asset.glb) {
-            await Viewer.loadStlFromUrl(primary);
-          } else {
-            await Viewer.loadModelWithFallback(primary, fallback);
-          }
-          if (genHintEl) genHintEl.textContent = 'Loaded from history.';
-        } catch (err) {
-          console.warn('[History] Failed to load model into viewer:', err);
-          if (genHintEl) genHintEl.textContent = 'Failed to load model.';
-          if (window.showToast) {
-            window.showToast('Model failed to load. Please try again.', 'error');
-          }
-        }
+      if (act === 'open' || act === 'open-video') {
+        await openHistoryAsset(item, btn, act === 'open-video' ? 'video' : '');
         return;
       }
 
@@ -3464,34 +3509,6 @@ function wireGallery() {
           extension: inferExtensionFromUrl(videoUrl) || 'mp4',
         });
         startWorkspaceDownload(videoUrl, filename);
-        return;
-      }
-
-      if (act === 'open-video') {
-        if (document.body.classList.contains('assets-modal-open')) {
-          window.TimrXAssets?.close?.();
-        }
-        // Collapse expanded gallery first (viewer is hidden in expanded mode)
-        const wasGalleryV = !!State.historyState.galleryExpanded;
-        if (wasGalleryV) {
-          State.historyState.galleryExpanded = false;
-          renderHistory();
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }
-        const videoUrl = btn.getAttribute('data-video-url') || getHistoryAssetSources(item).video;
-        if (videoUrl) {
-          _suppressHistoryFilterReset = true;
-          showWorkspacePanelForViewer('video');
-          _suppressHistoryFilterReset = false;
-          setHistoryViewerMeta(item, 'video');
-          Viewer.showVideoInViewer(videoUrl, {
-            title: shortTitle(item) || 'Video Preview',
-            hint: item.prompt || 'Generated video',
-            autoplay: true
-          });
-          State.setHistoryActiveModelId(item.id);
-          if (!wasGalleryV) renderHistory();
-        }
         return;
       }
 

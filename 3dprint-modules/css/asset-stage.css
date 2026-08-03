@@ -1041,3 +1041,377 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
 @media (max-width:640px){
   .hero-seq__line{font-size:clamp(15px,5.4vw,30px) !important;max-width:96vw !important}
 }
+
+/* ==========================================================================
+   ZONES — the stage is one composition made of three
+   --------------------------------------------------------------------------
+   Before this everything shared a single farthest-point sample, so a video, a
+   render and a model landed wherever the sampler put them and the field had no
+   readable structure. Now each type has a place and a grammar:
+
+     .af-zone--reel   left    videos   film strip, running on a loop
+     .af-zone--core   centre  models   organic scatter, pushed by the thought
+                                       engine (hero-sequence.js targets
+                                       [data-af-zone="core"] only)
+     .af-zone--sheet  right   images   contact sheet, drifting the other way
+
+   The two rails run in OPPOSITE directions. That counter-current is what makes
+   the stage read as one moving composition rather than three lists parked side
+   by side, and it costs nothing — both are compositor transforms.
+
+   Rails are pointer-events:none containers; only .af__card opts back in, same
+   as the rest of the stage.
+   ========================================================================== */
+
+.af-zone{
+  position:absolute;
+  top:0;bottom:0;
+  pointer-events:none;
+}
+
+/* Centre keeps the full field box: its children are absolutely positioned by
+   percentage and layout() already remaps x into the core band. */
+.af-zone--core{left:0;right:0}
+
+/* --- rails --------------------------------------------------------------- */
+.af-zone--reel,
+.af-zone--sheet{
+  left:var(--zx0);
+  width:var(--zw);
+  display:flex;
+  /* Spacing lives on the items as margin, NOT as flex gap — see the loop-seam
+     note on .af-reel__track. */
+  --af-cell-gap:clamp(8px,.7vw,14px);
+  /* Clear the dock at the top and the command bar at the bottom. Deliberately
+     NOT a percentage: padding percentages resolve against the INLINE size, so
+     a % here would be measured against the rail's ~200px width rather than the
+     stage height and collapse to nothing. */
+  padding-block:5vh var(--af-clear-bottom);
+  overflow:hidden;
+  /* Feather both ends so frames enter and leave the strip instead of being
+     guillotined by the container edge. */
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 11%,#000 89%,transparent 100%);
+  mask-image:linear-gradient(to bottom,transparent 0,#000 11%,#000 89%,transparent 100%);
+  opacity:calc(var(--af-in) * var(--af-dim));
+  transition:opacity .55s ease;
+}
+
+/* The rails are compositions, so they recede as one when the thought line
+   takes focus — not card by card like the scatter does. */
+.ws-stage.is-thought-focus .af-zone--reel,
+.ws-stage.is-thought-focus .af-zone--sheet{
+  opacity:calc(var(--af-in) * var(--af-dim) * .3);
+  filter:blur(1.6px);
+}
+
+.af-zone__label{
+  position:absolute;
+  top:calc(var(--af-clear-top) * .34 - 4px);
+  left:0;right:0;
+  text-align:center;
+  z-index:5;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.34em;
+  text-transform:uppercase;
+  color:var(--text-soft,rgba(242,245,243,.34));
+  opacity:0;
+  transform:translateY(-4px);
+  transition:opacity .4s ease,transform .4s cubic-bezier(.22,1,.36,1);
+  pointer-events:none;
+}
+.ws-stage:hover .af-zone__label{opacity:.62;transform:none}
+
+/* ==========================================================================
+   LEFT RAIL — THE VIDEO REEL
+   --------------------------------------------------------------------------
+   One column of identical 9:16 frames running upward forever. The track holds
+   its frames twice and animates to exactly -50%, so the loop seam is
+   invisible and there is no JS anywhere in the motion path.
+
+   Hover pauses the entire strip. That pause is what sells it: the wall stops
+   coming toward you and the frame you reached for holds still while its real
+   video fades in over the poster.
+   ========================================================================== */
+.af-zone--reel{flex-direction:column}
+
+/* The seam.
+   The track holds its frames twice and travels exactly -50%, so the loop is
+   invisible — but ONLY if half the track height equals one full set. With
+   `gap`, 2n items carry 2n-1 gaps, half of which is not n items + n gaps, and
+   the strip jumps by half a gap every cycle. Margin on each item makes every
+   cell exactly item+gap tall, so 50% lands on the seam precisely. */
+.af-reel__track{
+  display:flex;
+  flex-direction:column;
+  /* Must not be shrunk by the column parent: the track is deliberately twice
+     the visible height and the -50% travel is measured against that. Letting
+     flex compress it would put the seam in the wrong place. */
+  flex:0 0 auto;
+  width:100%;
+  animation:af-reel-run var(--reel-dur,60s) linear infinite;
+  will-change:transform;
+}
+.af-reel__track > .af__slot--reel{margin-bottom:var(--af-cell-gap,12px)}
+@keyframes af-reel-run{
+  from{transform:translate3d(0,0,0)}
+  to  {transform:translate3d(0,-50%,0)}
+}
+
+/* Pause on hover anywhere in the rail, not just on a frame — reaching toward
+   the strip should stop it before you arrive. */
+.af-zone--reel:hover .af-reel__track,
+.af-zone--reel:focus-within .af-reel__track{animation-play-state:paused}
+
+/* Sprocket holes down both edges. A repeating-linear-gradient pair, so the
+   whole film-stock read costs two gradients and no elements. */
+.af-reel__sprockets{
+  position:absolute;inset:0;
+  z-index:4;
+  pointer-events:none;
+  opacity:.5;
+  background:
+    repeating-linear-gradient(to bottom,
+      rgba(226,236,237,.16) 0 7px,transparent 7px 20px) left  / 4px 100% no-repeat,
+    repeating-linear-gradient(to bottom,
+      rgba(226,236,237,.16) 0 7px,transparent 7px 20px) right / 4px 100% no-repeat;
+  animation:af-reel-run var(--reel-dur,60s) linear infinite;
+}
+.af-zone--reel:hover .af-reel__sprockets{animation-play-state:paused}
+
+.af__slot--reel{
+  position:relative;
+  flex:0 0 auto;
+  width:100%;
+  translate:0 0;                       /* rails place by flow, not by --x/--y */
+  transform:translate3d(var(--nudge,0px),0,0) rotate(var(--tilt,0deg));
+  opacity:1;                           /* the rail owns the fade, not the slot */
+  filter:none;
+  z-index:auto;
+}
+
+/* Play badge — a quiet affordance at rest that becomes the focal point on
+   approach, then gets out of the way once the video is actually running. */
+.af__play{
+  position:absolute;top:50%;left:50%;
+  translate:-50% -50%;
+  z-index:4;
+  display:grid;place-items:center;
+  width:30px;height:30px;
+  border-radius:999px;
+  color:#fff;
+  background:rgba(7,9,10,.52);
+  border:1px solid rgba(255,255,255,.22);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  opacity:.72;
+  transition:opacity .3s ease,transform .34s cubic-bezier(.34,1.4,.64,1);
+  pointer-events:none;
+}
+.af__play svg{width:12px;height:12px;margin-left:1px}
+
+/* A light sweep down the frame on approach — the sheen of film passing a
+   projector lamp. */
+.af__scan{
+  position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:linear-gradient(to bottom,
+    transparent 0,rgba(255,255,255,.14) 46%,rgba(255,255,255,.02) 54%,transparent 100%);
+  transform:translateY(-100%);
+  opacity:0;
+}
+
+/* The real video, attached by JS on hover only. */
+.af__vid{
+  position:absolute;inset:0;z-index:2;
+  width:100%;height:100%;
+  object-fit:cover;
+  opacity:0;
+  transition:opacity .42s ease;
+  pointer-events:none;
+}
+.af__vid.is-ready{opacity:1}
+
+@media (hover:hover){
+  /* Keyed on the card, not the rail: videos that fall back into the centre
+     scatter get the same affordance and the same inline playback. */
+  /* scale only — centring is the `translate` property on .af__play, so putting
+     a translate back in the transform would offset it by another half. */
+  .af__card:hover .af__play,
+  .af__card:focus-visible .af__play{
+    opacity:1;transform:scale(1.14);
+  }
+  .af__slot--reel .af__card:hover .af__scan,
+  .af__slot--reel .af__card:focus-visible .af__scan{
+    animation:af-scan 1.05s cubic-bezier(.4,0,.2,1);
+  }
+  /* Once the video is up the badge steps back — the motion is the signal now. */
+  .af__card:hover .af__vid.is-ready ~ .af__play{opacity:0}
+
+  /* The hovered frame leaves the strip: it grows out of the column toward the
+     centre of the stage and lifts above its neighbours. */
+  .af__slot--reel:has(.af__card:hover),
+  .af__slot--reel:has(.af__card:focus-visible){
+    z-index:60;
+  }
+  .af__slot--reel .af__card:hover,
+  .af__slot--reel .af__card:focus-visible{
+    transform:translateX(11%) scale(1.3);
+    box-shadow:0 34px 80px rgba(0,0,0,.72),0 0 0 1px rgba(var(--accent-pink-rgb,201,144,155),.34);
+  }
+  /* Neighbours in the same rail give way. */
+  .af-zone--reel:has(.af__card:hover) .af__slot--reel:not(:has(.af__card:hover)){
+    opacity:.4;
+    filter:blur(1.1px);
+  }
+}
+@keyframes af-scan{
+  from{transform:translateY(-100%);opacity:.9}
+  to  {transform:translateY(100%); opacity:0}
+}
+
+/* ==========================================================================
+   RIGHT RAIL — THE CONTACT SHEET
+   --------------------------------------------------------------------------
+   Two staggered columns of proofs drifting DOWNWARD, against the reel. Each
+   frame keeps its own aspect, carries a sheet number, and holds a slow Ken
+   Burns at rest so the sheet is alive without anything actually moving on the
+   page.
+
+   On hover the frame blooms — scales, picks up a warm rim light, and its
+   column neighbours part around it.
+   ========================================================================== */
+.af-zone--sheet{flex-direction:row;align-items:flex-start}
+
+.af-sheet__col{
+  flex:1 1 0;
+  min-width:0;
+  align-self:flex-start;   /* height from content, not stretched to the rail */
+  display:flex;
+  flex-direction:column;
+  /* Margin, not gap — same seam maths as the reel track. */
+  animation:af-sheet-run var(--sheet-dur,60s) linear infinite;
+  will-change:transform;
+}
+.af-sheet__col + .af-sheet__col{margin-left:var(--af-cell-gap,12px)}
+.af-sheet__col > .af__slot--sheet{margin-bottom:var(--af-cell-gap,12px)}
+/* Downward: start already shifted up by half and travel back to zero, so the
+   column appears to fall while still looping seamlessly. */
+@keyframes af-sheet-run{
+  from{transform:translate3d(0,-50%,0)}
+  to  {transform:translate3d(0,0,0)}
+}
+.af-zone--sheet:hover .af-sheet__col,
+.af-zone--sheet:focus-within .af-sheet__col{animation-play-state:paused}
+
+.af__slot--sheet{
+  position:relative;
+  flex:0 0 auto;
+  width:100%;
+  translate:0 0;
+  transform:rotate(var(--tilt,0deg));
+  opacity:1;
+  filter:none;
+  z-index:auto;
+}
+
+/* Proof-sheet framing: a hairline white border and a numbered corner. */
+.af__slot--sheet .af__card{
+  border-radius:3px;
+  box-shadow:0 10px 26px rgba(0,0,0,.44);
+}
+.af__slot--sheet .af__card::after{
+  border-color:rgba(242,245,243,.20);
+}
+.af__frameno{
+  position:absolute;right:5px;bottom:4px;z-index:4;
+  font-size:8px;font-weight:700;letter-spacing:.12em;
+  color:rgba(242,245,243,.5);
+  text-shadow:0 1px 3px rgba(0,0,0,.9);
+  pointer-events:none;
+  transition:opacity .3s ease;
+}
+
+/* Ken Burns at rest. Long, tiny, and offset per frame by the drift delay the
+   slot already carries, so no two proofs breathe together. */
+.af__slot--sheet .af__card img{
+  animation:af-kenburns 26s ease-in-out infinite alternate;
+}
+@keyframes af-kenburns{
+  from{transform:scale(1.04) translate3d(-1%,1%,0)}
+  to  {transform:scale(1.12) translate3d(1.5%,-1.5%,0)}
+}
+
+@media (hover:hover){
+  .af__slot--sheet:has(.af__card:hover),
+  .af__slot--sheet:has(.af__card:focus-visible){z-index:60}
+
+  .af__slot--sheet .af__card:hover,
+  .af__slot--sheet .af__card:focus-visible{
+    transform:translateX(-9%) scale(1.28);
+    border-radius:5px;
+    box-shadow:
+      0 34px 80px rgba(0,0,0,.7),
+      0 0 0 1px rgba(var(--accent-neo-rgb,216,200,121),.4),
+      0 0 34px rgba(var(--accent-neo-rgb,216,200,121),.14);
+  }
+  /* Hold the Ken Burns still while it is being looked at. */
+  .af__slot--sheet .af__card:hover img,
+  .af__slot--sheet .af__card:focus-visible img{
+    animation-play-state:paused;
+    transform:scale(1.1);
+  }
+  .af__slot--sheet .af__card:hover .af__frameno{opacity:0}
+
+  /* The rest of the sheet parts around the one in focus. */
+  .af-zone--sheet:has(.af__card:hover) .af__slot--sheet:not(:has(.af__card:hover)){
+    opacity:.38;
+    filter:blur(1.1px);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   The whole-field hover recession is written for the centre scatter (it
+   rebuilds the transform from --afx/--hx/etc). Rails place by flow, so that
+   rule would throw their frames back to origin the moment the pointer entered
+   the stage. Exempt them — each rail dims its own members instead.
+   -------------------------------------------------------------------------- */
+@media (hover:hover){
+  .ws-stage__field:hover .af__slot--reel,
+  .ws-stage__field:hover .af__slot--sheet{
+    transform:translate3d(var(--nudge,0px),0,0) rotate(var(--tilt,0deg));
+    opacity:1;
+    filter:none;
+  }
+  .ws-stage__field:hover .af-zone--reel,
+  .ws-stage__field:hover .af-zone--sheet{
+    opacity:calc(var(--af-in) * var(--af-dim) * .82);
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE — below 1080px JS drops the rails entirely (zoneGeometry) and
+   everything falls back into the centre scatter, so there is nothing to hide
+   here. These only tune cost on the widths that DO get rails.
+   ========================================================================== */
+@media (max-width:1380px){
+  .af-zone--sheet{--sheet-cols:1}
+  .af-zone--sheet .af-sheet__col:last-child{display:none}
+  .af-zone__label{font-size:8px;letter-spacing:.26em}
+}
+
+/* ==========================================================================
+   REDUCED MOTION / STILL — the rails become static, composed columns.
+   Still worth looking at; nothing scrolls, nothing plays.
+   ========================================================================== */
+@media (prefers-reduced-motion:reduce){
+  .af-reel__track,
+  .af-reel__sprockets,
+  .af-sheet__col{animation:none!important;transform:none!important}
+  .af__slot--sheet .af__card img{animation:none!important}
+  .af__scan{animation:none!important;display:none}
+  .af__slot--reel .af__card:hover,
+  .af__slot--sheet .af__card:hover{transform:none!important}
+}
+.ws-stage.af--still .af-reel__track,
+.ws-stage.af--still .af-reel__sprockets,
+.ws-stage.af--still .af-sheet__col{animation-play-state:paused}
+.ws-stage.af--still .af__slot--sheet .af__card img{animation-play-state:paused}

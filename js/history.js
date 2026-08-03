@@ -38,6 +38,14 @@ let _galleryActiveFilter = 'all';     // current gallery filter tab
 let _galleryScrollBound = false;      // scroll listener attached
 let _galleryFetching = false;         // prevent concurrent DB fetches
 
+function escapeAttr(value = '') {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
 function inferPendingStatus(meta = {}) {
   const stage = String(meta.stage || '').toLowerCase();
   if (stage === 'refine') return 'refining';
@@ -310,11 +318,16 @@ function bindGroupedCardEvents(container) {
       }
       // Switch to the model panel WITHOUT opening its control sheet — the rail
       // button's own handler pops the Prompt/Settings sheet over the viewer.
-      try { window.TimrXSheet?.close?.(); } catch (_) { /* sheet not booted */ }
-      if (typeof window.TimrXWorkspace?.activatePanel === 'function') {
-        window.TimrXWorkspace.activatePanel('model', { reveal: false });
+      if (typeof window.TimrXViewer?.activateWorkspacePanelForViewer === 'function') {
+        window.TimrXViewer.activateWorkspacePanelForViewer('model');
       } else {
-        document.querySelector('.rail-btn[data-panel="model"]')?.click();
+        try { window.TimrXSheet?.close?.(); } catch (_) { /* sheet not booted */ }
+        if (typeof window.TimrXWorkspace?.activatePanel === 'function') {
+          window.TimrXWorkspace.activatePanel('model', { reveal: false });
+        } else {
+          document.querySelector('.rail-btn[data-panel="model"]')?.click();
+          try { window.TimrXSheet?.close?.(); } catch (_) { /* sheet not booted */ }
+        }
       }
       // Ensure the 3D viewer wrapper is visible (not hidden by image/video mode)
       const model3dViewer = document.getElementById('model3dViewer');
@@ -454,7 +467,7 @@ function _unbindGalleryScroll() {
 }
 
 /**
- * Update the "Your Creations" header stat pills and filter-btn counts
+ * Update the gallery header stat pills and family-filter counts
  * after new cards have been appended to the grid.
  */
 function _updateGalleryHeaderStats(gridEl) {
@@ -494,6 +507,12 @@ export function resetGalleryInfiniteScroll(filter) {
   _galleryActiveFilter = filter || 'all';
   const grid = document.querySelector('.expanded-thumbs-grid');
   if (!grid) return;
+
+  document.querySelectorAll('.expanded-filter-btn').forEach((btn) => {
+    const active = btn.getAttribute('data-gallery-filter') === _galleryActiveFilter;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+  });
 
   // Client-side show/hide by asset type
   grid.querySelectorAll('.expanded-thumb').forEach(thumb => {
@@ -1190,7 +1209,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     // Use smallest available URL for card display (saves bandwidth),
     // but always use full-quality URL for downloads and actions.
     const thumbSrc = displayModel.thumbnail_url || displayModel.image_url || '';
-    const fullSrc = displayModel.image_url || displayModel.thumbnail_url || '';
+    const fullSrc = displayModel.image_url || displayModel.output_url || displayModel.original_url || displayModel.thumbnail_url || '';
     const name = shortTitle(displayModel);
     const imgCanDownload = !!fullSrc && (typeof _hasCredits !== 'undefined' ? _hasCredits : true);
     const artifactFormat = (displayModel.artifact_format || displayModel.meta?.artifact_format || displayModel.format || 'png').toLowerCase();
@@ -1250,6 +1269,11 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                   type="button"
                   data-act="open"
                   data-id="${displayModel.id}"
+                  data-asset-type="image"
+                  data-image-url="${escapeAttr(fullSrc)}"
+                  data-thumbnail-url="${escapeAttr(thumbSrc)}"
+                  data-title="${escapeAttr(name)}"
+                  data-prompt="${escapeAttr(displayModel.prompt || displayModel.root_prompt || '')}"
                   aria-label="Open ${name}">
             ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy" onerror="this.style.display='none';">` : ''}
           </button>
@@ -1275,14 +1299,14 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           </button>
           <div class="card-menu" role="menu" aria-label="Image actions">
             <div class="card-menu__list">
-              <button class="card-menu__item" type="button" data-act="image-to-3d" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${isVectorImage ? 'disabled' : ''}>
+              <button class="card-menu__item" type="button" data-act="image-to-3d" data-id="${displayModel.id}" data-image-url="${escapeAttr(fullSrc)}" ${isVectorImage ? 'disabled' : ''}>
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#127912;</span>
                   <span>${isVectorImage ? 'Rasterize Before 3D' : 'Create 3D Model'}</span>
                 </span>
                 <span class="card-menu__arrow">></span>
               </button>
-              <button class="card-menu__item" type="button" data-act="image-to-video" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${isVectorImage ? 'disabled' : ''}>
+              <button class="card-menu__item" type="button" data-act="image-to-video" data-id="${displayModel.id}" data-image-url="${escapeAttr(fullSrc)}" ${isVectorImage ? 'disabled' : ''}>
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#127909;</span>
                   <span>${isVectorImage ? 'Rasterize Before Video' : 'Create Video'}</span>
@@ -1290,7 +1314,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 <span class="card-menu__badge">45c</span>
               </button>
               <div class="card-menu__divider"></div>
-              <button class="card-menu__item" type="button" data-act="download-image" data-id="${displayModel.id}" data-image-url="${fullSrc}" ${!imgCanDownload ? 'disabled' : ''}>
+              <button class="card-menu__item" type="button" data-act="download-image" data-id="${displayModel.id}" data-image-url="${escapeAttr(fullSrc)}" ${!imgCanDownload ? 'disabled' : ''}>
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#8595;</span>
                   <span>Download</span>
@@ -1326,7 +1350,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
 
   // VIDEO TYPE
   if (itemType === 'video') {
-    const videoSrc = displayModel.video_url || '';
+    const videoSrc = displayModel.video_url || displayModel.output_video_url || displayModel.media_url || '';
     const thumbSrc = displayModel.thumbnail_url || '';
     const name = shortTitle(displayModel);
     const videoCanDownload = !!videoSrc && (typeof _hasCredits !== 'undefined' ? _hasCredits : true);
@@ -1433,7 +1457,11 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 type="button"
                 data-act="open-video"
                 data-id="${displayModel.id}"
-                data-video-url="${videoSrc}"
+                data-asset-type="video"
+                data-video-url="${escapeAttr(videoSrc)}"
+                data-thumbnail-url="${escapeAttr(thumbSrc)}"
+                data-title="${escapeAttr(name)}"
+                data-prompt="${escapeAttr(displayModel.prompt || displayModel.root_prompt || '')}"
                 aria-label="Play ${name}"
                 ${isProcessing ? 'disabled' : ''}>
           ${thumbSrc ? `<img src="${thumbSrc}" alt="${name}" loading="lazy" onerror="this.style.display='none';">` : `
@@ -1469,13 +1497,13 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
           </button>
           <div class="card-menu card-menu--video" role="menu" aria-label="Video actions">
             <div class="card-menu__list">
-              <button class="card-menu__item" type="button" data-act="download-video" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
+              <button class="card-menu__item" type="button" data-act="download-video" data-id="${displayModel.id}" data-video-url="${escapeAttr(videoSrc)}" ${!videoCanDownload ? 'disabled' : ''}>
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#8595;</span>
                   <span>Download</span>
                 </span>
               </button>
-              <button class="card-menu__item" type="button" data-act="copy-video-link" data-id="${displayModel.id}" data-video-url="${videoSrc}" ${!videoCanDownload ? 'disabled' : ''}>
+              <button class="card-menu__item" type="button" data-act="copy-video-link" data-id="${displayModel.id}" data-video-url="${escapeAttr(videoSrc)}" ${!videoCanDownload ? 'disabled' : ''}>
                 <span class="card-menu__item-inner">
                   <span class="card-menu__icon">&#128279;</span>
                   <span>Copy Link</span>
@@ -1524,6 +1552,13 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
               type="button"
               data-act="open"
               data-id="${model.id}"
+              data-asset-type="model"
+              data-glb-url="${escapeAttr(model.glb_url || model.model_url || model.model_glb_url || '')}"
+              data-glb-proxy="${escapeAttr(model.glb_proxy || '')}"
+              data-stl-url="${escapeAttr(model.stl_url || model.model_stl_url || model.print_url || '')}"
+              data-thumbnail-url="${escapeAttr(_thumb)}"
+              data-title="${escapeAttr(shortTitle(model))}"
+              data-prompt="${escapeAttr(model.prompt || model.root_prompt || '')}"
               aria-pressed="${isVariantActive ? 'true' : 'false'}"
               title="Open ${shortTitle(model)}">
         ${_thumb ? `<img src="${_thumb}" alt="${shortTitle(model)}" loading="lazy" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span class=\\'thumb-no-image\\'>${shortTitle(model)}</span>');">` : `<span class="thumb-no-image">${shortTitle(model)}</span>`}
@@ -1541,6 +1576,13 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 type="button"
                 data-act="open"
                 data-id="${variant.id}"
+                data-asset-type="model"
+                data-glb-url="${escapeAttr(variant.glb_url || variant.model_url || variant.model_glb_url || '')}"
+                data-glb-proxy="${escapeAttr(variant.glb_proxy || '')}"
+                data-stl-url="${escapeAttr(variant.stl_url || variant.model_stl_url || variant.print_url || '')}"
+                data-thumbnail-url="${escapeAttr(_thumb)}"
+                data-title="${escapeAttr(shortTitle(variant))}"
+                data-prompt="${escapeAttr(variant.prompt || variant.root_prompt || '')}"
                 aria-label="Open variation ${idx + 1}">
           ${_thumb ? `<img src="${_thumb}" alt="${shortTitle(variant)}" loading="lazy" onerror="this.style.display='none';this.insertAdjacentHTML('afterend','<span class=\\'thumb-no-image\\'>${shortTitle(variant)}</span>');">` : `<span class="thumb-no-image">${shortTitle(variant)}</span>`}
         </button>
@@ -1944,22 +1986,22 @@ function buildExpandedHistoryGallery(cards = []) {
   const filterBar = `
     <div class="expanded-filter-bar">
       <div class="expanded-filter-bar__pills">
-        <button type="button" class="expanded-filter-btn active" data-gallery-filter="all">
+        <button type="button" class="expanded-filter-btn active" data-gallery-filter="all" aria-pressed="true">
           All <span class="expanded-filter-btn__count">${counts.all}</span>
         </button>
-        <button type="button" class="expanded-filter-btn" data-gallery-filter="model">
+        <button type="button" class="expanded-filter-btn" data-gallery-filter="model" aria-pressed="false">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
           Models <span class="expanded-filter-btn__count">${counts.model}</span>
         </button>
-        <button type="button" class="expanded-filter-btn" data-gallery-filter="image">
+        <button type="button" class="expanded-filter-btn" data-gallery-filter="image" aria-pressed="false">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
           Images <span class="expanded-filter-btn__count">${counts.image}</span>
         </button>
-        <button type="button" class="expanded-filter-btn" data-gallery-filter="animated">
+        <button type="button" class="expanded-filter-btn" data-gallery-filter="animated" aria-pressed="false">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
           Animated <span class="expanded-filter-btn__count">${counts.animated}</span>
         </button>
-        <button type="button" class="expanded-filter-btn" data-gallery-filter="video">
+        <button type="button" class="expanded-filter-btn" data-gallery-filter="video" aria-pressed="false">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
           Videos <span class="expanded-filter-btn__count">${counts.video}</span>
         </button>
@@ -2097,15 +2139,6 @@ function _renderHistoryImpl() {
     document.body.classList.toggle('history-expanded', isGallery);
   }
   if (collapseBtn) collapseBtn.hidden = !isGallery;
-
-  const filterButtons = document.querySelectorAll('.filter-btn');
-  filterButtons.forEach(btn => {
-    const type = btn.getAttribute('data-filter');
-    btn.classList.toggle('active', type === historyState.filter);
-    if (type === 'all') {
-      btn.setAttribute('aria-pressed', historyState.galleryExpanded ? 'true' : 'false');
-    }
-  });
 
   const sortToggle = document.getElementById('historySortToggle');
   if (sortToggle) {

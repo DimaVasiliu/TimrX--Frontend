@@ -336,10 +336,6 @@
     gap: 6px;
   }
 
-  body.history-expanded .timrx-3dprint .history-head-row-bottom {
-    display: none;
-  }
-
   body.history-expanded .timrx-3dprint .history-refresh-btn {
     display: none;
   }
@@ -480,26 +476,6 @@
 
   .timrx-3dprint .history-search-wrapper input {
     font-size: 13px;
-  }
-
-  .timrx-3dprint .history-head-row-bottom {
-    margin-top: 0;
-  }
-
-  .timrx-3dprint .history-filters {
-    gap: 6px;
-  }
-
-  .timrx-3dprint .filter-btn {
-    flex: 1 1 0;
-    width: auto;
-    height: 36px;
-    border-radius: 10px;
-  }
-
-  .timrx-3dprint .filter-btn svg {
-    width: 18px;
-    height: 18px;
   }
 
   .timrx-3dprint .history-sort-btn {

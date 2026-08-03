@@ -204,8 +204,109 @@
   function filterPool(cards){
     var type = settings.type || 'all';
     if (type === 'all') return cards.slice();
-    var filtered = cards.filter(function(card){ return card.type === type; });
-    return filtered.length ? filtered : cards.slice();
+    /* Was: fall back to the whole set when a type had no matches, which meant
+       picking "Video" on a feed with no video silently showed everything and
+       the filter looked broken. Return the empty set and let the zones
+       collapse — build() widens the remaining ones. */
+    return cards.filter(function(card){ return card.type === type; });
+  }
+
+  /* ---------------------------------------------------------------- zones ---
+     The stage is one composition made of three zones, each with its own
+     grammar:
+
+       reel  (left)   videos   — a film strip running on a loop
+       core  (centre) models   — organic scatter with depth, pushed by the
+                                 thought engine (hero-sequence.js)
+       sheet (right)  images   — a photographer's contact sheet, counter-drifting
+
+     Before this the three types were shuffled into one farthest-point sample,
+     so position carried no meaning at all. Grouping is the whole point: you
+     can find the video wall without reading a single chip.
+
+     ZONE_SIDE decides which rail gets which type. Swap the two values to
+     mirror the stage. */
+  var ZONE_SIDE = { video:'left', image:'right' };
+
+  function splitPools(cards){
+    var out = { video:[], image:[], model:[] };
+    (cards || []).forEach(function(c){
+      if (out[c.type]) out[c.type].push(c);
+    });
+    return out;
+  }
+
+  /* Rails only earn their space when they have enough to look deliberate. One
+     lonely video in a film strip reads as a bug, so below the floor the type
+     falls back into the centre scatter and the centre takes the width. */
+  var RAIL_MIN = 3;
+
+  function zoneGeometry(groups, w){
+    var narrow  = w < 1080;
+    var hasReel  = !narrow && groups.video.length >= RAIL_MIN;
+    var hasSheet = !narrow && groups.image.length >= RAIL_MIN;
+    /* Rails are a fraction of the stage, clamped so they never become a
+       thumbnail strip on a small laptop or a wall on an ultrawide. */
+    var railW = Math.max(0.145, Math.min(0.215, 210 / Math.max(1, w)));
+
+    /* The core band is ALWAYS symmetric about the centre line.
+       It used to inset only the sides that actually had a rail, so a stage with
+       one rail put the model field at 0.18–0.96 — centred on 0.57, visibly
+       shoved to one side. The models sit around the thought engine, which types
+       itself at dead centre, so the band they live in has to be centred too.
+       The empty side keeps the same inset and simply reads as breathing room. */
+    var inset = Math.max(
+      hasReel  ? 0.035 + railW : 0.04,
+      hasSheet ? 0.035 + railW : 0.04
+    );
+
+    return {
+      reel : hasReel  ? { x0:0.012, x1:0.012 + railW } : null,
+      sheet: hasSheet ? { x0:0.988 - railW, x1:0.988 } : null,
+      core : { x0: inset, x1: 1 - inset },
+      hasReel:hasReel, hasSheet:hasSheet, narrow:narrow
+    };
+  }
+
+  /* ------------------------------------------------- even mass in the core ---
+     Tier drives size, opacity and blur; `is-travelling` sends a card on a long
+     journey in from the back, where it spends most of its cycle small and dim.
+     Both used to be position-blind — tier from a hash of the grid cell index,
+     travel from a bare Math.random() per card — so the big bright cards and the
+     faded ones could all land on the same side. The POSITIONS were evenly
+     spread the whole time; the visual weight was not, and that is what reads as
+     "the models are bunched over there".
+
+     Deal both per column instead: split the band into COLS buckets and give
+     every bucket the same mix. Near tier still prefers the vertical middle of
+     its own bucket, because the top and bottom of the band sit under the
+     creation dock and the command bar and a big card there is only ever seen
+     as a fading sliver. */
+  function balanceCore(spots, band){
+    var COLS = 5;
+    var x0 = band.x0, w = Math.max(1e-6, band.x1 - band.x0);
+    var buckets = [];
+    for (var i = 0; i < COLS; i++) buckets.push([]);
+
+    spots.forEach(function(s){
+      var b = Math.min(COLS - 1, Math.max(0, Math.floor(((s.x - x0) / w) * COLS)));
+      buckets[b].push(s);
+    });
+
+    buckets.forEach(function(list){
+      // Most vertically central first — the near tier belongs where it can be
+      // seen whole.
+      list.sort(function(a, b){ return Math.abs(a.y - 0.5) - Math.abs(b.y - 0.5); });
+      var near = list.length ? Math.max(1, Math.round(list.length * 0.34)) : 0;
+      var mid  = Math.round(list.length * 0.40);
+      list.forEach(function(s, k){
+        s.tier   = k < near ? 2 : k < near + mid ? 1 : 0;
+        // Every other non-near card in each column travels, so no side of the
+        // field ever dims out by luck.
+        s.travel = s.tier < 2 && (k % 2 === 1);
+      });
+    });
+    return spots;
   }
 
   function setSourceState(v){
@@ -270,7 +371,7 @@
     return (w / Math.max(1,h)) < 0.90 ? { y0:0.40, y1:0.98 } : { y0:0.03, y1:0.97 };
   }
 
-  function layout(count, w, h){
+  function layout(count, w, h, xBand){
     var band = bandFor(w,h);
     var bh = h * (band.y1 - band.y0);
     var aspect = w / Math.max(1,bh);
@@ -309,6 +410,10 @@
     }
 
     var mid0 = (band.y0 + band.y1) / 2, half = (band.y1 - band.y0) / 2;
+    /* The sample runs in unit space; xBand remaps it into the zone's own
+       column so the centre scatter never wanders under a rail. */
+    var xa = xBand ? xBand.x0 : 0.05;
+    var xb = xBand ? xBand.x1 : 0.95;
     return chosen.map(function(c){
       /* Bias the near tier toward the middle of the band: its top and bottom
          are masked out under the dock and the command bar, so a big card there
@@ -316,7 +421,7 @@
       var mid  = 1 - Math.min(1, Math.abs(c.y - mid0) / half);
       var roll = rnd(c.i+3.1);
       var tier = roll < 0.30 + mid * 0.34 ? 2 : roll < 0.72 ? 1 : 0;
-      return { x:Math.max(0.05,Math.min(0.95,c.x)),
+      return { x:xa + Math.max(0,Math.min(1,c.x)) * (xb - xa),
                y:Math.max(0.04,Math.min(0.96,c.y)), tier:tier, seed:c.i };
     });
   }
@@ -352,25 +457,284 @@
       return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]; });
   }
 
-  function fillCard(btn, asset){
+  /* Aspect per zone. The reel is a film strip, so every frame is the same
+     portrait cell or the perforations stop lining up; the contact sheet keeps
+     each image's own shape because that is what a contact sheet is. */
+  function aspectFor(asset, zone){
+    if (zone === 'reel') return 0.5625;                 // 9:16
+    return ASPECTS[asset.aspect] || 1;
+  }
+
+  function fillCard(btn, asset, zone){
     var t = asset.type;
-    btn.style.setProperty('--ar', ASPECTS[asset.aspect] || 1);
+    btn.style.setProperty('--ar', aspectFor(asset, zone));
     btn.setAttribute('aria-label',
       (t==='video'?'Video':t==='image'?'Image':'3D model')+': '+(asset.prompt||'Untitled creation'));
     btn.dataset.assetId = asset.id;
     btn.dataset.assetType = t;
+
+    var extra = '';
+    /* Model cards get the same studio floor the fallback tiles draw into
+       their SVG — a perspective grid the object appears to stand on. Images
+       and videos are captures of a scene and already have their own ground;
+       a 3D model is an object in a void and reads as floating without it. */
+    if (t === 'model') extra += '<span class="af__floor" aria-hidden="true"></span>';
+    /* Play affordance follows the ASSET, not the zone. When a feed has too few
+       videos to earn the reel they fall back into the centre scatter, and
+       keying this on the zone left those cards as dead stills that still said
+       "video" on the chip. */
+    if (t === 'video'){
+      extra += '<span class="af__play" aria-hidden="true">' +
+                 '<svg viewBox="0 0 24 24" fill="currentColor"><polygon points="9 6 18 12 9 18"/></svg>' +
+               '</span>';
+    }
+    /* The projector-lamp sweep is film-strip flavour, so it stays reel-only. */
+    if (zone === 'reel') extra += '<span class="af__scan" aria-hidden="true"></span>';
+    /* Contact-sheet frames carry a sheet number, like a real proof sheet. */
+    if (zone === 'sheet'){
+      extra += '<span class="af__frameno" aria-hidden="true">' +
+               String((btn.dataset.frameNo || '1')).padStart(2,'0') + '</span>';
+    }
+
     btn.innerHTML =
       '<img src="'+esc(asset.thumbnail)+'" alt="" loading="lazy" decoding="async"/>'+
-      /* Model cards get the same studio floor the fallback tiles draw into
-         their SVG — a perspective grid the object appears to stand on. Images
-         and videos are captures of a scene and already have their own ground;
-         a 3D model is an object in a void and reads as floating without it. */
-      (t === 'model' ? '<span class="af__floor" aria-hidden="true"></span>' : '')+
+      extra+
       '<span class="af__chip is-'+t+'">'+ICON[t]+'<span>'+t+'</span></span>'+
       '<span class="af__cap">'+esc(asset.prompt||'Untitled creation')+'</span>';
     btn.firstChild.addEventListener('error', function(){
       var s = btn.closest('.af__slot'); if (s) s.style.display = 'none';
     }, { once:true });
+  }
+
+  /* ------------------------------------------------------- reel playback ---
+     A wall of stills where the one you touch comes alive.
+
+     The <video> is attached on hover and torn down on leave. Attaching all of
+     them up front would pull dozens of media files for a background field —
+     the poster is the resting state and the motion is the reward for pointing
+     at it. */
+  var activeReelVideo = null;
+
+  function stopReelPreview(){
+    if (!activeReelVideo) return;
+    var v = activeReelVideo;
+    activeReelVideo = null;
+    try { v.pause(); } catch(e){}
+    v.removeAttribute('src');
+    v.load && v.load();
+    v.remove();
+  }
+
+  function startReelPreview(btn, asset){
+    if (!asset || !asset.video_url) return;
+    if (still || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    stopReelPreview();
+
+    var v = document.createElement('video');
+    v.className = 'af__vid';
+    v.muted = true; v.loop = true; v.playsInline = true;
+    v.setAttribute('muted',''); v.setAttribute('playsinline','');
+    v.preload = 'metadata';
+    v.src = asset.video_url;
+    v.addEventListener('canplay', function(){ v.classList.add('is-ready'); }, { once:true });
+    btn.appendChild(v);
+    activeReelVideo = v;
+    var p = v.play();
+    if (p && p.catch) p.catch(function(){ /* autoplay refused — poster stays */ });
+  }
+
+  // ---------------------------------------------------------- zone builders
+  function makeSlot(zone, asset, opts){
+    var slot = document.createElement('div');
+    slot.className = 'af__slot af__slot--' + zone;
+    slot.dataset.afZone = zone;
+
+    var flo = document.createElement('div');
+    flo.className = 'af__float';
+
+    var btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'af__card';
+    if (opts && opts.frameNo != null) btn.dataset.frameNo = opts.frameNo;
+    fillCard(btn, asset, zone);
+
+    flo.appendChild(btn);
+    slot.appendChild(flo);
+    return { el:slot, btn:btn, zone:zone, asset:asset };
+  }
+
+  /* LEFT — the video reel.
+     One column of identical frames running upward forever. The track holds the
+     frames twice; animating it to -50% and looping makes the seam invisible,
+     so there is no JS in the motion path at all. Hover pauses the whole strip
+     (CSS animation-play-state) so the frame you reached for stops coming to
+     you — that pause is what makes it feel like an object rather than a video. */
+  function buildReel(videos, geom, w, h){
+    if (!geom.reel || !videos.length) return [];
+
+    var zone = document.createElement('div');
+    zone.className = 'af-zone af-zone--reel';
+    zone.style.setProperty('--zx0', (geom.reel.x0 * 100).toFixed(2) + '%');
+    zone.style.setProperty('--zw',  ((geom.reel.x1 - geom.reel.x0) * 100).toFixed(2) + '%');
+
+    var track = document.createElement('div');
+    track.className = 'af-reel__track';
+    /* Slower for a long strip: the frames should pass, not race. */
+    var n = Math.min(videos.length, 7);
+    track.style.setProperty('--reel-dur', (n * 7.5).toFixed(1) + 's');
+
+    var made = [];
+    for (var pass = 0; pass < 2; pass++){
+      for (var i = 0; i < n; i++){
+        var rec = makeSlot('reel', videos[i % videos.length]);
+        /* Hand-placed, not CSS-grid rigid: alternate a hair left and right. */
+        rec.el.style.setProperty('--nudge', (i % 2 ? 6 : -6) + 'px');
+        rec.el.style.setProperty('--tilt', (i % 2 ? 0.9 : -0.9) + 'deg');
+        if (pass === 1){
+          rec.el.setAttribute('aria-hidden', 'true');
+          rec.el.dataset.afClone = '1';
+        }
+        track.appendChild(rec.el);
+        if (pass === 0) made.push(rec);
+      }
+    }
+
+    zone.appendChild(track);
+    var sprock = document.createElement('span');
+    sprock.className = 'af-reel__sprockets';
+    sprock.setAttribute('aria-hidden','true');
+    zone.appendChild(sprock);
+
+    var label = document.createElement('span');
+    label.className = 'af-zone__label';
+    label.setAttribute('aria-hidden','true');
+    label.textContent = 'Video';
+    zone.appendChild(label);
+
+    fieldEl.appendChild(zone);
+    return made;
+  }
+
+  /* RIGHT — the contact sheet.
+     Two staggered columns drifting the opposite way to the reel. The counter
+     motion is the point: the stage reads as one composition with an internal
+     current rather than as three lists that happen to sit side by side. */
+  function buildSheet(images, geom, w, h){
+    if (!geom.sheet || !images.length) return [];
+
+    var zone = document.createElement('div');
+    zone.className = 'af-zone af-zone--sheet';
+    zone.style.setProperty('--zx0', (geom.sheet.x0 * 100).toFixed(2) + '%');
+    zone.style.setProperty('--zw',  ((geom.sheet.x1 - geom.sheet.x0) * 100).toFixed(2) + '%');
+
+    var COLS = 2;
+    var per  = Math.min(4, Math.max(2, Math.ceil(images.length / COLS)));
+    var made = [], idx = 0;
+
+    for (var c = 0; c < COLS; c++){
+      var col = document.createElement('div');
+      col.className = 'af-sheet__col';
+      /* Run the second column slower and start it mid-cycle, so the two never
+         march in step. A negative animation-delay is the offset — a static
+         transform would just be overwritten by the animation. */
+      var dur = per * (c ? 11.5 : 9.5);
+      col.style.setProperty('--sheet-dur', dur.toFixed(1) + 's');
+      col.style.animationDelay = (-dur * (c ? 0.42 : 0)).toFixed(1) + 's';
+
+      for (var pass = 0; pass < 2; pass++){
+        for (var i = 0; i < per; i++){
+          var asset = images[(c * per + i) % images.length];
+          var rec = makeSlot('sheet', asset, { frameNo: (c * per + i + 1) });
+          rec.el.style.setProperty('--tilt', (((i + c) % 2) ? 0.7 : -0.7) + 'deg');
+          if (pass === 1){
+            rec.el.setAttribute('aria-hidden','true');
+            rec.el.dataset.afClone = '1';
+          }
+          col.appendChild(rec.el);
+          if (pass === 0){ made.push(rec); idx++; }
+        }
+      }
+      zone.appendChild(col);
+    }
+
+    var label = document.createElement('span');
+    label.className = 'af-zone__label';
+    label.setAttribute('aria-hidden','true');
+    label.textContent = 'Images';
+    zone.appendChild(label);
+
+    fieldEl.appendChild(zone);
+    return made;
+  }
+
+  /* CENTRE — models, unchanged in spirit.
+     Organic scatter, three depth tiers, drift keyframes, and the only zone the
+     thought engine pushes (hero-sequence.js filters on data-af-zone="core"). */
+  function buildCore(models, geom, w, h){
+    if (!models.length) return [];
+
+    var zone = document.createElement('div');
+    zone.className = 'af-zone af-zone--core';
+
+    var count = Math.min(densityFor(w, h, CFG.DENSITY), models.length * 2);
+    if (geom.hasReel)  count = Math.round(count * 0.8);
+    if (geom.hasSheet) count = Math.round(count * 0.8);
+    count = Math.max(4, count);
+
+    var spots = balanceCore(layout(count, w, h, geom.core), geom.core);
+    var bw    = baseCardWidth(w, h, count) * (geom.hasReel && geom.hasSheet ? 0.92 : 1);
+
+    var heroIndex = -1, heroScore = -1;
+    if (settings.spotlight && (MODE_PRESETS[settings.mode] || MODE_PRESETS.balanced).spotlight){
+      spots.forEach(function(sp, i){
+        var dx = sp.x - .5, dy = sp.y - .52;
+        var score = (sp.tier * 2) - Math.sqrt(dx*dx + dy*dy);
+        if (score > heroScore){ heroScore = score; heroIndex = i; }
+      });
+    }
+
+    var made = spots.map(function(sp, i){
+      var tier = TIERS[sp.tier], asset = models[i % models.length];
+      var rec  = makeSlot('core', asset);
+      var slot = rec.el;
+
+      if (i === heroIndex) slot.classList.add('is-hero');
+      slot.style.setProperty('--x', (sp.x*100).toFixed(2)+'%');
+      slot.style.setProperty('--y', (sp.y*100).toFixed(2)+'%');
+      slot.style.setProperty('--w', Math.round(bw * tier.s)+'px');
+      slot.style.setProperty('--o', tier.o);
+      slot.style.setProperty('--blur', tier.blur+'px');
+      slot.style.setProperty('--par', tier.par);
+      slot.style.setProperty('--z', tier.z);
+
+      var flo = slot.firstChild;
+      flo.style.setProperty('--drift', DRIFTS[Math.floor(rnd(sp.seed+11)*DRIFTS.length)]);
+      flo.style.setProperty('--dur', (8 + rnd(sp.seed+21)*10).toFixed(2)+'s');
+      flo.style.setProperty('--delay', '-'+(rnd(sp.seed+31)*14).toFixed(2)+'s');
+
+      /* Depth travel: part of the field makes the journey in from the back,
+         each with its own duration and phase so the approaches never sync up
+         into a pulse. Skipped for the near tier — a card already at the front
+         has nowhere to come from. WHICH cards travel is decided by balanceCore
+         per column, not by a coin flip here, so the dimming is spread evenly
+         across the band. */
+      if (sp.travel) {
+        slot.classList.add('is-travelling');
+        slot.style.setProperty('--travel', (38 + Math.random() * 34).toFixed(1) + 's');
+        // Negative delay starts each card mid-journey, so they are already
+        // spread through the cycle instead of all departing together.
+        slot.style.setProperty('--travel-delay', (-Math.random() * 40).toFixed(1) + 's');
+      }
+      rec.btn.style.setProperty('--shy', tier.shy+'px');
+      rec.btn.style.setProperty('--shb', tier.shb+'px');
+
+      zone.appendChild(slot);
+      rec.spot = sp;
+      return rec;
+    });
+
+    fieldEl.appendChild(zone);
+    return made;
   }
 
   function build(){
@@ -385,104 +749,105 @@
     var over = Math.max(0, Math.round(rect.bottom - (window.innerHeight || rect.bottom)));
     root.style.setProperty('--af-overflow', over + 'px');
 
-    var count = Math.min(densityFor(w,h,CFG.DENSITY), pool.length ? pool.length * 2 : 1);
-    var spots = layout(count, w, h);
-    var bw    = baseCardWidth(w,h,count);
+    stopReelPreview();
+
+    var groups = splitPools(pool);
+    var geom   = zoneGeometry(groups, w);
+
+    /* Types that did not earn a rail fall back into the centre scatter, so a
+       feed of nothing but images still fills the stage instead of leaving two
+       thirds of it empty. */
+    var corePool = groups.model.slice();
+    if (!geom.hasReel)  corePool = corePool.concat(groups.video);
+    if (!geom.hasSheet) corePool = corePool.concat(groups.image);
+    if (!corePool.length) corePool = pool.slice();
+
+    root.classList.toggle('af--has-reel',  !!geom.hasReel);
+    root.classList.toggle('af--has-sheet', !!geom.hasSheet);
+    root.dataset.reelSide  = ZONE_SIDE.video;
+    root.dataset.sheetSide = ZONE_SIDE.image;
 
     fieldEl.textContent = '';
-    var heroIndex = -1, heroScore = -1;
-    if (settings.spotlight && (MODE_PRESETS[settings.mode] || MODE_PRESETS.balanced).spotlight){
-      spots.forEach(function(sp, i){
-        var dx = sp.x - .5, dy = sp.y - .52;
-        var score = (sp.tier * 2) - Math.sqrt(dx*dx + dy*dy);
-        if (score > heroScore){ heroScore = score; heroIndex = i; }
-      });
-    }
-
-    slots = spots.map(function(sp, i){
-      var tier = TIERS[sp.tier], asset = pool[i % pool.length];
-
-      var slot = document.createElement('div');
-      slot.className = 'af__slot' + (i === heroIndex ? ' is-hero' : '');
-      slot.style.setProperty('--x', (sp.x*100).toFixed(2)+'%');
-      slot.style.setProperty('--y', (sp.y*100).toFixed(2)+'%');
-      slot.style.setProperty('--w', Math.round(bw * tier.s)+'px');
-      slot.style.setProperty('--o', tier.o);
-      slot.style.setProperty('--blur', tier.blur+'px');
-      slot.style.setProperty('--par', tier.par);
-      slot.style.setProperty('--z', tier.z);
-
-      var flo = document.createElement('div');
-      flo.className = 'af__float';
-      flo.style.setProperty('--drift', DRIFTS[Math.floor(rnd(sp.seed+11)*DRIFTS.length)]);
-      flo.style.setProperty('--dur', (8 + rnd(sp.seed+21)*10).toFixed(2)+'s');
-      flo.style.setProperty('--delay', '-'+(rnd(sp.seed+31)*14).toFixed(2)+'s');
-
-      var btn = document.createElement('button');
-      btn.type = 'button'; btn.className = 'af__card';
-      /* Depth travel: about a third of the field makes the journey in from
-         the back. Chosen per slot, with its own duration and phase so the
-         approaches never sync up into a pulse. Skipped for the near tier —
-         a card that is already at the front has nowhere to come from. */
-      if (sp.tier < 2 && Math.random() < 0.34) {
-        slot.classList.add('is-travelling');
-        slot.style.setProperty('--travel', (38 + Math.random() * 34).toFixed(1) + 's');
-        // Negative delay starts each card mid-journey, so they are already
-        // spread through the cycle instead of all departing together.
-        slot.style.setProperty('--travel-delay', (-Math.random() * 40).toFixed(1) + 's');
-      }
-      btn.style.setProperty('--shy', tier.shy+'px');
-      btn.style.setProperty('--shb', tier.shb+'px');
-      fillCard(btn, asset);
-
-      flo.appendChild(btn); slot.appendChild(flo); fieldEl.appendChild(slot);
-      return { el:slot, btn:btn, spot:sp };
-    });
+    slots = []
+      .concat(buildReel(groups.video, geom, w, h))
+      .concat(buildCore(corePool, geom, w, h))
+      .concat(buildSheet(groups.image, geom, w, h));
 
     requestAnimationFrame(function(){ root.style.setProperty('--af-in','1'); });
   }
 
   // ================================================================= SHUFFLE
-  function shuffleTick(){
-    if (destroyed || still || document.hidden || !slots.length || !pool.length) return;
-    var n = Math.min(window.innerWidth < 760 ? 1 : CFG.SHUFFLE_COUNT, slots.length);
-    for (var k=0;k<n;k++){
-      (function(delay){
-        var s = slots[Math.floor(Math.random()*slots.length)];
-        setTimeout(function(){
-          if (destroyed || !s || !s.el.isConnected) return;
-          s.el.classList.add('is-swapping');
-          setTimeout(function(){
-            if (destroyed || !s.el.isConnected) return;
-            cursor = (cursor + 1 + Math.floor(Math.random()*3)) % pool.length;
-            fillCard(s.btn, pool[cursor]);
-            /* re-jitter inside the same cell: the composition breathes, but
-               nothing ever teleports across the stage */
-            var nx = Math.max(0.05, Math.min(0.95, s.spot.x + (Math.random()-.5)*0.05));
-            var ny = Math.max(0.06, Math.min(0.94, s.spot.y + (Math.random()-.5)*0.05));
-            s.spot.x = nx; s.spot.y = ny;
-            s.el.style.setProperty('--x',(nx*100).toFixed(2)+'%');
-            s.el.style.setProperty('--y',(ny*100).toFixed(2)+'%');
-            s.el.classList.remove('is-swapping');
-          }, 450);
-        }, delay);
-      })(k * 340);
+  /* A slot only ever receives an asset of its own type.
+     The old shuffle drew from the whole pool, so a video could land in a model
+     slot mid-cycle and the grouping would dissolve within a minute of being
+     built. Each zone now draws from its own list. */
+  var zoneCursor = { reel:0, core:0, sheet:0 };
+
+  function poolForSlot(s){
+    var groups = splitPools(pool);
+    if (s.zone === 'reel')  return groups.video;
+    if (s.zone === 'sheet') return groups.image;
+    var core = groups.model.slice();
+    if (!root || !root.classList.contains('af--has-reel'))  core = core.concat(groups.video);
+    if (!root || !root.classList.contains('af--has-sheet')) core = core.concat(groups.image);
+    return core.length ? core : pool;
+  }
+
+  function swapSlot(s){
+    if (destroyed || !s || !s.el || !s.el.isConnected) return;
+    var list = poolForSlot(s);
+    if (!list.length) return;
+    zoneCursor[s.zone] = (zoneCursor[s.zone] + 1 + Math.floor(Math.random()*2)) % list.length;
+    var next = list[zoneCursor[s.zone]];
+    s.asset = next;
+    fillCard(s.btn, next, s.zone);
+
+    /* Only the centre re-jitters. The rails are compositions — nudging a film
+       frame out of its column is exactly the chaos this replaced. */
+    if (s.zone === 'core' && s.spot){
+      var nx = Math.max(0.02, Math.min(0.98, s.spot.x + (Math.random()-.5)*0.05));
+      var ny = Math.max(0.06, Math.min(0.94, s.spot.y + (Math.random()-.5)*0.05));
+      s.spot.x = nx; s.spot.y = ny;
+      s.el.style.setProperty('--x',(nx*100).toFixed(2)+'%');
+      s.el.style.setProperty('--y',(ny*100).toFixed(2)+'%');
     }
   }
 
-  function reshuffleAll(){
-    if (!slots.length || !pool.length) return;
-    slots.forEach(function(s,i){
+  /* Live core slots, resolved fresh every time.
+     A shuffle spans ~800ms (a stagger, then a 450ms fade), and build() replaces
+     every .af__slot — the feed arriving calls it, and so does the
+     ResizeObserver on any layout change. Holding slot records across that delay
+     meant the swap landed on detached nodes and silently did nothing, which is
+     precisely how the shuffle came to look broken. Never cache them. */
+  function liveCoreSlots(){
+    return slots.filter(function(s){
+      return s && s.zone === 'core' && s.el && s.el.isConnected;
+    });
+  }
+
+  function shuffleTick(){
+    if (destroyed || still || document.hidden || !slots.length || !pool.length) return;
+    /* The reel and the sheet are already in motion on their own loops; swapping
+       their contents underneath a running marquee reads as a glitch. Only the
+       centre shuffles on the timer. */
+    var n = Math.min(window.innerWidth < 760 ? 1 : CFG.SHUFFLE_COUNT, liveCoreSlots().length);
+    for (var k=0;k<n;k++){
       setTimeout(function(){
-        if (destroyed || !s.el.isConnected) return;
+        if (destroyed || still) return;
+        // Re-resolve here, not at schedule time.
+        var live = liveCoreSlots();
+        if (!live.length) return;
+        var s = live[Math.floor(Math.random()*live.length)];
         s.el.classList.add('is-swapping');
         setTimeout(function(){
-          cursor = (cursor+1) % pool.length;
-          fillCard(s.btn, pool[cursor]);
+          // Rebuilt mid-fade: the new field is already showing fresh cards, so
+          // there is nothing to swap and nothing to clean up.
+          if (destroyed || !s.el.isConnected) return;
+          swapSlot(s);
           s.el.classList.remove('is-swapping');
-        }, 380);
-      }, i*40);
-    });
+        }, 450);
+      }, k * 340);
+    }
   }
 
   // ================================================================ CONTROLS
@@ -565,12 +930,17 @@
   }
 
   /* Rebuild every slot with a staggered fade so the change reads as a deck
-     being dealt rather than a repaint. `slots` holds { el, btn, spot } records,
-     not elements — the first version of this treated them as nodes and threw
-     on the first press. */
+     being dealt rather than a repaint. `slots` holds { el, btn, zone, ... }
+     records, not elements — an early version treated them as nodes and threw
+     on the first press.
+
+     There used to be a SECOND reshuffleAll declared above shuffleTick; the two
+     coexisted for a while and only this one ever ran, because a later function
+     declaration wins. The dead one is gone. */
   function reshuffleAll(){
     if (destroyed || !slots.length || !pool.length) return;
     if (root) root.classList.add('af--dealing');
+    stopReelPreview();
 
     slots.forEach(function(s, i){
       if (!s || !s.el) return;
@@ -579,17 +949,13 @@
     });
 
     setTimeout(function(){
+      // Same rule as shuffleTick: re-read `slots` after the fade rather than
+      // closing over the records, so a rebuild in between cannot leave the
+      // field faded out with nothing swapped.
+      if (destroyed) return;
       slots.forEach(function(s){
-        if (destroyed || !s || !s.el || !s.el.isConnected) return;
-        cursor = (cursor + 1 + Math.floor(Math.random() * 3)) % pool.length;
-        fillCard(s.btn, pool[cursor]);
-        /* re-jitter within the same cell, exactly as the timed shuffle does,
-           so the field recomposes without anything crossing the stage */
-        var nx = Math.max(0.05, Math.min(0.95, s.spot.x + (Math.random() - 0.5) * 0.08));
-        var ny = Math.max(0.06, Math.min(0.94, s.spot.y + (Math.random() - 0.5) * 0.08));
-        s.spot.x = nx; s.spot.y = ny;
-        s.el.style.setProperty('--x', (nx * 100).toFixed(2) + '%');
-        s.el.style.setProperty('--y', (ny * 100).toFixed(2) + '%');
+        if (!s || !s.el || !s.el.isConnected) return;
+        swapSlot(s);
         s.el.classList.remove('is-swapping');
       });
       setTimeout(function(){ if (root) root.classList.remove('af--dealing'); }, 700);
@@ -744,18 +1110,31 @@
     window.dispatchEvent(new Event('resize'));
   }
 
+  /* Reset whatever is playing in the workspace viewer before we put something
+     new there.
+
+     Scoped to #videoViewer on purpose. This used to run over
+     document.querySelectorAll('video, audio') — every media element on the
+     page — and it is called on every open, including image and model opens.
+     One click on a stage card therefore stripped the src off the hero video,
+     the tutorial clips and any other player on the page, permanently. */
   function stopViewerMedia(){
-    document.querySelectorAll('video, audio').forEach(function(media){
-      try { media.pause(); } catch(e){}
-      try { media.currentTime = 0; } catch(e){}
-      media.removeAttribute('src');
-      media.src = '';
-      media.querySelectorAll('source').forEach(function(source){
+    var viewerHost = document.getElementById('videoViewer');
+    var media = viewerHost
+      ? viewerHost.querySelectorAll('video, audio')
+      : [document.getElementById('generatedVideo')];
+    Array.prototype.forEach.call(media, function(el){
+      if (!el) return;
+      try { el.pause(); } catch(e){}
+      try { el.currentTime = 0; } catch(e){}
+      el.removeAttribute('src');
+      el.src = '';
+      el.querySelectorAll('source').forEach(function(source){
         source.removeAttribute('src');
         source.src = '';
       });
-      try { media.load(); } catch(e){}
-      media.classList.add('hidden');
+      try { el.load(); } catch(e){}
+      el.classList.add('hidden');
     });
     var videoPh = document.getElementById('videoPlaceholder');
     if (videoPh) videoPh.classList.remove('hidden');
@@ -1003,6 +1382,26 @@
       openAsset(hit || { id:id, type:btn.dataset.assetType });
     });
 
+    /* Reel hover: the frame you point at starts playing for real.
+       pointerenter/leave on the field (delegated, capture phase — these events
+       do not bubble) so there is no per-card listener to clean up on rebuild. */
+    if (window.matchMedia('(hover:hover) and (pointer:fine)').matches){
+      fieldEl.addEventListener('pointerover', function(e){
+        var btn = e.target.closest && e.target.closest('.af__card[data-asset-type="video"]');
+        if (!btn || btn.querySelector('.af__vid')) return;
+        var id = btn.dataset.assetId, hit = null;
+        for (var i=0;i<pool.length;i++) if (String(pool[i].id) === id) { hit = pool[i]; break; }
+        startReelPreview(btn, hit);
+      });
+      fieldEl.addEventListener('pointerout', function(e){
+        var btn = e.target.closest && e.target.closest('.af__card[data-asset-type="video"]');
+        if (!btn) return;
+        // Ignore moves between children of the same card.
+        if (e.relatedTarget && btn.contains(e.relatedTarget)) return;
+        stopReelPreview();
+      });
+    }
+
     var warm = readWarmCache();
     poolAll = warm || fallbackPool();
     pool = filterPool(poolAll);
@@ -1021,7 +1420,7 @@
 
   function destroy(){
     if (destroyed) return;
-    destroyed = true; stopMotion();
+    destroyed = true; stopMotion(); stopReelPreview();
     if (rafId) { cancelAnimationFrame(rafId); rafId = null; }
     if (io) io.disconnect();
     if (ro) ro.disconnect();

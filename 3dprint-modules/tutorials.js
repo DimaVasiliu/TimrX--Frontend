@@ -485,61 +485,104 @@
   /**
    * Load a 3D model into the main viewer
    */
+  /**
+   * Show an asset in the workspace viewer.
+   *
+   * Was: click the rail button, then set #generatedImage.src / #generatedVideo
+   * .src by hand. The rail click also opens the Prompt/Settings sheet over the
+   * viewer, does nothing at all when that panel is already active with the
+   * sheet open, and the direct DOM writes never hid the viewer being left.
+   * Viewer.presentAsset does the panel switch and the media swap together.
+   *
+   * @returns {Promise<boolean>} Whether the asset reached the viewer.
+   */
+  async function presentInViewer(type, url, meta) {
+    const viewer = window.TimrXViewer || window.Viewer;
+    if (typeof viewer?.presentAsset === 'function') {
+      return viewer.presentAsset(type, url, meta || {});
+    }
+
+    // Pre-boot fallback: main.js has not registered the viewer module yet.
+    const railBtn = document.querySelector(`.rail-btn[data-panel="${type}"]`);
+    if (railBtn) {
+      railBtn.click();
+      try { window.TimrXSheet?.close?.(); } catch (e) { /* sheet not booted */ }
+    }
+    const modelV = document.getElementById('model3dViewer');
+    const imageV = document.getElementById('imageViewer');
+    const videoV = document.getElementById('videoViewer');
+    if (modelV) modelV.classList.toggle('hidden', type !== 'model');
+    if (imageV) imageV.classList.toggle('hidden', type !== 'image');
+    if (videoV) videoV.classList.toggle('hidden', type !== 'video');
+
+    if (type === 'image') {
+      const imgEl = document.getElementById('generatedImage');
+      const placeholder = document.getElementById('imagePlaceholder');
+      if (imgEl) {
+        imgEl.src = url;
+        imgEl.alt = meta?.alt || meta?.title || 'Tutorial preview';
+        imgEl.classList.remove('hidden', 'fill-mode');
+      }
+      if (placeholder) placeholder.classList.add('hidden');
+    } else if (type === 'video') {
+      const videoEl = document.getElementById('generatedVideo');
+      const placeholder = document.getElementById('videoPlaceholder');
+      if (videoEl) {
+        videoEl.src = url;
+        videoEl.classList.remove('hidden');
+        videoEl.load();
+        videoEl.play().catch(() => {});
+      }
+      if (placeholder) placeholder.classList.add('hidden');
+    } else {
+      // No loader available at all — the caller falls back to the thumbnail.
+      return false;
+    }
+
+    const viewerTitle = document.getElementById('viewerTitle');
+    const genHint = document.getElementById('genHint');
+    if (viewerTitle && meta?.title) viewerTitle.textContent = meta.title;
+    if (genHint && meta?.hint) genHint.textContent = meta.hint;
+    return true;
+  }
+
   function loadModelIntoViewer(itemData) {
     const glbUrl = itemData.glb_url || itemData.model_url;
     const thumbnailUrl = itemData.thumbnail;
 
-    // Switch to model panel
-    const modelRailBtn = document.querySelector('[data-panel="model"]');
-    if (modelRailBtn) modelRailBtn.click();
-
-    // Try to load 3D model using available methods
-    if (glbUrl) {
-      const tryLoadModel = async () => {
-        if (typeof window.loadGlbFromUrl === 'function') {
-          return window.loadGlbFromUrl(glbUrl);
-        }
-        if (window.Viewer?.loadGlbFromUrl) {
-          return window.Viewer.loadGlbFromUrl(glbUrl);
-        }
-        if (window.Viewer?.showModelInViewer) {
-          return window.Viewer.showModelInViewer(glbUrl, { title: itemData.title });
-        }
-        throw new Error('No viewer available');
-      };
-
-      tryLoadModel()
-        .then(() => {
-          console.log('[Tutorials] Model loaded successfully');
-          if (itemData.prompt) fillPrompt(itemData.prompt);
-        })
-        .catch(err => {
-          console.warn('[Tutorials] Model loading failed, showing thumbnail:', err.message);
-          showAsThumbnail(itemData, thumbnailUrl);
-        });
-    } else if (thumbnailUrl) {
-      showAsThumbnail(itemData, thumbnailUrl);
+    if (!glbUrl) {
+      if (thumbnailUrl) showAsThumbnail(itemData, thumbnailUrl);
+      return;
     }
+
+    presentInViewer('model', glbUrl, {
+      title: itemData.title || 'Tutorial Model',
+      hint: itemData.prompt || 'From the tutorial library',
+    }).then(opened => {
+      if (opened) {
+        console.log('[Tutorials] Model loaded successfully');
+        if (itemData.prompt) fillPrompt(itemData.prompt);
+        return;
+      }
+      console.warn('[Tutorials] Model loading failed, showing thumbnail');
+      showAsThumbnail(itemData, thumbnailUrl);
+    });
   }
 
   /**
    * Show content as thumbnail image (fallback)
    */
   function showAsThumbnail(itemData, thumbnailUrl) {
-    const imageRailBtn = document.querySelector('[data-panel="image"]');
-    if (imageRailBtn) imageRailBtn.click();
-
-    const imageEl = document.getElementById('generatedImage');
-    if (imageEl) {
-      imageEl.src = thumbnailUrl;
-      imageEl.classList.remove('hidden');
-      imageEl.alt = itemData.title || 'Tutorial Preview';
+    if (!thumbnailUrl) {
+      if (itemData.prompt) fillPrompt(itemData.prompt);
+      return;
     }
 
-    const viewerTitle = document.getElementById('viewerTitle');
-    if (viewerTitle) {
-      viewerTitle.textContent = itemData.title || 'Tutorial Preview';
-    }
+    presentInViewer('image', thumbnailUrl, {
+      title: itemData.title || 'Tutorial Preview',
+      hint: itemData.prompt || 'Preview image for this tutorial.',
+      alt: itemData.title || 'Tutorial Preview',
+    });
 
     if (itemData.prompt) fillPrompt(itemData.prompt);
   }
@@ -548,57 +591,34 @@
    * Load video into viewer
    */
   function loadVideoIntoViewer(itemData) {
-    const videoRailBtn = document.querySelector('[data-panel="video"]');
-    if (videoRailBtn) videoRailBtn.click();
-
     const videoUrl = itemData.video_url || itemData.url;
     if (!videoUrl) {
       console.warn('[Tutorials] No video URL found');
       return;
     }
 
-    if (window.Viewer?.showVideoInViewer) {
-      window.Viewer.showVideoInViewer(videoUrl, {
-        title: itemData.title || 'Tutorial Video',
-        autoplay: true
-      });
-    } else {
-      const videoEl = document.getElementById('generatedVideo');
-      if (videoEl) {
-        videoEl.src = videoUrl;
-        videoEl.classList.remove('hidden');
-        videoEl.load();
-        videoEl.play().catch(() => {});
-      }
-    }
+    presentInViewer('video', videoUrl, {
+      title: itemData.title || 'Tutorial Video',
+      hint: itemData.prompt || 'From the tutorial library',
+      autoplay: true
+    });
   }
 
   /**
    * Load image into viewer
    */
   function loadImageIntoViewer(itemData) {
-    const imageRailBtn = document.querySelector('[data-panel="image"]');
-    if (imageRailBtn) imageRailBtn.click();
-
     const imageUrl = itemData.image_url || itemData.thumbnail;
     if (!imageUrl) {
       console.warn('[Tutorials] No image URL found');
       return;
     }
 
-    if (window.Viewer?.showImageInViewer) {
-      window.Viewer.showImageInViewer(imageUrl);
-    } else {
-      const imgEl = document.getElementById('generatedImage');
-      const placeholder = document.getElementById('imagePlaceholder');
-      if (imgEl) {
-        imgEl.src = imageUrl;
-        imgEl.classList.remove('hidden');
-      }
-      if (placeholder) {
-        placeholder.classList.add('hidden');
-      }
-    }
+    presentInViewer('image', imageUrl, {
+      title: itemData.title || 'Tutorial Image',
+      hint: itemData.prompt || 'From the tutorial library',
+      alt: itemData.title || 'Tutorial image',
+    });
   }
 
   /**

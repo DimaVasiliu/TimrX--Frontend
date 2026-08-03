@@ -987,6 +987,7 @@ body.assets-modal-open .timrx-3dprint .assets-side-launcher {
 }
 
 .timrx-3dprint .history-search-wrapper {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -996,6 +997,36 @@ body.assets-modal-open .timrx-3dprint .assets-side-launcher {
   background: linear-gradient(180deg, rgba(255,255,255,0.05), rgba(255,255,255,0.025));
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.timrx-3dprint .history-search-clear {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.46);
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.timrx-3dprint .history-search-clear[hidden] {
+  display: none;
+}
+
+.timrx-3dprint .history-search-clear:hover,
+.timrx-3dprint .history-search-clear:focus-visible {
+  color: rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.timrx-3dprint .history-search-clear svg {
+  width: 14px;
+  height: 14px;
 }
 
 .timrx-3dprint .history-search-wrapper:focus-within {
@@ -1151,21 +1182,6 @@ body.assets-modal-open .timrx-3dprint .assets-side-launcher {
   color: #22c55e;
 }
 
-.timrx-3dprint .history-head-row-bottom {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  margin-top: 4px;
-}
-
-.timrx-3dprint .history-filters {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  width: 100%;
-  gap: 4px;
-}
-
 /* Exit Button - subtle style */
 .timrx-3dprint .history-exit-btn {
   display: inline-flex;
@@ -1303,62 +1319,6 @@ body.assets-modal-open .timrx-3dprint .assets-side-launcher {
   padding: 0 6px;
   min-width: 32px;
   text-align: center;
-}
-
-/* Filter buttons — rail-style: clean, no borders/bg, B&W */
-.timrx-3dprint .filter-btn {
-  width: 36px;
-  height: 36px;
-  background: none;
-  border: none;
-  border-radius: 0;
-  padding: 0;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.35);
-  outline: none;
-  transition: color 0.15s ease;
-}
-
-.timrx-3dprint .filter-btn svg {
-  width: 22px;
-  height: 22px;
-  stroke-width: 1.6;
-}
-
-/* Icon-only by default; the Assets modal turns the labels on because it has the
-   room and four unlabelled glyphs are a guessing game. */
-.timrx-3dprint .filter-btn__label {
-  display: none;
-}
-
-.timrx-3dprint .ws-right.assets-modal .filter-btn__label {
-  display: inline;
-}
-
-.timrx-3dprint .filter-btn:hover {
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.timrx-3dprint .filter-btn:focus-visible {
-  outline: 1px solid rgba(255, 255, 255, 0.3);
-  outline-offset: 2px;
-}
-
-.timrx-3dprint .filter-btn.active {
-  color: #fff;
-}
-
-/* Bigger filter icons in expanded mode */
-body.history-expanded .timrx-3dprint .filter-btn svg {
-  width: 28px;
-  height: 28px;
-}
-
-body.history-expanded .timrx-3dprint .filter-btn[data-filter="all"] {
-  color: #fff;
 }
 
 /* Root workspace behaviour in expanded mode */
@@ -4981,14 +4941,6 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   display:block;
 }
 
-.timrx-3dprint .ws-right.assets-modal .history-head-row-bottom{
-  flex:0 0 auto;
-  width:auto;
-  margin:0;
-  padding:0;
-  border:0;
-}
-
 .timrx-3dprint .ws-right.assets-modal .history-head-row-top{
   display:flex;
   align-items:center;
@@ -4999,44 +4951,6 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
 
 .timrx-3dprint .ws-right.assets-modal .history-head-center{flex:1 1 auto;min-width:0}
 .timrx-3dprint .ws-right.assets-modal .history-search-wrapper{width:100%;max-width:none}
-
-.timrx-3dprint .ws-right.assets-modal .history-filters{
-  width:auto;
-  justify-content:flex-start;
-  gap:2px;
-  padding:3px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.06);
-  background:rgba(255,255,255,.025);
-}
-
-.timrx-3dprint .ws-right.assets-modal .filter-btn{
-  width:auto;
-  height:34px;
-  gap:7px;
-  padding:0 12px;
-  border-radius:9px;
-  font-size:12px;
-  font-weight:600;
-  letter-spacing:.01em;
-  transition:background .15s ease,color .15s ease;
-}
-
-.timrx-3dprint .ws-right.assets-modal .filter-btn svg{
-  width:17px;
-  height:17px;
-  stroke-width:1.8;
-}
-
-.timrx-3dprint .ws-right.assets-modal .filter-btn:hover{
-  background:rgba(255,255,255,.05);
-}
-
-.timrx-3dprint .ws-right.assets-modal .filter-btn.active{
-  color:var(--text);
-  background:rgba(var(--accent-blue-rgb),.16);
-  box-shadow:inset 0 0 0 1px rgba(var(--accent-blue-rgb),.28);
-}
 
 /* --- grid: one consistent thumbnail size --------------------------------- */
 .timrx-3dprint .ws-right.assets-modal .history .history-grid{
@@ -5194,9 +5108,6 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
 
 @media (max-width:1024px){
   .timrx-3dprint .ws-right.assets-modal{--assets-tile:138px;--assets-gap:10px}
-  .timrx-3dprint .ws-right.assets-modal .filter-btn{padding:0 10px;gap:0}
-  .timrx-3dprint .ws-right.assets-modal .filter-btn__label{display:none}
-  .timrx-3dprint .ws-right.assets-modal .filter-btn svg{width:19px;height:19px}
 }
 
 @media (max-width:760px){
@@ -5212,11 +5123,6 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
     display:none;
   }
   .timrx-3dprint .ws-right.assets-modal .history-head-row-top{flex-wrap:wrap}
-  .timrx-3dprint .ws-right.assets-modal .history-head-row-bottom{width:100%}
-  /* Full-width segmented control: each tab takes an equal share instead of the
-     four icons drifting apart across the row. */
-  .timrx-3dprint .ws-right.assets-modal .history-filters{width:100%}
-  .timrx-3dprint .ws-right.assets-modal .filter-btn{flex:1 1 0;min-width:0}
   .timrx-3dprint .ws-right.assets-modal .history-head-center{flex:1 1 160px}
   /* A titled cluster never spans more columns than the screen has. */
   .timrx-3dprint .ws-right.assets-modal .history-collection[data-thumb-count="3"]{grid-column:span 2}

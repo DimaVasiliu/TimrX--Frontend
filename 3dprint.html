@@ -136,9 +136,9 @@
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
   <script defer src="3dprint-modules/3dprint-app.js?v=20260802h"></script>
-  <script defer src="3dprint-modules/inspire.js?v=20260802f"></script>
+  <script defer src="3dprint-modules/inspire.js?v=20260803a"></script>
   <script defer src="3dprint-modules/community-gallery.js?v=20260802f"></script>
-  <script defer src="3dprint-modules/asset-stage.js?v=20260802j"></script>
+  <script defer src="3dprint-modules/asset-stage.js?v=20260803c"></script>
 
   <!-- Visually Hidden Utility + Ticker Styles -->
   <style>
@@ -1564,7 +1564,7 @@
             <p class="assets-modal-kicker">Library</p>
             <h2>My Assets</h2>
           </div>
-          <p>All models, images, videos, batches, and in-progress jobs.</p>
+          <p>One library for finished work, variations, and active generations.</p>
           <button type="button" class="assets-modal-close" id="assetsModalClose" data-close-assets aria-label="Close My Assets">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
               <path d="M18 6L6 18M6 6l12 12"/>
@@ -1573,40 +1573,9 @@
         </div>
         <div class="history-head">
           <div class="history-head-top">
-            <!-- One toolbar line: type filters, search, refresh, sort. The
-                 filters used to live on a second row below the search box,
-                 which stacked two half-empty lines across a full-width modal. -->
+            <!-- One toolbar line: search, refresh, and sort. Asset families are
+                 rendered once inside the grouped gallery below. -->
             <div class="history-head-row-top">
-              <!-- Left: type filters -->
-              <div class="history-head-row-bottom">
-                <div class="history-filters">
-                  <button type="button" class="filter-btn active" data-filter="all" data-tooltip="All assets" aria-label="All assets">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                    </svg>
-                    <span class="filter-btn__label">All</span>
-                  </button>
-                  <button type="button" class="filter-btn" data-filter="image" data-tooltip="Images" aria-label="Images only">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                    <span class="filter-btn__label">Images</span>
-                  </button>
-                  <button type="button" class="filter-btn" data-filter="video" data-tooltip="Videos" aria-label="Videos only">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                    </svg>
-                    <span class="filter-btn__label">Videos</span>
-                  </button>
-                  <button type="button" class="filter-btn" data-filter="model" data-tooltip="3D Models" aria-label="3D models only">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-                    </svg>
-                    <span class="filter-btn__label">Models</span>
-                  </button>
-                </div>
-              </div>
-
               <!-- Center: Search -->
               <div class="history-head-center">
                 <div class="history-search-wrapper">
@@ -1614,6 +1583,11 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                   <input id="historySearch" placeholder="Search assets..." aria-label="Search assets"/>
+                  <button type="button" class="history-search-clear" id="historySearchClear" aria-label="Clear asset search" hidden>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true">
+                      <path d="M6 6l12 12M18 6L6 18"/>
+                    </svg>
+                  </button>
                 </div>
               </div>
 
@@ -3751,13 +3725,13 @@
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260802l"></script>
+  <script type="module" src="./js/main.js?v=20260803a"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
   <script src="js/command-palette.js?v=20260802f" defer></script>
   <script src="js/generation-tracker.js?v=20260802b" defer></script>
   <script src="js/thought-engine.js?v=20260802d" defer></script>
-  <script src="js/hero-sequence.js?v=20260802f" defer></script>
+  <script src="js/hero-sequence.js?v=20260803a" defer></script>
   <script src="js/command-ai.js?v=20260802a" defer></script>
 
   <!-- UI helper scripts -->

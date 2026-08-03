@@ -1652,11 +1652,9 @@
 
     console.log('[Inspire] Loading model:', { id: cardData.id, glbUrl, thumbnailUrl, hasViewer: !!window.timrx3D });
 
-    // Switch to model panel first
-    const modelRailBtn = document.querySelector('[data-panel="model"]');
-    if (modelRailBtn) modelRailBtn.click();
-
-    // Try to load 3D model if we have a GLB URL
+    // Try to load 3D model if we have a GLB URL. The panel switch happens
+    // inside the viewer (see presentInViewer) so it cannot pop the control
+    // sheet over the model we are loading.
     if (glbUrl) {
       loadModelWithViewer(cardData, glbUrl, thumbnailUrl);
     } else if (thumbnailUrl) {
@@ -1675,12 +1673,25 @@
    * This works even if window.Viewer isn't exposed.
    */
   async function loadModelWithViewer(cardData, glbUrl, thumbnailUrl) {
-    // Method 1: Use window.Viewer if available
-    if (window.Viewer?.loadGlbFromUrl) {
+    // Method 1: the real viewer module. It switches to the 3D panel, clears the
+    // previous model, re-measures the canvas and fits the camera — everything
+    // the direct-scene fallback below skips.
+    const viewer = window.TimrXViewer || window.Viewer;
+    if (typeof viewer?.presentAsset === 'function') {
+      const opened = await viewer.presentAsset('model', glbUrl, {
+        title: cardData.title || 'Inspire Model',
+        hint: cardData.prompt || 'From Inspire gallery',
+      });
+      if (opened) {
+        console.log('[Inspire] Model loaded via Viewer.presentAsset');
+        if (cardData.prompt) usePrompt(cardData.prompt, 'model');
+        return;
+      }
+      console.warn('[Inspire] Viewer.presentAsset could not open the model');
+    } else if (typeof viewer?.loadGlbFromUrl === 'function') {
       try {
-        console.log('[Inspire] Loading via window.Viewer.loadGlbFromUrl');
-        await window.Viewer.loadGlbFromUrl(glbUrl);
-        console.log('[Inspire] Model loaded via Viewer');
+        await viewer.loadGlbFromUrl(glbUrl);
+        console.log('[Inspire] Model loaded via Viewer.loadGlbFromUrl');
         if (cardData.prompt) usePrompt(cardData.prompt, 'model');
         return;
       } catch (err) {
@@ -1688,20 +1699,8 @@
       }
     }
 
-    // Method 2: Use window.loadGlbFromUrl directly
-    if (typeof window.loadGlbFromUrl === 'function') {
-      try {
-        console.log('[Inspire] Loading via window.loadGlbFromUrl');
-        await window.loadGlbFromUrl(glbUrl);
-        console.log('[Inspire] Model loaded via loadGlbFromUrl');
-        if (cardData.prompt) usePrompt(cardData.prompt, 'model');
-        return;
-      } catch (err) {
-        console.error('[Inspire] loadGlbFromUrl failed:', err);
-      }
-    }
-
-    // Method 3: Load directly using Three.js and timrx3D scene
+    // Method 2: load straight into the timrx3D scene. Only reachable before
+    // main.js has registered the viewer module.
     if (window.timrx3D?.scene && window.THREE?.GLTFLoader) {
       try {
         console.log('[Inspire] Loading directly via THREE.GLTFLoader');
@@ -1716,8 +1715,7 @@
 
     // All methods failed - show thumbnail
     console.warn('[Inspire] No viewer available, showing thumbnail. State:', {
-      'window.Viewer': !!window.Viewer,
-      'window.loadGlbFromUrl': typeof window.loadGlbFromUrl,
+      'window.TimrXViewer': !!window.TimrXViewer,
       'window.timrx3D': !!window.timrx3D,
       'THREE.GLTFLoader': !!window.THREE?.GLTFLoader
     });
@@ -1857,23 +1855,16 @@
    * Show model thumbnail as an image (fallback when 3D viewer unavailable)
    */
   function showModelAsThumbnail(cardData, thumbnailUrl) {
-    // Switch to image panel to show the thumbnail
-    const imageRailBtn = document.querySelector('[data-panel="image"]');
-    if (imageRailBtn) imageRailBtn.click();
-
-    // Show thumbnail in image viewer
-    const imageEl = document.getElementById('generatedImage');
-    if (imageEl) {
-      imageEl.src = thumbnailUrl;
-      imageEl.classList.remove('hidden');
-      imageEl.alt = cardData.title || 'Model Preview';
+    if (!thumbnailUrl) {
+      if (cardData.prompt) usePrompt(cardData.prompt, 'model');
+      return;
     }
 
-    // Update title if available
-    const viewerTitle = document.getElementById('viewerTitle');
-    if (viewerTitle) {
-      viewerTitle.textContent = cardData.title || '3D Model Preview';
-    }
+    presentInViewer('image', thumbnailUrl, {
+      title: cardData.title || '3D Model Preview',
+      hint: cardData.prompt || 'Preview image for this model.',
+      alt: cardData.title || 'Model Preview',
+    });
 
     // Fill the prompt so user can generate similar
     if (cardData.prompt) {
@@ -1882,13 +1873,70 @@
   }
 
   /**
+   * Show an asset in the workspace viewer.
+   *
+   * Was: click the rail button to switch panels, then poke #generatedImage /
+   * #generatedVideo directly. That never hid the viewer you were leaving, and
+   * the rail click also pops the Prompt/Settings sheet over the viewer — and
+   * silently does nothing when that panel is already active with the sheet
+   * open. Viewer.presentAsset does the panel switch and the media swap
+   * together; the direct DOM path stays only for a pre-boot click.
+   *
+   * @returns {boolean} Whether the asset was handed to the real viewer.
+   */
+  function presentInViewer(type, url, meta) {
+    const viewer = window.TimrXViewer || window.Viewer;
+    if (typeof viewer?.presentAsset === 'function') {
+      // presentAsset resolves async for models; it never rejects.
+      viewer.presentAsset(type, url, meta || {});
+      return true;
+    }
+
+    // Pre-boot fallback: main.js has not registered the viewer yet.
+    const railBtn = document.querySelector(`.rail-btn[data-panel="${type}"]`);
+    if (railBtn) {
+      railBtn.click();
+      try { window.TimrXSheet?.close?.(); } catch (e) { /* sheet not booted */ }
+    }
+    const modelV = document.getElementById('model3dViewer');
+    const imageV = document.getElementById('imageViewer');
+    const videoV = document.getElementById('videoViewer');
+    if (modelV) modelV.classList.toggle('hidden', type !== 'model');
+    if (imageV) imageV.classList.toggle('hidden', type !== 'image');
+    if (videoV) videoV.classList.toggle('hidden', type !== 'video');
+
+    if (type === 'image') {
+      const imgEl = document.getElementById('generatedImage');
+      const placeholder = document.getElementById('imagePlaceholder');
+      if (imgEl) {
+        imgEl.src = url;
+        if (meta?.alt || meta?.title) imgEl.alt = meta.alt || meta.title;
+        imgEl.classList.remove('hidden', 'fill-mode');
+      }
+      if (placeholder) placeholder.classList.add('hidden');
+    } else if (type === 'video') {
+      const videoEl = document.getElementById('generatedVideo');
+      const placeholder = document.getElementById('videoPlaceholder');
+      if (videoEl) {
+        videoEl.src = url;
+        videoEl.classList.remove('hidden');
+        videoEl.load();
+        videoEl.play().catch(() => {});
+      }
+      if (placeholder) placeholder.classList.add('hidden');
+    }
+
+    const viewerTitle = document.getElementById('viewerTitle');
+    const genHint = document.getElementById('genHint');
+    if (viewerTitle && meta?.title) viewerTitle.textContent = meta.title;
+    if (genHint && meta?.hint) genHint.textContent = meta.hint;
+    return false;
+  }
+
+  /**
    * Load a video into the video viewer
    */
   function loadVideoIntoViewer(cardData) {
-    // Switch to video panel
-    const videoRailBtn = document.querySelector('[data-panel="video"]');
-    if (videoRailBtn) videoRailBtn.click();
-
     const videoUrl = cardData.video_url || cardData.url;
 
     if (!videoUrl) {
@@ -1897,33 +1945,17 @@
       return;
     }
 
-    // Use the Viewer module if available
-    if (window.Viewer?.showVideoInViewer) {
-      window.Viewer.showVideoInViewer(videoUrl, {
-        title: cardData.title || 'Inspire Video',
-        hint: cardData.prompt || 'From Inspire gallery',
-        autoplay: true
-      });
-    } else {
-      // Fallback: try to find video element directly
-      const videoEl = document.getElementById('generatedVideo');
-      if (videoEl) {
-        videoEl.src = videoUrl;
-        videoEl.classList.remove('hidden');
-        videoEl.load();
-        videoEl.play().catch(() => {});
-      }
-    }
+    presentInViewer('video', videoUrl, {
+      title: cardData.title || 'Inspire Video',
+      hint: cardData.prompt || 'From Inspire gallery',
+      autoplay: true
+    });
   }
 
   /**
    * Load an image into the image viewer
    */
   function loadImageIntoViewer(cardData) {
-    // Switch to image panel
-    const imageRailBtn = document.querySelector('[data-panel="image"]');
-    if (imageRailBtn) imageRailBtn.click();
-
     const imageUrl = cardData.thumb_refined || cardData.image_url || cardData.thumbnail || cardData.thumb_url;
 
     if (!imageUrl) {
@@ -1932,21 +1964,11 @@
       return;
     }
 
-    // Use the Viewer module if available
-    if (window.Viewer?.showImageInViewer) {
-      window.Viewer.showImageInViewer(imageUrl);
-    } else {
-      // Fallback: try to find image element directly
-      const imgEl = document.getElementById('generatedImage');
-      const placeholder = document.getElementById('imagePlaceholder');
-      if (imgEl) {
-        imgEl.src = imageUrl;
-        imgEl.classList.remove('hidden');
-      }
-      if (placeholder) {
-        placeholder.classList.add('hidden');
-      }
-    }
+    presentInViewer('image', imageUrl, {
+      title: cardData.title || 'Inspire Image',
+      hint: cardData.prompt || 'From Inspire gallery',
+      alt: cardData.title || 'Inspire image',
+    });
   }
 
   // =========================================================================
