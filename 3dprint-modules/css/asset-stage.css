@@ -1076,8 +1076,15 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
 /* --- rails --------------------------------------------------------------- */
 .af-zone--reel,
 .af-zone--sheet{
-  left:var(--zx0);
-  width:var(--zw);
+  /* Zoom headroom: hovered cards scale up (1.16) and this zone's own
+     overflow:hidden guillotined the bloom at the column edge. Widen the zone
+     by the pad on each side and hand the pad back as inline padding, so the
+     content box — and every card in it — keeps its exact size and position
+     while the clip line moves outward past the zoom overhang. */
+  --af-zoom-pad:18px;
+  left:calc(var(--zx0) - var(--af-zoom-pad));
+  width:calc(var(--zw) + var(--af-zoom-pad) * 2);
+  padding-inline:var(--af-zoom-pad);
   display:flex;
   /* Spacing lives on the items as margin, NOT as flex gap — see the loop-seam
      note on .af-reel__track. */
@@ -1166,7 +1173,9 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
 /* Sprocket holes down both edges. A repeating-linear-gradient pair, so the
    whole film-stock read costs two gradients and no elements. */
 .af-reel__sprockets{
-  position:absolute;inset:0;
+  /* Sides pinned to the film strip (the padding box would put the holes
+     --af-zoom-pad away from the frames). */
+  position:absolute;inset:0 var(--af-zoom-pad,0px);
   z-index:4;
   pointer-events:none;
   opacity:.5;
@@ -1311,6 +1320,19 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
   opacity:1;
   filter:none;
   z-index:auto;
+}
+
+/* Zoom headroom, stacking half: rail cells sit in flow, where later siblings
+   paint above — and each sheet column is its own stacking context (the loop
+   animation's transform). Lift the hovered cell AND its column so the bloomed
+   card overlaps its neighbours instead of sliding under them. */
+@media (hover:hover){
+  .af__slot--reel:has(.af__card:hover),
+  .af__slot--reel:has(.af__card:focus-visible),
+  .af__slot--sheet:has(.af__card:hover),
+  .af__slot--sheet:has(.af__card:focus-visible){z-index:8}
+  .af-sheet__col:has(.af__card:hover),
+  .af-sheet__col:has(.af__card:focus-visible){z-index:3}
 }
 
 /* Proof-sheet framing: a hairline white border and a numbered corner. */
