@@ -5,6 +5,7 @@
   const input=document.getElementById('heroAssistantInput');
   const answer=document.getElementById('heroAssistantAnswer');
   const headline=document.querySelector('[data-hero-headline]');
+  const subcopy=document.querySelector('[data-hero-subcopy]');
   if(!form||!input||!answer)return;
 
   const isFile=window.location.protocol==='file:';
@@ -475,6 +476,29 @@
     }
     window.setTimeout(tick,holdDelay);
   }
+  function initDynamicSubcopy(){
+    if(!subcopy)return;
+    const lines=[
+      'Generate images, videos and printable 3D models from prompts or uploads.',
+      'Refine, convert, export or print from one guided workspace.'
+    ];
+    const fullText=lines.join(' ');
+    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){subcopy.textContent=fullText;return}
+    subcopy.classList.add('is-typing');
+    subcopy.textContent='';
+    let line=0,char=0;
+    function type(){
+      const current=lines[line]||'';
+      const before=lines.slice(0,line).join(' ');
+      char=Math.min(current.length,char+1);
+      subcopy.textContent=(before?before+' ':'')+current.slice(0,char);
+      if(char<current.length){window.setTimeout(type,22);return}
+      if(line<lines.length-1){line++;char=0;window.setTimeout(type,360);return}
+      subcopy.classList.remove('is-typing');
+      subcopy.classList.add('is-typed');
+    }
+    window.setTimeout(type,520);
+  }
 
   document.querySelectorAll('[data-hero-prompt]').forEach(button=>button.addEventListener('click',()=>{const prompt=button.dataset.heroPrompt||button.textContent;track('assistant_prompt_chip_click',{assistant_query:prompt});if(button.dataset.requiresUpload){guideUploadFlow(prompt);return}startGeneration(prompt)}));
   form.addEventListener('submit',event=>{event.preventDefault();startGeneration(input.value)});
@@ -507,6 +531,7 @@
   window.addEventListener('resize',()=>{syncDock();syncPromptPlaceholder()},{passive:true});
   /* The result panel only appears in response to a Generate/Ask action — never unsolicited on load. */
   initDynamicHeadline();
+  initDynamicSubcopy();
   syncPromptPlaceholder();
   syncDock();
 })();

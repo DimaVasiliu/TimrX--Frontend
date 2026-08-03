@@ -241,6 +241,33 @@ export function resizeViewerCanvas() {
     }
 }
 
+/**
+ * Bring the workspace viewer shell on screen before media is loaded into it.
+ *
+ * The live asset stage already performs this step. My Assets used to close its
+ * modal and switch panels without adding `ws-viewer-open`, leaving image/video
+ * elements active inside a hidden `.ws-viewer` (including audible video).
+ */
+export function revealWorkspaceViewer() {
+    document.body.classList.add('ws-viewer-open');
+    document.body.classList.remove('assets-modal-open');
+
+    try { window.TimrXSheet?.close?.(); } catch (_) { /* sheet not booted */ }
+
+    const viewer = document.querySelector('.timrx-3dprint .ws-viewer');
+    if (viewer && typeof viewer.scrollIntoView === 'function') {
+        viewer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    // The expanded viewer dimensions are applied by the ws-viewer-open CSS.
+    // Re-measure after that style has reached layout, especially for WebGL.
+    window.dispatchEvent(new Event('resize'));
+    requestAnimationFrame(() => {
+        resizeViewerCanvas();
+        window.dispatchEvent(new Event('resize'));
+    });
+}
+
 function activateModelViewer() {
     disposeGroupedViewerIfActive();
     restoreSingleModelChrome();
@@ -294,6 +321,7 @@ export async function presentAsset(type, url, meta = {}) {
         return false;
     }
 
+    revealWorkspaceViewer();
     activateWorkspacePanelForViewer(assetType);
 
     if (assetType === 'image') {

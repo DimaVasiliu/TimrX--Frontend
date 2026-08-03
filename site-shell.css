@@ -1680,3 +1680,136 @@ body.site-menu-open {
     grid-template-columns: 1fr;
   }
 }
+
+/* Hub dashboard nav: closer to the homepage header while preserving commerce IDs. */
+body.has-site-shell[data-shell-page="hub"] {
+  padding-top: 76px;
+}
+
+body[data-shell-page="hub"] .site-shell-nav {
+  min-height: 76px;
+  border-bottom-color: rgba(244, 241, 234, 0.08);
+  background: linear-gradient(180deg, rgba(10, 10, 10, 0.94), rgba(10, 10, 10, 0.82));
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+}
+
+body[data-shell-page="hub"] .site-shell-nav::after {
+  display: none;
+}
+
+body[data-shell-page="hub"] .site-shell-nav-inner {
+  min-height: 76px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: clamp(18px, 3vw, 42px);
+  width: min(calc(100% - clamp(36px, 8vw, 112px)), 1480px);
+}
+
+body[data-shell-page="hub"] .site-shell-brand {
+  gap: 10px;
+}
+
+body[data-shell-page="hub"] .site-shell-brand img {
+  width: 44px;
+  height: 44px;
+  border-radius: 0;
+}
+
+body[data-shell-page="hub"] .site-shell-brand-wordmark {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 20px;
+  font-weight: 850;
+  letter-spacing: -0.04em;
+  text-transform: none;
+}
+
+body[data-shell-page="hub"] .site-shell-nav-links {
+  justify-self: end;
+  gap: clamp(18px, 2.6vw, 30px);
+}
+
+body[data-shell-page="hub"] .site-shell-nav-link {
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: #b7afa2;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  box-shadow: none;
+}
+
+body[data-shell-page="hub"] .site-shell-nav-link:hover,
+body[data-shell-page="hub"] .site-shell-nav-link:focus-visible,
+body[data-shell-page="hub"] .site-shell-nav-link.is-active {
+  color: #f6f2ea;
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+body[data-shell-page="hub"] .site-shell-nav-link.is-accent {
+  min-height: 42px;
+  padding: 0 20px;
+  border: 1px solid #f4f1ea;
+  border-radius: 999px;
+  background: #f4f1ea;
+  color: #14110c;
+  font-weight: 800;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.34);
+}
+
+body[data-shell-page="hub"] .site-shell-nav-link.is-accent:hover,
+body[data-shell-page="hub"] .site-shell-nav-link.is-accent:focus-visible {
+  background: #fff;
+  color: #14110c;
+  transform: translateY(-1px);
+}
+
+body[data-shell-page="hub"] .site-shell-nav-right {
+  gap: 14px;
+}
+
+body[data-shell-page="hub"] .site-shell-utility {
+  gap: 8px;
+}
+
+body[data-shell-page="hub"] .site-shell-account-btn,
+body[data-shell-page="hub"] .site-shell-credits-pill,
+body[data-shell-page="hub"] .site-shell-buy-btn,
+body[data-shell-page="hub"] .site-shell-subscription-pill {
+  min-height: 42px;
+  border-color: rgba(244, 241, 234, 0.12);
+  background: rgba(244, 241, 234, 0.035);
+  color: #f4f1ea;
+}
+
+body[data-shell-page="hub"] .site-shell-account-btn {
+  width: 42px;
+  height: 42px;
+}
+
+body[data-shell-page="hub"] .site-shell-buy-btn {
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+body[data-shell-page="hub"] .site-shell-context-nav {
+  display: none;
+}
+
+@media (max-width: 1180px) {
+  body[data-shell-page="hub"] .site-shell-nav-inner {
+    width: min(calc(100% - 36px), 1480px);
+    gap: 18px;
+  }
+
+  body[data-shell-page="hub"] .site-shell-nav-links {
+    gap: 16px;
+  }
+}

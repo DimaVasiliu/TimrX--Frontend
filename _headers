@@ -111,9 +111,6 @@
 /media/index.css
   Cache-Control: public, max-age=31536000, immutable
 
-/script.js
-  Cache-Control: public, max-age=31536000, immutable
-
 /app.js
   Cache-Control: public, max-age=31536000, immutable
 

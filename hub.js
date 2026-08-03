@@ -65,13 +65,15 @@
 
 // Simple auto-cycling hero slider
 const slider = document.getElementById('slider');
-const pills = [...slider.querySelectorAll('.pill')];
-let i = 0; let timer = null;
-function cycle(){ pills.forEach(p=>p.classList.remove('active')); pills[i%pills.length].classList.add('active'); i++; }
-function start(){ timer = setInterval(cycle, 2400); }
-function stop(){ clearInterval(timer); }
-pills.forEach(p=> p.addEventListener('click', ()=>{ stop(); pills.forEach(x=>x.classList.remove('active')); p.classList.add('active'); }));
-start();
+if (slider) {
+  const pills = [...slider.querySelectorAll('.pill')];
+  let i = 0; let timer = null;
+  function cycle(){ if (!pills.length) return; pills.forEach(p=>p.classList.remove('active')); pills[i%pills.length].classList.add('active'); i++; }
+  function start(){ timer = setInterval(cycle, 2400); }
+  function stop(){ clearInterval(timer); }
+  pills.forEach(p=> p.addEventListener('click', ()=>{ stop(); pills.forEach(x=>x.classList.remove('active')); p.classList.add('active'); }));
+  start();
+}
 
 // Modals (legacy login/signup removed — auth now handled by auth-modal.js)
 
@@ -161,6 +163,51 @@ start();
   document.querySelectorAll('.oauth-btn').forEach(btn=>{
     btn.addEventListener('click', ()=> alert('OAuth flow goes here.'));
   });
+})();
+
+// Dashboard shortcuts delegate to the existing money-management controls.
+(function(){
+  const manageBtn = document.getElementById('dashboardManageBillingBtn');
+  if (!manageBtn) return;
+  manageBtn.addEventListener('click', () => {
+    const subscriptionPill = document.getElementById('subscriptionStatusPill');
+    if (subscriptionPill && !subscriptionPill.classList.contains('hidden')) {
+      subscriptionPill.click();
+      return;
+    }
+    const pricing = document.getElementById('pricing');
+    if (pricing) pricing.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+})();
+
+// Mirror shared nav wallet/subscription text into the dashboard summary. This is
+// display-only; credits.js remains the single owner of wallet and billing state.
+(function(){
+  const generalOut = document.getElementById('dashboardCreditsValue');
+  const videoOut = document.getElementById('dashboardVideoCreditsValue');
+  const planOut = document.getElementById('dashboardPlanValue');
+  if (!generalOut && !videoOut && !planOut) return;
+
+  let observer = null;
+  let tries = 0;
+  function sync(){
+    const general = document.getElementById('hoverGeneralValue') || document.getElementById('creditsValue');
+    const video = document.getElementById('hoverVideoValue');
+    const sub = document.getElementById('subscriptionStatusPill');
+    if (generalOut && general && general.textContent.trim()) generalOut.textContent = general.textContent.trim();
+    if (videoOut && video && video.textContent.trim()) videoOut.textContent = video.textContent.trim();
+    if (planOut && sub && !sub.classList.contains('hidden')) {
+      const txt = sub.textContent.replace(/\s+/g, ' ').trim();
+      if (txt) planOut.textContent = txt;
+    }
+    if ((general || sub) && !observer) {
+      observer = new MutationObserver(sync);
+      [general, video, sub].filter(Boolean).forEach(el => observer.observe(el, { childList:true, subtree:true, characterData:true, attributes:true }));
+    }
+    tries += 1;
+    if (tries < 40 && (!general || !sub)) window.setTimeout(sync, 250);
+  }
+  sync();
 })();
 
 
@@ -436,96 +483,6 @@ if (window.matchMedia('(max-width: 820px)').matches) {
   }
 })();
 
-// =================== COMMUNITY RESOURCE MODALS ===================
-(function() {
-const tabs = document.querySelectorAll('.resource-tab[data-modal]');
-
-if (!tabs.length) return;
-
-// Track focus for resource modals
-let lastResourceFocus = null;
-
-// Open modal when tab is clicked
-tabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    const modalId = tab.dataset.modal;
-    const modal = document.getElementById(modalId);
-    if (modal) {
-      lastResourceFocus = document.activeElement;
-      modal.classList.add('open');
-      modal.inert = false;
-      document.body.style.overflow = 'hidden';
-      // Focus first focusable element
-      requestAnimationFrame(() => {
-        const first = modal.querySelector('button, [href], input, [tabindex]:not([tabindex="-1"])');
-        first?.focus();
-      });
-    }
-  });
-});
-
-// Close modal handlers
-function closeResourceModal(modal) {
-  // Move focus OUT before hiding
-  if (modal.contains(document.activeElement)) {
-    (lastResourceFocus || document.body).focus();
-  }
-  modal.classList.remove('open');
-  modal.inert = true;
-  document.body.style.overflow = '';
-}
-
-// Close button click
-document.querySelectorAll('.resource-modal [data-close-modal]').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const modal = btn.closest('.resource-modal');
-    if (modal) closeResourceModal(modal);
-  });
-});
-
-// Backdrop click closes modal (click outside card)
-document.querySelectorAll('.resource-modal').forEach(modal => {
-  modal.addEventListener('mousedown', (e) => {
-    const card = modal.querySelector('.resource-modal-card');
-    if (card && !card.contains(e.target)) closeResourceModal(modal);
-  });
-});
-
-// ESC key closes any open resource modal
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape') {
-    const openModal = document.querySelector('.resource-modal.open');
-    if (openModal) closeResourceModal(openModal);
-  }
-});
-
-// Copy button functionality for code snippets
-const copyBtns = document.querySelectorAll('.copy-btn');
-
-copyBtns.forEach(btn => {
-  btn.addEventListener('click', async () => {
-    const targetId = btn.dataset.copy;
-    const codeEl = document.getElementById(targetId);
-
-    if (!codeEl) return;
-
-    const code = codeEl.textContent;
-
-    try {
-      await navigator.clipboard.writeText(code);
-      btn.classList.add('copied');
-      btn.innerHTML = '<i class="fa-solid fa-check"></i>';
-
-      setTimeout(() => {
-        btn.classList.remove('copied');
-        btn.innerHTML = '<i class="fa-solid fa-copy"></i>';
-      }, 2000);
-    } catch (err) {
-      console.warn('Copy failed:', err);
-    }
-  });
-});
-})();
 
 /* ================================================================ */
 /* Hero model — gentle left/right orbit swing                       */
@@ -564,4 +521,3 @@ window.addEventListener('scroll', function(){
   lastY = y;
 }, {passive: true});
 })();
-

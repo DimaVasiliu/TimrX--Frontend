@@ -53,9 +53,11 @@
   </script>
   <link rel="preload" href="/fonts/inter-subset.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="fonts/fonts.css">
-  <link rel="stylesheet" href="landing.css?v=8">
+  <link rel="stylesheet" href="landing.css?v=13">
   <link rel="stylesheet" href="hero-assistant.css?v=16">
-  <link rel="stylesheet" href="landing-widgets.css?v=6">
+  <link rel="stylesheet" href="landing-widgets.css?v=7">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer"></noscript>
   <script>window.dataLayer=window.dataLayer||[];</script>
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-TH8DB6S5');</script>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
@@ -64,11 +66,22 @@
 <body>
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5" height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <a class="skip-link" href="#main">Skip to content</a>
+  <!-- ==========================================================================
+       PRIMARY NAVIGATION — Phase 2 structure.
+       Canonical model: js/shared/site-nav-data.js (window.TIMRX_NAV.primary).
+       This page still ships its nav as static markup on purpose (it is the SEO
+       homepage and must render without JS); keep this in sync with
+       js/shared/site-nav-data.js.
+       Order: Home · Create · Community · Tutorials · Docs · Pricing · Blog · Dashboard
+       "Dashboard" is a LABEL ONLY — the route stays /hub (Mollie return URLs,
+       DB notification deep links and every in-product money link depend on it).
+       "Pricing" stays on /hub#pricing so Hub billing remains untouched.
+       ========================================================================== -->
   <header class="site-header" data-header>
     <div class="shell nav-shell">
       <a class="brand" href="/" aria-label="TimrX home"><img src="img/logo.png" width="44" height="44" alt=""><span>Timr<span>X</span></span></a>
       <nav class="desktop-nav" aria-label="Primary navigation">
-        <a href="/hub">Product</a><a href="/ai-tools">Tools</a><a href="/hub#pricing">Pricing</a><a href="/blogs">Blog</a>
+        <a href="/" aria-current="page">Home</a><a href="/3dprint" data-track="nav_create">Create</a><a href="/community" data-track="nav_community">Community</a><a href="/tutorials" data-track="nav_tutorials">Tutorials</a><a href="/docs" data-track="nav_docs">Docs</a><a href="/hub#pricing" data-track="nav_pricing">Pricing</a><a href="/blogs" data-track="nav_blog">Blog</a><a href="/hub" data-track="nav_dashboard">Dashboard</a>
       </nav>
       <a class="button button-small desktop-cta" href="/3dprint" data-track="nav_open_workspace">Open Workspace <span aria-hidden="true">↗</span></a>
       <button class="menu-button" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileNav"><span></span><span></span><span></span></button>
@@ -80,13 +93,18 @@
           <strong>Choose where to start</strong>
         </div>
         <div class="mobile-nav-links">
-          <a href="/hub"><span>Product</span><small>Overview, demos and pricing</small></a>
-          <a href="/ai-tools"><span>Tools</span><small>Image, video, 3D and converters</small></a>
-          <a href="/hub#pricing"><span>Pricing</span><small>Credits and creator packs</small></a>
-          <a href="/blogs"><span>Blog</span><small>Guides, updates and tutorials</small></a>
+          <a href="/"><span>Home</span><small>Product overview and free trial</small></a>
+          <a href="/3dprint" data-track="mobile_create"><span>Create</span><small>Open the TimrX workspace</small></a>
+          <a href="/community"><span>Community</span><small>Showcase, creators and discovery</small></a>
+          <a href="/tutorials"><span>Tutorials</span><small>Guides, flows and walkthroughs</small></a>
+          <a href="/docs"><span>Docs</span><small>Reference, support and how-tos</small></a>
+          <a href="/hub#pricing"><span>Pricing</span><small>Credits, packs and subscriptions</small></a>
+          <a href="/blogs"><span>Blog</span><small>Guides, updates and product notes</small></a>
+          <a href="/hub"><span>Dashboard</span><small>Account, credits and billing</small></a>
         </div>
         <a class="button mobile-nav-cta" href="/3dprint" data-track="mobile_open_workspace">Open Workspace <span aria-hidden="true">↗</span></a>
         <div class="mobile-nav-foot">
+          <a href="/ai-tools">Tools</a>
           <a href="/converter">Converter</a>
           <a href="/stl-library">STL Library</a>
           <a href="/company">Company</a>
@@ -102,7 +120,7 @@
         <div class="hero-copy hero-minimal-copy reveal">
           <div class="eyebrow"><span></span> TimrX creative workspace</div>
           <h1 id="hero-title">Create <span class="typed-phrase-wrap"><em data-hero-headline>Product Mockups.</em><i class="typed-cursor" aria-hidden="true"></i></span></h1>
-          <p>Generate images, videos and printable 3D models from prompts or uploads. Refine, convert, export or print from one guided workspace.</p>
+          <p data-hero-subcopy>Generate images, videos and printable 3D models from prompts or uploads. Refine, convert, export or print from one guided workspace.</p>
         </div>
 
         <div class="hero-command-wrap reveal" data-hero-command-wrap>
@@ -148,7 +166,7 @@
         </div>
         <div class="hero-showcase reveal" aria-label="Examples of what you can create in TimrX">
           <div class="show-stage">
-          <div class="show-track">
+          <div class="show-track" data-feed-source="/api/_mod/inspire/feed" data-fallback="repo-assets">
             <figure class="show-card"><img src="img/AI-img-gen-3.png" alt="AI-generated image example" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
             <figure class="show-card show-card--video"><video class="show-video" autoplay muted loop playsinline preload="metadata" poster="img/video-posters/hero-1.jpg"><source src="vid/hero-1.mp4" type="video/mp4"></video><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
             <figure class="show-card show-card--model"><img src="img/model-posters/mod1.png" alt="3D model preview" loading="lazy" decoding="async"><span class="show-badge" aria-hidden="true">3D</span><figcaption>3D model</figcaption></figure>
@@ -173,58 +191,302 @@
       </div>
     </section>
 
-    <section class="section-pad capabilities" aria-labelledby="capabilities-title">
+    <section class="section-pad proof" id="community-showcase" aria-labelledby="community-showcase-title">
+      <div class="shell">
+        <div class="section-heading proof-head reveal">
+          <div>
+            <span class="section-index">01 / COMMUNITY</span>
+            <h2 id="community-showcase-title">See what creators are making.</h2>
+            <p>Fresh public creations from the TimrX community, pulled into the homepage as proof before visitors open the workspace.</p>
+          </div>
+          <div class="proof-actions">
+            <span class="proof-live" id="homeCommunityStatus" aria-live="polite"><i aria-hidden="true"></i> Live community feed</span>
+            <button class="button button-ghost" id="homeCommunityShuffle" type="button" data-track="community_shuffle">Shuffle</button>
+            <a class="proof-viewall" href="/community" data-track="community_view_all">View Community <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+        <div class="proof-grid reveal" id="homeCommunityGrid" aria-live="polite">
+          <div class="ls-skeleton"></div>
+          <div class="ls-skeleton"></div>
+          <div class="ls-skeleton"></div>
+          <div class="ls-skeleton"></div>
+          <div class="ls-skeleton"></div>
+          <div class="ls-skeleton"></div>
+          <div class="ls-skeleton"></div>
+          <div class="ls-skeleton"></div>
+          <div class="ls-skeleton"></div>
+          <div class="ls-skeleton"></div>
+          <div class="ls-skeleton"></div>
+          <div class="ls-skeleton"></div>
+        </div>
+        <div class="home-community-resources reveal" aria-label="Community resources">
+          <div class="resource-tabs" id="resourceTabs">
+            <button class="resource-tab" type="button" data-modal="promptTipsModal">
+              <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+              <span>Prompt Tips</span>
+            </button>
+            <button class="resource-tab" type="button" data-modal="apiSnippetsModal">
+              <i class="fa-solid fa-code" aria-hidden="true"></i>
+              <span>API Snippets</span>
+            </button>
+            <button class="resource-tab" type="button" data-modal="showcaseModal">
+              <i class="fa-solid fa-images" aria-hidden="true"></i>
+              <span>Prompt Ideas</span>
+            </button>
+            <button class="resource-tab" type="button" data-modal="bugReportsModal">
+              <i class="fa-solid fa-bug" aria-hidden="true"></i>
+              <span>Bug Reports</span>
+            </button>
+          </div>
+          <div class="comm-quick-links">
+            <a class="quick-link-card" href="https://discord.gg/VpqT2UywDG" target="_blank" rel="noopener noreferrer">
+              <div class="ql-icon"><i class="fa-brands fa-discord" aria-hidden="true"></i></div>
+              <div class="ql-body"><strong>Discord Community</strong><p>Share work, get help, vote on features</p></div>
+              <span class="ql-cta">Join <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+            </a>
+            <a class="quick-link-card" href="/docs">
+              <div class="ql-icon"><i class="fa-solid fa-book" aria-hidden="true"></i></div>
+              <div class="ql-body"><strong>Documentation</strong><p>Pricing, credits, features, and platform guide</p></div>
+              <span class="ql-cta">Read <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+            </a>
+            <a class="quick-link-card" href="/blogs">
+              <div class="ql-icon"><i class="fa-solid fa-newspaper" aria-hidden="true"></i></div>
+              <div class="ql-body"><strong>Updates &amp; Blog</strong><p>New features, fixes, and announcements</p></div>
+              <span class="ql-cta">Follow <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></span>
+            </a>
+          </div>
+          <div class="comm-cta-centered">
+            <a class="button button-primary" href="https://discord.gg/VpqT2UywDG" target="_blank" rel="noopener noreferrer">
+              <i class="fa-brands fa-discord" aria-hidden="true"></i> Join Discord
+            </a>
+            <a class="button button-ghost" href="/docs">
+              <i class="fa-solid fa-book-open" aria-hidden="true"></i> Open Docs
+            </a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="modal resource-modal" id="promptTipsModal" aria-hidden="true" inert>
+      <div class="card resource-modal-card" role="dialog" aria-modal="true" aria-labelledby="promptTipsTitle">
+        <button class="close-x" type="button" data-close-modal aria-label="Close">&times;</button>
+        <div class="resource-modal-header">
+          <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+          <h4 id="promptTipsTitle">Prompt Tips</h4>
+        </div>
+        <div class="resource-modal-body">
+          <div class="panel-grid">
+            <div class="tip-card"><div class="tip-header"><span class="tip-number">01</span><h4>Structure Your Prompt</h4></div><p>Use the formula: <strong>Subject + Modifiers + Style</strong></p><div class="tip-example"><span class="example-label">Example:</span><code>"A fearsome dragon, with polished obsidian scales, glowing red eyes, in dark fantasy style"</code></div></div>
+            <div class="tip-card"><div class="tip-header"><span class="tip-number">02</span><h4>Be Specific with Materials</h4></div><p>Instead of vague descriptions, specify exact materials.</p><div class="tip-compare"><span class="compare-bad"><i class="fa-solid fa-xmark" aria-hidden="true"></i> "looks beautiful"</span><span class="compare-good"><i class="fa-solid fa-check" aria-hidden="true"></i> "smooth gold metal"</span></div></div>
+            <div class="tip-card"><div class="tip-header"><span class="tip-number">03</span><h4>One Object at a Time</h4></div><p>Focus on a single subject for best results. Combine multiple assets later in Blender or Unity.</p></div>
+            <div class="tip-card"><div class="tip-header"><span class="tip-number">04</span><h4>Use Pose Keywords</h4></div><p>For characters, add pose terms for better results.</p><div class="tip-tags"><span class="mini-tag">T-pose</span><span class="mini-tag">A-pose</span><span class="mini-tag">dynamic action</span></div></div>
+            <div class="tip-card"><div class="tip-header"><span class="tip-number">05</span><h4>3-6 Key Details</h4></div><p>Keep it focused. Too many details dilute the output. Prioritize what matters most.</p></div>
+            <div class="tip-card"><div class="tip-header"><span class="tip-number">06</span><h4>Style Keywords</h4></div><p>Add artistic direction for cohesive results.</p><div class="tip-tags"><span class="mini-tag">low-poly</span><span class="mini-tag">realistic</span><span class="mini-tag">cartoon</span><span class="mini-tag">voxel</span></div></div>
+          </div>
+          <div class="panel-footer"><p class="footer-tip"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> <strong>Pro tip:</strong> Mention scale, silhouette, era cues, and finish for refined results.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal resource-modal" id="apiSnippetsModal" aria-hidden="true" inert>
+      <div class="card resource-modal-card" role="dialog" aria-modal="true" aria-labelledby="apiSnippetsTitle">
+        <button class="close-x" type="button" data-close-modal aria-label="Close">&times;</button>
+        <div class="resource-modal-header">
+          <i class="fa-solid fa-code" aria-hidden="true"></i>
+          <h4 id="apiSnippetsTitle">API Snippets</h4>
+        </div>
+        <div class="resource-modal-body">
+          <div class="snippet-grid">
+            <div class="snippet-card"><div class="snippet-header"><span class="snippet-lang">JavaScript</span><button type="button" class="copy-btn" data-copy="snippet-js" aria-label="Copy JavaScript code"><i class="fa-solid fa-copy" aria-hidden="true"></i></button></div><pre class="snippet-code" id="snippet-js"><code>// Text to 3D Generation
+const response = await fetch('https://3d.timrx.live/api/generate', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  credentials: 'include',
+  body: JSON.stringify({
+    prompt: 'A futuristic robot with chrome armor',
+    ai_model: 'latest'
+  })
+});
+const { task_id } = await response.json();</code></pre></div>
+            <div class="snippet-card"><div class="snippet-header"><span class="snippet-lang">Python</span><button type="button" class="copy-btn" data-copy="snippet-py" aria-label="Copy Python code"><i class="fa-solid fa-copy" aria-hidden="true"></i></button></div><pre class="snippet-code" id="snippet-py"><code># Check generation status
+import requests
+
+task_id = "your_task_id"
+response = requests.get(
+    f"https://3d.timrx.live/api/task/{task_id}",
+    cookies=session_cookies
+)
+status = response.json()
+print(f"Status: {status['status']}")</code></pre></div>
+            <div class="snippet-card"><div class="snippet-header"><span class="snippet-lang">cURL</span><button type="button" class="copy-btn" data-copy="snippet-curl" aria-label="Copy cURL command"><i class="fa-solid fa-copy" aria-hidden="true"></i></button></div><pre class="snippet-code" id="snippet-curl"><code># Download generated model
+curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
+  -H "Accept: application/octet-stream" \
+  -o model.glb</code></pre></div>
+          </div>
+          <div class="panel-footer"><p class="footer-tip"><i class="fa-solid fa-book" aria-hidden="true"></i> Full API documentation available in the docs. Includes webhooks, batch processing, and advanced parameters.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal resource-modal" id="showcaseModal" aria-hidden="true" inert>
+      <div class="card resource-modal-card" role="dialog" aria-modal="true" aria-labelledby="showcaseModalTitle">
+        <button class="close-x" type="button" data-close-modal aria-label="Close">&times;</button>
+        <div class="resource-modal-header">
+          <i class="fa-solid fa-wand-magic-sparkles" aria-hidden="true"></i>
+          <h4 id="showcaseModalTitle">Prompt Ideas</h4>
+        </div>
+        <div class="resource-modal-body">
+          <div class="showcase-intro"><p>Prompt inspiration to get you started. Try these in the workspace or use them as a starting point for your own ideas.</p></div>
+          <div class="showcase-grid">
+            <div class="showcase-item"><div class="showcase-preview"><i class="fa-solid fa-cube" aria-hidden="true"></i></div><div class="showcase-info"><strong>Mech Warrior</strong><span class="showcase-author">3D Model</span><span class="showcase-prompt">"Futuristic mech suit, titanium armor, glowing blue joints, battle-ready pose"</span></div></div>
+            <div class="showcase-item"><div class="showcase-preview"><i class="fa-solid fa-dragon" aria-hidden="true"></i></div><div class="showcase-info"><strong>Crystal Dragon</strong><span class="showcase-author">3D Model</span><span class="showcase-prompt">"Elegant dragon, crystalline scales, ethereal glow, fantasy art style"</span></div></div>
+            <div class="showcase-item"><div class="showcase-preview"><i class="fa-solid fa-car" aria-hidden="true"></i></div><div class="showcase-info"><strong>Retro Racer</strong><span class="showcase-author">3D Model</span><span class="showcase-prompt">"1960s race car, chrome details, vintage red paint, low-poly style"</span></div></div>
+            <div class="showcase-item"><div class="showcase-preview"><i class="fa-solid fa-hat-wizard" aria-hidden="true"></i></div><div class="showcase-info"><strong>Wizard Tower</strong><span class="showcase-author">3D Model</span><span class="showcase-prompt">"Medieval wizard tower, stone texture, magical runes, diorama style"</span></div></div>
+            <div class="showcase-item"><div class="showcase-preview"><i class="fa-solid fa-rocket" aria-hidden="true"></i></div><div class="showcase-info"><strong>Space Station</strong><span class="showcase-author">3D Model</span><span class="showcase-prompt">"Orbital space station, solar panels, modular design, sci-fi realistic"</span></div></div>
+            <div class="showcase-item"><div class="showcase-preview"><i class="fa-solid fa-landmark" aria-hidden="true"></i></div><div class="showcase-info"><strong>Ancient Temple</strong><span class="showcase-author">3D Model</span><span class="showcase-prompt">"Greek temple ruins, marble columns, overgrown vines, photorealistic"</span></div></div>
+          </div>
+          <div class="panel-footer"><p class="footer-tip"><i class="fa-solid fa-lightbulb" aria-hidden="true"></i> Copy any prompt above and paste it into the workspace to try it out.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal resource-modal" id="bugReportsModal" aria-hidden="true" inert>
+      <div class="card resource-modal-card" role="dialog" aria-modal="true" aria-labelledby="bugReportsTitle">
+        <button class="close-x" type="button" data-close-modal aria-label="Close">&times;</button>
+        <div class="resource-modal-header">
+          <i class="fa-solid fa-bug" aria-hidden="true"></i>
+          <h4 id="bugReportsTitle">Bug Reports</h4>
+        </div>
+        <div class="resource-modal-body">
+          <div class="bug-intro"><p>Found an issue? Help us improve TimrX by reporting bugs through the proper channels.</p></div>
+          <div class="bug-grid">
+            <div class="bug-card"><div class="bug-icon"><i class="fa-brands fa-discord" aria-hidden="true"></i></div><h4>Discord #bugs Channel</h4><p>Quick reports and community discussion. Get help from other users while we investigate.</p><a href="https://discord.gg/VpqT2UywDG" target="_blank" rel="noopener noreferrer" class="bug-link">Open Discord <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+            <div class="bug-card"><div class="bug-icon"><i class="fa-solid fa-envelope" aria-hidden="true"></i></div><h4>Email Support</h4><p>For detailed reports, account issues, or sensitive bugs. We respond within 24-48 hours.</p><a href="mailto:support@timrx.live" class="bug-link">support@timrx.live <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+            <div class="bug-card"><div class="bug-icon"><i class="fa-brands fa-github" aria-hidden="true"></i></div><h4>GitHub Issues</h4><p>Technical bugs, feature requests, and integration issues. Track progress publicly.</p><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer" class="bug-link">View Issues <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a></div>
+          </div>
+          <div class="bug-template"><h5><i class="fa-solid fa-clipboard-list" aria-hidden="true"></i> Bug Report Template</h5><ul><li><strong>Description:</strong> What happened?</li><li><strong>Expected:</strong> What should have happened?</li><li><strong>Steps:</strong> How to reproduce?</li><li><strong>Browser/Device:</strong> Your environment</li><li><strong>Screenshots:</strong> If applicable</li></ul></div>
+        </div>
+      </div>
+    </div>
+
+    <section class="section-pad capabilities features" id="features" aria-labelledby="features-title">
       <div class="shell">
         <div class="section-heading section-heading-center reveal">
-          <span class="section-index">01 / CAPABILITIES</span>
-          <h2 id="capabilities-title">From idea to usable asset.</h2>
-          <p>Focused tools for the visual workflows that matter most.</p>
+          <span class="section-index">02 / FEATURES</span>
+          <h2 id="features-title">Smart tools. One creative workflow.</h2>
+          <p>Generate, refine, animate, share and export from the same browser workspace.</p>
         </div>
-        <div class="capability-grid">
-          <article class="capability-card reveal">
-            <span class="card-num">01</span>
-            <div class="cap-icon cap-icon-image" aria-hidden="true">✦</div>
-            <h3>Image Generation</h3>
-            <p>Create concept art, product visuals, characters and creative images from prompts.</p>
-            <a href="/ai-image-generator" data-track="capability_images">Create Images <span>→</span></a>
+        <div class="feature-grid">
+          <article class="feature-card reveal">
+            <div class="feature-card__icon" aria-hidden="true">⬢</div>
+            <span class="feature-card__eyebrow">Text to 3D</span>
+            <h3>Move from prompt or reference image into 3D drafts fast</h3>
+            <p>Start with text-to-3D or image-to-3D, compare draft bundles, retry quickly, and continue the best result straight into refinement.</p>
+            <ul class="feature-points"><li>Text to 3D</li><li>Image to 3D</li><li>Draft picks</li></ul>
+            <a href="/3dprint?panel=model" class="feature-link" data-track="feature_model">Generate <span>→</span></a>
           </article>
-          <article class="capability-card reveal">
-            <span class="card-num">02</span>
-            <div class="cap-icon cap-icon-video" aria-hidden="true">▶</div>
-            <h3>Video Generation</h3>
-            <p>Turn prompts or images into short cinematic videos and animated assets.</p>
-            <a href="/ai-video-generator" data-track="capability_video">Create Videos <span>→</span></a>
+          <article class="feature-card reveal">
+            <div class="feature-card__icon" aria-hidden="true">▧</div>
+            <span class="feature-card__eyebrow">Text to Image</span>
+            <h3>Generate brand, concept, and product visuals with multiple AI engines</h3>
+            <p>Use prompt-led and reference-based image workflows across OpenAI, Imagen, FLUX.2 Pro, Ideogram, Recraft, and Nano Banana.</p>
+            <ul class="feature-points"><li>Reference upload</li><li>2K / 4K output</li><li>SVG-ready flow</li></ul>
+            <a href="/3dprint?panel=image" class="feature-link" data-track="feature_image">Generate <span>→</span></a>
           </article>
-          <article class="capability-card reveal">
-            <span class="card-num">03</span>
-            <div class="cap-icon cap-icon-model" aria-hidden="true">⬢</div>
-            <h3>3D Generation &amp; Refinement</h3>
-            <p>Generate 3D models from text or images, remesh, retexture, refine and export.</p>
-            <a href="/3dprint" data-track="capability_3d">Create 3D Models <span>→</span></a>
+          <article class="feature-card reveal">
+            <div class="feature-card__icon" aria-hidden="true">▶</div>
+            <span class="feature-card__eyebrow">Video</span>
+            <h3>Turn prompts and stills into moving clips, animations, and transitions</h3>
+            <p>Build text-to-video clips, animate source images, and create transition shots with Veo 3.1 and Seedance inside the same workspace.</p>
+            <ul class="feature-points"><li>Text to video</li><li>Image animation</li><li>Transition shots</li></ul>
+            <a href="/3dprint?panel=video" class="feature-link" data-track="feature_video">Generate <span>→</span></a>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-card__icon" aria-hidden="true">▦</div>
+            <span class="feature-card__eyebrow">Remesh &amp; Texture</span>
+            <h3>Clean topology, apply materials, and prep assets for production</h3>
+            <p>Use remesh presets, advanced controls, texture prompts, and PBR material generation to move rough output into cleaner deliverables.</p>
+            <ul class="feature-points"><li>Remesh presets</li><li>PBR texture</li><li>Topology cleanup</li></ul>
+            <a href="/3dprint?panel=remesh" class="feature-link" data-track="feature_remesh">Open Panel <span>→</span></a>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-card__icon" aria-hidden="true">♙</div>
+            <span class="feature-card__eyebrow">Rig &amp; Animate</span>
+            <h3>Rig models, browse motion presets, and push assets into animation</h3>
+            <p>Auto-rig character models, load the animation library, choose actions, and reuse rigged assets from history when you need to reanimate.</p>
+            <ul class="feature-points"><li>Auto-rig</li><li>Animation library</li><li>Reanimate from history</li></ul>
+            <a href="/3dprint?panel=rig" class="feature-link" data-track="feature_rig">Open Panel <span>→</span></a>
+          </article>
+          <article class="feature-card reveal">
+            <div class="feature-card__icon" aria-hidden="true">↗</div>
+            <span class="feature-card__eyebrow">Share &amp; Export</span>
+            <h3>Keep assets searchable, share to community, and export in the right format</h3>
+            <p>Reopen work from history, remix community posts, run print readiness checks, preview in AR, and convert assets for creator, AR, and 3D print delivery.</p>
+            <ul class="feature-points"><li>History search</li><li>Community remix</li><li>GLB / STL / USDZ</li></ul>
+            <a href="/converter" class="feature-link" data-track="feature_export">Open Panel <span>→</span></a>
           </article>
         </div>
       </div>
     </section>
 
-    <section class="section-pad workflow" aria-labelledby="workflow-title">
+    <section class="section-pad workflow demo-section" id="demo" aria-labelledby="demo-title">
       <div class="shell">
         <div class="section-heading section-heading-center reveal">
-          <span class="section-index">02 / WORKFLOW</span>
-          <h2 id="workflow-title">A simple creative pipeline.</h2>
-          <p>Start from a prompt, reference or file, then generate, refine and export.</p>
+          <span class="section-index">03 / LIVE DEMO</span>
+          <h2 id="demo-title">See a prompt become a model.</h2>
+          <p>Choose an example prompt, inspect the generated 3D result, then open the workspace when you are ready to create your own.</p>
         </div>
-        <ol class="workflow-grid">
-          <li class="reveal"><span>STEP 01</span><div class="workflow-symbol" aria-hidden="true">⌁</div><h3>Describe or upload</h3><p>Start with a prompt, image, reference or existing file.</p></li>
-          <li class="reveal"><span>STEP 02</span><div class="workflow-symbol" aria-hidden="true">✧</div><h3>Generate and refine</h3><p>Create images, videos or 3D models, then improve the result with built-in tools.</p></li>
-          <li class="reveal"><span>STEP 03</span><div class="workflow-symbol" aria-hidden="true">↓</div><h3>Export or print</h3><p>Download STL, OBJ, GLB or 3MF, convert files, or prepare assets for printing.</p></li>
-        </ol>
+        <div class="demo-how-grid reveal">
+          <article class="demo-panel demo-panel--interactive" aria-labelledby="demo-preview-title">
+            <div class="demo-main">
+              <div class="demo-copy-rail">
+                <div class="demo-prompt-area">
+                  <div class="demo-prompt-label">Prompt</div>
+                  <div class="demo-prompt-text" id="demoPromptText">A majestic winged pegasus with white marble scales, blue and gold feathered wings, ornate golden hooves, standing on a carved stone pedestal with ancient runes</div>
+                  <div class="demo-prompt-cursor" aria-hidden="true"></div>
+                </div>
+                <div class="demo-rail-block">
+                  <div class="demo-rail-label">Examples</div>
+                  <div class="demo-examples" aria-label="Demo prompt examples">
+                    <button class="demo-chip active" data-prompt="A majestic winged pegasus with white marble scales, blue and gold feathered wings, ornate golden hooves, standing on a carved stone pedestal with ancient runes" data-model="img/uni-web.glb" type="button">Winged Pegasus</button>
+                    <button class="demo-chip" data-prompt="An aristocratic rabbit in a baroque blue coat with gold embroidery, standing upright on an ornate scrollwork pedestal, reading a royal decree" data-model="img/rabbit-web.glb" type="button">Royal Rabbit</button>
+                    <button class="demo-chip" data-prompt="An ancient leather-bound spellbook opened to illuminated pages with silver corner clasps, a glowing purple crystal orb hovering above the text" data-model="img/book-web.glb" type="button">Spell Book</button>
+                    <button class="demo-chip" data-prompt="A kung fu panda in a white gi with a brown belt, mid-kick martial arts pose, stylized cartoon fur with soft shading" data-model="img/panda-web.glb" type="button">Kung Fu Panda</button>
+                  </div>
+                </div>
+              </div>
+              <div class="demo-visual">
+                <div class="demo-result-meta">
+                  <span class="demo-result-meta__label" id="demo-preview-title">Live model preview</span>
+                  <span class="demo-result-meta__hint">Drag to inspect</span>
+                </div>
+                <div class="demo-result">
+                  <model-viewer id="demoModelViewer" src="img/uni-web.glb" auto-rotate camera-controls shadow-intensity="0.6" camera-orbit="30deg 75deg 105%" field-of-view="20deg" environment-image="neutral" style="width:100%;height:100%;background:transparent" alt="AI generated 3D model preview"></model-viewer>
+                </div>
+              </div>
+            </div>
+          </article>
+          <aside class="demo-panel demo-panel--workflow" aria-labelledby="workflow-title">
+            <div class="demo-workflow-head">
+              <span class="demo-eyebrow">Workflow</span>
+              <h3 id="workflow-title">A full production loop, not a loose tool list.</h3>
+              <p>Start from a prompt, reference or file, then generate, improve, organise and deliver the asset.</p>
+            </div>
+            <ol class="demo-workflow-steps">
+              <li><span>01</span><div><h4>Describe or upload</h4><p>Start with a text prompt, image, reference or existing file.</p></div></li>
+              <li><span>02</span><div><h4>Generate and inspect</h4><p>Preview the result, inspect the output, and decide what to refine next.</p></div></li>
+              <li><span>03</span><div><h4>Refine, export, or print</h4><p>Apply remesh, texture, rigging, animation, sharing, conversion, or print prep.</p></div></li>
+            </ol>
+            <a class="button button-primary demo-workflow-cta" href="/3dprint?panel=model" data-track="demo_try_model">Try It Yourself <span>→</span></a>
+          </aside>
+        </div>
       </div>
     </section>
 
     <section class="tools-band" aria-labelledby="tools-title">
       <div class="shell tools-layout reveal">
         <div>
-          <span class="section-index">03 / TOOLS</span>
+          <span class="section-index">04 / TOOLS</span>
           <h2 id="tools-title">Open the right tool fast.</h2>
         </div>
         <nav class="tool-links" aria-label="TimrX tools">
@@ -239,13 +501,48 @@
       </div>
     </section>
 
-    <section class="section-pad pricing-preview" aria-labelledby="pricing-title"><div class="shell pricing-card reveal"><div class="pricing-main"><span class="section-index">FLEXIBLE CREDITS</span><h2 id="pricing-title">Create when you need to.<br>Pay for what you use.</h2><p>TimrX uses credits for AI generation and selected refinement tools. Start small, then add more when your workflow grows.</p><a class="button button-primary" href="/hub#pricing" data-track="pricing_view">View Pricing <span>→</span></a></div><div class="pricing-uses"><span class="pricing-uses-cap">One balance, every tool</span><ul aria-label="What credits unlock"><li><span>Image generation</span><small>Concept art, characters and product visuals.</small></li><li><span>Video generation</span><small>Cinematic clips and animated assets.</small></li><li><span>3D generation</span><small>Text and image to printable 3D models.</small></li><li><span>Refinement</span><small>Remesh, retexture and print preparation.</small></li></ul></div></div></section>
+    <section class="section-pad pricing-preview" aria-labelledby="pricing-title"><div class="shell pricing-card reveal"><div class="pricing-main"><span class="section-index">05 / FLEXIBLE CREDITS</span><h2 id="pricing-title">Create when you need to.<br>Pay for what you use.</h2><p>TimrX uses credits for AI generation and selected refinement tools. Start small, then add more when your workflow grows. Billing still lives in the Dashboard.</p><a class="button button-primary" href="/hub#pricing" data-track="pricing_view">View Pricing <span>→</span></a></div><div class="pricing-uses"><span class="pricing-uses-cap">One balance, every tool</span><ul aria-label="What credits unlock"><li><span>Image generation</span><small>Concept art, characters and product visuals.</small></li><li><span>Video generation</span><small>Cinematic clips and animated assets.</small></li><li><span>3D generation</span><small>Text and image to printable 3D models.</small></li><li><span>Refinement</span><small>Remesh, retexture, rigging and print preparation.</small></li></ul></div></div></section>
+
+    <section class="section-pad platform" id="platform-overview" aria-labelledby="platform-title">
+      <div class="shell platform-layout">
+        <div class="platform-intro reveal">
+          <span class="section-index">06 / OVERVIEW</span>
+          <h2 id="platform-title">AI image, video and 3D generation in one browser workspace.</h2>
+          <p>TimrX is an AI creative platform for generating product visuals, cinematic video clips and printable 3D models from text prompts, image references or existing files. Create, refine, organize and export assets without moving between disconnected tools.</p>
+          <dl class="platform-points">
+            <div><dt>Generate from prompts or references</dt><dd>Use text-to-image, image-to-video, text-to-3D and image-to-3D workflows from the same starting point.</dd></div>
+            <div><dt>Refine production-ready assets</dt><dd>Continue into remesh, PBR texture generation, rigging, animation preparation and print-readiness checks while the asset is still live.</dd></div>
+            <div><dt>Export for web, games, AR and 3D printing</dt><dd>Reopen from history, share to the community and convert across GLB, GLTF, OBJ, STL, FBX import workflows, USDZ and 3MF delivery.</dd></div>
+          </dl>
+          <div class="platform-actions">
+            <a class="button button-primary" href="/3dprint" data-track="platform_open_workspace">Open Workspace <span aria-hidden="true">→</span></a>
+            <a class="platform-link" href="/docs#doc-overview" data-track="platform_docs">See full workflow <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+        <div class="platform-scope reveal">
+          <div class="platform-scope-head"><span>Workspace scope</span><span>Prompt to publish</span></div>
+          <div class="platform-cards">
+            <article class="platform-card"><span class="platform-card-label">Workspace surface</span><strong>7 panels</strong><p>Image, Model, Remesh, Texture, Rig, Animate and Video in one browser workspace.</p></article>
+            <article class="platform-card"><span class="platform-card-label">Image stack</span><strong>4K + SVG</strong><p>OpenAI, Imagen, FLUX.2 Pro, Ideogram, Recraft V4 and Nano Banana for concept art, product visuals, brand graphics and vector-ready output.</p></article>
+            <article class="platform-card"><span class="platform-card-label">Motion layer</span><strong>Veo + Seedance</strong><p>Create text-to-video clips, animated image sequences, transition shots and motion-directed videos from still or text inputs.</p></article>
+            <article class="platform-card"><span class="platform-card-label">3D production</span><strong>Meshy 6</strong><p>Generate 3D models, then remesh, texture, rig, animate, inspect topology and prepare files for 3D printing.</p></article>
+            <article class="platform-card"><span class="platform-card-label">Asset delivery</span><strong>GLB to 3MF</strong><p>Preview, share and convert across creator, game asset, AR and 3D print formats.</p></article>
+            <article class="platform-card"><span class="platform-card-label">Community flow</span><strong>Remix + share</strong><p>Use public creations for inspiration, reopen your history and publish selected work to the TimrX community.</p></article>
+          </div>
+          <div class="platform-modes">
+            <span class="platform-modes-cap">Core modes</span>
+            <ul aria-label="TimrX core modes"><li>Text to image</li><li>Image to video</li><li>Text to 3D</li><li>Image to 3D</li><li>Remesh</li><li>Texture</li><li>Rig</li><li>Animate</li><li>Convert</li><li>Print check</li></ul>
+          </div>
+        </div>
+      </div>
+      <p class="sr-only">TimrX supports providers including OpenAI, Google Imagen, FLUX.2 Pro, Ideogram, Recraft, Nano Banana, Veo, Seedance and Meshy, with exports across GLB, GLTF, OBJ, STL, FBX import workflows and USDZ delivery.</p>
+    </section>
 
     <section class="section-pad insight-feed" aria-labelledby="insights-title">
       <div class="shell">
         <div class="insight-head reveal">
           <div class="insight-head-left">
-            <span class="section-index">04 / BLOG</span>
+            <span class="section-index">07 / BLOG</span>
             <h2 id="insights-title">Latest TimrX insights.</h2>
             <p>Short product notes, workflow guides and practical articles for creators working with AI images, video and 3D assets.</p>
             <div class="insight-topics" aria-label="Topics"><span>AI generation</span><span>3D &amp; printing</span><span>Workflow</span><span>Web &amp; motion</span></div>
@@ -277,7 +574,7 @@
       </div>
     </section>
 
-    <section class="section-pad faq" aria-labelledby="faq-title"><div class="shell faq-layout"><div class="section-heading reveal"><span class="section-index">05 / FAQ</span><h2 id="faq-title">Questions, answered.</h2><p>Everything you need before creating your first asset.</p></div><div class="faq-list">
+    <section class="section-pad faq" aria-labelledby="faq-title"><div class="shell faq-layout"><div class="section-heading reveal"><span class="section-index">08 / FAQ</span><h2 id="faq-title">Questions, answered.</h2><p>Everything you need before creating your first asset.</p></div><div class="faq-list">
       <details class="reveal"><summary>What can I create with TimrX?<span>＋</span></summary><p>Images, short videos, textured 3D models and printable assets from prompts, reference images or existing files.</p></details>
       <details class="reveal"><summary>Can I export models for 3D printing?<span>＋</span></summary><p>Yes. Use print checks and export workflows for STL and 3MF, then prepare the result for your slicer or print service.</p></details>
       <details class="reveal"><summary>Which file formats are supported?<span>＋</span></summary><p>Core workflows support STL, OBJ, GLB, GLTF, USDZ and 3MF. The converter provides additional format paths.</p></details>
@@ -286,10 +583,37 @@
       <details class="reveal"><summary>Can I use TimrX for content, games or products?<span>＋</span></summary><p>Yes. Workflows support content creation, game concepts, product visualisation, prototypes and print-ready ideas.</p></details>
     </div></div></section>
 
-    <section class="final-cta"><div class="shell reveal"><span class="eyebrow"><span></span> Start with an idea</span><h2>Make the next asset in TimrX.</h2><p>Generate, refine and export without leaving the browser.</p><a class="button button-primary" href="/3dprint" data-track="footer_open_workspace">Open Workspace <span>→</span></a></div></section>
+    <section class="section-pad info-landing" id="info" aria-labelledby="info-title">
+      <div class="shell info-landing-layout reveal">
+        <div class="info-landing-copy">
+          <span class="section-index">09 / INFO</span>
+          <h2 id="info-title">Learn more about the TimrX platform.</h2>
+          <p>Explore the company behind TimrX, read product documentation, and find answers about AI generation, credits, exports, account access and supported workflows.</p>
+        </div>
+        <div class="info-landing-links" aria-label="Learn more">
+          <a class="info-link-card" href="/company" data-track="info_about">
+            <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+            <span>About TimrX</span>
+            <small>Company, mission and platform direction</small>
+          </a>
+          <a class="info-link-card" href="/docs#doc-faq" data-track="info_faq">
+            <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+            <span>Docs &amp; FAQ</span>
+            <small>Credits, files, accounts and common questions</small>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="final-cta"><div class="shell reveal"><span class="eyebrow"><span></span> Start with an idea</span><h2>Make the next asset in TimrX.</h2><p>Generate, refine and export without leaving the browser.</p><div class="hero-actions" style="justify-content:center"><a class="button button-primary" href="/3dprint" data-track="footer_open_workspace">Open Workspace <span>→</span></a><a class="button button-ghost" href="/community" data-track="footer_view_community">View Community</a></div></div></section>
   </main>
 
-  <footer class="site-footer"><div class="shell footer-grid"><div><a class="brand" href="/"><img src="img/logo.png" width="40" height="40" alt=""><span>Timr<span>X</span></span></a><p>Images, video and 3D creation in one browser workspace.</p></div><nav aria-label="Product"><h2>Product</h2><a href="/3dprint">Workspace</a><a href="/ai-tools">Tools</a><a href="/converter">Converter</a><a href="/stl-library">STL Library</a></nav><nav aria-label="Company"><h2>Explore</h2><a href="/blogs">Blog</a><a href="/company">Company</a><a href="/terms">Terms</a><a href="/privacy">Privacy</a></nav></div><div class="shell footer-bottom"><span>© <span data-year></span> TimrX</span><a href="/dima-vasiliu">Built by Dima Vasiliu <span>↗</span></a></div></footer>
+  <!-- ==========================================================================
+       FOOTER — Phase 2 columns aligned with js/shared/site-nav-data.js
+       (window.TIMRX_NAV.footerColumns). Same caveat as the nav: static here on
+       purpose because the SEO homepage must render useful navigation without JS.
+       ========================================================================== -->
+  <footer class="site-footer"><div class="shell footer-grid"><div><a class="brand" href="/"><img src="img/logo.png" width="40" height="40" alt=""><span>Timr<span>X</span></span></a><p>Images, video and 3D creation in one browser workspace.</p></div><nav aria-label="Product"><h2>Product</h2><a href="/3dprint">Create</a><a href="/ai-tools">Tools</a><a href="/converter">Converter</a><a href="/stl-library">STL Library</a></nav><nav aria-label="Explore"><h2>Explore</h2><a href="/blogs">Blog</a><a href="/tutorials">Tutorials</a><a href="/community">Community</a><a href="/prompts">Prompts</a><a href="/company">Company</a></nav><nav aria-label="Account"><h2>Account</h2><a href="/hub">Dashboard</a><a href="/hub#pricing">Pricing</a><a href="/docs">Docs</a></nav><nav aria-label="Legal"><h2>Legal</h2><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></nav></div><div class="shell footer-bottom"><span>© <span data-year></span> TimrX</span><a href="/dima-vasiliu">Built by Dima Vasiliu <span>↗</span></a></div></footer>
   <script src="js/env-config.js?v=4"></script>
   <script>
     window.TIMRX_CHAT_CONTEXT = 'You are the TimrX platform assistant on the main product landing page. Answer as TimrX, not as Dima personally. Focus on helping visitors understand the product, choose the right tool, open the workspace, understand credits, exports, formats and workflows. Keep answers concise, conversion-focused and practical. If users ask for freelance services or Dima personally, route them to /dima-vasiliu instead of mixing that into the product funnel.';
@@ -306,10 +630,11 @@
   <script src="app.js?v=5" defer></script>
   <script src="hero-assistant.js?v=9" defer></script>
   <script src="landing-widgets.js?v=3" defer></script>
-  <script src="landing.js?v=4" defer></script>
+  <script src="landing.js?v=6" defer></script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
   <script src="js/cookie-consent.js" defer></script>
   <script>
-  /* Live showcase — pull generated assets from the inspire feed (same source as Inspire), with the static cards as instant fallback. */
+  /* DB-backed hero showcase: uses the Inspire feed first, with repo assets as instant fallback. */
   (function(){
     var track=document.querySelector('.hero-showcase .show-track');
     if(!track)return;
@@ -317,10 +642,10 @@
     var mq=function(q){return window.matchMedia&&window.matchMedia(q).matches;};
     var conn=navigator.connection||{};
     var lite=mq('(prefers-reduced-motion:reduce)')||conn.saveData===true||/(^|\b)(slow-2g|2g)\b/.test(conn.effectiveType||'');
-    var videoBudget=lite?0:(mq('(max-width:760px)')?1:2);
+    var videoBudget=lite?0:(mq('(max-width:760px)')?2:5);
     var PAT=[[-10,34],[8,-8],[-14,16],[6,-12],[-8,26],[12,0],[-12,20],[4,-6],[-6,12]];
     function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-    function thumb(c){return c.thumb_preview||c.thumb_url||c.thumbnail||c.thumbnail_url||'';}
+    function thumb(c){return c.thumb_preview||c.thumb_refined||c.thumb_url||c.thumbnail||c.thumbnail_url||c.image_url||c.url||'';}
     function kind(c){var t=String(c.type||'').toLowerCase();if(c.video_url||t.indexOf('video')>=0)return'video';if(/3d|model|stl|glb|obj|mesh/.test(t))return'3d';return'image';}
     function fig(c,j,dup,autoplay){
       var th=thumb(c);if(!th&&!c.video_url)return'';
@@ -346,17 +671,18 @@
       var seen={},pick=[];
       cards.forEach(function(c){var key=thumb(c)||c.video_url;if(!key||seen[key])return;seen[key]=1;pick.push(c);});
       if(pick.length<4)return;
-      pick=pick.slice(0,8);
+      pick=pick.slice(0,20);
       var u1=0,g='';pick.forEach(function(c,i){var ap=kind(c)==='video'&&u1<videoBudget;if(ap)u1++;g+=fig(c,i,false,ap);});g+=exp(pick.length,false);
       var u2=0,d='';pick.forEach(function(c,i){var ap=kind(c)==='video'&&u2<videoBudget;if(ap)u2++;d+=fig(c,i,true,ap);});d+=exp(pick.length,true);
       var html=g+d;if(!html)return;
-      track.innerHTML=html;observeVideos();
+      track.innerHTML=html;
+      observeVideos();
     }
     function run(){
       var ctrl=('AbortController'in window)?new AbortController():null,to=setTimeout(function(){ctrl&&ctrl.abort();},8000);
-      fetch(BACKEND+'/api/_mod/inspire/feed?type=all&mix=balanced&limit=16',{mode:'cors',cache:'no-store',signal:ctrl?ctrl.signal:undefined})
+      fetch(BACKEND+'/api/_mod/inspire/feed?type=all&mix=balanced&shuffle=true&limit=48',{mode:'cors',cache:'no-store',signal:ctrl?ctrl.signal:undefined})
         .then(function(r){return r.ok?r.json():null;})
-        .then(function(d){clearTimeout(to);if(!d||d.ok===false)return;var cards=d.cards||d.items||[];if(cards&&cards.length)render(cards);})
+        .then(function(d){clearTimeout(to);if(!d||d.ok===false)return;var cards=d.cards||(d.data&&d.data.cards)||d.items||[];if(cards&&cards.length)render(cards);})
         .catch(function(){clearTimeout(to);});
     }
     if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
