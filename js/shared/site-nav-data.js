@@ -64,6 +64,9 @@
     '/ai-image-generator': { preview: 'ai-image-generator.html', live: '/ai-image-generator' },
     '/ai-video-generator': { preview: 'ai-video-generator.html', live: '/ai-video-generator' },
     '/ai-3d-generator': { preview: 'ai-3d-generator.html', live: '/ai-3d-generator' },
+    '/seedance-video-generator': { preview: 'seedance-video-generator.html', live: '/seedance-video-generator' },
+    '/veo-3-video-generator': { preview: 'veo-3-video-generator.html', live: '/veo-3-video-generator' },
+    '/imagen-image-generator': { preview: 'imagen-image-generator.html', live: '/imagen-image-generator' },
     '/text-to-3d': { preview: 'text-to-3d.html', live: '/text-to-3d' },
     '/image-to-3d': { preview: 'image-to-3d.html', live: '/image-to-3d' },
     '/3d-print-model-generator': { preview: '3d-print-model-generator.html', live: '/3d-print-model-generator' },
@@ -119,6 +122,9 @@
         { href: '/ai-image-generator', label: 'AI Image Generator' },
         { href: '/ai-video-generator', label: 'AI Video Generator' },
         { href: '/ai-3d-generator', label: 'AI 3D Generator' },
+        { href: '/seedance-video-generator', label: 'Seedance Video' },
+        { href: '/veo-3-video-generator', label: 'Veo 3 Video' },
+        { href: '/imagen-image-generator', label: 'Imagen Image' },
         { href: '/text-to-3d', label: 'Text to 3D' },
         { href: '/image-to-3d', label: 'Image to 3D' },
         { href: '/3d-print-model-generator', label: '3D Print Models' }
@@ -137,14 +143,16 @@
       links: [
         { href: '/terms', label: 'Terms' },
         { href: '/privacy', label: 'Privacy' },
-        { href: '/cookies', label: 'Cookies' }
+        { href: '/cookies', label: 'Cookies' },
+        { href: '/llms.txt', label: 'LLM Summary' }
       ]
     },
     {
       heading: 'Connect',
       links: [
+        { href: 'https://www.youtube.com/@TimrX-Studio', label: 'YouTube', external: true },
         { href: '/rss.xml', label: 'RSS' },
-        { href: 'mailto:admin@timrx.live', label: 'Email' },
+        { href: 'mailto:support@timrx.live', label: 'Support' },
         { href: 'https://www.linkedin.com/in/dumitru-vasiliu', label: 'LinkedIn', external: true },
         { href: 'https://github.com/DimaVasiliu', label: 'GitHub', external: true }
       ]
@@ -158,7 +166,7 @@
     wordmarkLead: 'Timr',
     wordmarkAccent: 'X',
     tagline: 'AI Creative Platform',
-    description: 'TimrX is a creative AI platform for 3D models, image generation, video workflows and production-ready exports.'
+    description: 'TimrX is an AI model generator and creative platform for 3D models, image generation, Seedance and Veo video workflows, and production-ready exports.'
   };
 
   window.TIMRX_NAV = {

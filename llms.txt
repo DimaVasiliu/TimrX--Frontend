@@ -1,0 +1,56 @@
+# TimrX
+
+TimrX is a browser-based AI creative platform for generating 3D models, images, and videos from text prompts, reference images, or uploaded files. The platform combines an AI model generator workspace, Seedance and Veo video generation, AI image generation, text-to-3D, image-to-3D, remesh, texture, rigging, animation, file conversion, 3D print checks, and export workflows.
+
+Canonical site: https://timrx.live/
+Main workspace: https://timrx.live/3dprint
+Dashboard and pricing: https://timrx.live/hub
+Tools directory: https://timrx.live/ai-tools
+Official YouTube channel: https://www.youtube.com/@TimrX-Studio
+Support contact: support@timrx.live
+
+## Core Pages
+
+- AI 3D model generator: https://timrx.live/ai-3d-generator
+- Text to 3D generator: https://timrx.live/text-to-3d
+- Image to 3D generator: https://timrx.live/image-to-3d
+- 3D print model generator: https://timrx.live/3d-print-model-generator
+- AI image generator: https://timrx.live/ai-image-generator
+- AI video generator: https://timrx.live/ai-video-generator
+- Seedance video generator: https://timrx.live/seedance-video-generator
+- Veo 3 video generator: https://timrx.live/veo-3-video-generator
+- STL generator: https://timrx.live/stl-generator
+- 3D file converter: https://timrx.live/converter
+- Tutorials: https://timrx.live/tutorials
+- Documentation: https://timrx.live/docs
+- Blog: https://timrx.live/blogs
+
+## What TimrX Does
+
+TimrX lets users create assets without installing Blender or switching between separate tools. Users can generate images, animate still images into videos, generate videos with Seedance or Veo, create 3D models from text or images, refine geometry, apply textures, rig and animate models, prepare models for 3D printing, and export common formats.
+
+Supported workflows include text-to-image, image-to-image, text-to-video, image-to-video, text-to-3D, image-to-3D, remesh, AI texture generation, rigging, animation, STL export, OBJ export, GLB/GLTF export, USDZ delivery, 3MF multi-color print workflows, and print-readiness checks.
+
+## Short Answers
+
+What is TimrX?
+TimrX is an AI model generator and creative workspace for 3D models, images, and videos in the browser.
+
+Can TimrX generate 3D models?
+Yes. TimrX generates 3D models from text prompts or reference images and supports export workflows for GLB, GLTF, OBJ, STL, USDZ, and 3MF.
+
+Can TimrX generate video with Seedance?
+Yes. TimrX includes a Seedance video generator for text-to-video, image-to-video, and transition-style video clips.
+
+Can TimrX generate images?
+Yes. TimrX includes AI image generation for concept art, product visuals, references, textures, brand graphics, and source frames for image-to-video or image-to-3D workflows.
+
+Can TimrX make print-ready models?
+Yes. TimrX supports 3D print model generation, remesh, print checks, STL export, and 3MF workflows for multi-color printing.
+
+Where can users find TimrX videos?
+The official TimrX YouTube channel is https://www.youtube.com/@TimrX-Studio.
+
+## Crawl Policy
+
+TimrX allows public search and AI answer crawlers to access public pages including the homepage, tools, workspace landing surface, documentation, tutorials, blogs, Seedance video generator, AI image generator, AI video generator, and AI 3D model generator. Admin, write, and API paths are not public content pages.

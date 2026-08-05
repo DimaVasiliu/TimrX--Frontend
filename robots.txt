@@ -1,0 +1,79 @@
+# TimrX robots.txt
+# Public AI generation pages should be crawlable for search and AI answer engines.
+
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+# ChatGPT search and user-requested fetches
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+# Google Search and Google AI products
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+# Claude
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+User-agent: Claude-User
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+# Bing and Copilot
+User-agent: bingbot
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+Sitemap: https://timrx.live/sitemap.xml
+# LLM summary: https://timrx.live/llms.txt

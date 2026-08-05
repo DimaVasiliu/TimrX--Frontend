@@ -1283,27 +1283,84 @@ var BLOG_ORIGIN = "https://blog.timrx.live";
 var PUBLIC_DOMAIN = "https://timrx.live";
 var ROBOTS_TXT = `# TimrX robots.txt
 # https://timrx.live
+# Public AI generation pages should be crawlable for search and AI answer engines.
 
 User-agent: *
 Allow: /
-Allow: /3dprint
-Allow: /hub
-Allow: /converter
-Allow: /avi-to-mp4
-Allow: /converters/
-Allow: /prompts
-Allow: /blog
-Allow: /read
-
-# Block admin & private/write areas only
 Disallow: /admin
 Disallow: /admin-edit
 Disallow: /write
 Disallow: /api/
 
-# NOTE: /3dprint, /converter, /avi-to-mp4, /converters, /prompts, /blog, /read are PUBLIC pages \u2014 do NOT disallow them
+# ChatGPT search and user-requested fetches
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+User-agent: ChatGPT-User
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+User-agent: GPTBot
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+# Google Search and Google AI products
+User-agent: Googlebot
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+# Claude
+User-agent: ClaudeBot
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+User-agent: Claude-User
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+User-agent: Claude-SearchBot
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
+
+# Bing and Copilot
+User-agent: bingbot
+Allow: /
+Disallow: /admin
+Disallow: /admin-edit
+Disallow: /write
+Disallow: /api/
 
 Sitemap: https://timrx.live/sitemap.xml
+# LLM summary: https://timrx.live/llms.txt
 `;
 var PERMANENT_REDIRECTS = {
   // Renamed/legacy /blog/<slug> paths → their live canonical /blog/<slug> (or /blogs

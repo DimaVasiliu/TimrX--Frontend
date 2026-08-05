@@ -3,19 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Seedance AI Video Generator — Text & Image to Video | TimrX</title>
-  <meta name="description" content="Generate video with Seedance on TimrX. Turn text prompts or still images into short animated clips and cinematic motion, then download the result." />
+  <title>Seedance AI Video Model Generator — Text &amp; Image to Video | TimrX</title>
+  <meta name="description" content="Generate AI video with Seedance on TimrX. Turn text prompts, still images or reference frames into short animated clips, cinematic motion and MP4 exports." />
   <link rel="canonical" href="https://timrx.live/seedance-video-generator" />
   <link rel="icon" type="image/png" href="/img/logo.png" />
   <link rel="apple-touch-icon" href="/img/logo.png" />
   <meta name="theme-color" content="#0b0b0b" />
-  <meta name="robots" content="index, follow, max-image-preview:large" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://timrx.live/seedance-video-generator" />
-  <meta property="og:title" content="Seedance AI Video Generator — Text &amp; Image to Video" />
-  <meta property="og:description" content="Generate video with Seedance on TimrX. Turn text prompts or still images into short animated clips and cinematic motion, then download the result." />
+  <meta property="og:title" content="Seedance AI Video Model Generator — Text &amp; Image to Video" />
+  <meta property="og:description" content="Generate AI video with Seedance on TimrX. Turn text prompts, still images or reference frames into short animated clips, cinematic motion and MP4 exports." />
   <meta property="og:image" content="https://timrx.live/img/og-video-generator.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -24,8 +24,8 @@
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://timrx.live/seedance-video-generator" />
-  <meta name="twitter:title" content="Seedance AI Video Generator — Text &amp; Image to Video" />
-  <meta name="twitter:description" content="Generate video with Seedance on TimrX. Turn text prompts or still images into short animated clips and cinematic motion, then download the result." />
+  <meta name="twitter:title" content="Seedance AI Video Model Generator — Text &amp; Image to Video" />
+  <meta name="twitter:description" content="Generate AI video with Seedance on TimrX. Turn text prompts, still images or reference frames into short animated clips, cinematic motion and MP4 exports." />
   <meta name="twitter:image" content="https://timrx.live/img/og-video-generator.png" />
   <meta name="twitter:creator" content="@timrx_live" />
 
@@ -43,10 +43,22 @@
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
   "name": "TimrX Video Generator (Seedance)",
+  "alternateName": [
+    "Seedance AI video generator",
+    "Seedance video model generator",
+    "Seedance text to video generator",
+    "Seedance image to video generator"
+  ],
   "applicationCategory": "MultimediaApplication",
   "operatingSystem": "Web browser",
   "url": "https://timrx.live/seedance-video-generator",
-  "description": "Generate video with Seedance on TimrX. Turn text prompts or still images into short animated clips and cinematic motion, then download the result.",
+  "description": "Generate AI video with Seedance on TimrX. Turn text prompts, still images, or reference frames into short animated clips, cinematic motion, and MP4 exports.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "description": "Credit-based Seedance video generation with starter credits"
+  },
   "publisher": {
     "@type": "Organization",
     "name": "TimrX",
@@ -161,7 +173,7 @@
       "name": "How long are Seedance clips?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Seedance produces short clips designed for social posts, motion content and previz. Combine several clips in an editor for longer sequences."
+        "text": "Seedance produces short clips up to 15 seconds in the TimrX workspace, depending on the selected tier and settings. Combine several clips in an editor for longer sequences."
       }
     },
     {
@@ -231,15 +243,15 @@
   <!-- Hero -->
   <section class="tool-hero">
     <div class="container">
-      <h1>Seedance Video Generator</h1>
-      <p class="tool-subtitle">Generate video with Seedance inside TimrX. Turn a text prompt or a still image into a short animated clip with natural motion, then download it.</p>
+      <h1>Seedance AI video model generator</h1>
+      <p class="tool-subtitle">Generate video with Seedance inside TimrX. Turn a text prompt, still image or reference frame into a short animated clip with natural motion, then download it as MP4.</p>
     </div>
   </section>
 
   <!-- Intro -->
   <section class="tool-intro">
     <div class="container">
-      <p>Seedance is a video generation engine available in the TimrX workspace. It supports text-to-video, image-to-video, and first-to-last-frame transitions — start from a written prompt, animate a still image, or guide a transition between two images.</p>
+      <p>Seedance is an AI video model available in the TimrX workspace. It supports text-to-video, image-to-video, and first-to-last-frame transitions — start from a written prompt, animate a still image, or guide a transition between two images.</p>
       <p>Seedance is one of several video engines on TimrX, alongside Veo 3. Generating with more than one engine lets you compare motion and style and choose the best clip for your project.</p>
       <p>Image-to-video is useful when you already have a frame you like — a generated image, a product photo, a piece of concept art — and want to bring it to life as short motion content.</p>
     </div>
@@ -358,6 +370,10 @@
         <a href="/ai-image-generator" class="tool-link-card">
           <h4>AI Image Generator</h4>
           <p>Generate images and source frames from text.</p>
+        </a>
+        <a href="/ai-3d-generator" class="tool-link-card">
+          <h4>AI 3D Model Generator</h4>
+          <p>Turn text or image references into textured 3D models after planning motion.</p>
         </a>
       </div>
     </div>

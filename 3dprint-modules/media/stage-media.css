@@ -1,0 +1,204 @@
+/* ==========================================================================
+   STAGE-MEDIA.CSS — Responsive layer for the asset stage + bottom chrome
+   ==========================================================================
+
+   Built from a live-render audit at 320/360/375/390/414/480/600/768/834/900/
+   1024/1115/1180/1280/1366/1440/1680/1920. This file is imported LAST from
+   main.css, so it deliberately wins the cascade over nav.css / asset-stage.css.
+
+   Unified breakpoint scale (used here; other modules keep their own until
+   they are migrated):
+
+     ≥1441        full desktop      — original layout, launchers beside bar
+     1281–1440    laptop            — narrower command bar so the corner +
+                                      prompt-guide launchers fit beside it
+     1001–1280    compact desktop   — sheet-mode chrome (CONTROLS tab bar),
+                                      stage field clears header + tab bar
+     561–1000     tablet            — command bar goes near-full-bleed and the
+                                      launchers dock over its right end
+                                      (same pattern nav.css already uses ≤560)
+     ≤560         phone             — existing nav.css phone rules stay in
+                                      charge; this file only adds stage safety
+
+   THE THREE BUGS THIS FILE EXISTS TO FIX (verified in the audit):
+
+   1. Launchers off-screen. `.ws-corner-launcher` / `.ws-prompt-guide-launcher`
+      are positioned to the RIGHT of a bar whose width assumed a wide viewport:
+        left: 50% + min(--ws-cmdbar-w, 100vw-40)/2 + …
+      With --ws-cmdbar-w:980 the prompt guide needs ≥1404px of viewport and the
+      corner launcher ≥1020px; between 561–1439px one or both rendered past
+      the right edge (measured: prompt guide at left:778 on a 768px viewport).
+
+   2. Stage cards under the chrome. `.ws-stage__field` was inset:0 —
+      "edge-to-edge by design" — but that put drifting cards behind the header
+      credits, the CONTROLS tab bar and the command bar (25–99% overlap
+      measured at 768–1920). The field now gets safe insets; every slot and
+      zone is percent-positioned inside the field, so one inset fixes all of
+      them, and the JS density (container-driven) scales down with it.
+
+   3. Sheet rail too wide at laptop widths. asset-stage.css tried to drop the
+      second contact-sheet column ≤1380px with `.af-sheet__col:last-child`,
+      but the zone's <span class="af-zone__label"> is the last child, so the
+      rule never matched and two columns crowded the credits pill at
+      1080–1380px. `:last-of-type` actually matches.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. STAGE FIELD SAFE AREAS
+   -------------------------------------------------------------------------- */
+
+/* Desktop (stage spans the viewport under a translucent header): keep cards
+   out of the header row and off the command bar. */
+@media (min-width: 1281px) {
+  .ws-stage__field {
+    inset: calc(var(--ws-navH, 70px) + 6px) 0 calc(var(--ws-cmdbar-zone) - 14px) 0;
+  }
+}
+
+/* Compact desktop / tablet: the stage is position:fixed starting at --ws-navH,
+   and the CONTROLS/Assets tab bar floats in the first ~64px below the header.
+   Clear both, plus the command bar at the bottom. */
+@media (max-width: 1280px) {
+  .ws-stage__field {
+    inset: 74px 0 calc(var(--ws-cmdbar-zone) - 10px) 0;
+  }
+}
+
+/* Phones: keep the collage off the screen edges so cards stop rendering
+   half-cut (measured: slots at left:-11px / right:+15px on 320–600px). */
+@media (max-width: 600px) {
+  .ws-stage__field {
+    inset: 74px 10px calc(var(--ws-cmdbar-zone) - 6px) 10px;
+  }
+}
+
+/* Short landscape viewports: the bar shrinks (nav.css max-height:560), give
+   the field the same courtesy so cards stay visible at all. */
+@media (max-height: 560px) {
+  .ws-stage__field {
+    inset: 58px 0 calc(var(--ws-cmdbar-zone) - 6px) 0;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   2. ZONE + CARD SIZING PER WIDTH
+   -------------------------------------------------------------------------- */
+
+/* The reel/sheet marquees translate their columns vertically, so cards were
+   riding straight out of the zone and across the header (38–52% overlap
+   measured at 1115–1920). Clip the zones: the marquee now scrolls inside its
+   own box. The 48px --af-zoom-pad stays inside the clip, so hover-zoomed
+   cards keep their breathing room. */
+.af-zone--reel,
+.af-zone--sheet { overflow: hidden; }
+
+/* Working replacement for the dead :last-child rule (see header note 3). */
+@media (max-width: 1380px) {
+  .af-zone--sheet .af-sheet__col:last-of-type { display: none; }
+  .af-zone__label { font-size: 8px; letter-spacing: .26em; }
+}
+
+/* Cap floating-card size where the audit showed pile-ups. The JS computes
+   --w from stage area; these caps only trim the top end. */
+@media (max-width: 1280px) {
+  .af__slot--core { max-width: min(26vw, 250px); }
+}
+@media (max-width: 900px) {
+  .af__slot--core { max-width: 34vw; }
+}
+@media (max-width: 600px) {
+  .af__slot--core { max-width: 40vw; }
+}
+
+/* --------------------------------------------------------------------------
+   3. COMMAND BAR WIDTH — leave room for the launchers beside it
+   --------------------------------------------------------------------------
+   980px bar + 58px corner + 94px guide simply do not fit under 1440px.
+   Between 1001–1440 the bar cedes width instead of pushing buttons off
+   screen; ≤1000 the bar goes near-full-bleed and the buttons dock over its
+   right end (the ≤560 pattern, promoted).                                   */
+
+@media (min-width: 1001px) and (max-width: 1440px) {
+  :root { --ws-cmdbar-w: min(880px, calc(100vw - 420px)); }
+}
+
+/* Belt-and-braces clamp: whatever the bar width, the launchers can never
+   leave the viewport again. */
+@media (min-width: 1001px) {
+  html body.print3d-page > .ws-corner-launcher {
+    left: min(
+      calc(50% + (min(var(--ws-cmdbar-w), calc(100vw - 40px)) / 2) + 24px),
+      calc(100vw - 176px)
+    ) !important;
+  }
+  html body.print3d-page > .ws-prompt-guide-launcher {
+    left: min(
+      calc(50% + (min(var(--ws-cmdbar-w), calc(100vw - 40px)) / 2) + var(--ws-cmdbar-h) + 36px),
+      calc(100vw - 106px)
+    ) !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. TABLET DOCK (561–1000px)
+   --------------------------------------------------------------------------
+   Same solution nav.css already ships ≤560: bar near-full-bleed, icon-only
+   launchers anchored over its right end. ≤560 keeps its own rules (this
+   block's min-width keeps the two from fighting over the same !importants). */
+
+@media (min-width: 561px) and (max-width: 1000px) {
+  :root {
+    --ws-cmdbar-h: 58px;
+    --ws-cmdbar-gap: 18px;
+    --ws-cmdbar-w: calc(100vw - 32px);
+  }
+
+  /* The docked buttons cover the right ~150px of the bar. */
+  .ws-cmd-trigger { padding-right: 150px; }
+  .ws-cmd-trigger__chips,
+  .ws-cmd-trigger__kbd { display: none; }
+
+  html body.print3d-page > .ws-corner-launcher {
+    left: auto !important;
+    right: calc(max(12px, env(safe-area-inset-right, 0px)) + var(--ws-cmdbar-h) + 10px) !important;
+    bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px)) !important;
+  }
+  html body.print3d-page > .ws-prompt-guide-launcher {
+    left: auto !important;
+    right: max(12px, env(safe-area-inset-right, 0px)) !important;
+    bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  .ws-corner-launcher__toggle {
+    width: var(--ws-cmdbar-h);
+    height: var(--ws-cmdbar-h);
+  }
+  .ws-corner-launcher__guide {
+    width: var(--ws-cmdbar-h);
+    padding: 0;
+  }
+  .ws-corner-launcher__guide span { display: none; }
+
+  /* Popover opens from the docked bulb, aligned to the viewport edge. */
+  .ws-prompt-guide {
+    right: -4px;
+    width: min(348px, calc(100vw - 24px));
+  }
+}
+
+/* --------------------------------------------------------------------------
+   5. PHONE POLISH (≤560px)
+   --------------------------------------------------------------------------
+   nav.css already docks the launchers over the bar's right end at ≤560, but
+   the trigger kept its 20px padding, so the placeholder text ran underneath
+   the docked cube + bulb. Reserve their footprint. */
+@media (max-width: 560px) {
+  .ws-cmd-trigger {
+    padding-right: calc(var(--ws-cmdbar-h) * 2 + 34px);
+  }
+  .ws-cmd-trigger__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
