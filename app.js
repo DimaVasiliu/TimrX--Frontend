@@ -178,7 +178,7 @@ const TIMRX_PLATFORM_CONTEXT = [
   "",
   "CREDITS & GETTING STARTED:",
   "- AI generation and some refinement tools use credits. Start small and top up; pick a credit pack that fits your workflow. Current prices and packs are at /hub#pricing.",
-  "- Public generation is credit-based. If controlled starter access is enabled, the homepage prompt will guide users; otherwise it routes them to the workspace and pricing.",
+  "- A human-verified visitor may receive one bounded starter generation for each supported service: a Nano Banana 2K image, a five-second Seedance 2 video, and a Meshy 3D model. After a service's starter is used, that service requires enough credits.",
   "- No Blender or advanced 3D skills are needed — generate, inspect, refine and export directly in the browser.",
   "",
   "GUIDANCE: When a user describes what they want to make, recommend the most relevant tool and briefly explain the workflow (prompt/upload → generate → refine → export). For product print/order/shipping questions, answer from the print-on-demand facts above. For exact pricing point users to /hub#pricing for credits or /print-on-demand for physical prints. Do not answer platform questions as if they are Dima portfolio enquiries, and do not send product users to #contact budget chips. Keep a warm, plain tone; avoid heavy markdown."
@@ -285,15 +285,23 @@ async function timrxAsk(messages, onStreamToken) {
   if (!window.TIMRX_CHAT_CONTEXT && localBest && shouldUseLocalTimrxAnswer(lastUserMessage) && scoreTimrxFaq(localBest, lastUserMessage) >= 35) {
     return localBest.a;
   }
-  const outboundMessages = systemPrompt
-    ? [{ role: 'system', content: systemPrompt }, ...messages.filter(m => m.role !== 'system')]
-    : messages;
+  // The server owns its system prompt. Public callers may submit only the
+  // user/assistant conversation, which prevents prompt-role injection.
+  const outboundMessages = messages.filter(m => m.role === 'user' || m.role === 'assistant');
+  let turnstileToken = '';
+  if (window.TimrXHumanVerification?.getToken) {
+    try {
+      turnstileToken = await window.TimrXHumanVerification.getToken('chat_assistant');
+    } catch (_) {
+      return 'Human verification could not complete. Check content blockers or your connection, then try again.';
+    }
+  }
   // (A) try streaming first
   try {
     const res = await fetch(`${TIMRX_API_BASE}/api/chat/stream`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: outboundMessages, temperature: 0.25 })
+      body: JSON.stringify({ messages: outboundMessages, turnstile_token: turnstileToken })
     });
     if (!res.ok || !res.body) throw new Error(`stream ${res.status}`);
     const reader = res.body.getReader();
@@ -319,12 +327,16 @@ async function timrxAsk(messages, onStreamToken) {
     if (acc) return acc;
   } catch (_) { /* fall through */ }
 
-  // (B) non-stream JSON
+  // Turnstile tokens are single-use. Do not replay a consumed token into the
+  // JSON fallback; use the local answer if the streaming request fails.
+  if (turnstileToken) return timrxLocalRouter(lastUserMessage);
+
+  // (B) non-stream JSON (development only when verification is disabled)
   try {
     const res = await fetch(`${TIMRX_API_BASE}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: outboundMessages, temperature: 0.25 })
+      body: JSON.stringify({ messages: outboundMessages, turnstile_token: turnstileToken })
     });
     if (!res.ok) throw new Error(`json ${res.status}`);
     const data = await res.json();

@@ -11,8 +11,8 @@
 (function () {
   'use strict';
 
-  var CHAT_API = (window.TIMRX_ENV && window.TIMRX_ENV.chatApiBase) ||
-                 window.TIMRX_API_BASE || 'https://chat.timrx.live';
+  var TURNSTILE_SITE_KEY = window.TIMRX_TURNSTILE_SITE_KEY ||
+    (window.TIMRX_ENV && window.TIMRX_ENV.turnstileSiteKey) || '';
 
   /* Labels used by the confirmation surface. Execution is handled by the
      authenticated command endpoint, not by simulated panel clicks. */
@@ -155,19 +155,30 @@
     return result.data;
   }
 
-  async function chat(messages) {
-    var res = await fetch(CHAT_API + '/api/chat', {
-      method: 'POST',
-      mode: 'cors',
-      credentials: 'omit',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ messages: messages, temperature: 0 })
+  function humanToken() {
+    if (!TURNSTILE_SITE_KEY) return Promise.reject(new Error('Human verification is unavailable.'));
+    return new Promise(function (resolve, reject) {
+      var started = Date.now();
+      var wait = window.setInterval(function () {
+        if (!window.turnstile || typeof window.turnstile.render !== 'function') {
+          if (Date.now() - started > 8000) {
+            window.clearInterval(wait);
+            reject(new Error('Human verification could not load. Check content blockers and try again.'));
+          }
+          return;
+        }
+        window.clearInterval(wait);
+        var holder = document.createElement('div');
+        holder.className = 'cmdai__turnstile';
+        listEl.appendChild(holder);
+        window.turnstile.render(holder, {
+          sitekey: TURNSTILE_SITE_KEY, theme: 'dark', size: 'flexible', action: 'free_generation',
+          callback: resolve,
+          'error-callback': function () { reject(new Error('Human verification failed. Try again.')); },
+          'expired-callback': function () { reject(new Error('Human verification expired. Try again.')); }
+        });
+      }, 80);
     });
-    if (!res.ok) throw new Error('chat ' + res.status);
-    var data = await res.json();
-    return data.reply || data.content || data.message ||
-           (data.choices && data.choices[0] && data.choices[0].message &&
-            data.choices[0].message.content) || '';
   }
 
   // ------------------------------------------------------------------ confirm
@@ -175,6 +186,7 @@
     pending = {
       plan: plan.plan,
       quote: plan.quote,
+      access: plan.access || { mode: 'paid', challenge_required: false },
       plan_token: plan.plan_token,
       cost: plan.quote,
       applied: []
@@ -185,8 +197,8 @@
   function render(p) {
     if (!listEl) return;
     var cfg = INTENTS[p.plan.intent] || { label: p.plan.intent };
-    var costTxt = p.cost.credits != null ? p.cost.credits + ' credits' : 'cost unavailable';
-    var blocked = !p.quote.available || p.cost.credits <= 0;
+    var costTxt = p.access.mode === 'free' ? 'Free entitlement' : (p.cost.credits != null ? p.cost.credits + ' credits' : 'cost unavailable');
+    var blocked = !p.quote.available || p.cost.credits <= 0 || p.access.mode === 'blocked';
     var visibleSettings = [
       ['aspect_ratio', 'Format'],
       ['image_size', 'Quality'],
@@ -215,10 +227,10 @@
         '<div class="cmdai__actions">' +
           '<button type="button" class="cmdai__btn cmdai__btn--go" data-cmdai="run"' +
             (blocked ? ' disabled' : '') + '>' +
-            (blocked ? esc(p.quote.availability_error || 'Not ready') : 'Generate · ' + esc(costTxt)) + '</button>' +
+            (blocked ? esc(p.quote.availability_error || 'Credits required') : 'Generate · ' + esc(costTxt)) + '</button>' +
           '<button type="button" class="cmdai__btn" data-cmdai="edit">Edit in panel</button>' +
         '</div>' +
-        '<p class="cmdai__fine">The server rechecks provider availability and reserves the quoted credits only after you confirm.</p>' +
+        '<p class="cmdai__fine">' + (p.access.mode === 'free' ? 'Human verification is required once. This service becomes credit-only after the free result.' : 'The server rechecks availability and reserves credits only after confirmation.') + '</p>' +
       '</div>';
   }
 
@@ -255,9 +267,19 @@
     }
     pending.plan_token = refreshed.data.plan_token;
     pending.quote = refreshed.data.quote;
+    pending.access = refreshed.data.access || pending.access;
+    if (pending.access.mode === 'blocked') {
+      render(pending);
+      throw new Error('Your free generation has been used and your credit balance is too low.');
+    }
+    var turnstileToken = '';
+    if (pending.access.challenge_required) {
+      if (button) button.textContent = 'Verify to continue…';
+      turnstileToken = await humanToken();
+    }
     var key = (window.crypto && window.crypto.randomUUID ? window.crypto.randomUUID() : 'cmd-' + Date.now());
     var result = await api('/api/_mod/command/execute', {
-      method: 'POST', body: { plan_token: pending.plan_token, idempotency_key: key },
+      method: 'POST', body: { plan_token: pending.plan_token, idempotency_key: key, turnstile_token: turnstileToken },
       headers: { 'Idempotency-Key': key }, timeout: 30000, retry: false
     });
     if (!result.ok || !result.data?.ok) {

@@ -16,6 +16,7 @@
   let currentPoll=null;
   const requestKeys=new Map();
   let turnstileWidgetId=null;
+  let turnstileAction='';
   let turnstileContainer=null;
   const desktopPlaceholder=input.getAttribute('placeholder')||'Ask a question or describe what to create…';
   const mobilePlaceholder='Describe what to create…';
@@ -101,12 +102,13 @@
       },80);
     });
   }
-  async function getTurnstileToken(){
+  async function getTurnstileToken(action='free_generation'){
     if(isFile)return '';
     if(!turnstileSiteKey)throw new Error('turnstile_site_key_missing');
     const turnstile=await waitForTurnstile();
     const container=ensureTurnstileContainer();
-    if(!answer.contains(container))answer.appendChild(container);
+    const verificationHost=action==='chat_assistant'?(document.querySelector('.chat-main')||answer):answer;
+    if(!verificationHost.contains(container))verificationHost.appendChild(container);
     return new Promise((resolve,reject)=>{
       let settled=false;
       const done=(fn,value)=>{
@@ -118,14 +120,21 @@
       const timeout=window.setTimeout(()=>done(reject,new Error('turnstile_timeout')),60000);
       const options={
         sitekey:turnstileSiteKey,
-        size:'normal',
+        size:'flexible',
         theme:'dark',
+        action,
         callback:token=>done(resolve,token),
         'error-callback':()=>done(reject,new Error('turnstile_error')),
         'expired-callback':()=>done(reject,new Error('turnstile_expired')),
         'timeout-callback':()=>done(reject,new Error('turnstile_timeout'))
       };
       try{
+        if(turnstileAction&&turnstileAction!==action&&turnstileWidgetId!==null){
+          try{turnstile.remove(turnstileWidgetId);}catch(error){}
+          turnstileWidgetId=null;
+          turnstileContainer.replaceChildren();
+        }
+        turnstileAction=action;
         if(turnstileWidgetId===null||turnstileWidgetId===undefined){
           turnstileWidgetId=turnstile.render(container,options);
         }else{
@@ -141,6 +150,7 @@
       if(window.turnstile&&turnstileWidgetId!==null&&turnstileWidgetId!==undefined)window.turnstile.reset(turnstileWidgetId);
     }catch(error){}
   }
+  window.TimrXHumanVerification={getToken:getTurnstileToken,reset:resetTurnstile};
   let answerDismissTimer=null;
   function closeAnswer(){if(answerDismissTimer){clearTimeout(answerDismissTimer);answerDismissTimer=null;}answer.hidden=true;answer.classList.remove('is-thinking');answer.replaceChildren();}
   function setAnswer(state,title,body,actions=''){
@@ -166,8 +176,7 @@
       <a class="assistant-route assistant-route-muted" href="${href('/3dprint')}" data-hero-route>Open workspace</a>
     </div><p class="assistant-trust">Your first generation is saved. Sign up to continue creating and keep your results.</p>`;
   }
-  function localTrialUsed(){try{return localStorage.getItem(trialStorageKey)==='1'}catch(err){return false}}
-  function markLocalTrialUsed(){try{localStorage.setItem(trialStorageKey,'1')}catch(err){}}
+  function markLocalTrialUsed(type){try{localStorage.setItem(trialStorageKey+':'+type,'1')}catch(err){}}
   function generationLabel(type){return type==='3d'?'3D model':type==='video'?'video':'image'}
   function detectType(prompt){
     const q=String(prompt||'').toLowerCase();
@@ -181,7 +190,7 @@
   function guideUploadFlow(prompt){
     input.value=prompt;
     setAnswer('guide','Upload needed','To turn an image into 3D, open the workspace and upload your image. The homepage free prompt can start text-based image, video, or 3D generations.',`<a class="assistant-route" href="${href('/image-to-3d')}" data-hero-route>Open Image to 3D <span>→</span></a><a class="assistant-route assistant-route-muted" href="${href('/3dprint')}" data-hero-route>Open workspace</a>`);
-    track('homepage_prompt_started',{assistant_query:prompt,generation_type:'image_to_3d_upload_required',blocked_reason:'upload_required'});
+    track('homepage_prompt_started',{prompt_length:String(prompt||'').length,generation_type:'image_to_3d_upload_required',blocked_reason:'upload_required'});
   }
 
   function ensureModal(){
@@ -366,23 +375,22 @@
         const data=await apiJson('/api/_mod/homepage/status/'+encodeURIComponent(jobId)+(type?'?type='+encodeURIComponent(type):''),{method:'GET'});
         const status=String(data.status||'').toLowerCase();
         if(status==='done'){
-          markLocalTrialUsed();
           setAnswer('ready','Generation complete',`Your ${generationLabel(data.generation_type||type)} is ready.`, `<a class="assistant-route" href="#" data-open-latest-result>View result <span>→</span></a>${blockMarkup()}`);
           answer.querySelector('[data-open-latest-result]')?.addEventListener('click',event=>{event.preventDefault();renderResult(data);});
           renderResult(data);
-          track('homepage_generation_completed',{generation_type:data.generation_type||type,job_id:jobId});
-          track('homepage_free_trial_used',{generation_type:data.generation_type||type,job_id:jobId});
+          track('homepage_generation_completed',{generation_type:data.generation_type||type});
+          track('homepage_free_trial_used',{generation_type:data.generation_type||type});
           return;
         }
         if(status==='failed'){
           setAnswer('error','Generation failed',data.message||data.error||'The provider could not finish this generation. Open the workspace or try again with credits.',blockMarkup());
-          track('homepage_generation_failed',{generation_type:data.generation_type||type,job_id:jobId,error:data.error||''});
+          track('homepage_generation_failed',{generation_type:data.generation_type||type,error:data.error||''});
           return;
         }
         if(Date.now()-started>timeoutMs){
           setAnswer('timeout','Still processing','This is taking longer than expected. You can check the result in the workspace or retry status in a moment.',`<a class="assistant-route" href="${href('/3dprint')}" data-hero-route>Open workspace <span>→</span></a><button type="button" class="assistant-route assistant-route-button" data-retry-status>Retry status</button>`);
           answer.querySelector('[data-retry-status]')?.addEventListener('click',()=>poll(jobId,type));
-          track('homepage_generation_failed',{generation_type:data.generation_type||type,job_id:jobId,error:'poll_timeout'});
+          track('homepage_generation_failed',{generation_type:data.generation_type||type,error:'poll_timeout'});
           return;
         }
         const elapsed=Math.round((Date.now()-started)/1000);
@@ -405,20 +413,29 @@
     const requestedType=detectType(clean);
     const requestKey=requestKeys.get(clean)||((window.crypto&&crypto.randomUUID)?crypto.randomUUID():'hp-'+Date.now()+'-'+Math.random().toString(16).slice(2));
     requestKeys.set(clean,requestKey);
-    track('homepage_prompt_started',{assistant_query:clean,generation_type:requestedType});
+    track('homepage_prompt_started',{prompt_length:clean.length,generation_type:requestedType});
     track('homepage_generation_type',{generation_type:requestedType});
     setAnswer('thinking','Preparing generation',`Choosing the cheapest suitable ${generationLabel(requestedType)} route.`);
     try{
-      setAnswer('thinking','Human check','Please verify you are human to use your free generation.');
-      const turnstileToken=await getTurnstileToken();
-      setAnswer('thinking','Preparing generation',`Choosing the cheapest suitable ${generationLabel(requestedType)} route.`);
-      const data=await apiJson('/api/_mod/homepage/generate',{method:'POST',headers:{'Idempotency-Key':requestKey},body:{prompt:clean,requested_type:'auto',source:'homepage_chat',idempotency_key:requestKey,turnstile_token:turnstileToken}});
+      const preflight=await apiJson('/api/_mod/homepage/preflight?type='+encodeURIComponent(requestedType));
+      if(!preflight.ok||preflight.mode==='blocked'){
+        setAnswer('blocked','Credits required',preflight.message||`Your free ${generationLabel(requestedType)} has been used and your balance is too low.`,blockMarkup());
+        track('homepage_generation_blocked',{generation_type:requestedType,reason:preflight.error||'no_entitlement_or_credits'});
+        return;
+      }
+      let turnstileToken='';
+      if(preflight.challenge_required){
+        setAnswer('thinking','Human check',`Verify once to claim your free ${preflight.free_offer||generationLabel(requestedType)}.`);
+        turnstileToken=await getTurnstileToken();
+      }
+      setAnswer('thinking','Preparing generation',preflight.mode==='free'?`Claiming your free ${preflight.free_offer||generationLabel(requestedType)}.`:`Reserving ${preflight.required_credits} credits.`);
+      const data=await apiJson('/api/_mod/homepage/generate',{method:'POST',headers:{'Idempotency-Key':requestKey},body:{prompt:clean,requested_type:requestedType,source:'homepage_command',idempotency_key:requestKey,turnstile_token:turnstileToken}});
       resetTurnstile();
       if(data.ok&&data.job_id){
-        markLocalTrialUsed();
         const type=data.generation_type||requestedType;
+        if(!data.paid_mode)markLocalTrialUsed(type);
         setAnswer('thinking','Generation started',data.estimated_message||`Creating your ${generationLabel(type)} now.`);
-        track('homepage_generation_started',{generation_type:type,job_id:data.job_id,paid_mode:!!data.paid_mode});
+        track('homepage_generation_started',{generation_type:type,paid_mode:!!data.paid_mode});
         poll(data.job_id,type);
         return;
       }
@@ -428,13 +445,14 @@
         return;
       }
       if(data.error==='free_trial_used'||data.error==='active_trial'||data.http_status===402){
-        markLocalTrialUsed();
+        markLocalTrialUsed(requestedType);
         setAnswer('blocked','Continue with credits',data.message||'Homepage starter generation is not available right now. Create an account or add credits to keep creating.',blockMarkup());
         track('homepage_free_trial_used',{reason:data.error||'free_trial_used'});
         return;
       }
       if(data.error==='turnstile_required'||data.http_status===403){
-        setAnswer('error','Human verification needed',data.message||'Please verify you are human to use your free generation.');
+        setAnswer('error','Human verification needed',data.message||'Please verify you are human to use your free generation.',`<button type="button" class="assistant-route assistant-route-button" data-retry-generation>Try verification again</button>`);
+        answer.querySelector('[data-retry-generation]')?.addEventListener('click',()=>startGeneration(clean));
         track('homepage_generation_error',{error:data.error||'turnstile_required'});
         return;
       }
@@ -443,7 +461,8 @@
     }catch(err){
       resetTurnstile();
       if(String(err&&err.message||'').startsWith('turnstile_')){
-        setAnswer('error','Human verification needed','Please verify you are human to use your free generation. If the check does not load, refresh the page and try again.');
+        setAnswer('error','Human verification needed','The verification check did not complete. Check content blockers or your connection, then try again.',`<button type="button" class="assistant-route assistant-route-button" data-retry-generation>Try verification again</button>`);
+        answer.querySelector('[data-retry-generation]')?.addEventListener('click',()=>startGeneration(clean));
         track('homepage_generation_error',{error:err.message});
         return;
       }
@@ -500,11 +519,11 @@
     window.setTimeout(type,520);
   }
 
-  document.querySelectorAll('[data-hero-prompt]').forEach(button=>button.addEventListener('click',()=>{const prompt=button.dataset.heroPrompt||button.textContent;track('assistant_prompt_chip_click',{assistant_query:prompt});if(button.dataset.requiresUpload){guideUploadFlow(prompt);return}startGeneration(prompt)}));
+  document.querySelectorAll('[data-hero-prompt]').forEach(button=>button.addEventListener('click',()=>{const prompt=button.dataset.heroPrompt||button.textContent;track('assistant_prompt_chip_click',{prompt_length:String(prompt||'').length});if(button.dataset.requiresUpload){guideUploadFlow(prompt);return}startGeneration(prompt)}));
   form.addEventListener('submit',event=>{event.preventDefault();startGeneration(input.value)});
   function askAssistant(question){
     const text=String(question||(input&&input.value)||'').trim();
-    track('hero_ask_assistant',{assistant_query:text});
+    track('hero_ask_assistant',{prompt_length:text.length});
     const toggle=document.getElementById('chatToggle');
     const chatInput=document.getElementById('chatInput');
     const chatSend=document.getElementById('chatSend');
