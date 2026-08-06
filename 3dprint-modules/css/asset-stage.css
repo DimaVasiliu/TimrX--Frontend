@@ -454,6 +454,27 @@ body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-close{
   right:clamp(14px,2vw,24px);
   z-index:12;
 }
+body.ws-viewer-open .timrx-3dprint #videoViewer .video-viewer-close{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  width:44px;
+  height:44px;
+  padding:0;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:50%;
+  color:#fff;
+  background:rgba(5,8,9,.72);
+  box-shadow:0 12px 34px rgba(0,0,0,.38);
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+}
+body.ws-viewer-open .timrx-3dprint #videoViewer .video-viewer-close:hover,
+body.ws-viewer-open .timrx-3dprint #videoViewer .video-viewer-close:focus-visible{
+  color:#fff;
+  border-color:rgba(125,211,252,.5);
+  background:rgba(13,22,25,.9);
+}
 
 body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
   position:absolute;
