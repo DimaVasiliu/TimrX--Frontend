@@ -142,13 +142,13 @@
   <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260802v">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260806a">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
   <script defer src="3dprint-modules/3dprint-app.js?v=20260802h"></script>
   <script defer src="3dprint-modules/inspire.js?v=20260803a"></script>
   <script defer src="3dprint-modules/community-gallery.js?v=20260802f"></script>
-  <script defer src="3dprint-modules/asset-stage.js?v=20260803c"></script>
+  <script defer src="3dprint-modules/asset-stage.js?v=20260806a"></script>
 
   <!-- Visually Hidden Utility + Ticker Styles -->
   <style>
@@ -1526,6 +1526,13 @@
 
       <!-- 2D Image Viewer -->
       <div class="viewer-wrap hidden" id="imageViewer">
+        <button type="button" class="icon-btn viewer-close-btn af-viewer-close image-viewer-close"
+                data-af-close-viewer aria-label="Close image viewer" title="Close image viewer">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 6L6 18"></path>
+            <path d="M6 6l12 12"></path>
+          </svg>
+        </button>
         <div class="image-display" id="imageDisplay">
           <div class="viewer-empty" id="imagePlaceholder">
             <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -3742,12 +3749,12 @@
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260803b"></script>
+  <script type="module" src="./js/main.js?v=20260806a"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
   <script src="js/command-palette.js?v=20260802f" defer></script>
   <script src="js/generation-tracker.js?v=20260802b" defer></script>
-  <script src="js/thought-engine.js?v=20260807a" defer></script>
+  <script src="js/thought-engine.js?v=20260806b" defer></script>
   <script src="js/hero-sequence.js?v=20260803a" defer></script>
   <script src="js/command-ai.js?v=20260802a" defer></script>
 

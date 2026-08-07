@@ -18,7 +18,7 @@
     FEED_URL      : BACKEND + '/api/_mod/inspire/feed',
     FEED_LIMIT    : 36,
     FEED_TIMEOUT  : 6000,
-    CACHE_KEY     : 'timrx_inspire_cache_v2', // v2 includes real model URLs
+    CACHE_KEY     : 'timrx_inspire_cache_v3', // v3 contains curated, lineage-deduped assets
     SHUFFLE_MS    : 6800,
     SHUFFLE_COUNT : 2,
     PARALLAX_MAX  : 22,
@@ -142,6 +142,7 @@
   }
 
   function normalize(cards){
+    var seen = {};
     return (cards||[]).map(function(c){
       var payload = c.payload || c.meta || {};
       var modelUrls = c.model_urls || payload.model_urls || {};
@@ -169,7 +170,14 @@
         title    : c.title || c.prompt || '',
         aspect   : c.aspect || 'square'
       };
-    }).filter(function(c){ return c.thumbnail; });
+    }).filter(function(c){
+      if (!c.thumbnail) return false;
+      var raw = c.glb_url || c.video_url || c.image_url || c.thumbnail || c.id || '';
+      var key = String(raw).split('?')[0].split('#')[0].replace(/\/+$/,'').toLowerCase();
+      if (!key || seen[key]) return false;
+      seen[key] = true;
+      return true;
+    });
   }
 
   function readWarmCache(){
@@ -239,12 +247,13 @@
   /* Rails only earn their space when they have enough to look deliberate. One
      lonely video in a film strip reads as a bug, so below the floor the type
      falls back into the centre scatter and the centre takes the width. */
-  var RAIL_MIN = 3;
+  var REEL_MIN = 3;
+  var SHEET_MIN = 6;
 
   function zoneGeometry(groups, w){
     var narrow  = w < 1080;
-    var hasReel  = !narrow && groups.video.length >= RAIL_MIN;
-    var hasSheet = !narrow && groups.image.length >= RAIL_MIN;
+    var hasReel  = !narrow && groups.video.length >= REEL_MIN;
+    var hasSheet = !narrow && groups.image.length >= SHEET_MIN;
     /* Rails are a fraction of the stage, clamped so they never become a
        thumbnail strip on a small laptop or a wall on an ultrawide. */
     var railW = Math.max(0.145, Math.min(0.215, 210 / Math.max(1, w)));
@@ -341,7 +350,7 @@
     var ctl = ('AbortController' in window) ? new AbortController() : null;
     var t = setTimeout(function(){ if (ctl) ctl.abort(); }, CFG.FEED_TIMEOUT);
     var type = forceType || settings.type || 'all';
-    var url = CFG.FEED_URL + '?type=' + encodeURIComponent(type) + '&mix=balanced&shuffle=true&limit=' + CFG.FEED_LIMIT;
+    var url = CFG.FEED_URL + '?surface=workspace&type=' + encodeURIComponent(type) + '&mix=balanced&shuffle=true&limit=' + CFG.FEED_LIMIT;
     return fetch(url, ctl ? { signal: ctl.signal, credentials:'include' } : { credentials:'include' })
       .then(function(r){
         if(!r.ok) throw new Error('HTTP '+r.status);
@@ -628,7 +637,7 @@
     zone.style.setProperty('--zw',  ((geom.sheet.x1 - geom.sheet.x0) * 100).toFixed(2) + '%');
 
     var COLS = 2;
-    var per  = Math.min(4, Math.max(2, Math.ceil(images.length / COLS)));
+    var total = Math.min(8, images.length);
     var made = [], idx = 0;
 
     for (var c = 0; c < COLS; c++){
@@ -637,14 +646,18 @@
       /* Run the second column slower and start it mid-cycle, so the two never
          march in step. A negative animation-delay is the offset — a static
          transform would just be overwritten by the animation. */
+      var start = Math.ceil(total / COLS) * c;
+      var per = Math.min(Math.ceil(total / COLS), Math.max(0, total - start));
+      if (!per) continue;
       var dur = per * (c ? 11.5 : 9.5);
       col.style.setProperty('--sheet-dur', dur.toFixed(1) + 's');
       col.style.animationDelay = (-dur * (c ? 0.42 : 0)).toFixed(1) + 's';
 
       for (var pass = 0; pass < 2; pass++){
         for (var i = 0; i < per; i++){
-          var asset = images[(c * per + i) % images.length];
-          var rec = makeSlot('sheet', asset, { frameNo: (c * per + i + 1) });
+          var assetIndex = start + i;
+          var asset = images[assetIndex];
+          var rec = makeSlot('sheet', asset, { frameNo: (assetIndex + 1) });
           rec.el.style.setProperty('--tilt', (((i + c) % 2) ? 0.7 : -0.7) + 'deg');
           if (pass === 1){
             rec.el.setAttribute('aria-hidden','true');
@@ -676,10 +689,10 @@
     var zone = document.createElement('div');
     zone.className = 'af-zone af-zone--core';
 
-    var count = Math.min(densityFor(w, h, CFG.DENSITY), models.length * 2);
+    var count = Math.min(densityFor(w, h, CFG.DENSITY), models.length);
     if (geom.hasReel)  count = Math.round(count * 0.8);
     if (geom.hasSheet) count = Math.round(count * 0.8);
-    count = Math.max(4, count);
+    count = Math.max(1, count);
 
     var spots = balanceCore(layout(count, w, h, geom.core), geom.core);
     var bw    = baseCardWidth(w, h, count) * (geom.hasReel && geom.hasSheet ? 0.92 : 1);
@@ -797,8 +810,17 @@
     if (destroyed || !s || !s.el || !s.el.isConnected) return;
     var list = poolForSlot(s);
     if (!list.length) return;
-    zoneCursor[s.zone] = (zoneCursor[s.zone] + 1 + Math.floor(Math.random()*2)) % list.length;
-    var next = list[zoneCursor[s.zone]];
+    var occupied = {};
+    slots.forEach(function(slot){
+      if (slot !== s && slot.zone === s.zone && slot.asset) occupied[String(slot.asset.id)] = true;
+    });
+    var next = null;
+    for (var attempt=0; attempt<list.length; attempt++){
+      zoneCursor[s.zone] = (zoneCursor[s.zone] + 1) % list.length;
+      var candidate = list[zoneCursor[s.zone]];
+      if (!occupied[String(candidate.id)]) { next = candidate; break; }
+    }
+    if (!next) return;
     s.asset = next;
     fillCard(s.btn, next, s.zone);
 
@@ -1192,6 +1214,18 @@
   function showImageAsset(asset){
     var imageUrl = asset.image_url || asset.thumbnail;
     if (!imageUrl) return false;
+    var presenter = window.TimrXViewer && window.TimrXViewer.presentAsset;
+    if (typeof presenter === 'function'){
+      ensureAuxViewerClose('imageViewer');
+      Promise.resolve(presenter('image', imageUrl, {
+        title: asset.title || 'Image Preview',
+        hint: asset.prompt || 'Opened from the live asset stage.',
+        alt: asset.title || asset.prompt || 'Asset image'
+      })).then(function(opened){
+        if (opened) setViewerInfo(asset, 'image');
+      });
+      return true;
+    }
     showViewerShell('image');
     var showImage = (window.TimrXViewer && window.TimrXViewer.showImageInViewer) ||
       (window.Viewer && window.Viewer.showImageInViewer);
@@ -1223,6 +1257,18 @@
   function showVideoAsset(asset){
     var videoUrl = asset.video_url || asset.url;
     if (!videoUrl) return false;
+    var presenter = window.TimrXViewer && window.TimrXViewer.presentAsset;
+    if (typeof presenter === 'function'){
+      ensureAuxViewerClose('videoViewer');
+      Promise.resolve(presenter('video', videoUrl, {
+        title: asset.title || 'Video Preview',
+        hint: asset.prompt || 'Opened from the live asset stage.',
+        autoplay: true
+      })).then(function(opened){
+        if (opened) setViewerInfo(asset, 'video');
+      });
+      return true;
+    }
     showViewerShell('video');
     var showVideo = (window.TimrXViewer && window.TimrXViewer.showVideoInViewer) ||
       (window.Viewer && window.Viewer.showVideoInViewer);
@@ -1282,6 +1328,18 @@
 
   function showModelAsset(asset){
     var modelUrl = asset.model_url || asset.glb_url || asset.stl_url || asset.url;
+    var presenter = window.TimrXViewer && window.TimrXViewer.presentAsset;
+    if (modelUrl && typeof presenter === 'function'){
+      setViewerInfo(Object.assign({}, asset, { prompt:'Loading the original 3D asset...' }), 'model');
+      Promise.resolve(presenter('model', modelUrl, {
+        title: asset.title || '3D Model',
+        hint: asset.prompt || 'Opened from the live asset stage.',
+        isStl: /\.stl(?:[?#]|$)/i.test(String(modelUrl))
+      })).then(function(opened){
+        if (opened) setViewerInfo(asset, 'model');
+      });
+      return true;
+    }
     showViewerShell('model');
     var modelV = document.getElementById('model3dViewer');
     var imageV = document.getElementById('imageViewer');

@@ -204,7 +204,11 @@ function workspacePanelAlreadyShowing(type) {
  */
 export function activateWorkspacePanelForViewer(type) {
     const assetType = normalizeAssetType(type);
-    if (workspacePanelAlreadyShowing(assetType)) return;
+    // A model panel can be marked active before its lazy Three.js scene has
+    // booted. Re-enter that panel once so the first asset click initializes
+    // the renderer instead of failing until a local upload wakes it up.
+    const modelViewerReady = !!(window.timrx3D?.scene && window.timrx3D?.renderer);
+    if (workspacePanelAlreadyShowing(assetType) && (assetType !== 'model' || modelViewerReady)) return;
 
     try { window.TimrXSheet?.close?.(); } catch (_) { /* sheet not booted */ }
 
@@ -225,6 +229,26 @@ export function activateWorkspacePanelForViewer(type) {
         window._timrxSuppressHistoryFilterReset = false;
     }
     try { window.TimrXSheet?.close?.(); } catch (_) { /* sheet not booted */ }
+}
+
+function waitForModelViewerReady(timeoutMs = 8000) {
+    if (isViewerReady()) return Promise.resolve(true);
+
+    const started = Date.now();
+    return new Promise((resolve) => {
+        function check() {
+            if (isViewerReady()) {
+                resolve(true);
+                return;
+            }
+            if (window.timrxViewerAvailable === false || Date.now() - started >= timeoutMs) {
+                resolve(false);
+                return;
+            }
+            window.setTimeout(check, 60);
+        }
+        check();
+    });
 }
 
 /**
@@ -340,6 +364,17 @@ export async function presentAsset(type, url, meta = {}) {
         title: meta.title,
         hint: `Loading ${meta.title || 'model'}...`,
     });
+
+    if (!(await waitForModelViewerReady())) {
+        setViewerHeader({
+            title: meta.title,
+            hint: 'The 3D viewer could not be initialized.',
+        });
+        if (window.showToast) {
+            window.showToast('3D viewer could not be initialized. Please try again.', 'error');
+        }
+        return false;
+    }
 
     const useStl = meta.isStl ?? /\.stl(?:[?#]|$)/i.test(src);
     try {

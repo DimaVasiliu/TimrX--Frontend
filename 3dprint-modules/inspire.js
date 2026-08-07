@@ -25,7 +25,7 @@
 
   const CONFIG = {
     SESSION_KEY: 'timrx_inspire_session_shown', // sessionStorage key for one-time auto-open
-    CACHE_KEY: 'timrx_inspire_cache',
+    CACHE_KEY: 'timrx_inspire_cache_v2',
     CACHE_TTL: 5 * 60 * 1000, // 5 minutes
     API_BASE: `${BACKEND}/api/_mod`,
     FALLBACK_API_BASE: `${PROD_BACKEND}/api/_mod`,
@@ -504,7 +504,8 @@
   function dedupeCards(cards = []) {
     const seen = new Set();
     return cards.filter(card => {
-      const key = card.video_url || card.videoUrl || card.thumb_preview || card.thumb_url || card.thumbnail || card.thumbnail_url || card.id;
+      const rawKey = card.glb_url || card.video_url || card.videoUrl || card.image_url || card.thumb_preview || card.thumb_url || card.thumbnail || card.thumbnail_url || card.id;
+      const key = String(rawKey || '').split('?')[0].split('#')[0].replace(/\/+$/, '').toLowerCase();
       if (!key) return true;
       if (seen.has(key)) return false;
       seen.add(key);
@@ -522,6 +523,7 @@
     }
 
     const params = new URLSearchParams({
+      surface: 'inspire',
       type: 'all',
       shuffle: 'false', // Get consistent results, we shuffle locally
       limit: String(POOL_FETCH_LIMIT),
@@ -708,6 +710,7 @@
       updateLoadingState();
 
       const params = new URLSearchParams({
+        surface: 'inspire',
         type: type === 'all' ? 'all' : type === 'models' ? 'model' : type === 'images' ? 'image' : type === 'videos' ? 'video' : type,
         shuffle: String(shuffle),
         limit: String(limit),

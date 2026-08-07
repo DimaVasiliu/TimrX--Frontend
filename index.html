@@ -680,9 +680,10 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
       io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;if(e.isIntersecting){var pr=v.play&&v.play();if(pr&&pr.catch)pr.catch(function(){});}else if(v.pause){v.pause();}});},{rootMargin:'140px',threshold:.01});
       track.querySelectorAll('video.show-video').forEach(function(v){io.observe(v);});
     }
+    function mediaKey(c){return String(thumb(c)||c.video_url||c.glb_url||c.id||'').split('?')[0].split('#')[0].replace(/\/+$/,'').toLowerCase();}
     function render(cards){
       var seen={},pick=[];
-      cards.forEach(function(c){var key=thumb(c)||c.video_url;if(!key||seen[key])return;seen[key]=1;pick.push(c);});
+      cards.forEach(function(c){var key=mediaKey(c);if(!key||seen[key])return;seen[key]=1;pick.push(c);});
       if(pick.length<4)return;
       pick=pick.slice(0,20);
       var u1=0,g='';pick.forEach(function(c,i){var ap=kind(c)==='video'&&u1<videoBudget;if(ap)u1++;g+=fig(c,i,false,ap);});g+=exp(pick.length,false);
@@ -693,7 +694,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
     }
     function run(){
       var ctrl=('AbortController'in window)?new AbortController():null,to=setTimeout(function(){ctrl&&ctrl.abort();},8000);
-      fetch(BACKEND+'/api/_mod/inspire/feed?type=all&mix=balanced&shuffle=true&limit=48',{mode:'cors',cache:'no-store',signal:ctrl?ctrl.signal:undefined})
+      fetch(BACKEND+'/api/_mod/inspire/feed?surface=homepage&type=all&mix=balanced&shuffle=true&limit=48',{mode:'cors',cache:'no-store',signal:ctrl?ctrl.signal:undefined})
         .then(function(r){return r.ok?r.json():null;})
         .then(function(d){clearTimeout(to);if(!d||d.ok===false)return;var cards=d.cards||(d.data&&d.data.cards)||d.items||[];if(cards&&cards.length)render(cards);})
         .catch(function(){clearTimeout(to);});

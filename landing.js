@@ -87,6 +87,23 @@
 	    const initials=name=>String(name||'CR').split(/\s+/).slice(0,2).map(part=>part.charAt(0).toUpperCase()).join('')||'CR';
 	    const reactions=item=>Object.keys(item.reactions||{}).reduce((sum,key)=>sum+(Number(item.reactions[key])||0),0);
 	    const setStatus=text=>{if(communityStatus)communityStatus.lastChild.nodeValue=' '+text};
+	    const curatedModelTerms=/\b(animal|architecture|astronaut|automaton|bear|bird|building|castle|cat|character|creature|dinosaur|dog|dragon|drone|fantasy|figurine|fox|furniture|helmet|knight|lantern|machine|mascot|mech|miniature|monster|orc|owl|prop|robot|rover|sculpture|spaceship|statue|sword|temple|tree|vehicle|warrior|weapon|wolf|wyrm)\b/i;
+	    const privateModelTerms=/\b(boy|face|family photo|female|girl|group photo|human|man|male|my face|people|person|photo of me|portrait|real person|selfie|woman)\b/i;
+	    function curateHomepagePosts(items){
+	      const seen=new Set();
+	      return items.filter(item=>{
+	        const media=String(thumb(item)||'').split('?')[0].split('#')[0].replace(/\/+$/,'').toLowerCase();
+	        if(!media||seen.has(media))return false;
+	        const type=String(item.gen_type||item.asset_type||'').toLowerCase();
+	        if(type.includes('image to 3d'))return false;
+	        if(type.includes('3d')||type.includes('model')){
+	          const text=[item.asset&&item.asset.title,item.title,item.prompt_public,item.prompt].filter(Boolean).join(' ');
+	          if(privateModelTerms.test(text)||!curatedModelTerms.test(text))return false;
+	        }
+	        seen.add(media);
+	        return true;
+	      });
+	    }
 	    function pick(items,count){
 	      const pool=items.slice();
 	      for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
@@ -131,9 +148,9 @@
 	      window.dataLayer=window.dataLayer||[];
 	      window.dataLayer.push({event:'cta_click',cta_name:link.dataset.track,cta_url:link.getAttribute('href'),page_type:'platform_landing'});
 	    });
-	    fetch('https://3d.timrx.live/api/_mod/community/feed?limit=18&sort=popular',{credentials:'include'})
+	    fetch('https://3d.timrx.live/api/_mod/community/feed?limit=48&sort=popular',{credentials:'include'})
 	      .then(response=>response.ok?response.json():null)
-	      .then(data=>{const items=((data&&(data.items||data.posts))||data||[]).filter(item=>thumb(item));showcasePool=items;if(!items.length){render([],false);setStatus('Community feed loading soon');return}render(pick(items,Math.min(visibleCount,items.length)),false);setStatus(items.length+' community creations live');restartShuffleTimer()})
+	      .then(data=>{const items=curateHomepagePosts(((data&&(data.items||data.posts))||data||[]).filter(item=>thumb(item)));showcasePool=items;if(!items.length){render([],false);setStatus('Curated community picks loading soon');return}render(pick(items,Math.min(visibleCount,items.length)),false);setStatus(items.length+' curated creations live');restartShuffleTimer()})
 	      .catch(()=>{communityGrid.innerHTML='<div class="ls-empty">Community creations loading soon.</div>';setStatus('Community feed loading soon')});
 	  }
 	  (function initResourceModals(){
