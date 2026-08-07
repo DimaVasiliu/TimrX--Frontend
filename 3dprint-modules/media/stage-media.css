@@ -67,6 +67,35 @@
 /* Tablet and phone landing composition. The neural field, projected sentence
    and asset cards are separate depth planes; none should erase another. */
 @media (max-width: 1000px) {
+  html {
+    height:100%;
+    overflow:hidden;
+    overscroll-behavior:none;
+  }
+
+  body.print3d-page:not(.ws-viewer-open) {
+    height:100svh;
+    min-height:100svh;
+    overflow:hidden;
+    overscroll-behavior:none;
+  }
+
+  body.print3d-page:not(.ws-viewer-open) .timrx-3dprint {
+    height:100svh;
+    min-height:100svh;
+    overflow:hidden;
+  }
+
+  body.print3d-page:not(.ws-viewer-open) .ws-grid {
+    height:calc(100svh - var(--ws-navH, 70px));
+    min-height:0;
+    overflow:hidden;
+  }
+
+  .ws-stage__field {
+    inset:12px 0 calc(var(--ws-cmdbar-zone) - 10px) 0;
+  }
+
   .ws-stage {
     background:
       radial-gradient(circle at 50% 43%, rgba(255,179,71,.055), transparent 31%),
@@ -103,21 +132,15 @@
 
   .thought-engine__human { opacity:.48; }
 
-  .timrx-3dprint .ws-mobile-tabs {
-    position:relative;
-    z-index:45;
-    background:rgba(7,13,15,.7);
-    border-color:rgba(176,222,221,.2);
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 34px rgba(0,0,0,.18);
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-  }
+  .timrx-3dprint .ws-mobile-tabs { display:none !important; }
 
   .hero-seq__line {
+    width:min(92vw, 860px) !important;
     max-width:calc(100vw - 40px) !important;
     translate:0 -8svh;
     font-size:clamp(24px,5.2vw,42px) !important;
     line-height:1.14;
+    white-space:normal;
     text-wrap:balance;
   }
 }
@@ -126,7 +149,7 @@
    half-cut (measured: slots at left:-11px / right:+15px on 320–600px). */
 @media (max-width: 600px) {
   .ws-stage__field {
-    inset: 66px 10px calc(var(--ws-cmdbar-zone) - 6px) 10px;
+    inset: 10px 10px calc(var(--ws-cmdbar-zone) - 6px) 10px;
   }
 
   .thought-engine {
@@ -136,7 +159,7 @@
   }
 
   .hero-seq__line {
-    width:max-content;
+    width:calc(100vw - 32px) !important;
     max-width:calc(100vw - 32px) !important;
     translate:0 -9svh;
     font-size:clamp(22px,6.2vw,30px) !important;
