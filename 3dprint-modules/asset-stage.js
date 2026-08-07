@@ -80,6 +80,30 @@
     'Coral reef automaton, brass ribs threaded with living polyps'
   ];
 
+  /* Real, bundled TimrX work used only while the public feed is unavailable
+     or has no explicitly shared rows. These files ship with the workspace, so
+     the landing stage never falls back to abstract placeholder geometry. */
+  var BUNDLED_FALLBACKS = [
+    { id:'repo-model-1', type:'model', thumbnail:'img/model-posters/mod1.png', glb_url:'vid/models/mod1.glb', prompt:'Detailed fantasy creature collectible with a clean game-ready silhouette', aspect:'square' },
+    { id:'repo-model-2', type:'model', thumbnail:'img/model-posters/mod2.png', glb_url:'vid/models/mod2.glb', prompt:'Stylized character model prepared for a polished 3D workflow', aspect:'square' },
+    { id:'repo-model-3', type:'model', thumbnail:'img/model-posters/mod3.png', glb_url:'vid/models/mod3.glb', prompt:'Production-ready sci-fi character with refined surface detail', aspect:'square' },
+    { id:'repo-model-4', type:'model', thumbnail:'img/model-posters/mod4.png', glb_url:'vid/models/mod4.glb', prompt:'Ornate fantasy model built as a premium digital collectible', aspect:'square' },
+    { id:'repo-model-5', type:'model', thumbnail:'img/model-posters/mod5.png', glb_url:'vid/models/mod5.glb', prompt:'Detailed creature sculpture with a strong printable silhouette', aspect:'square' },
+    { id:'repo-model-6', type:'model', thumbnail:'img/model-posters/mod6.png', glb_url:'vid/models/mod6.glb', prompt:'Hero character asset with cinematic materials and proportions', aspect:'square' },
+    { id:'repo-image-1', type:'image', thumbnail:'img/AI-img-gen-1.png', image_url:'img/AI-img-gen-1.png', prompt:'Cinematic AI concept artwork generated in TimrX', aspect:'portrait' },
+    { id:'repo-image-2', type:'image', thumbnail:'img/AI-img-gen-2.png', image_url:'img/AI-img-gen-2.png', prompt:'Detailed editorial visual generated in TimrX', aspect:'portrait' },
+    { id:'repo-image-3', type:'image', thumbnail:'img/AI-img-gen-3.png', image_url:'img/AI-img-gen-3.png', prompt:'Premium character artwork generated in TimrX', aspect:'portrait' },
+    { id:'repo-image-4', type:'image', thumbnail:'img/AI-img-gen-4.png', image_url:'img/AI-img-gen-4.png', prompt:'Atmospheric production artwork generated in TimrX', aspect:'portrait' },
+    { id:'repo-image-5', type:'image', thumbnail:'img/AI-img-gen-5.png', image_url:'img/AI-img-gen-5.png', prompt:'High-detail creative image generated in TimrX', aspect:'portrait' },
+    { id:'repo-image-6', type:'image', thumbnail:'img/AI-img-gen-6%2019.07.03.png', image_url:'img/AI-img-gen-6%2019.07.03.png', prompt:'Polished AI visual generated in TimrX', aspect:'portrait' },
+    { id:'repo-video-1', type:'video', thumbnail:'img/video-posters/vid1.jpg', video_url:'vid/vid1.mp4', prompt:'Cinematic motion study generated in TimrX', aspect:'portrait' },
+    { id:'repo-video-2', type:'video', thumbnail:'img/video-posters/vid2.jpg', video_url:'vid/vid2.mp4', prompt:'Short-form AI video generated in TimrX', aspect:'portrait' },
+    { id:'repo-video-3', type:'video', thumbnail:'img/video-posters/vid3.jpg', video_url:'vid/vid3.mp4', prompt:'Dynamic character sequence generated in TimrX', aspect:'portrait' },
+    { id:'repo-video-4', type:'video', thumbnail:'img/video-posters/vid4.jpg', video_url:'vid/vid4.mp4', prompt:'Cinematic environment clip generated in TimrX', aspect:'portrait' },
+    { id:'repo-video-5', type:'video', thumbnail:'img/video-posters/vid5.jpg', video_url:'vid/vid5.mp4', prompt:'Creative motion concept generated in TimrX', aspect:'portrait' },
+    { id:'repo-video-6', type:'video', thumbnail:'img/video-posters/vid6.jpg', video_url:'vid/vid6.mp4', prompt:'Production-style AI video generated in TimrX', aspect:'portrait' }
+  ];
+
   function svgTile(i){
     var p = PALETTE[i % PALETTE.length], a = p[0], b = p[1], u = 's'+i;
     var shape = [
@@ -132,13 +156,9 @@
   }
 
   function fallbackPool(){
-    var out = [], types = ['model','image','video'], aspects = ['square','portrait','landscape'];
-    for (var i=0;i<16;i++){
-      out.push({ id:'fb-'+i, type:types[i%3], thumbnail:svgTile(i),
-                 prompt:FALLBACK_PROMPTS[i % FALLBACK_PROMPTS.length],
-                 aspect:aspects[(i*2)%3], _fallback:true });
-    }
-    return out;
+    return BUNDLED_FALLBACKS.map(function(asset){
+      return Object.assign({ _fallback:true }, asset);
+    });
   }
 
   function normalize(cards){
@@ -770,9 +790,19 @@
     /* Types that did not earn a rail fall back into the centre scatter, so a
        feed of nothing but images still fills the stage instead of leaving two
        thirds of it empty. */
-    var corePool = groups.model.slice();
-    if (!geom.hasReel)  corePool = corePool.concat(groups.video);
-    if (!geom.hasSheet) corePool = corePool.concat(groups.image);
+    var corePool = [];
+    if (geom.narrow) {
+      var compactCount = Math.max(groups.model.length, groups.video.length, groups.image.length);
+      for (var compactIndex = 0; compactIndex < compactCount; compactIndex++) {
+        if (groups.model[compactIndex]) corePool.push(groups.model[compactIndex]);
+        if (groups.video[compactIndex]) corePool.push(groups.video[compactIndex]);
+        if (groups.image[compactIndex]) corePool.push(groups.image[compactIndex]);
+      }
+    } else {
+      corePool = groups.model.slice();
+      if (!geom.hasReel)  corePool = corePool.concat(groups.video);
+      if (!geom.hasSheet) corePool = corePool.concat(groups.image);
+    }
     if (!corePool.length) corePool = pool.slice();
 
     root.classList.toggle('af--has-reel',  !!geom.hasReel);

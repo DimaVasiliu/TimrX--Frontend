@@ -275,10 +275,14 @@
             if (!destroyed && thoughtEngine) thoughtEngine.setState('idle');
           }, 1300);
         }
-        lineEl.classList.add('is-out');
-        // Compact screens have less ambient artwork around the sentence. Keep
-        // the gap short so the landing state never turns into an empty field.
-        cycleTimer = setTimeout(runSequence, compactViewport() ? 650 : 2300);
+        if (compactViewport()) {
+          // Keep a phrase present on compact screens. The next typing pass
+          // replaces it directly instead of fading to an empty centre first.
+          cycleTimer = setTimeout(runSequence, 80);
+        } else {
+          lineEl.classList.add('is-out');
+          cycleTimer = setTimeout(runSequence, 2300);
+        }
       }, compactViewport() ? 4200 : CFG.HOLD_MS);
     });
   }
@@ -432,7 +436,7 @@
     // tablets. Only an actual interactive control should end it there; taps
     // and swipes on the ambient stage keep the thought engine alive.
     if (e.type === 'pointerdown' && compactViewport() && e.target.closest &&
-        !e.target.closest('a,button,input,textarea,select,[role="button"],[role="tab"]')) return;
+        !e.target.closest('.ws-cmd-trigger,.ws-corner-launcher,.ws-prompt-guide-launcher')) return;
     dismiss();
     removeIntentListeners();
   }
