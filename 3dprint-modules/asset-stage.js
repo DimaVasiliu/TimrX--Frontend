@@ -270,6 +270,22 @@
   var REEL_MIN = 3;
   var SHEET_MIN = 6;
 
+  /* Tallest a core card gets relative to its width: `--ar` is width/height and
+     the narrowest aspect in play is portrait (0.78), so height tops out at
+     1/0.78 of the width. Rounded up to absorb the drift keyframes, which
+     translate a card by up to 7% of its own box. */
+  var CARD_H_MAX = 1.38;
+
+  /* Keep a card's centre far enough from the field edge that the whole box
+     stays inside it. `size` and `extent` are both px on the same axis; the
+     margin is expressed as a fraction of the field. Degenerate cases (a card
+     wider than the field) collapse to dead centre rather than inverting. */
+  function clampCentre(v, size, extent){
+    var half = (size / 2) / Math.max(1, extent) + 0.012;
+    if (half >= 0.5) return 0.5;
+    return Math.max(half, Math.min(1 - half, v));
+  }
+
   function zoneGeometry(groups, w){
     var narrow  = w < 1080;
     var hasReel  = !narrow && groups.video.length >= REEL_MIN;
@@ -703,7 +719,7 @@
   /* CENTRE — models, unchanged in spirit.
      Organic scatter, three depth tiers, drift keyframes, and the only zone the
      thought engine pushes (hero-sequence.js filters on data-af-zone="core"). */
-  function buildCore(models, geom, w, h){
+  function buildCore(models, geom, w, h, fw, fh){
     if (!models.length) return [];
 
     var zone = document.createElement('div');
@@ -732,9 +748,16 @@
       var slot = rec.el;
 
       if (i === heroIndex) slot.classList.add('is-hero');
-      slot.style.setProperty('--x', (sp.x*100).toFixed(2)+'%');
-      slot.style.setProperty('--y', (sp.y*100).toFixed(2)+'%');
-      slot.style.setProperty('--w', Math.round(bw * tier.s)+'px');
+      /* `.af__slot` is centred on (--x,--y) via translate:-50%, and the band
+         runs to 0.96 on a narrow stage. A card centred there hangs half its
+         width past the field, and since `.ws-stage` is overflow:hidden and
+         viewport-width at <=1280, the screen edge cuts it in two rather than
+         letting it drift off. Pull the centre in by the card's own half-size
+         so every card lands whole. */
+      var cardW = Math.round(bw * tier.s);
+      slot.style.setProperty('--x', (clampCentre(sp.x, cardW, fw || w)*100).toFixed(2)+'%');
+      slot.style.setProperty('--y', (clampCentre(sp.y, cardW * CARD_H_MAX, fh || h)*100).toFixed(2)+'%');
+      slot.style.setProperty('--w', cardW+'px');
       slot.style.setProperty('--o', tier.o);
       slot.style.setProperty('--blur', tier.blur+'px');
       slot.style.setProperty('--par', tier.par);
@@ -775,6 +798,14 @@
     var w = root.clientWidth, h = root.clientHeight;
     if (!w || !h) return;
 
+    /* Slot percentages resolve against the FIELD, which is inset from the
+       stage (74px of switcher clearance at the top, the command-bar zone at
+       the bottom). Density and band geometry stay on the stage box — changing
+       those would resize every card — but the edge clamp has to measure the
+       box the percentages actually refer to, or it under-corrects vertically
+       by the height of both pieces of chrome. */
+    var fw = fieldEl.clientWidth || w, fh = fieldEl.clientHeight || h;
+
     /* The grid box can run past the bottom of the viewport (see --af-overflow
        in asset-stage.css). Measure it so the bottom fade is anchored to what
        the user can actually see, not to the grid's nominal height. */
@@ -813,7 +844,7 @@
     fieldEl.textContent = '';
     slots = []
       .concat(buildReel(groups.video, geom, w, h))
-      .concat(buildCore(corePool, geom, w, h))
+      .concat(buildCore(corePool, geom, w, h, fw, fh))
       .concat(buildSheet(groups.image, geom, w, h));
 
     requestAnimationFrame(function(){ root.style.setProperty('--af-in','1'); });

@@ -81,4 +81,4 @@
 /* 16. Responsive layer for the stage + bottom chrome — imported LAST on
    purpose: it corrects nav.css launcher geometry and asset-stage safe areas
    per breakpoint (see the file header for the audit that produced it). */
-@import url('media/stage-media.css?v=20260807d');
+@import url('media/stage-media.css?v=20260807e');

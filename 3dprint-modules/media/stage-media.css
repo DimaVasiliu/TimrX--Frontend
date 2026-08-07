@@ -92,8 +92,15 @@
     overflow:hidden;
   }
 
+  /* 74px of top clearance is the panel-switcher's footprint (it floats in the
+     first ~64px below the header, see §1 above). 38ed2a1 cut this to 12px
+     because it had just hidden the switcher; the switcher is back, so the
+     clearance has to come back with it or cards ride under the pill.
+     The side insets are not cosmetic: `.ws-stage` is overflow:hidden and
+     pinned to the viewport at <=1280, so a card centred near the band edge
+     gets sliced in half by the screen edge instead of drifting past it. */
   .ws-stage__field {
-    inset:12px 0 calc(var(--ws-cmdbar-zone) - 10px) 0;
+    inset:74px 14px calc(var(--ws-cmdbar-zone) - 10px) 14px;
   }
 
   .ws-stage {
@@ -132,7 +139,50 @@
 
   .thought-engine__human { opacity:.48; }
 
-  .timrx-3dprint .ws-mobile-tabs { display:none !important; }
+  /* PANEL SWITCHER — the only way into Controls / My Assets on a touch screen.
+     38ed2a1 hid it outright, which left the phone with a command bar and
+     nothing else: the stage filled the screen and both panels became
+     unreachable. `.ws-left` is position:fixed (panel.css) and `.ws-right` is a
+     modal, so neither can be scrolled to — the switcher IS the navigation.
+
+     It is fixed rather than in-flow because `.ws-grid` is a 100svh clipped box
+     at this width; an in-flow bar is its only unpositioned child and would be
+     pinned under the header with no way to reach it. z-index 57 sits under the
+     header (60) and under an open `.ws-left` (58), so an open panel covers it
+     rather than fighting it. */
+  .timrx-3dprint .ws-mobile-tabs {
+    display:flex;
+    position:fixed;
+    top:calc(var(--ws-navH, 70px) + 8px);
+    left:50%;
+    translate:-50% 0;
+    z-index:57;
+    width:auto;
+    max-width:calc(100vw - 24px);
+    margin:0;
+    gap:6px;
+    padding:5px 6px;
+    background:rgba(7,13,15,.7);
+    border:1px solid rgba(176,222,221,.2);
+    border-radius:14px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 34px rgba(0,0,0,.28);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+  }
+
+  .timrx-3dprint .ws-mobile-tab {
+    flex:0 1 auto;
+    padding:9px 18px;
+    white-space:nowrap;
+  }
+
+  /* Whatever it opened now owns the screen — get the pill out of the way so it
+     never floats over a sheet or the viewer. */
+  body.assets-modal-open .timrx-3dprint .ws-mobile-tabs,
+  body.ws-panel-open .timrx-3dprint .ws-mobile-tabs {
+    opacity:0;
+    pointer-events:none;
+  }
 
   .hero-seq__line {
     width:min(92vw, 860px) !important;
@@ -149,7 +199,7 @@
    half-cut (measured: slots at left:-11px / right:+15px on 320–600px). */
 @media (max-width: 600px) {
   .ws-stage__field {
-    inset: 10px 10px calc(var(--ws-cmdbar-zone) - 6px) 10px;
+    inset: 70px 12px calc(var(--ws-cmdbar-zone) - 6px) 12px;
   }
 
   .thought-engine {
