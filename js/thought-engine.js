@@ -8,16 +8,9 @@
   'use strict';
 
   var PARTICLES = [
-    /* inner cluster */
-    [-22, -14, 1.2], [18, -22, 1.5], [32, 10, 1.3], [12, 28, 1.6],
-    [-28, 18, 1.1], [-8, -36, 1.4], [36, -14, 1.0], [-36, 26, 1.2],
-    /* mid ring — brain-wide spread */
-    [-58, -22, .9], [-44, -52, 1.1], [14, -62, 1.3], [52, -42, .9],
-    [68, 8,  .8],  [58, 44,  1.0], [22, 66,  1.2], [-22, 64, .9],
-    [-64, 32, .8], [-72, -8, .7],
-    /* outer sparse — wider x to fill brain lobes */
-    [-84, -18, .6], [82, -12, .6], [-52, -74, .7], [50, -72, .7],
-    [-48, 78, .6],  [44, 76,  .6]
+    [-38, -18, 1.4], [-12, -48, 1.8], [28, -38, 1.2], [52, -4, 1.5],
+    [36, 34, 1.1], [8, 49, 1.7], [-31, 39, 1.3], [-53, 12, 1.1],
+    [-67, -33, .9], [66, 22, .9], [-18, 70, .8], [20, -69, .9]
   ];
 
   function makeParticles(host) {
@@ -42,33 +35,16 @@
     engine.dataset.state = 'idle';
     engine.setAttribute('aria-hidden', 'true');
     engine.innerHTML =
-      /* 6 orbital rings — 3D brain wireframe */
       '<span class="thought-engine__orbit thought-engine__orbit--a"></span>' +
       '<span class="thought-engine__orbit thought-engine__orbit--b"></span>' +
       '<span class="thought-engine__orbit thought-engine__orbit--c"></span>' +
-      '<span class="thought-engine__orbit thought-engine__orbit--d"></span>' +
-      '<span class="thought-engine__orbit thought-engine__orbit--e"></span>' +
-      '<span class="thought-engine__orbit thought-engine__orbit--f"></span>' +
-      /* 5 filaments — neural pathway arcs */
       '<span class="thought-engine__filament thought-engine__filament--a"></span>' +
       '<span class="thought-engine__filament thought-engine__filament--b"></span>' +
-      '<span class="thought-engine__filament thought-engine__filament--c"></span>' +
-      '<span class="thought-engine__filament thought-engine__filament--d"></span>' +
-      '<span class="thought-engine__filament thought-engine__filament--e"></span>' +
-      /* 8 neuron pulses */
       '<span class="thought-engine__thought thought-engine__thought--a"></span>' +
       '<span class="thought-engine__thought thought-engine__thought--b"></span>' +
       '<span class="thought-engine__thought thought-engine__thought--c"></span>' +
-      '<span class="thought-engine__thought thought-engine__thought--d"></span>' +
-      '<span class="thought-engine__thought thought-engine__thought--e"></span>' +
-      '<span class="thought-engine__thought thought-engine__thought--f"></span>' +
-      '<span class="thought-engine__thought thought-engine__thought--g"></span>' +
-      '<span class="thought-engine__thought thought-engine__thought--h"></span>' +
-      /* dimensional axis guides */
       '<span class="thought-engine__axis thought-engine__axis--x"></span>' +
       '<span class="thought-engine__axis thought-engine__axis--y"></span>' +
-      /* brain fold — interhemispheric groove */
-      '<span class="thought-engine__fold"></span>' +
       '<span class="thought-engine__body">' +
         '<span class="thought-engine__core">' +
           '<img class="thought-engine__human" src="assets/thought-human-silhouette.png" alt="" aria-hidden="true">' +
