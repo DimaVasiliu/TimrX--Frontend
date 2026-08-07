@@ -64,11 +64,82 @@
   }
 }
 
+/* Tablet and phone landing composition. The neural field, projected sentence
+   and asset cards are separate depth planes; none should erase another. */
+@media (max-width: 1000px) {
+  .ws-stage {
+    background:
+      radial-gradient(circle at 50% 43%, rgba(255,179,71,.055), transparent 31%),
+      radial-gradient(ellipse at 50% 52%, rgba(41,103,110,.12), transparent 58%),
+      #071012;
+  }
+
+  .ws-stage__wash {
+    opacity:calc(.98 * var(--af-in));
+  }
+
+  .thought-engine-canvas {
+    z-index:1;
+    opacity:.82;
+  }
+
+  .thought-engine,
+  .ws-stage.is-thought-focus .thought-engine {
+    top:45%;
+    z-index:18;
+    width:clamp(210px,34vw,300px);
+    opacity:.5;
+  }
+
+  .thought-engine[data-state="thinking"] { opacity:.68; }
+  .thought-engine[data-state="returning"] { opacity:.56; }
+
+  .thought-engine__core {
+    left:35%;
+    top:35%;
+    width:30%;
+    height:30%;
+  }
+
+  .thought-engine__human { opacity:.48; }
+
+  .timrx-3dprint .ws-mobile-tabs {
+    position:relative;
+    z-index:45;
+    background:rgba(7,13,15,.7);
+    border-color:rgba(176,222,221,.2);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 34px rgba(0,0,0,.18);
+    backdrop-filter:blur(14px);
+    -webkit-backdrop-filter:blur(14px);
+  }
+
+  .hero-seq__line {
+    max-width:calc(100vw - 40px) !important;
+    translate:0 -8svh;
+    font-size:clamp(24px,5.2vw,42px) !important;
+    line-height:1.14;
+    text-wrap:balance;
+  }
+}
+
 /* Phones: keep the collage off the screen edges so cards stop rendering
    half-cut (measured: slots at left:-11px / right:+15px on 320–600px). */
 @media (max-width: 600px) {
   .ws-stage__field {
-    inset: 74px 10px calc(var(--ws-cmdbar-zone) - 6px) 10px;
+    inset: 66px 10px calc(var(--ws-cmdbar-zone) - 6px) 10px;
+  }
+
+  .thought-engine {
+    top:44%;
+    width:clamp(210px,58vw,246px);
+    opacity:.54;
+  }
+
+  .hero-seq__line {
+    width:max-content;
+    max-width:calc(100vw - 32px) !important;
+    translate:0 -9svh;
+    font-size:clamp(22px,6.2vw,30px) !important;
   }
 }
 

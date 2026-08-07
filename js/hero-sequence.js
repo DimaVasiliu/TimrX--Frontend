@@ -61,6 +61,7 @@
   var lastLineIndex = -1;
 
   function $(sel, ctx) { return (ctx || document).querySelector(sel); }
+  function compactViewport() { return window.matchMedia('(max-width: 1000px)').matches; }
 
   // ---------------------------------------------------------------- geometry
   /* Measured on mount and on resize only. Reading getBoundingClientRect in the
@@ -275,8 +276,10 @@
           }, 1300);
         }
         lineEl.classList.add('is-out');
-        cycleTimer = setTimeout(runSequence, 2300);
-      }, CFG.HOLD_MS);
+        // Compact screens have less ambient artwork around the sentence. Keep
+        // the gap short so the landing state never turns into an empty field.
+        cycleTimer = setTimeout(runSequence, compactViewport() ? 650 : 2300);
+      }, compactViewport() ? 4200 : CFG.HOLD_MS);
     });
   }
 
@@ -425,16 +428,23 @@
     if (e.type === 'keydown' && ['Shift', 'Alt', 'Control', 'Meta'].indexOf(e.key) > -1) return;
     if (e.type === 'pointerdown' && e.target.closest &&
         e.target.closest('.af__card')) return;          // browsing the field is not intent
+    // A casual touch used to destroy the whole introduction on phones and
+    // tablets. Only an actual interactive control should end it there; taps
+    // and swipes on the ambient stage keep the thought engine alive.
+    if (e.type === 'pointerdown' && compactViewport() && e.target.closest &&
+        !e.target.closest('a,button,input,textarea,select,[role="button"],[role="tab"]')) return;
     dismiss();
     removeIntentListeners();
   }
 
   function onWheel(e) {
+    if (compactViewport()) return;
     if (e && Math.abs(e.deltaY || 0) < 3) return;
     dismiss('scroll');
   }
 
   function onScroll() {
+    if (compactViewport()) return;
     var y = window.scrollY || document.documentElement.scrollTop || 0;
     if (y < 18) return;
     dismiss('scroll');
