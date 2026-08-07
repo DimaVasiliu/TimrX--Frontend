@@ -76,7 +76,7 @@
 
 /* 15. Asset stage — the living asset field behind the workspace */
 @import url('css/asset-stage.css?v=20260806a');
-@import url('css/thought-engine.css?v=20260806b');
+@import url('css/thought-engine.css?v=20260807b');
 
 /* 16. Responsive layer for the stage + bottom chrome — imported LAST on
    purpose: it corrects nav.css launcher geometry and asset-stage safe areas
