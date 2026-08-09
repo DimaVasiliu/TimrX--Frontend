@@ -33,7 +33,11 @@
     FETCH_TIMEOUT: 8000,
     FETCH_COOLDOWN: 10000, // 10 seconds between failed retries
     MAX_CONSECUTIVE_FAILURES: 3,
-    AUTO_OPEN_DELAY: 600 // ms delay before auto-open
+    AUTO_OPEN_DELAY: 600, // ms delay before auto-open
+    // Hard ceiling on waiting for the workspace reveal. The loader's own hard
+    // cap is 8s and its veil takes ~1.3s more to lift; this sits past both so
+    // a missing signal delays the panel rather than losing it.
+    SETTLE_FALLBACK: 12000
   };
 
   console.log('[Inspire] Config initialized, API_BASE:', CONFIG.API_BASE);
@@ -907,6 +911,52 @@
 
   function getRandomPrompt() {
     return pickPromptEntry().prompt;
+  }
+
+  /**
+   * Resolves once the workspace has finished presenting itself: the loading
+   * veil is gone (timrx:workspace-revealed) and the neural canvas is past its
+   * birth ramp (timrx:brain-intro-complete). Auto-opening before that put the
+   * panel up behind the loader, so it was either invisible or arrived mid
+   * animation.
+   *
+   * Both signals are checked for having already fired, and a hard fallback
+   * guarantees the panel is never stranded if one never arrives (no WebGL,
+   * reduced motion, loader script missing).
+   */
+  function workspaceSettled() {
+    return new Promise(resolve => {
+      let veilGone = document.body.classList.contains('ws-revealed');
+      let brainDone = window.timrxNeuralBrainIntroComplete === true;
+      let settled = false;
+
+      const check = () => {
+        if (settled || !veilGone || !brainDone) return;
+        settled = true;
+        resolve();
+      };
+
+      if (!veilGone) {
+        document.addEventListener('timrx:workspace-revealed', () => {
+          veilGone = true;
+          check();
+        }, { once: true });
+      }
+      if (!brainDone) {
+        document.addEventListener('timrx:brain-intro-complete', () => {
+          brainDone = true;
+          check();
+        }, { once: true });
+      }
+
+      check();
+      setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        console.log('[Inspire] Workspace reveal signals timed out — opening anyway');
+        resolve();
+      }, CONFIG.SETTLE_FALLBACK);
+    });
   }
 
   /**
@@ -1988,25 +2038,12 @@
     overlay.setAttribute('aria-modal', 'true');
     overlay.setAttribute('aria-label', 'Inspiration gallery');
 
-    // Positioning
-    Object.assign(overlay.style, {
-      position: 'fixed',
-      top: '60px',
-      left: 'calc(12px + 44px + 12px + clamp(265px, 21vw, 345px) + 12px)',
-      right: '12px',
-      bottom: '12px',
-      zIndex: '50000',
-      background: 'rgba(8, 8, 12, 0.98)',
-      borderRadius: '16px',
-      border: '1px solid rgba(255, 255, 255, 0.08)',
-      boxShadow: '0 25px 80px rgba(0, 0, 0, 0.6)',
-      overflowY: 'auto',
-      display: 'none',
-      flexDirection: 'column',
-      opacity: '0',
-      transform: 'translateY(10px)',
-      transition: 'opacity 0.25s ease, transform 0.25s ease'
-    });
+    /* Geometry and skin live in css/inspire.css + media/inspire-media.css.
+       They used to be duplicated here as inline styles, which outranked every
+       responsive rule that lacked !important — the phone breakpoint asks for an
+       edge-to-edge panel with no radius or border and never got it. The inline
+       `overflow-y: auto` also made the overlay a second scroll container
+       stacked on .inspire-content, which already owns the scroll. */
 
     // Get initial POTD from cache or fallback
     const potd = normalizePromptEntry(memoryCache.promptOfTheDay || pickPromptEntry(promptTypeForActiveFilter()));
@@ -2302,14 +2339,16 @@
       markAutoOpenDone();
 
       if (hasContentReady) {
-        // Cache exists - open after short delay for smooth UX
-        setTimeout(() => {
-          openInspire({ isAuto: true });
-        }, CONFIG.AUTO_OPEN_DELAY);
+        // Cache exists - open once the workspace has finished revealing itself
+        workspaceSettled().then(() => {
+          setTimeout(() => {
+            openInspire({ isAuto: true });
+          }, CONFIG.AUTO_OPEN_DELAY);
+        });
       } else {
-        // No cache - wait for pool to load, then open
-        // This ensures content is ready when panel opens
-        poolLoadPromise.then(success => {
+        // No cache - need both the content AND a settled workspace, so that
+        // the panel opens with something in it, over a finished scene.
+        Promise.all([poolLoadPromise, workspaceSettled()]).then(([success]) => {
           if (success) {
             setTimeout(() => {
               openInspire({ isAuto: true });

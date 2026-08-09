@@ -35,6 +35,7 @@
   <!-- CSS -->
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tool-page.css">
+  <link rel="stylesheet" href="tx-menu.css?v=1">
   <link rel="stylesheet" href="footer.css">
 
   <!-- JSON-LD: Service -->
@@ -128,9 +129,31 @@
         <a href="/multi-color-3d-printing">Multi-Color</a>
         <a href="/blogs">Blogs</a>
       </div>
+      <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
       <a class="nav-cta nav-cta-desktop" href="/3dprint" aria-label="Open TimrX workspace">OPEN WORKSPACE</a>
     </div>
   </nav>
+
+  <!-- Mobile menu: shared component (tx-menu) -->
+  <div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>
+    <div class="tx-menu-panel">
+      <div class="tx-menu-head">
+        <span class="tx-menu-brand" aria-hidden="true">
+          <img src="img/logo.png" width="34" height="34" alt="">
+          <span>T<span>X</span></span>
+        </span>
+        <button class="tx-menu-close" type="button" aria-label="Close menu" data-tx-menu-close><span></span><span></span></button>
+      </div>
+      <nav class="tx-menu-links" aria-label="Mobile navigation">
+        <a href="/3dprint"><span>3D Print Hub</span><small>Explore the hub</small></a>
+        <a href="/pricing"><span>Pricing</span><small>Plans and credits</small></a>
+        <a href="/multi-color-3d-printing"><span>Multi-Color</span><small></small></a>
+        <a href="/blogs"><span>Blogs</span><small>Latest writing</small></a>
+      </nav>
+      <a class="tx-menu-cta" href="/3dprint">Open Workspace <span aria-hidden="true">&#8599;</span></a>
+      <div class="tx-menu-foot" data-tx-menu-watermark="TimrX creative platform"></div>
+    </div>
+  </div>
 
   <!-- Hero -->
   <section class="tool-hero">
@@ -354,5 +377,6 @@
   </footer>
   <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
   <script type="module" src="js/analytics.js"></script>
+  <script src="js/shared/tx-menu.js?v=1" defer></script>
 </body>
 </html>

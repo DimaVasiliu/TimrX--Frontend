@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="portfolio.css?v=6">
   <link rel="stylesheet" href="landing-widgets.css?v=6">
+  <link rel="stylesheet" href="tx-menu.css?v=1">
   <script>window.dataLayer=window.dataLayer||[];</script>
   <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-TH8DB6S5');</script>
   <script src="js/console-shield.js?v=1"></script>
@@ -42,9 +43,28 @@
     <a class="portfolio-brand" href="/dima-vasiliu" aria-label="Dima Vasiliu portfolio">DV<span>.</span></a>
     <nav class="portfolio-nav" aria-label="Portfolio navigation"><a href="#about">About</a><a href="#services">Services</a><a href="#works">Work</a><a href="#contact">Contact</a></nav>
     <a class="timrx-link" href="/">TimrX Platform <span>↗</span></a>
-    <button class="portfolio-menu" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="portfolioMobileNav"><span></span><span></span></button>
+    <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
   </div></header>
-  <nav class="portfolio-mobile-nav" id="portfolioMobileNav" hidden><a href="#about">About</a><a href="#services">Services</a><a href="#works">Work</a><a href="#contact">Contact</a><a href="/">TimrX Platform ↗</a></nav>
+  <!-- Mobile menu: shared component (tx-menu) -->
+  <div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>
+    <div class="tx-menu-panel">
+      <div class="tx-menu-head">
+        <span class="tx-menu-brand" aria-hidden="true">
+          <img src="img/logo.png" width="34" height="34" alt="">
+          <span>T<span>X</span></span>
+        </span>
+        <button class="tx-menu-close" type="button" aria-label="Close menu" data-tx-menu-close><span></span><span></span></button>
+      </div>
+      <nav class="tx-menu-links" aria-label="Mobile navigation">
+        <a href="#about"><span>About</span><small>Background and approach</small></a>
+        <a href="#services"><span>Services</span><small>What I build</small></a>
+        <a href="#works"><span>Work</span><small>Selected projects</small></a>
+        <a href="#contact"><span>Contact</span><small>Start a conversation</small></a>
+      </nav>
+      <a class="tx-menu-cta" href="/">TimrX Platform <span aria-hidden="true">&#8599;</span></a>
+      <div class="tx-menu-foot" data-tx-menu-watermark="Dima Vasiliu"></div>
+    </div>
+  </div>
 
   <main id="main">
     <section class="portfolio-hero"><div class="hero-grid-lines" aria-hidden="true"></div><div class="portfolio-shell hero-editorial">
@@ -137,7 +157,8 @@
   </script>
   <script src="app.js?v=5" defer></script>
   <script src="landing-widgets.js?v=3" defer></script>
-  <script src="portfolio.js?v=2" defer></script>
+  <script src="js/shared/tx-menu.js?v=1" defer></script>
+  <script src="portfolio.js?v=3" defer></script>
   <script src="js/cookie-consent.js" defer></script>
 </body>
 </html>

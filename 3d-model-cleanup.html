@@ -36,6 +36,7 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="tool-page.css">
   <link rel="stylesheet" href="footer.css">
+  <link rel="stylesheet" href="tx-menu.css?v=1">
 
   <!-- JSON-LD: SoftwareApplication -->
   <script type="application/ld+json">
@@ -207,24 +208,28 @@
         <a href="/blogs">BLOGS</a>
       </div>
       <a class="nav-cta nav-cta-desktop" href="/3dprint" aria-label="Open TimrX workspace">OPEN WORKSPACE</a>
-      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-      </button>
+      <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
     </div>
   </nav>
 
-  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
-    <div class="mobile-menu-inner">
-      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
-        <a href="/3dprint" class="mobile-nav-link"><span class="mnl-label">3D Print Hub</span><span class="mnl-sub">Explore the hub</span></a>
-        <a href="/ai-tools" class="mobile-nav-link"><span class="mnl-label">Generation Tools</span><span class="mnl-sub">All tools</span></a>
-        <a href="/blogs" class="mobile-nav-link"><span class="mnl-label">Blogs</span><span class="mnl-sub">Latest writing</span></a>
-        <a href="/3dprint" class="mobile-nav-link"><span class="mnl-label">Workspace</span><span class="mnl-sub">Start creating</span></a>
+  <!-- Mobile menu: shared component (tx-menu) -->
+  <div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>
+    <div class="tx-menu-panel">
+      <div class="tx-menu-head">
+        <span class="tx-menu-brand" aria-hidden="true">
+          <img src="img/logo.png" width="34" height="34" alt="">
+          <span>T<span>X</span></span>
+        </span>
+        <button class="tx-menu-close" type="button" aria-label="Close menu" data-tx-menu-close><span></span><span></span></button>
+      </div>
+      <nav class="tx-menu-links" aria-label="Mobile navigation">
+        <a href="/3dprint"><span>3D Print Hub</span><small>Explore the hub</small></a>
+        <a href="/ai-tools"><span>Generation Tools</span><small>All tools</small></a>
+        <a href="/blogs"><span>Blogs</span><small>Latest writing</small></a>
+        <a href="/3dprint"><span>Workspace</span><small>Start creating</small></a>
       </nav>
-      <a class="mobile-cta" href="/3dprint">OPEN WORKSPACE</a>
-      <div class="mobile-menu-footer"><span class="mobile-footer-text">TimrX</span></div>
+      <a class="tx-menu-cta" href="/3dprint">Open Workspace <span aria-hidden="true">&#8599;</span></a>
+      <div class="tx-menu-foot" data-tx-menu-watermark="TimrX creative platform"></div>
     </div>
   </div>
 
@@ -435,31 +440,16 @@
   <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
   <script>
   (function(){
-    var nav=document.querySelector('.nav'),burger=document.getElementById('navBurger'),menu=document.getElementById('mobileMenu'),lastY=0;
-    if(burger&&menu){
-      burger.addEventListener('click',function(){
-        var open=menu.classList.toggle('is-open');
-        burger.classList.toggle('is-open',open);
-        burger.setAttribute('aria-expanded',open);
-        menu.setAttribute('aria-hidden',!open);
-        document.body.style.overflow=open?'hidden':'';
-      });
-      menu.querySelectorAll('a').forEach(function(a){
-        a.addEventListener('click',function(){
-          menu.classList.remove('is-open');burger.classList.remove('is-open');
-          burger.setAttribute('aria-expanded','false');menu.setAttribute('aria-hidden','true');
-          document.body.style.overflow='';
-        });
-      });
-    }
+    var nav=document.querySelector('.nav'),lastY=0;
     window.addEventListener('scroll',function(){
       var y=window.pageYOffset;
-      if(menu&&menu.classList.contains('is-open'))return;
+      if(document.body.classList.contains('tx-menu-open'))return;
       if(y>60&&y>lastY){nav.style.transform='translateY(-100%)';}else{nav.style.transform='';}
       lastY=y;
     },{passive:true});
   })();
   </script>
   <script type="module" src="js/analytics.js"></script>
+  <script src="js/shared/tx-menu.js?v=1" defer></script>
 </body>
 </html>

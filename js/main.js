@@ -591,7 +591,7 @@ window.TimrXViewer = {
   checkViewerAvailable: Viewer.checkViewerAvailable,
 };
 
-// Legacy global. inspire.js, tutorials.js and asset-stage.js probe
+// Legacy global. inspire.js and tutorials.js probe
 // window.Viewer / window.loadGlbFromUrl first and only fall back to hand-rolled
 // DOM poking when they are missing. Those globals used to come from the
 // standalone Frontend/viewer.js, which no page loads any more — so every one of

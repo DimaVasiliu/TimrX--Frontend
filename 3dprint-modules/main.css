@@ -69,16 +69,17 @@
 @import url('css/multi-color-print.css?v=20260802f');
 
 /* 13. Workspace navigation — command trigger + command palette */
-@import url('css/nav.css?v=20260802j');
+@import url('css/nav.css?v=20260809a');
 
 /* 14. Control sheet — the tool panel */
 @import url('css/panel.css?v=20260802f');
 
-/* 15. Asset stage — the living asset field behind the workspace */
-@import url('css/asset-stage.css?v=20260806a');
-@import url('css/thought-engine.css?v=20260807b');
+/* 15. Neural intelligence background */
+@import url('css/neural-brain-background.css?v=20260809b');
+@import url('css/workspace-model-showcase.css?v=20260809r');
+@import url('css/workspace-thoughts.css?v=20260809c');
 
 /* 16. Responsive layer for the stage + bottom chrome — imported LAST on
-   purpose: it corrects nav.css launcher geometry and asset-stage safe areas
+   purpose: it corrects nav.css launcher geometry and stage safe areas
    per breakpoint (see the file header for the audit that produced it). */
-@import url('media/stage-media.css?v=20260807e');
+@import url('media/stage-media.css?v=20260809a');

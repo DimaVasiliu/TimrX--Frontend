@@ -126,22 +126,11 @@
     return '<a href="' + href + '" class="' + classes + '"' + current + trackAttr(item) + '>' + escapeHtml(item.label) + '</a>';
   }
 
-  function mobileNavLink(item, options) {
-    var opts = options || {};
-    var active = Boolean(opts.active);
-    var theme = opts.theme === 'landing' ? 'landing' : 'shell';
-    var href = resolveInternalHref(item.href);
-
-    if (theme === 'landing') {
-      return '<a href="' + href + '"' + trackAttr(item) + '><span>' + escapeHtml(item.label) + '</span>'
-        + '<small>' + escapeHtml(item.sub || '') + '</small></a>';
-    }
-
-    var classes = classList('site-shell-mobile-link', active ? 'is-active' : '');
-    return '<a href="' + href + '" class="' + classes + '"' + trackAttr(item) + '>'
-      + '<span class="site-shell-mobile-link-label">' + escapeHtml(item.label) + '</span>'
-      + '<span class="site-shell-mobile-link-sub">' + escapeHtml(item.sub || '') + '</span>'
-      + '</a>';
+  /* One row of the shared mobile menu (tx-menu.css owns the styling). */
+  function mobileNavLink(item) {
+    return '<a href="' + resolveInternalHref(item.href) + '"' + trackAttr(item) + '>'
+      + '<span>' + escapeHtml(item.label) + '</span>'
+      + '<small>' + escapeHtml(item.sub || '') + '</small></a>';
   }
 
   /* -------------------------------------------------- buttons / CTA / badge */
@@ -358,8 +347,8 @@
       + '    <div class="site-shell-nav-links">' + links + '</div>'
       + '    <div class="site-shell-nav-right">'
       + commerce
-      + '      <button class="site-shell-burger" type="button" aria-label="Open menu" aria-expanded="false" data-site-shell-burger>'
-      + '        <span></span><span></span><span></span>'
+      + '      <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger>'
+      + '        <span></span><span></span><span></span><span></span>'
       + '      </button>'
       + '    </div>'
       + '  </div>'
@@ -372,17 +361,26 @@
     var items = model.primary || [];
     var activeKey = model.activeKeyForPage ? model.activeKeyForPage(opts.page) : '';
 
+    var brandModel = model.brand || {};
     var links = items.map(function (item) {
-      return mobileNavLink(item, { active: item.key === activeKey, theme: 'shell' });
+      return mobileNavLink(item);
     }).join('');
 
+    /* Shared mobile menu — same markup as every other page.
+       See tx-menu.css / js/shared/tx-menu.js for the contract. */
     return ''
-      + '<div class="site-shell-mobile-menu" aria-hidden="true" data-site-shell-menu>'
-      + '  <div class="site-shell-mobile-panel">'
-      + '    <nav class="site-shell-mobile-nav" aria-label="Mobile navigation">' + links + '</nav>'
-      + '    <div class="site-shell-mobile-footer">'
-      + '      <span class="site-shell-mobile-footer-text">TimrX creative platform</span>'
+      + '<div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>'
+      + '  <div class="tx-menu-panel">'
+      + '    <div class="tx-menu-head">'
+      + '      <span class="tx-menu-brand" aria-hidden="true">'
+      + '        <img src="' + escapeHtml(brandModel.logo || 'img/logo.png') + '" width="34" height="34" alt="">'
+      + '        <span>T<span>X</span></span>'
+      + '      </span>'
+      + '      <button class="tx-menu-close" type="button" aria-label="Close menu" data-tx-menu-close><span></span><span></span></button>'
       + '    </div>'
+      + '    <nav class="tx-menu-links" aria-label="Mobile navigation">' + links + '</nav>'
+      + '    <a class="tx-menu-cta" href="' + resolveInternalHref('/3dprint') + '">Open Workspace <span aria-hidden="true">↗</span></a>'
+      + '    <div class="tx-menu-foot" data-tx-menu-watermark="TimrX creative platform"></div>'
       + '  </div>'
       + '</div>';
   }

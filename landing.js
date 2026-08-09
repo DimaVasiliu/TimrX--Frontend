@@ -7,63 +7,9 @@
   const legacySection={works:'works',services:'services',contact:'contact'}[window.location.hash.slice(1)];
   if(legacySection){window.location.replace(`${window.location.protocol==='file:'?'dima-vasiliu.html':'/dima-vasiliu'}#${legacySection}`);return}
   const header=document.querySelector('[data-header]');
-  const menuButton=document.querySelector('.menu-button');
-  const mobileNav=document.getElementById('mobileNav');
+  /* Mobile menu lives in js/shared/tx-menu.js — shared by every page. */
   const setHeader=()=>header?.classList.toggle('is-scrolled',window.scrollY>18);
   setHeader();window.addEventListener('scroll',setHeader,{passive:true});
-  let backdrop=document.querySelector('[data-mobile-backdrop]');
-  if(!backdrop&&mobileNav){backdrop=document.createElement('div');backdrop.className='mobile-nav-backdrop';backdrop.setAttribute('data-mobile-backdrop','');document.body.appendChild(backdrop);}
-  let menuScrollY=0;
-  const menuFocusable='a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])';
-  function menuItems(){
-    const items=mobileNav?Array.from(mobileNav.querySelectorAll(menuFocusable)).filter(el=>el.offsetParent!==null):[];
-    return menuButton?[menuButton,...items]:items;
-  }
-  function lockMenuScroll(){
-    menuScrollY=window.scrollY||document.documentElement.scrollTop||0;
-    document.body.style.top=`-${menuScrollY}px`;
-    document.body.classList.add('menu-open');
-  }
-  function unlockMenuScroll(){
-    document.body.classList.remove('menu-open');
-    document.body.style.top='';
-    window.scrollTo(0,menuScrollY);
-  }
-  function closeMenu(options){
-    if(!menuButton||!mobileNav)return;
-    const wasOpen=menuButton.getAttribute('aria-expanded')==='true';
-    menuButton.setAttribute('aria-expanded','false');
-    menuButton.setAttribute('aria-label','Open menu');
-    mobileNav.classList.remove('is-open');
-    mobileNav.setAttribute('aria-hidden','true');
-    backdrop&&backdrop.classList.remove('is-open');
-    if(wasOpen)unlockMenuScroll();
-    if(options&&options.restoreFocus!==false)menuButton.focus({preventScroll:true});
-  }
-  function openMenu(){
-    if(!menuButton||!mobileNav)return;
-    menuButton.setAttribute('aria-expanded','true');
-    menuButton.setAttribute('aria-label','Close menu');
-    mobileNav.classList.add('is-open');
-    mobileNav.setAttribute('aria-hidden','false');
-    backdrop&&backdrop.classList.add('is-open');
-    lockMenuScroll();
-    requestAnimationFrame(()=>{menuButton.focus({preventScroll:true})});
-  }
-  menuButton?.addEventListener('click',()=>{(menuButton.getAttribute('aria-expanded')==='true')?closeMenu():openMenu()});
-  mobileNav?.querySelectorAll('a').forEach(link=>link.addEventListener('click',()=>closeMenu({restoreFocus:false})));
-  backdrop?.addEventListener('click',closeMenu);
-  document.addEventListener('keydown',event=>{
-    if(menuButton?.getAttribute('aria-expanded')!=='true')return;
-    if(event.key==='Escape'){event.preventDefault();closeMenu();return}
-    if(event.key!=='Tab')return;
-    const items=menuItems();
-    if(!items.length)return;
-    const first=items[0],last=items[items.length-1];
-    if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus()}
-    else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus()}
-  });
-  window.addEventListener('resize',()=>{if(window.innerWidth>=1024)closeMenu({restoreFocus:false})},{passive:true});
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const revealItems=document.querySelectorAll('.reveal');
   if(reduced||!('IntersectionObserver'in window)){revealItems.forEach(item=>item.classList.add('is-visible'))}else{const observer=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting){entry.target.classList.add('is-visible');observer.unobserve(entry.target)}}),{threshold:.12,rootMargin:'0px 0px -30px'});revealItems.forEach(item=>observer.observe(item))}

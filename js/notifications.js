@@ -191,13 +191,7 @@ function setupMobileBellListener() {
   mobileBtn?.addEventListener('click', (e) => {
     e.stopPropagation();
     // Close mobile menu, open notification panel
-    const mobileMenu = document.getElementById('wsMobileMenu');
-    if (mobileMenu) {
-      mobileMenu.style.display = 'none';
-      mobileMenu.setAttribute('aria-hidden', 'true');
-    }
-    const burger = document.getElementById('wsBurger');
-    burger?.classList.remove('is-open');
+    window.TIMRX_MENU?.close(false);
     toggleDropdown();
   });
 }

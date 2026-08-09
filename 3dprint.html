@@ -142,13 +142,17 @@
   <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260807e">
+  <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260809a">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260809g">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
+  <link rel="stylesheet" href="tx-menu.css?v=1">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
   <script defer src="3dprint-modules/3dprint-app.js?v=20260802h"></script>
   <script defer src="3dprint-modules/inspire.js?v=20260803a"></script>
   <script defer src="3dprint-modules/community-gallery.js?v=20260802f"></script>
-  <script defer src="3dprint-modules/asset-stage.js?v=20260807e"></script>
+  <script defer src="js/neural-brain-background.js?v=20260809b"></script>
+  <script defer src="js/workspace-loader.js?v=20260809a"></script>
+  <script defer src="js/workspace-thoughts.js?v=20260809b"></script>
 
   <!-- Visually Hidden Utility + Ticker Styles -->
   <style>
@@ -178,6 +182,38 @@
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
+
+  <!-- Gate the workspace chrome arrival animations before their first frame:
+       workspace-loader.css pauses them while has-ws-loader is set without
+       ws-intro-go, and the loader releases them at handoff. Inline so the
+       class exists before any animation can start. -->
+  <script>document.body.classList.add('has-ws-loader');</script>
+  <div class="workspace-loader" id="workspaceLoader" role="status" aria-live="polite" aria-label="Preparing TimrX workspace">
+    <div class="workspace-loader__void" aria-hidden="true"></div>
+    <div class="workspace-loader__grain" aria-hidden="true"></div>
+    <div class="workspace-loader__shadow" aria-hidden="true"></div>
+    <div class="workspace-loader__halo" aria-hidden="true"></div>
+    <div class="workspace-loader__scene">
+      <div class="workspace-loader__mark">
+        <h1 class="workspace-loader__brand" aria-label="TimrX">
+          <span style="--i:0">T</span>
+          <span style="--i:1">I</span>
+          <span style="--i:2">m</span>
+          <span style="--i:3">r</span>
+          <span style="--i:4">X</span>
+        </h1>
+        <div class="workspace-loader__meter" aria-hidden="true">
+          <div class="workspace-loader__progress">
+            <span class="workspace-loader__bar" data-loader-bar></span>
+          </div>
+          <div class="workspace-loader__readout">
+            <p class="workspace-loader__percent" data-loader-percent>00%</p>
+            <p class="workspace-loader__status" data-loader-status>Initializing</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- Minimal Workspace Header -->
   <header class="ws-header" aria-label="Workspace header">
@@ -255,21 +291,24 @@
         </span>
       </span>
       <a href="/hub#pricing" class="ws-credits-buy" id="workspaceBuyBtn">Buy</a>
-      <!-- Mobile burger -->
-      <button class="ws-burger" id="wsBurger" type="button" aria-label="Open menu" aria-expanded="false">
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-      </button>
+      <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
     </div>
 
   </header>
 
-  <!-- Mobile menu overlay -->
-  <div class="ws-mobile-menu" id="wsMobileMenu" aria-hidden="true" style="display:none">
-    <div class="ws-mobile-menu-inner">
-      <!-- Credits: the header pill collapses below 900px, so balance and top-up
-           must be reachable here or they are unreachable on a phone. -->
+  <!-- Mobile menu: shared component (tx-menu). The credit rows stay because
+       the header pill collapses below 900px — balance and top-up are
+       otherwise unreachable on a phone. -->
+  <div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>
+    <div class="tx-menu-panel">
+      <div class="tx-menu-head">
+        <span class="tx-menu-brand" aria-hidden="true">
+          <img src="img/logo.png" width="34" height="34" alt="">
+          <span>T<span>X</span></span>
+        </span>
+        <button class="tx-menu-close" type="button" aria-label="Close menu" data-tx-menu-close><span></span><span></span></button>
+      </div>
+      <div class="tx-menu-extra">
       <div class="ws-mobile-credits">
         <div class="ws-mobile-credits__row">
           <span class="ws-mobile-credits__label">General credits</span>
@@ -281,122 +320,48 @@
         </div>
         <a href="/hub#pricing" class="ws-mobile-credits__buy">Buy credits</a>
       </div>
-
-      <nav class="ws-mobile-nav" role="navigation" aria-label="Mobile navigation">
-        <a href="/" class="ws-mobile-link">
-          <span class="wml-label">Home</span>
-          <span class="wml-sub">Back to the TimrX landing page</span>
-        </a>
-        <a href="/hub" class="ws-mobile-link">
-          <span class="wml-label">Hub</span>
-          <span class="wml-sub">Back to 3D Print Hub</span>
-        </a>
-        <a href="/community" class="ws-mobile-link">
-          <span class="wml-label">Community</span>
-          <span class="wml-sub">Connect, share, and grow together</span>
-        </a>
-        <a href="#my-assets" class="ws-mobile-link" data-open-assets>
-          <span class="wml-label">My Assets</span>
-          <span class="wml-sub">Your generated images, videos, and models</span>
-        </a>
-        <a href="/blogs?tag=TimrX#filter-strip" class="ws-mobile-link">
-          <span class="wml-label">Blogs</span>
-          <span class="wml-sub">Latest articles</span>
-        </a>
-        <a href="/tutorials" class="ws-mobile-link">
-          <span class="wml-label">Tutorials</span>
-          <span class="wml-sub">Learn the tools</span>
-        </a>
-        <a href="/converter" class="ws-mobile-link">
-          <span class="wml-label">Converter</span>
-          <span class="wml-sub">Convert file formats</span>
-        </a>
-        <a href="/docs" class="ws-mobile-link">
-          <span class="wml-label">Docs</span>
-          <span class="wml-sub">Platform documentation</span>
-        </a>
-        <a href="/company" class="ws-mobile-link">
-          <span class="wml-label">About</span>
-          <span class="wml-sub">About TimrX</span>
-        </a>
-        <button type="button" class="ws-mobile-link" id="mobileNotifBtn">
-          <span class="wml-label">Notifications <span class="notif-mobile-badge" id="mobileNotifBadge" hidden></span></span>
-          <span class="wml-sub">Tips, credits, job updates</span>
-        </button>
-        <a href="#inspire" class="ws-mobile-link" id="wsMobileInspire">
-          <span class="wml-label">Inspire</span>
-          <span class="wml-sub">Discover amazing creations</span>
-        </a>
-      </nav>
-      <div class="ws-mobile-footer">
-        <span class="ws-mobile-footer-text">TimrX / Creative Workspace</span>
       </div>
+      <nav class="tx-menu-links" aria-label="Mobile navigation">
+        <a href="/"><span>Home</span><small>Back to the TimrX landing page</small></a>
+        <a href="/hub"><span>Hub</span><small>Back to 3D Print Hub</small></a>
+        <a href="/community"><span>Community</span><small>Connect, share, and grow together</small></a>
+        <a href="#my-assets" data-open-assets><span>My Assets</span><small>Your generated images, videos, and models</small></a>
+        <a href="/blogs?tag=TimrX#filter-strip"><span>Blogs</span><small>Latest articles</small></a>
+        <a href="/tutorials"><span>Tutorials</span><small>Learn the tools</small></a>
+        <a href="/converter"><span>Converter</span><small>Convert file formats</small></a>
+        <a href="/docs"><span>Docs</span><small>Platform documentation</small></a>
+        <a href="/company"><span>About</span><small>About TimrX</small></a>
+        <button type="button" id="mobileNotifBtn"><span>Notifications <span class="notif-mobile-badge" id="mobileNotifBadge" hidden></span></span><small>Tips, credits, job updates</small></button>
+        <a href="#inspire" id="wsMobileInspire"><span>Inspire</span><small>Discover amazing creations</small></a>
+      </nav>
+      <div class="tx-menu-foot" data-tx-menu-watermark="TimrX / Creative Workspace"></div>
     </div>
   </div>
 
   <script>
   (function(){
-    var burger = document.getElementById('wsBurger');
-    var menu   = document.getElementById('wsMobileMenu');
-    if (!burger || !menu) return;
+    var burger = document.querySelector('[data-tx-burger]');
+    if (!burger) return;
 
-    function open(){
-      // Close any active expansion first so the menu isn't stacked on top
-      var expansionClasses = ['tutorials-view','community-view','docs-view'];
-      expansionClasses.forEach(function(cls){
+    // An open expansion would stack under the menu, so retire it first. This
+    // runs alongside the shared toggle in js/shared/tx-menu.js.
+    burger.addEventListener('click', function(){
+      if (burger.getAttribute('aria-expanded') === 'true') return;
+      var exitMap = {
+        'tutorials-view':'#tutorialsExit','community-view':'#communityExit',
+        'docs-view':'#docsExit'
+      };
+      Object.keys(exitMap).forEach(function(cls){
         if (document.body.classList.contains(cls)) {
-          var exitMap = {
-            'tutorials-view':'#tutorialsExit','community-view':'#communityExit',
-            'docs-view':'#docsExit'
-          };
           var exitBtn = document.querySelector(exitMap[cls]);
           if (exitBtn) exitBtn.click();
         }
       });
-
-      menu.style.cssText = 'display:block; position:fixed; top:0; left:0; right:0; bottom:0; width:100%; height:100%; z-index:100002; background:#080808; overflow-y:auto;';
-      requestAnimationFrame(function(){
-        burger.classList.add('is-open');
-        burger.setAttribute('aria-expanded','true');
-        burger.setAttribute('aria-label','Close menu');
-        menu.classList.add('is-open');
-        menu.setAttribute('aria-hidden','false');
-        document.body.classList.add('menu-open');
-      });
-    }
-    function close(){
-      burger.classList.remove('is-open');
-      burger.setAttribute('aria-expanded','false');
-      burger.setAttribute('aria-label','Open menu');
-      menu.classList.remove('is-open');
-      menu.setAttribute('aria-hidden','true');
-      document.body.classList.remove('menu-open');
-      setTimeout(function(){ menu.style.cssText = 'display:none;'; }, 450);
-    }
-
-    burger.addEventListener('click', function(){
-      menu.classList.contains('is-open') ? close() : open();
-    });
-
-    menu.querySelectorAll('a').forEach(function(a){
-      a.addEventListener('click', close);
-    });
-
-    document.addEventListener('keydown', function(e){
-      if (e.key === 'Escape' && menu.classList.contains('is-open')){
-        close();
-        burger.focus();
-      }
-    });
-
-    window.addEventListener('resize', function(){
-      if (window.innerWidth > 1024 && menu.classList.contains('is-open')) close();
     });
 
     var inspireBtn = document.getElementById('wsMobileInspire');
     if (inspireBtn) {
       inspireBtn.addEventListener('click', function(){
-        close();
         setTimeout(function(){
           if (window.TimrXInspire && typeof window.TimrXInspire.open === 'function') {
             window.TimrXInspire.open();
@@ -638,30 +603,21 @@
 </div>
 
 <div class="ws-corner-launcher" id="wsCornerLauncher">
-  <div class="ws-corner-launcher__menu" id="wsCornerLauncherMenu" aria-hidden="true">
-    <button type="button" class="ws-corner-launcher__item assets-side-launcher" id="assetsSideLauncher" data-open-assets>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M3 7.5A2.5 2.5 0 015.5 5h4.2l1.8 2h7A2.5 2.5 0 0121 9.5v7A2.5 2.5 0 0118.5 19h-13A2.5 2.5 0 013 16.5v-9z"/>
-        <path d="M7 13h10M7 16h6"/>
-      </svg>
-      <span>Assets</span>
-    </button>
-    <button type="button" class="ws-corner-launcher__item" id="open3dViewerBtn" data-open-3d-viewer>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/>
-        <path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/>
-      </svg>
-      <span>3D Viewer</span>
-    </button>
-  </div>
-  <button type="button" class="ws-corner-launcher__toggle" id="wsCornerLauncherToggle" aria-label="Open workspace quick actions" aria-expanded="false" aria-controls="wsCornerLauncherMenu">
-    <span class="ws-corner-launcher__pulse" aria-hidden="true"></span>
-    <svg class="ws-corner-launcher__glyph" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path class="ws-corner-launcher__glyph-frame" d="M3.9 8.4A3.7 3.7 0 0 1 7.6 4.7h5l2 2h5.8a3.7 3.7 0 0 1 3.7 3.7v9.2a3.7 3.7 0 0 1-3.7 3.7H7.6a3.7 3.7 0 0 1-3.7-3.7V8.4Z"/>
-      <path class="ws-corner-launcher__glyph-cube" d="M14 11.2 17.4 13.1v3.8L14 18.8l-3.4-1.9v-3.8L14 11.2Z"/>
-      <path class="ws-corner-launcher__glyph-cube" d="M14 15 17.4 13.1M14 15v3.8M14 15l-3.4-1.9"/>
-      <path class="ws-corner-launcher__glyph-spark" d="M21.8 5.1v2.6M20.5 6.4h2.6"/>
+  <button type="button" class="ws-corner-launcher__action ws-corner-launcher__action--assets assets-side-launcher" id="assetsSideLauncher" data-open-assets aria-label="Open assets">
+    <span class="ws-corner-launcher__beam" aria-hidden="true"></span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M3 7.5A2.5 2.5 0 015.5 5h4.2l1.8 2h7A2.5 2.5 0 0121 9.5v7A2.5 2.5 0 0118.5 19h-13A2.5 2.5 0 013 16.5v-9z"/>
+      <path d="M7 13h10M7 16h6"/>
     </svg>
+    <span>Assets</span>
+  </button>
+  <button type="button" class="ws-corner-launcher__action ws-corner-launcher__action--viewer" id="open3dViewerBtn" data-open-3d-viewer aria-label="Open 3D viewer">
+    <span class="ws-corner-launcher__beam" aria-hidden="true"></span>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"/>
+      <path d="M12 12l8-4.5M12 12v9M12 12L4 7.5"/>
+    </svg>
+    <span>3D Viewer</span>
   </button>
 </div>
 
@@ -701,15 +657,22 @@
 <section class="timrx-3dprint workspace" id="workspace">
   <div class="ws-grid" role="region" aria-label="Creative workspace for image, video, and 3D generation">
 
-    <!-- Asset stage — the living field of community creations. Spans the whole
-         grid by LINE (1/1/-1/-1), so grid-template-areas stays "rail" "." and
-         the body.ws-viewer-open override in nav.css is unaffected. Must remain
-         the FIRST child so it paints under .ws-rail and .ws-viewer. -->
+    <!-- Neural intelligence background. It must remain the first grid child so
+         it paints under every workspace control without changing layout. -->
     <div class="ws-stage" id="wsStage" role="region"
-         aria-label="Featured creations from the TimrX community">
+         aria-label="Living neural intelligence background">
       <div class="ws-stage__inner">
-        <div class="ws-stage__wash" aria-hidden="true"></div>
-        <div class="ws-stage__field"></div>
+        <canvas class="neural-brain-bg" id="neuralBrainBg" aria-hidden="true"></canvas>
+        <div class="workspace-model-showcase" id="workspaceModelShowcase">
+          <canvas class="workspace-model-showcase__canvas" id="workspaceModelCanvas"></canvas>
+          <div class="workspace-model-showcase__shadow"></div>
+          <button class="workspace-model-showcase__nav workspace-model-showcase__nav--prev" id="workspaceModelPrev" type="button" aria-label="Previous showcase model">
+            <span aria-hidden="true">&lsaquo;</span>
+          </button>
+          <button class="workspace-model-showcase__nav workspace-model-showcase__nav--next" id="workspaceModelNext" type="button" aria-label="Next showcase model">
+            <span aria-hidden="true">&rsaquo;</span>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -1827,19 +1790,11 @@
   <script>
   (function(){
     var root = document.getElementById('wsCornerLauncher');
-    var toggle = document.getElementById('wsCornerLauncherToggle');
-    var menu = document.getElementById('wsCornerLauncherMenu');
+    var viewerBtn = document.getElementById('open3dViewerBtn');
     var guideRoot = document.getElementById('wsPromptGuideLauncher');
     var guideBtn = document.getElementById('wsPromptGuideBtn');
     var guide = document.getElementById('wsPromptGuide');
-    if (!root || !toggle || !menu) return;
-
-    function setOpen(open) {
-      root.classList.toggle('is-open', open);
-      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-      toggle.setAttribute('aria-label', open ? 'Close workspace quick actions' : 'Open workspace quick actions');
-      menu.setAttribute('aria-hidden', open ? 'false' : 'true');
-    }
+    if (!root) return;
 
     function setGuideOpen(open) {
       if (!guide || !guideBtn) return;
@@ -1847,14 +1802,12 @@
       if (guideRoot) guideRoot.classList.toggle('guide-open', open);
       guideBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
       guide.setAttribute('aria-hidden', open ? 'false' : 'true');
-      if (open) setOpen(false);
-      else window.setTimeout(function(){
+      if (!open) window.setTimeout(function(){
         if (!guideRoot || !guideRoot.classList.contains('guide-open')) guide.hidden = true;
       }, 320);
     }
 
     function openViewer() {
-      setOpen(false);
       document.body.classList.add('ws-viewer-open');
       document.body.classList.remove('assets-modal-open');
       if (window.TimrXAssets && typeof window.TimrXAssets.close === 'function') {
@@ -1896,15 +1849,8 @@
     function closeViewer() {
       stopViewerMedia();
       document.body.classList.remove('ws-viewer-open');
-      setOpen(false);
       window.dispatchEvent(new Event('resize'));
     }
-
-    toggle.addEventListener('click', function(e){
-      e.preventDefault();
-      setGuideOpen(false);
-      setOpen(!root.classList.contains('is-open'));
-    });
 
     if (guideBtn) {
       guideBtn.addEventListener('click', function(e){
@@ -1939,16 +1885,13 @@
       });
     }
 
-    menu.addEventListener('click', function(e){
-      if (e.target.closest('[data-open-3d-viewer]')) {
+    if (viewerBtn) {
+      viewerBtn.addEventListener('click', function(e){
         e.preventDefault();
+        setGuideOpen(false);
         openViewer();
-        return;
-      }
-      if (e.target.closest('[data-open-assets]')) {
-        setOpen(false);
-      }
-    });
+      });
+    }
 
     document.addEventListener('click', function(e){
       if (e.target.closest('[data-close-3d-viewer], [data-af-close-viewer]')) {
@@ -1957,7 +1900,6 @@
         return;
       }
       if (!root.contains(e.target) && (!guideRoot || !guideRoot.contains(e.target))) {
-        setOpen(false);
         setGuideOpen(false);
       }
     });
@@ -1968,7 +1910,6 @@
         closeViewer();
         return;
       }
-      setOpen(false);
       setGuideOpen(false);
     });
   })();
@@ -3760,12 +3701,11 @@
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
   <script type="module" src="./js/main.js?v=20260806a"></script>
+  <script src="js/workspace-model-showcase.js?v=20260809r" defer></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
   <script src="js/command-palette.js?v=20260802f" defer></script>
   <script src="js/generation-tracker.js?v=20260802b" defer></script>
-  <script src="js/thought-engine.js?v=20260807b" defer></script>
-  <script src="js/hero-sequence.js?v=20260807c" defer></script>
   <script src="js/command-ai.js?v=20260802a" defer></script>
 
   <!-- UI helper scripts -->
@@ -3950,5 +3890,6 @@
     mo.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] });
   })();
   </script>
+  <script src="js/shared/tx-menu.js?v=1" defer></script>
 </body>
 </html>

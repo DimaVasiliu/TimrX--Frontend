@@ -37,12 +37,7 @@ async function apiPost(path,body,{timeout=20000}={}){
   }finally{clearTimeout(timer)}
 }
 
-const menuButton=document.querySelector('.portfolio-menu');
-const mobileNav=document.getElementById('portfolioMobileNav');
-function closeMenu(){if(!menuButton||!mobileNav)return;menuButton.setAttribute('aria-expanded','false');menuButton.setAttribute('aria-label','Open menu');mobileNav.hidden=true;document.body.classList.remove('menu-open')}
-menuButton?.addEventListener('click',()=>{const open=menuButton.getAttribute('aria-expanded')==='true';if(open){closeMenu();return}menuButton.setAttribute('aria-expanded','true');menuButton.setAttribute('aria-label','Close menu');mobileNav.hidden=false;document.body.classList.add('menu-open')});
-mobileNav?.querySelectorAll('a').forEach(link=>link.addEventListener('click',closeMenu));
-document.addEventListener('keydown',event=>{if(event.key==='Escape')closeMenu()});
+/* Mobile menu lives in js/shared/tx-menu.js — shared by every page. */
 
 const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const revealItems=document.querySelectorAll('.reveal');

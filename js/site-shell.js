@@ -73,66 +73,12 @@
     });
   }
 
-  function initMobileMenu() {
-    const burger = document.querySelector('[data-site-shell-burger]');
-    const menu = document.querySelector('[data-site-shell-menu]');
-    if (!burger || !menu) return;
-
-    const closeMenu = () => {
-      burger.classList.remove('is-open');
-      burger.setAttribute('aria-expanded', 'false');
-      burger.setAttribute('aria-label', 'Open menu');
-      menu.classList.remove('is-open');
-      menu.setAttribute('aria-hidden', 'true');
-      body.classList.remove('site-menu-open');
-    };
-
-    const openMenu = () => {
-      burger.classList.add('is-open');
-      burger.setAttribute('aria-expanded', 'true');
-      burger.setAttribute('aria-label', 'Close menu');
-      menu.classList.add('is-open');
-      menu.setAttribute('aria-hidden', 'false');
-      body.classList.add('site-menu-open');
-    };
-
-    burger.addEventListener('click', () => {
-      if (menu.classList.contains('is-open')) {
-        closeMenu();
-      } else {
-        openMenu();
-      }
-    });
-
-    menu.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', closeMenu);
-    });
-
-    menu.addEventListener('click', (event) => {
-      if (event.target === menu) {
-        closeMenu();
-      }
-    });
-
-    document.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape' && menu.classList.contains('is-open')) {
-        closeMenu();
-        burger.focus();
-      }
-    });
-
-    window.addEventListener('resize', () => {
-      // Keep in sync with the burger-swap media query in site-shell.css (1024px).
-      if (window.innerWidth > 1024 && menu.classList.contains('is-open')) {
-        closeMenu();
-      }
-    });
-  }
-
   renderNav();
   renderContextNav();
   renderFooter();
   UI.rewriteKnownInternalLinks();
   body.classList.add('has-site-shell');
-  initMobileMenu();
+  /* The nav is injected here, after tx-menu.js has already run, so the
+     shared menu has to be bound once the markup exists. */
+  if (window.TIMRX_MENU_INIT) window.TIMRX_MENU_INIT();
 })();

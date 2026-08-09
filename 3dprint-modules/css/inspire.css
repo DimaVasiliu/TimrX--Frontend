@@ -5,6 +5,28 @@
    dark UI, subtle gradients, and premium micro-interactions.
    ========================================================================== */
 
+/* ===== BOX MODEL =====
+   The overlay is appended to <body>, i.e. outside .timrx-3dprint, so the
+   workspace-scoped `.timrx-3dprint *{ box-sizing: border-box }` reset never
+   reaches it. Left on the browser default every padded descendant — header,
+   actions row, content, filters, grid — grew past the panel by its own
+   horizontal padding, which is what pushed the close button off-screen on
+   phones. Scope the same reset to the overlay. */
+.inspire-overlay,
+.inspire-overlay *,
+.inspire-overlay *::before,
+.inspire-overlay *::after {
+  box-sizing: border-box;
+}
+
+/* The reset above is the box model only; these two also relied on the
+   workspace reset zeroing UA margins. */
+.inspire-overlay h2,
+.inspire-overlay h3,
+.inspire-overlay p {
+  margin: 0;
+}
+
 /* ===== STATE CLASSES ===== */
 body.inspire-open {
   overflow: hidden;
@@ -1089,4 +1111,34 @@ model-viewer.inspire-model::part(default-progress-mask) {
 .inspire-overlay [class*="section-label"],
 .inspire-overlay [class*="explore"]{
   text-align:center;
+}
+
+/* --------------------------------------------------------------------------
+   Filter chips on narrow screens: one scrollable row, not two wrapped ones
+   --------------------------------------------------------------------------
+   The chip sizing above is set with !important for the desktop panel, so the
+   per-breakpoint shrink rules in media/inspire-media.css could never take
+   effect. Five chips at 13px/18px therefore always wrapped onto a second line
+   on a phone, spending a whole row of vertical space on a centred orphan.
+   Keep them legible and let the row scroll instead.
+   -------------------------------------------------------------------------- */
+@media (max-width: 640px) {
+  .inspire-overlay .inspire-filters {
+    flex-wrap: nowrap;
+    justify-content: flex-start !important;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .inspire-overlay .inspire-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .inspire-overlay .inspire-filters > * {
+    flex: 0 0 auto;
+    padding: 8px 14px !important;
+    font-size: 12px !important;
+  }
 }

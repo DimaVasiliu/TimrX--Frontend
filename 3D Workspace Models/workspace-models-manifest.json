@@ -1,0 +1,590 @@
+{
+  "source": "TimrX/Frontend/3D Workspace Models/_source-originals",
+  "settings": {
+    "geometry": "preserved",
+    "maxTexture": 2048,
+    "jpegQuality": 84
+  },
+  "models": [
+    {
+      "file": "3DWorkspace Models.glb",
+      "originalBytes": 16224496,
+      "optimizedBytes": 9579372,
+      "originalTriangles": 280834,
+      "optimizedTriangles": 280834,
+      "geometry": "preserved",
+      "textures": [
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 2508812,
+          "optimizedBytes": 427398,
+          "imageIndexes": [
+            0
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 1131651,
+          "optimizedBytes": 144723,
+          "imageIndexes": [
+            1
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 2421088,
+          "optimizedBytes": 217532,
+          "imageIndexes": [
+            2
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 1701677,
+          "optimizedBytes": 328459,
+          "imageIndexes": [
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "file": "TX-a-full-body-3d-digital-s-102.glb",
+      "originalBytes": 80553504,
+      "optimizedBytes": 71444772,
+      "originalTriangles": 2301566,
+      "optimizedTriangles": 2301566,
+      "geometry": "preserved",
+      "textures": [
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 3823059,
+          "optimizedBytes": 936536,
+          "imageIndexes": [
+            0
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 2831494,
+          "optimizedBytes": 530375,
+          "imageIndexes": [
+            1
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 5254816,
+          "optimizedBytes": 1333726,
+          "imageIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "file": "TX-a-high-quality-stylized-184.glb",
+      "originalBytes": 9086876,
+      "optimizedBytes": 8449072,
+      "originalTriangles": 44930,
+      "optimizedTriangles": 44930,
+      "geometry": "preserved",
+      "textures": [
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/png",
+          "originalBytes": 7013107,
+          "optimizedBytes": 6375304,
+          "imageIndexes": [
+            0
+          ]
+        }
+      ]
+    },
+    {
+      "file": "TX-a-high-quality-stylized-505.glb",
+      "originalBytes": 29410952,
+      "optimizedBytes": 21648676,
+      "originalTriangles": 638661,
+      "optimizedTriangles": 638661,
+      "geometry": "preserved",
+      "textures": [
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 4268244,
+          "optimizedBytes": 1108113,
+          "imageIndexes": [
+            0
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 831516,
+          "optimizedBytes": 115594,
+          "imageIndexes": [
+            1
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 5249619,
+          "optimizedBytes": 1363391,
+          "imageIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "file": "TX-a-highly-stylized-humoro-111.glb",
+      "originalBytes": 55785252,
+      "optimizedBytes": 48643720,
+      "originalTriangles": 1500905,
+      "optimizedTriangles": 1500905,
+      "geometry": "preserved",
+      "textures": [
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 4003503,
+          "optimizedBytes": 991055,
+          "imageIndexes": [
+            0
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 1309165,
+          "optimizedBytes": 196932,
+          "imageIndexes": [
+            1
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 3640368,
+          "optimizedBytes": 623523,
+          "imageIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "file": "TX-a-male-dragonborn-barbar-235.glb",
+      "originalBytes": 46726764,
+      "optimizedBytes": 38452544,
+      "originalTriangles": 1224205,
+      "optimizedTriangles": 1224205,
+      "geometry": "preserved",
+      "textures": [
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 4046728,
+          "optimizedBytes": 985877,
+          "imageIndexes": [
+            0
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 2433547,
+          "optimizedBytes": 438039,
+          "imageIndexes": [
+            1
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 3911351,
+          "optimizedBytes": 693488,
+          "imageIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "file": "TX-a-male-fantasy-elven-ran-219.glb",
+      "originalBytes": 25519748,
+      "optimizedBytes": 17490032,
+      "originalTriangles": 498666,
+      "optimizedTriangles": 498666,
+      "geometry": "preserved",
+      "textures": [
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 3228458,
+          "optimizedBytes": 613168,
+          "imageIndexes": [
+            0
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 2502495,
+          "optimizedBytes": 507131,
+          "imageIndexes": [
+            1
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 4372683,
+          "optimizedBytes": 953626,
+          "imageIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "file": "TX-a-stout-dwarven-paladin-510.glb",
+      "originalBytes": 18885516,
+      "optimizedBytes": 11082404,
+      "originalTriangles": 299401,
+      "optimizedTriangles": 299401,
+      "geometry": "preserved",
+      "textures": [
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 3673787,
+          "optimizedBytes": 885736,
+          "imageIndexes": [
+            0
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 2441257,
+          "optimizedBytes": 458266,
+          "imageIndexes": [
+            1
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 3653462,
+          "optimizedBytes": 621395,
+          "imageIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "file": "TX-a-victorian-steampunk-re-414.glb",
+      "originalBytes": 15780716,
+      "optimizedBytes": 8132924,
+      "originalTriangles": 196217,
+      "optimizedTriangles": 196217,
+      "geometry": "preserved",
+      "textures": [
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 4065765,
+          "optimizedBytes": 1039251,
+          "imageIndexes": [
+            0
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 1883396,
+          "optimizedBytes": 298869,
+          "imageIndexes": [
+            1
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 3667577,
+          "optimizedBytes": 630831,
+          "imageIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    {
+      "file": "TX-refine-a-small-steampunk-608.glb",
+      "originalBytes": 32809292,
+      "optimizedBytes": 24158796,
+      "originalTriangles": 713891,
+      "optimizedTriangles": 713891,
+      "geometry": "preserved",
+      "textures": [
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 3958301,
+          "optimizedBytes": 946678,
+          "imageIndexes": [
+            0
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 2146425,
+          "optimizedBytes": 375031,
+          "imageIndexes": [
+            1
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 5010417,
+          "optimizedBytes": 1252293,
+          "imageIndexes": [
+            2
+          ]
+        },
+        {
+          "from": [
+            2048,
+            2048
+          ],
+          "to": [
+            2048,
+            2048
+          ],
+          "mime": "image/jpeg",
+          "originalBytes": 157034,
+          "optimizedBytes": 47686,
+          "imageIndexes": [
+            3
+          ]
+        }
+      ]
+    }
+  ]
+}

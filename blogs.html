@@ -121,6 +121,7 @@
   <!-- Page CSS -->
   <link rel="stylesheet" href="blogs.css">
   <link rel="stylesheet" href="media/blogs.css">
+  <link rel="stylesheet" href="tx-menu.css?v=1">
   <!-- Google Tag Manager -->
   <script>
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -143,31 +144,31 @@
       <img src="img/blogs.png" alt="TimrX Blog" class="blog-nav-logo" width="60" height="60">
       <span><span class="b-tim">Timr</span><span class="b-x">X</span></span>
     </a>
-    <button class="blog-burger" id="blogBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="blogMobileMenu">
-      <span class="blog-burger-ring"></span>
-      <span class="blog-burger-line"></span>
-      <span class="blog-burger-line"></span>
-      <span class="blog-burger-line"></span>
-    </button>
+    <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
   </header>
 
-  <!-- MOBILE MENU -->
-  <div class="blog-mobile-menu" id="blogMobileMenu" aria-hidden="true">
-    <div class="blog-mobile-inner">
-      <nav class="blog-mobile-nav" aria-label="Mobile navigation">
-        <a href="/blogs" class="blog-mobile-link active"><span class="bml-num">01</span><span class="bml-text">Blog</span></a>
-        <a href="/blogs#filter-strip" class="blog-mobile-link"><span class="bml-num">02</span><span class="bml-text">Archive</span></a>
-        <a href="/hub" class="blog-mobile-link"><span class="bml-num">03</span><span class="bml-text">3D Hub</span></a>
-        <a href="/dima-vasiliu" class="blog-mobile-link"><span class="bml-num">04</span><span class="bml-text">Founder</span></a>
-        <a href="/blogs#submit" class="blog-mobile-link"><span class="bml-num">05</span><span class="bml-text">Write</span></a>
+  <!-- Mobile menu: shared component (tx-menu) -->
+  <div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>
+    <div class="tx-menu-panel">
+      <div class="tx-menu-head">
+        <span class="tx-menu-brand" aria-hidden="true">
+          <img src="img/logo.png" width="34" height="34" alt="">
+          <span>T<span>X</span></span>
+        </span>
+        <button class="tx-menu-close" type="button" aria-label="Close menu" data-tx-menu-close><span></span><span></span></button>
+      </div>
+      <nav class="tx-menu-links" aria-label="Mobile navigation">
+        <a href="/blogs"><span>Blog</span><small>Latest articles and guides</small></a>
+        <a href="/blogs#filter-strip"><span>Archive</span><small>Every post by tag</small></a>
+        <a href="/hub"><span>3D Hub</span><small>Generate and print in 3D</small></a>
+        <a href="/dima-vasiliu"><span>Founder</span><small>About Dima Vasiliu</small></a>
+        <a href="/blogs#submit"><span>Write</span><small>Submit an article</small></a>
       </nav>
-      <div class="blog-mobile-footer">
-        <div class="blog-mobile-socials">
-          <a href="https://github.com/dimavasiliu" target="_blank" rel="noopener">GitHub</a>
-          <a href="https://x.com/timrx_live" target="_blank" rel="noopener">X</a>
-          <a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener">LinkedIn</a>
-        </div>
-        <span>TimrX</span>
+      <a class="tx-menu-cta" href="/3dprint">Open Workspace <span aria-hidden="true">&#8599;</span></a>
+      <div class="tx-menu-foot" data-tx-menu-watermark="TimrX creative platform">
+        <a href="https://github.com/dimavasiliu" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://x.com/timrx_live" target="_blank" rel="noopener">X</a>
+        <a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener">LinkedIn</a>
       </div>
     </div>
   </div>
@@ -1085,44 +1086,12 @@
       }
     })();
 
-    // Blog burger menu toggle
     // Swap watermark text on mobile
     (function(){
       const wm = qs('.hero-watermark');
       if (wm && window.matchMedia('(max-width: 768px)').matches) wm.textContent = 'TIMRX';
     })();
 
-    (function(){
-      const burger = qs('#blogBurger');
-      const menu = qs('#blogMobileMenu');
-      if (!burger || !menu) return;
-
-      function toggle(){
-        const open = burger.classList.toggle('is-open');
-        menu.classList.toggle('is-open', open);
-        burger.setAttribute('aria-expanded', open);
-        burger.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
-        menu.setAttribute('aria-hidden', !open);
-        document.body.style.overflow = open ? 'hidden' : '';
-      }
-
-      burger.addEventListener('click', toggle);
-
-      // Close on backdrop click (click on menu overlay but not on nav links)
-      menu.addEventListener('click', e => {
-        if (e.target === menu || e.target.classList.contains('blog-mobile-inner')) toggle();
-      });
-
-      // Close on link click
-      qsa('.blog-mobile-link').forEach(a => a.addEventListener('click', () => {
-        if (menu.classList.contains('is-open')) toggle();
-      }));
-
-      // Close on Escape
-      window.addEventListener('keydown', e => {
-        if (e.key === 'Escape' && menu.classList.contains('is-open')) toggle();
-      });
-    })();
   </script>
 
   <!-- About Modal -->
@@ -1389,5 +1358,6 @@
   </script>
   <script src="js/cookie-consent.js" defer></script>
   <script type="module" src="js/analytics.js"></script>
+  <script src="js/shared/tx-menu.js?v=1" defer></script>
 </body>
 </html>

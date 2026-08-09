@@ -30,3 +30,8 @@ venv/
 # Oversized / unused 3D assets — Cloudflare Pages hard-fails at 25 MiB per file
 3dprint-modules/3dmodels/TX-a-vintage-film-camera-pr-550.glb
 img/duck.glb.orig-bak
+
+# Oversized showcase models — Cloudflare Pages hard-fails at 25 MiB per file
+3D Workspace Models/TX-a-full-body-3d-digital-s-102.glb
+3D Workspace Models/TX-a-highly-stylized-humoro-111.glb
+3D Workspace Models/TX-a-male-dragonborn-barbar-235.glb

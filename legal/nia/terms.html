@@ -31,6 +31,7 @@
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/legal.css?v=20260530">
+  <link rel="stylesheet" href="/tx-menu.css?v=1">
   <script>
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
     new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -59,39 +60,29 @@
       <a class="nav-cta nav-cta-desktop" href="/3dprint" aria-label="Open TimrX workspace">OPEN WORKSPACE</a>
 
       <!-- Mobile hamburger button -->
-      <button class="nav-burger" id="navBurger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="mobileMenu">
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-        <span class="burger-line"></span>
-      </button>
+      <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
     </div>
   </nav>
 
   <!-- Mobile menu overlay -->
-  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
-    <div class="mobile-menu-inner">
-      <nav class="mobile-nav" role="navigation" aria-label="Mobile navigation">
-        <a href="/3dprint" class="mobile-nav-link">
-          <span class="mnl-label">3D Print Hub</span>
-          <span class="mnl-sub">Explore the hub</span>
-        </a>
-        <a href="/hub" class="mobile-nav-link">
-          <span class="mnl-label">Product</span>
-          <span class="mnl-sub">Platform overview</span>
-        </a>
-        <a href="/ai-tools" class="mobile-nav-link">
-          <span class="mnl-label">Tools</span>
-          <span class="mnl-sub">Explore generators</span>
-        </a>
-        <a href="/blogs" class="mobile-nav-link">
-          <span class="mnl-label">Blogs</span>
-          <span class="mnl-sub">Latest writing</span>
-        </a>
-      </nav>
-      <a class="mobile-cta" href="/3dprint">OPEN WORKSPACE &#8599;</a>
-      <div class="mobile-menu-footer">
-        <span class="mobile-footer-text">TimrX</span>
+  <!-- Mobile menu: shared component (tx-menu) -->
+  <div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>
+    <div class="tx-menu-panel">
+      <div class="tx-menu-head">
+        <span class="tx-menu-brand" aria-hidden="true">
+          <img src="/img/logo.png" width="34" height="34" alt="">
+          <span>T<span>X</span></span>
+        </span>
+        <button class="tx-menu-close" type="button" aria-label="Close menu" data-tx-menu-close><span></span><span></span></button>
       </div>
+      <nav class="tx-menu-links" aria-label="Mobile navigation">
+        <a href="/3dprint"><span>3D Print Hub</span><small>Explore the hub</small></a>
+        <a href="/hub"><span>Product</span><small>Platform overview</small></a>
+        <a href="/ai-tools"><span>Tools</span><small>Explore generators</small></a>
+        <a href="/blogs"><span>Blogs</span><small>Latest writing</small></a>
+      </nav>
+      <a class="tx-menu-cta" href="/3dprint">Open Workspace <span aria-hidden="true">&#8599;</span></a>
+      <div class="tx-menu-foot" data-tx-menu-watermark="TimrX creative platform"></div>
     </div>
   </div>
 
@@ -284,42 +275,6 @@
   </script>
   <script src="/js/cookie-consent.js" defer></script>
   <script type="module" src="/js/analytics.js"></script>
-  <!-- Mobile burger menu toggle -->
-  <script>
-    (function() {
-      const burger = document.getElementById("navBurger");
-      const menu = document.getElementById("mobileMenu");
-      const body = document.body;
-      if (!burger || !menu) return;
-      function openMenu() {
-        burger.classList.add("is-open");
-        burger.setAttribute("aria-expanded", "true");
-        burger.setAttribute("aria-label", "Close menu");
-        menu.classList.add("is-open");
-        menu.setAttribute("aria-hidden", "false");
-        body.classList.add("menu-open");
-      }
-      function closeMenu() {
-        burger.classList.remove("is-open");
-        burger.setAttribute("aria-expanded", "false");
-        burger.setAttribute("aria-label", "Open menu");
-        menu.classList.remove("is-open");
-        menu.setAttribute("aria-hidden", "true");
-        body.classList.remove("menu-open");
-      }
-      burger.addEventListener("click", function() {
-        menu.classList.contains("is-open") ? closeMenu() : openMenu();
-      });
-      menu.querySelectorAll("a").forEach(function(link) {
-        link.addEventListener("click", closeMenu);
-      });
-      document.addEventListener("keydown", function(e) {
-        if (e.key === "Escape" && menu.classList.contains("is-open")) { closeMenu(); burger.focus(); }
-      });
-      window.addEventListener("resize", function() {
-        if (window.innerWidth >= 1024 && menu.classList.contains("is-open")) closeMenu();
-      });
-    })();
-  </script>
+  <script src="/js/shared/tx-menu.js?v=1" defer></script>
 </body>
 </html>

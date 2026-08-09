@@ -1,0 +1,566 @@
+/* ==========================================================================
+   TimrX mobile menu — the single burger implementation for every page.
+
+   Markup contract (see js/shared/tx-menu.js):
+
+     <button class="tx-burger" type="button" aria-label="Open menu"
+             aria-expanded="false" aria-controls="txMenu" data-tx-burger>
+       <span></span><span></span><span></span><span></span>
+     </button>
+
+     <div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>
+       <div class="tx-menu-panel">
+         <div class="tx-menu-head">
+           <span class="tx-menu-brand" aria-hidden="true">
+             <img src="/img/logo.png" width="34" height="34" alt="">
+             <span>T<span>X</span></span>
+           </span>
+           <button class="tx-menu-close" type="button" aria-label="Close menu"
+                   data-tx-menu-close><span></span><span></span></button>
+         </div>
+         <div class="tx-menu-extra">…optional page-specific block…</div>
+         <nav class="tx-menu-links" aria-label="Mobile navigation">
+           <a href="/…"><span>Label</span><small>Sub</small></a>
+         </nav>
+         <a class="tx-menu-cta" href="/3dprint">Open Workspace ↗</a>
+         <div class="tx-menu-foot"><a href="/…">Link</a></div>
+       </div>
+     </div>
+
+   Everything except the panel itself is optional — the reveal cascade is
+   ordered at runtime, so any page can drop or add rows freely.
+
+   This file is deliberately self-contained (no shared custom properties) so
+   it drops into the landing, tool, legal, blog, shell and workspace pages
+   without inheriting anything from their very different stylesheets.
+   ========================================================================== */
+
+.tx-burger,
+.tx-menu,
+.tx-menu *,
+.tx-menu-close{
+  box-sizing:border-box;
+}
+
+/* Toggle — four dots, no border and no background in any state.
+   Closed: 2x2 square with a breathing wave running clockwise.
+   Open: the square rotates out into a diamond, one dot after another. */
+.tx-burger{
+  position:relative;
+  display:none;
+  width:44px;
+  height:44px;
+  flex:0 0 44px;
+  align-items:center;
+  justify-content:center;
+  /* Last item in the header row on every page — it belongs on the right edge. */
+  margin-left:auto;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:none;
+  box-shadow:none;
+  -webkit-appearance:none;
+  appearance:none;
+  color:#f4f1ea;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.tx-burger span{
+  position:absolute;
+  left:50%;
+  top:50%;
+  display:block;
+  width:5px;
+  height:5px;
+  margin:0;
+  border-radius:50%;
+  background:currentColor;
+  animation:txBurgerBreathe 3.2s ease-in-out infinite;
+  transition:transform .46s cubic-bezier(.6,-.3,.3,1.4),background .24s ease;
+}
+
+/* Dot order runs clockwise so the breathing wave travels around the square. */
+.tx-burger span:nth-child(1){transform:translate(-50%,-50%) translate(-5px,-5px)}
+.tx-burger span:nth-child(2){transform:translate(-50%,-50%) translate(5px,-5px);animation-delay:.2s}
+.tx-burger span:nth-child(3){transform:translate(-50%,-50%) translate(5px,5px);animation-delay:.4s}
+.tx-burger span:nth-child(4){transform:translate(-50%,-50%) translate(-5px,5px);animation-delay:.6s}
+
+.tx-burger[aria-expanded="true"] span:nth-child(1){transform:translate(-50%,-50%) translate(0,-9px);transition-delay:0s}
+.tx-burger[aria-expanded="true"] span:nth-child(2){transform:translate(-50%,-50%) translate(9px,0);transition-delay:.05s}
+.tx-burger[aria-expanded="true"] span:nth-child(3){transform:translate(-50%,-50%) translate(0,9px);transition-delay:.1s}
+.tx-burger[aria-expanded="true"] span:nth-child(4){transform:translate(-50%,-50%) translate(-9px,0);transition-delay:.15s}
+
+.tx-burger:hover span,
+.tx-burger[aria-expanded="true"] span{
+  background:#0ea5e9;
+}
+
+.tx-burger:focus-visible{
+  outline:2px solid #55d6e8;
+  outline-offset:4px;
+}
+
+@keyframes txBurgerBreathe{
+  0%,100%{opacity:.5;box-shadow:0 0 0 0 rgba(14,165,233,0)}
+  45%{opacity:1;box-shadow:0 0 7px 0 rgba(14,165,233,.5)}
+}
+
+/* Once open, the drawer's own close button owns that corner. The dots still
+   start their morph, then hand over as they fade out. */
+body.tx-menu-open .tx-burger{
+  opacity:0;
+  visibility:hidden;
+  pointer-events:none;
+  transition:opacity .2s ease .16s,visibility 0s linear .36s;
+}
+
+body.tx-menu-open{
+  position:fixed;
+  inset-inline:0;
+  width:100%;
+  overflow:hidden;
+}
+
+/* Backdrop ---------------------------------------------------------------- */
+.tx-menu-backdrop{
+  position:fixed;
+  inset:0;
+  z-index:1090;
+  background:rgba(3,5,8,.64);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity .32s ease,visibility 0s linear .32s;
+  -webkit-tap-highlight-color:transparent;
+}
+
+.tx-menu-backdrop.is-open{
+  opacity:1;
+  visibility:visible;
+  transition:opacity .32s ease,visibility 0s;
+}
+
+/* Drawer ------------------------------------------------------------------ */
+.tx-menu{
+  position:fixed;
+  inset:0 0 0 auto;
+  z-index:1100;
+  display:block;
+  width:min(100%,430px);
+  height:100dvh;
+  padding:0;
+  /* Long menus scroll inside the drawer; `contain` stops that scroll from
+     chaining to the page behind it once the list hits either end. */
+  overflow-y:auto;
+  overflow-x:hidden;
+  overscroll-behavior:contain;
+  -webkit-overflow-scrolling:touch;
+  border-left:1px solid rgba(14,165,233,.14);
+  background:linear-gradient(180deg,rgba(5,7,10,.98),rgba(4,5,6,.985) 58%,rgba(3,3,4,.99));
+  box-shadow:-28px 0 80px rgba(0,0,0,.42);
+  -webkit-backdrop-filter:blur(28px) saturate(1.12);
+  backdrop-filter:blur(28px) saturate(1.12);
+  opacity:0;
+  visibility:hidden;
+  /* The panel only fades — all motion belongs to the contents rising from the
+     bottom, so nothing travels sideways. Visibility steps rather than
+     transitions: it must read as visible on the very first frame or the
+     opening focus() call lands on nothing. */
+  transition:opacity .26s ease,visibility 0s linear .26s;
+}
+
+.tx-menu.is-open{
+  opacity:1;
+  visibility:visible;
+  transition:opacity .26s ease,visibility 0s;
+}
+
+.tx-menu-panel{
+  display:flex;
+  min-height:100dvh;
+  flex-direction:column;
+  padding:calc(env(safe-area-inset-top,0px) + 18px) clamp(18px,5vw,28px) calc(env(safe-area-inset-bottom,0px) + 22px);
+}
+
+/* Head — compact "TX" lockup on the left, close button on the right. */
+.tx-menu-head{
+  display:flex;
+  align-items:center;
+  gap:14px;
+  min-height:58px;
+  padding-bottom:18px;
+  border-bottom:1px solid rgba(85,214,232,.12);
+}
+
+.tx-menu-brand{
+  display:inline-flex;
+  align-items:center;
+  gap:12px;
+}
+
+.tx-menu-brand img{
+  width:34px;
+  height:34px;
+}
+
+.tx-menu-brand>span{
+  color:#f4f1ea;
+  font-family:"Bebas Neue",Inter,sans-serif;
+  font-size:26px;
+  font-weight:400;
+  line-height:1;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+
+.tx-menu-brand>span span{
+  color:#2db9ff;
+}
+
+.tx-menu-close{
+  position:relative;
+  display:flex;
+  width:44px;
+  height:44px;
+  flex:0 0 44px;
+  align-items:center;
+  justify-content:center;
+  margin-left:auto;
+  padding:0;
+  border:1px solid rgba(244,241,234,.16);
+  border-radius:50%;
+  background:transparent;
+  -webkit-appearance:none;
+  appearance:none;
+  color:#f4f1ea;
+  cursor:pointer;
+  -webkit-tap-highlight-color:transparent;
+  transition:border-color .24s ease,background .24s ease,color .24s ease,transform .3s cubic-bezier(.22,1,.36,1);
+}
+
+.tx-menu-close::before{
+  content:"";
+  position:absolute;
+  inset:-1px;
+  border-radius:50%;
+  box-shadow:0 0 0 0 rgba(14,165,233,.35);
+  transition:box-shadow .3s ease;
+}
+
+.tx-menu-close span{
+  position:absolute;
+  left:50%;
+  top:50%;
+  width:15px;
+  height:1.5px;
+  border-radius:999px;
+  background:currentColor;
+  transition:background .24s ease;
+}
+
+.tx-menu-close span:nth-child(1){transform:translate(-50%,-50%) rotate(45deg)}
+.tx-menu-close span:nth-child(2){transform:translate(-50%,-50%) rotate(-45deg)}
+
+.tx-menu-close:hover,
+.tx-menu-close:focus-visible{
+  border-color:rgba(14,165,233,.55);
+  background:rgba(14,165,233,.09);
+  color:#5cc8f5;
+  transform:rotate(90deg);
+}
+
+.tx-menu-close:hover::before,
+.tx-menu-close:focus-visible::before{
+  box-shadow:0 0 0 5px rgba(14,165,233,.1);
+}
+
+.tx-menu-close:active{
+  background:rgba(14,165,233,.16);
+}
+
+.tx-menu-close:focus-visible{
+  outline:2px solid #55d6e8;
+  outline-offset:3px;
+}
+
+/* Links ------------------------------------------------------------------- */
+.tx-menu-links{
+  display:flex;
+  flex:1;
+  flex-direction:column;
+  gap:0;
+  padding:0;
+  counter-reset:tx-menu-link;
+}
+
+.tx-menu-links a,
+.tx-menu-links button{
+  position:relative;
+  width:100%;
+  -webkit-appearance:none;
+  appearance:none;
+  cursor:pointer;
+  font:inherit;
+  display:flex;
+  min-height:58px;
+  flex-direction:column;
+  align-items:flex-start;
+  justify-content:center;
+  gap:5px;
+  padding:10px 0 10px 48px;
+  border:0;
+  border-bottom:1px solid rgba(255,255,255,.055);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  text-decoration:none;
+  counter-increment:tx-menu-link;
+  text-align:left;
+}
+
+.tx-menu-links a::before,
+.tx-menu-links button::before{
+  content:"0" counter(tx-menu-link);
+  position:absolute;
+  left:0;
+  top:15px;
+  color:#0ea5e9;
+  font-family:"Bebas Neue",Inter,sans-serif;
+  font-size:13px;
+  font-weight:400;
+  letter-spacing:.05em;
+  opacity:.62;
+}
+
+.tx-menu-links a::after,
+.tx-menu-links button::after{
+  content:"";
+  position:absolute;
+  left:31px;
+  top:20px;
+  width:0;
+  height:1px;
+  background:linear-gradient(90deg,#0ea5e9,rgba(139,92,246,.72));
+  opacity:.9;
+  transition:width .24s cubic-bezier(.22,.61,.36,1);
+}
+
+.tx-menu-links a:hover::after,
+.tx-menu-links a:focus-visible::after,
+.tx-menu-links button:hover::after,
+.tx-menu-links button:focus-visible::after{
+  width:12px;
+}
+
+.tx-menu-links a:hover,
+.tx-menu-links a:focus-visible,
+.tx-menu-links button:hover,
+.tx-menu-links button:focus-visible{
+  border-bottom-color:rgba(14,165,233,.2);
+}
+
+.tx-menu-links a>span,
+.tx-menu-links button>span{
+  color:rgba(255,255,255,.88);
+  font-family:"Bebas Neue",Inter,sans-serif;
+  font-size:clamp(20px,5.6vw,24px);
+  font-weight:400;
+  line-height:1;
+  letter-spacing:.045em;
+  text-transform:uppercase;
+  transition:color .22s ease,letter-spacing .22s ease;
+}
+
+.tx-menu-links a:hover>span,
+.tx-menu-links a:focus-visible>span,
+.tx-menu-links button:hover>span,
+.tx-menu-links button:focus-visible>span{
+  color:#fff;
+  letter-spacing:.04em;
+}
+
+.tx-menu-links a small,
+.tx-menu-links button small{
+  color:rgba(255,255,255,.32);
+  font-size:8.5px;
+  font-weight:720;
+  letter-spacing:.13em;
+  line-height:1.3;
+  text-transform:uppercase;
+}
+
+.tx-menu-links a:focus-visible,
+.tx-menu-links button:focus-visible{
+  outline:2px solid #55d6e8;
+  outline-offset:2px;
+}
+
+/* Call to action ---------------------------------------------------------- */
+.tx-menu-cta{
+  display:flex;
+  width:100%;
+  min-height:50px;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  margin-top:18px;
+  padding:0 20px;
+  border:1px solid rgba(255,255,255,.18);
+  border-radius:999px;
+  background:#f7f3ea;
+  color:#0a0a0a;
+  box-shadow:0 18px 40px rgba(0,0,0,.26);
+  font-family:Inter,system-ui,sans-serif;
+  font-size:14px;
+  font-weight:800;
+  letter-spacing:.01em;
+  text-decoration:none;
+  text-transform:none;
+}
+
+.tx-menu-cta:focus-visible{
+  outline:2px solid #55d6e8;
+  outline-offset:3px;
+}
+
+/* Foot -------------------------------------------------------------------- */
+.tx-menu-foot{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px 18px;
+  margin-top:auto;
+  padding-top:22px;
+}
+
+.tx-menu-foot::after{
+  content:attr(data-tx-menu-watermark);
+  flex:1 0 100%;
+  margin-top:18px;
+  color:rgba(255,255,255,.14);
+  font-family:"Bebas Neue",Inter,sans-serif;
+  font-size:15px;
+  font-weight:400;
+  letter-spacing:.2em;
+  text-align:center;
+  text-transform:uppercase;
+}
+
+.tx-menu-foot a{
+  min-height:32px;
+  padding:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  color:#9c9489;
+  font-family:Inter,system-ui,sans-serif;
+  font-size:13px;
+  font-weight:700;
+  text-decoration:none;
+}
+
+.tx-menu-foot a:hover,
+.tx-menu-foot a:focus-visible{
+  color:#d8d1c6;
+}
+
+/* Optional page-specific block (e.g. the workspace credit balances) -------- */
+.tx-menu-extra{
+  padding:16px 0 4px;
+}
+
+/* Opening reveal — every row rises from the bottom, one after the other, each
+   one starting while the row before it is nearly settled. The order index is
+   assigned at runtime so any page's row count works. Closing is a single
+   quick drop (the delays live on the .is-open branch only). */
+.tx-menu-head,
+.tx-menu-extra,
+.tx-menu-links a,
+.tx-menu-links button,
+.tx-menu-cta,
+.tx-menu-foot{
+  opacity:0;
+  transform:translateY(30px);
+  transition:opacity .2s ease,transform .22s ease,border-color .22s ease;
+}
+
+.tx-menu.is-open .tx-menu-head,
+.tx-menu.is-open .tx-menu-extra,
+.tx-menu.is-open .tx-menu-links a,
+.tx-menu.is-open .tx-menu-links button,
+.tx-menu.is-open .tx-menu-cta,
+.tx-menu.is-open .tx-menu-foot{
+  opacity:1;
+  transform:none;
+  transition:opacity .44s cubic-bezier(.22,.61,.36,1),transform .44s cubic-bezier(.22,.61,.36,1),border-color .22s ease;
+  transition-delay:calc(var(--tx-row,0) * .1s + .05s);
+}
+
+/* Breakpoint — the burger replaces the desktop nav below 1024px. Pages that
+   need a different swap point override .tx-burger's display themselves. */
+@media(max-width:1023.98px){
+  .tx-burger{
+    display:flex;
+  }
+}
+
+@media(min-width:1024px){
+  .tx-menu,
+  .tx-menu-backdrop{
+    display:none;
+  }
+}
+
+/* Landscape phones — little vertical room, so tighten the rows. */
+@media(max-height:520px) and (orientation:landscape){
+  .tx-menu-panel{
+    min-height:auto;
+    padding-top:12px;
+  }
+  .tx-menu-links a,
+  .tx-menu-links button{
+    min-height:46px;
+  }
+  .tx-menu-links a>span,
+  .tx-menu-links button>span{
+    font-size:20px;
+  }
+  .tx-menu-links a small,
+  .tx-menu-links button small{
+    display:none;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .tx-burger span{
+    animation:none;
+    opacity:1;
+  }
+  body.tx-menu-open .tx-burger,
+  .tx-menu,
+  .tx-menu-backdrop,
+  .tx-menu-close{
+    transition:none;
+  }
+  .tx-menu-close:hover,
+  .tx-menu-close:focus-visible{
+    transform:none;
+  }
+  .tx-menu-head,
+  .tx-menu-extra,
+  .tx-menu-links a,
+  .tx-menu-links button,
+  .tx-menu-cta,
+  .tx-menu-foot,
+  .tx-menu.is-open .tx-menu-head,
+  .tx-menu.is-open .tx-menu-extra,
+  .tx-menu.is-open .tx-menu-links a,
+  .tx-menu.is-open .tx-menu-links button,
+  .tx-menu.is-open .tx-menu-cta,
+  .tx-menu.is-open .tx-menu-foot{
+    opacity:1;
+    transform:none;
+    transition:none;
+    transition-delay:0s;
+  }
+}
