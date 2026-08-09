@@ -1,0 +1,1463 @@
+/* ==========================================================================
+   ASSET STAGE — the living asset field behind the 3D workspace
+   --------------------------------------------------------------------------
+   Built for the CURRENT working tree (workspace-redesign.css removed,
+   .ws-grid = "rail" / free row, viewer display:none until ws-viewer-open,
+   control sheet + assets + palette all floating overlays).
+
+   Host: <div class="ws-stage"> as the FIRST child of .ws-grid. It spans every
+   grid row by LINE (1 / 1 / -1 / -1), not by name, so workspace.css keeps its
+   `grid-template-areas: "rail" "."` unchanged and the ws-viewer-open override
+   keeps working untouched.
+
+   Motion budget: zero per-frame JS layout. Drift is CSS keyframes on the
+   compositor; the only rAF work is two custom-property writes for parallax.
+
+   Import from 3dprint-modules/main.css as module 15.
+   ========================================================================== */
+
+/* ==========================================================================
+   ASSET STAGE — this is the part that ships.
+   Host: <div class="ws-stage"> as a child of .ws-grid, spanning every row so
+   it reads as one field behind the whole workspace, then masked away under
+   the creation dock and the command bar so the chrome stays legible.
+   ========================================================================== */
+.ws-stage{
+  grid-area:1 / 1 / -1 / -1;      /* span the whole grid, behind everything  */
+  position:relative;
+  z-index:0;
+  overflow:hidden;
+  min-height:0;
+  pointer-events:none;            /* only the cards opt back in              */
+
+  --afx:0;                        /* pointer parallax X, px (JS)             */
+  --afy:0;                        /* pointer parallax Y, px (JS)             */
+  --af-in:0;                      /* 0 → 1 mount reveal                       */
+  --af-dim:1;                     /* 1 → 0.28 when an overlay takes focus     */
+
+  /* How much room the bottom chrome needs. The tray only exists while a model
+     panel is active, so the clearance grows only then (see below) instead of
+     permanently cutting the bottom of the field. */
+  --af-clear-bottom:calc(var(--ws-cmdbar-zone) + 24px);
+  --af-clear-top:15%;
+  /* Set by JS: how far the grid box currently runs past the bottom of the
+     viewport. `.ws-grid` is `height: calc(100vh - var(--ws-navH))`, which is
+     only correct while the workspace starts at exactly --ws-navH. It does not
+     today — see the .ws-corner-launcher note in the README — and any future
+     body-level element in flow would do the same. Without this the bottom fade
+     is measured from the grid bottom and cards sit behind the command bar. */
+  --af-overflow:0px;
+
+  /* The field is intentionally edge-to-edge. Chrome is layered above it, so
+     no page mask is needed to create clearance. */
+  -webkit-mask-image:none;
+  mask-image:none;
+  transition:opacity .45s ease,filter .45s ease;
+}
+
+/* The model tool tray rides above the command bar; give it room only when it
+   is actually out. Same condition nav.css uses to reveal it. */
+body.ws-model-mode.ws-intro-done .ws-stage,
+body.ws-video-mode.ws-intro-done .ws-stage{
+  --af-clear-bottom:calc(var(--ws-cmdbar-zone) + 96px);
+}
+
+/* Horizontal fade lives on the inner wrapper: two masks on one element needs
+   mask-composite, which is still uneven across engines. */
+.ws-stage__inner{
+  position:absolute;inset:0;
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+
+/* --- ambient wash, tuned to the new palette ----------------------------- */
+.ws-stage__wash{
+  position:absolute;inset:-22%;pointer-events:none;
+  background:
+    radial-gradient(36% 40% at 26% 34%,rgba(var(--accent-blue-rgb),.14),transparent 70%),
+    radial-gradient(32% 36% at 74% 64%,rgba(var(--accent-pink-rgb),.09),transparent 70%),
+    radial-gradient(30% 34% at 54% 88%,rgba(var(--accent-purple-rgb),.10),transparent 70%);
+  filter:blur(34px);
+  animation:af-wash 40s ease-in-out infinite alternate;
+  opacity:calc(.9 * var(--af-in));
+}
+@keyframes af-wash{
+  0%  {transform:translate3d(-3%,-2%,0) scale(1)}
+  50% {transform:translate3d(2.5%,3%,0) scale(1.07)}
+  100%{transform:translate3d(-1.5%,2%,0) scale(1.02)}
+}
+
+/* Dock punch-out. A flat top fade would have to reach a third of the way down
+   to clear the creation dock's two lines of type, killing the top corners for
+   nothing — the dock is only ~740px wide and centred. So the clearance is a
+   soft ellipse over the dock instead. */
+.ws-stage__field{
+  position:absolute;inset:0;
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+
+/* --- layer 1: placement + pointer parallax ------------------------------ */
+.af__slot{
+  position:absolute;left:var(--x);top:var(--y);width:var(--w);
+  translate:-50% -50%;
+  /* Composed, not overwritten: --afx/--afy are the existing pointer parallax
+     (written once per frame on the stage root); --hx/--hy/--hr are the hero
+     sequence's magnetic displacement (written per card by hero-sequence.js).
+     Keeping them as separate custom properties means neither system has to
+     know about the other, and both stay on the compositor. */
+  transform:
+    translate3d(
+      calc(var(--afx) * var(--par) + var(--hx, 0px) + var(--tx, 0px)),
+      calc(var(--afy) * var(--par) + var(--hy, 0px) + var(--ty, 0px)),
+      var(--tz, 0px))
+    rotate(var(--hr, 0deg)) rotate(var(--tr, 0deg))
+    scale(var(--hs, 1)) scale(var(--ts, 1));
+  /* The springs own the travel. A second CSS tween here adds lag and makes
+     the first typed impulse look frozen before it catches up. */
+  transition:opacity .55s ease,width .45s cubic-bezier(.22,1,.36,1);
+  z-index:var(--z);
+  opacity:calc(var(--o) * var(--af-in) * var(--af-dim) * var(--dop, 1));
+  filter:blur(calc(var(--blur) + var(--dbl, 0px)));
+  will-change:transform;
+}
+.af__slot.is-swapping{opacity:0;transition:opacity .45s ease}
+.ws-stage.af--spotlight .af__slot.is-hero{
+  z-index:42;
+  opacity:calc(var(--af-in) * var(--af-dim));
+  filter:blur(0);
+}
+.ws-stage.af--spotlight .af__slot.is-hero .af__card{
+  transform:translateY(-3px) scale(1.08);
+  box-shadow:0 30px 72px rgba(0,0,0,.56),0 0 0 1px rgba(var(--accent-blue-rgb,127,200,194),.24);
+}
+.ws-stage.af--spotlight .af__slot.is-hero .af__card::before,
+.ws-stage.af--spotlight .af__slot.is-hero .af__chip,
+.ws-stage.af--spotlight .af__slot.is-hero .af__cap{
+  opacity:1;
+  transform:none;
+}
+.ws-stage.af--spotlight .af__slot.is-hero .af__card::after{
+  border-color:rgba(var(--accent-blue-rgb,127,200,194),.34);
+  box-shadow:0 0 24px rgba(var(--accent-blue-rgb,127,200,194),.11) inset;
+}
+
+/* During the thought line, focus belongs to the projection, not to a
+   thumbnail. This is the same visual grammar as card hover: the field recedes
+   with a soft opacity and blur shift while the text and core stay crisp. */
+.ws-stage.is-thought-focus .ws-stage__field .af__slot{
+  opacity:calc(var(--o) * .26 * var(--af-in) * var(--af-dim) * var(--dop, 1));
+  filter:blur(calc(var(--blur) + 1.4px + var(--dbl, 0px)));
+  transition:opacity .78s ease,filter .78s ease;
+}
+.ws-stage.is-thought-focus .thought-engine{z-index:2}
+
+/* --- layer 2: endless organic drift (compositor only) ------------------- */
+.af__float{
+  animation:var(--drift) var(--dur) ease-in-out infinite alternate;
+  animation-delay:var(--delay);transform-origin:50% 50%;
+}
+@keyframes af-drift-a{from{transform:translate3d(0,0,0) rotate(0)}      to{transform:translate3d(2.5%,-7%,0) rotate(1.2deg)}}
+@keyframes af-drift-b{from{transform:translate3d(0,2%,0) rotate(.7deg)} to{transform:translate3d(-4%,-5%,0) rotate(-1.4deg)}}
+@keyframes af-drift-c{from{transform:translate3d(-2%,-3%,0) rotate(-.9deg)}to{transform:translate3d(3.5%,4%,0) rotate(1deg)}}
+@keyframes af-drift-d{from{transform:translate3d(1%,4%,0) rotate(1deg) scale(.985)}to{transform:translate3d(-2.5%,-4%,0) rotate(-.6deg) scale(1.015)}}
+
+/* --- layer 3: the card --------------------------------------------------
+   Deliberately quiet. The new workspace is thin type, hairline borders and
+   muted surfaces; a glowing card wall would fight it. Contrast arrives on
+   hover, not at rest. */
+.af__card{
+  position:relative;display:block;width:100%;padding:0;border:0;
+  aspect-ratio:var(--ar);
+  border-radius:clamp(9px,.9vw,15px);
+  overflow:hidden;cursor:pointer;
+  background:var(--surface-1,#0d1012);
+  pointer-events:auto;
+  box-shadow:0 var(--shy) var(--shb) rgba(0,0,0,.42);
+  transition:transform .32s cubic-bezier(.22,1,.36,1),box-shadow .32s ease;
+  -webkit-tap-highlight-color:transparent;touch-action:manipulation;
+}
+.af__card::after{
+  content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  border:1px solid var(--border-soft,rgba(226,236,237,.09));
+  transition:border-color .32s ease,box-shadow .32s ease;
+}
+.af__card img{width:100%;height:100%;object-fit:cover;display:block;
+  transition:transform .55s cubic-bezier(.22,1,.36,1)}
+.af__card::before{
+  content:"";position:absolute;inset:auto 0 0;height:62%;pointer-events:none;z-index:2;
+  background:linear-gradient(to top,rgba(5,7,8,.9),transparent);
+  opacity:0;transition:opacity .3s ease;
+}
+
+.af__chip{
+  position:absolute;top:7px;left:7px;z-index:3;
+  display:inline-flex;align-items:center;gap:4px;padding:3px 7px;border-radius:999px;
+  font-size:clamp(7px,calc(var(--w,140px) * .046),9px);
+  font-weight:700;letter-spacing:.14em;text-transform:uppercase;line-height:1.4;
+  background:rgba(7,9,10,.72);color:var(--text-soft,rgba(242,245,243,.74));
+  border:1px solid var(--border-soft,rgba(226,236,237,.09));
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  opacity:0;transform:translateY(-3px);transition:.28s cubic-bezier(.22,1,.36,1);
+}
+.af__chip.is-model{color:var(--accent-blue,#7fc8c2);border-color:rgba(127,200,194,.3)}
+.af__chip.is-image{color:var(--accent-neo,#d8c879);border-color:rgba(216,200,121,.3)}
+.af__chip.is-video{color:var(--accent-pink,#c9909b);border-color:rgba(201,144,155,.3)}
+
+.af__cap{
+  position:absolute;left:0;right:0;bottom:0;z-index:3;padding:8px 9px 9px;text-align:left;
+  font-size:clamp(9px,calc(var(--w,140px) * .05),11px);
+  line-height:1.35;font-weight:400;color:rgba(242,245,243,.9);
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  opacity:0;transform:translateY(6px);transition:.3s cubic-bezier(.22,1,.36,1);
+}
+
+@media (hover:hover){
+  .af__card:hover,.af__card:focus-visible{
+    transform:translateY(-5px) scale(1.04);
+    box-shadow:0 24px 54px rgba(0,0,0,.5);outline:none;
+  }
+  .af__card:hover::after,.af__card:focus-visible::after{
+    border-color:rgba(var(--accent-blue-rgb,127,200,194),.5);
+    box-shadow:0 0 18px rgba(var(--accent-blue-rgb,127,200,194),.1) inset;
+  }
+  .af__card:hover img,.af__card:focus-visible img{transform:scale(1.06)}
+  .af__card:hover::before,.af__card:focus-visible::before,
+  .af__card:hover .af__cap,.af__card:focus-visible .af__cap,
+  .af__card:hover .af__chip,.af__card:focus-visible .af__chip{opacity:1;transform:none}
+  /* focus one, the field steps back */
+  .ws-stage__field:hover .af__slot{
+    opacity:calc(var(--o) * .34 * var(--af-in) * var(--af-dim));
+    filter:blur(calc(var(--blur) + .8px));
+  }
+  .ws-stage__field .af__slot:hover{opacity:calc(var(--af-in) * var(--af-dim));filter:blur(0)}
+}
+.af__card:focus-visible{outline:2px solid var(--accent-blue,#7fc8c2);outline-offset:3px}
+
+/* --- background settings ------------------------------------------------- */
+.af-settings{
+  position:fixed;
+  left:max(
+    14px,
+    env(safe-area-inset-left, 0px),
+    calc((100vw - min(var(--ws-cmdbar-w), calc(100vw - 40px))) / 2 - var(--ws-cmdbar-h) - 14px)
+  );
+  right:auto;
+  bottom:max(var(--ws-cmdbar-gap,20px), env(safe-area-inset-bottom, 0px));
+  z-index:120;
+  display:flex;
+  flex-direction:column-reverse;
+  align-items:flex-start;
+  gap:12px;
+  pointer-events:auto;
+  color:var(--text-primary,#eef2f1);
+  animation:wsCornerLauncherArrive var(--ws-arrive-dur,1150ms) var(--ws-arrive-ease,cubic-bezier(.16,1,.3,1)) 760ms backwards;
+  transform-origin:50% 50%;
+}
+.af-settings__toggle{
+  position:relative;
+  width:var(--ws-cmdbar-h,64px);
+  height:var(--ws-cmdbar-h,64px);
+  display:grid;
+  place-items:center;
+  border:0;
+  border-radius:0;
+  color:var(--text,#eef2f1);
+  background:transparent;
+  box-shadow:none;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  cursor:pointer;
+  overflow:visible;
+  animation:cornerLauncherNudge 5.8s ease-in-out 1910ms infinite;
+  transition:
+    transform .24s var(--ws-chrome-ease,cubic-bezier(.34,1.4,.64,1)),
+    background .24s ease,
+    box-shadow .24s ease;
+}
+.af-settings__toggle::before{
+  content:"";
+  position:absolute;
+  inset:8px;
+  border-radius:999px;
+  background:rgba(var(--accent-blue-rgb,127,200,194),.14);
+  opacity:.36;
+  filter:blur(14px);
+  animation:cornerLauncherOrbit 9s linear 1910ms infinite;
+  z-index:-1;
+}
+.af-settings__toggle::after{
+  content:"";
+  position:absolute;
+  inset:12px;
+  border-radius:999px;
+  border:0;
+  background:rgba(var(--accent-blue-rgb,127,200,194),.12);
+  opacity:0;
+  animation:cornerLauncherPulse 5.8s ease-out 1910ms infinite;
+}
+.af-settings__toggle svg{
+  width:calc(var(--ws-cmdbar-h,64px) * .56);
+  height:calc(var(--ws-cmdbar-h,64px) * .56);
+  color:rgba(238,247,246,.94);
+  filter:drop-shadow(0 6px 12px rgba(var(--accent-blue-rgb,127,200,194),.22));
+  transform-origin:center;
+  transition:
+    transform .34s var(--ws-arrive-ease,cubic-bezier(.16,1,.3,1)),
+    color .22s ease,
+    filter .22s ease;
+}
+.af-settings__toggle:hover,
+.af-settings__toggle:focus-visible{
+  transform:translateY(-3px);
+  box-shadow:none;
+}
+.af-settings.is-open .af-settings__toggle{
+  transform:translateY(-2px);
+  background:transparent;
+}
+.af-settings.is-open .af-settings__toggle svg{
+  color:rgba(246,250,249,.98);
+  filter:drop-shadow(0 8px 16px rgba(var(--accent-blue-rgb,127,200,194),.28));
+  transform:scale(1.04) rotate(8deg);
+}
+.af-settings__toggle:focus-visible{
+  outline:2px solid rgba(var(--accent-blue-rgb,127,200,194),.5);
+  outline-offset:4px;
+}
+.af-settings__toggle:hover svg,
+.af-settings__toggle:focus-visible svg{
+  color:var(--accent-blue,#7fc8c2);
+  outline:none;
+}
+.af-settings__panel{
+  width:min(360px,calc(100vw - 32px));
+  padding:14px;
+  border:1px solid rgba(226,236,237,.1);
+  border-radius:16px;
+  background:linear-gradient(180deg,rgba(17,22,23,.82),rgba(9,12,13,.74));
+  box-shadow:0 24px 72px rgba(0,0,0,.48);
+  -webkit-backdrop-filter:blur(18px);
+  backdrop-filter:blur(18px);
+  transform:translateY(10px) scale(.97);
+  transform-origin:0 100%;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .22s ease,transform .28s cubic-bezier(.22,1,.36,1);
+}
+.af-settings.is-open .af-settings__panel{
+  opacity:1;
+  transform:none;
+  pointer-events:auto;
+}
+.af-settings__head,
+.af-settings__row,
+.af-settings__foot{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.af-settings__head{
+  padding:0 2px 10px;
+  font-size:13px;
+  font-weight:700;
+}
+.af-settings__head strong{
+  font-size:11px;
+  font-weight:650;
+  color:rgba(232,241,239,.66);
+}
+.af-settings__row{
+  padding:10px 0;
+  border-top:1px solid rgba(226,236,237,.07);
+}
+.af-settings__row > span{
+  min-width:58px;
+  font-size:12px;
+  color:rgba(232,241,239,.62);
+}
+.af-settings__choices{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+  gap:6px;
+}
+.af-settings__choice,
+.af-settings__soft{
+  border:0;
+  border-radius:999px;
+  padding:7px 10px;
+  color:rgba(232,241,239,.7);
+  background:rgba(255,255,255,.045);
+  font:inherit;
+  font-size:11px;
+  font-weight:650;
+  cursor:pointer;
+  transition:background .2s ease,color .2s ease,transform .2s ease;
+}
+.af-settings__choice:hover,
+.af-settings__soft:hover,
+.af-settings__choice:focus-visible,
+.af-settings__soft:focus-visible{
+  color:rgba(250,252,251,.95);
+  background:rgba(255,255,255,.075);
+  transform:translateY(-1px);
+  outline:none;
+}
+.af-settings__choice.is-active,
+.af-settings__soft.is-active{
+  color:#081111;
+  background:linear-gradient(180deg,rgba(141,211,205,.95),rgba(111,183,177,.92));
+}
+.af-settings__foot{
+  padding-top:10px;
+  border-top:1px solid rgba(226,236,237,.07);
+}
+body.ws-viewer-open .af-settings,
+body.tutorials-view .af-settings,
+body.community-view .af-settings,
+body.docs-view .af-settings,
+body.history-expanded .af-settings,
+body.assets-modal-open .af-settings{
+  display:none;
+}
+
+/* ==========================================================================
+   WORKSPACE STATE REACTIONS
+   The new shell is overlay-driven, so the stage has to answer to body state
+   rather than own the screen.
+   ========================================================================== */
+
+/* viewer takes the row → the stage has no business being there */
+body.ws-viewer-open .ws-stage,
+body.tutorials-view .ws-stage,
+body.community-view .ws-stage,
+body.docs-view .ws-stage,
+body.history-expanded .ws-stage{display:none}
+
+/* an overlay took focus → recede, do not disappear */
+body.ws-panel-open .ws-stage,
+body.ws-cmd-open .ws-stage,
+body.assets-modal-open .ws-stage{
+  --af-dim:.26;
+  filter:blur(3px);
+  pointer-events:none;
+}
+body.ws-panel-open .ws-stage .af__card,
+body.ws-cmd-open .ws-stage .af__card,
+body.assets-modal-open .ws-stage .af__card{pointer-events:none}
+
+body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-close{
+  position:absolute;
+  top:clamp(14px,2vh,22px);
+  right:clamp(14px,2vw,24px);
+  z-index:12;
+}
+body.ws-viewer-open .timrx-3dprint #videoViewer .video-viewer-close,
+body.ws-viewer-open .timrx-3dprint #imageViewer .image-viewer-close{
+  display:inline-flex!important;
+  align-items:center;
+  justify-content:center;
+  width:44px;
+  height:44px;
+  padding:0;
+  border:1px solid rgba(255,255,255,.16);
+  border-radius:50%;
+  color:#fff;
+  background:rgba(5,8,9,.72);
+  box-shadow:0 12px 34px rgba(0,0,0,.38);
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+}
+body.ws-viewer-open .timrx-3dprint #videoViewer .video-viewer-close:hover,
+body.ws-viewer-open .timrx-3dprint #videoViewer .video-viewer-close:focus-visible,
+body.ws-viewer-open .timrx-3dprint #imageViewer .image-viewer-close:hover,
+body.ws-viewer-open .timrx-3dprint #imageViewer .image-viewer-close:focus-visible{
+  color:#fff;
+  border-color:rgba(125,211,252,.5);
+  background:rgba(13,22,25,.9);
+}
+
+body.ws-viewer-open .timrx-3dprint .viewer-wrap .af-viewer-info{
+  position:absolute;
+  left:clamp(16px,2.2vw,28px);
+  bottom:clamp(16px,2.2vh,28px);
+  z-index:11;
+  max-width:min(520px,calc(100% - 160px));
+  padding:13px 15px;
+  border:1px solid rgba(226,236,237,.09);
+  border-radius:14px;
+  color:rgba(241,246,244,.88);
+  background:linear-gradient(145deg,rgba(9,13,14,.76),rgba(16,22,24,.58));
+  box-shadow:0 18px 46px rgba(0,0,0,.38);
+  -webkit-backdrop-filter:blur(16px) saturate(1.08);
+  backdrop-filter:blur(16px) saturate(1.08);
+  pointer-events:none;
+}
+.af-viewer-info__type{
+  display:inline-flex;
+  margin-bottom:6px;
+  color:var(--accent-blue,#7fc8c2);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.af-viewer-info strong{
+  display:block;
+  font-size:14px;
+  line-height:1.25;
+  font-weight:760;
+}
+.af-viewer-info p{
+  margin:6px 0 0;
+  display:-webkit-box;
+  -webkit-line-clamp:2;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+  color:rgba(241,246,244,.62);
+  font-size:12px;
+  line-height:1.35;
+}
+
+/* Below 1280px `media/workspace-media.css` turns .ws-grid into
+   `display:flex; height:auto` and unlocks page scroll, so grid-line placement
+   is meaningless and the stage collapses to zero height. Pin it to the
+   viewport instead — it is a background field, so being fixed under the
+   scrolling column is exactly right. No ancestor sets transform / filter /
+   perspective, so `fixed` is not trapped. */
+@media (max-width:1280px){
+  .ws-stage{
+    position:fixed;
+    inset:var(--ws-navH,70px) 0 0 0;
+    height:auto;
+    grid-area:auto;
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE — the layout is % based and container-driven, so this only
+   tunes cost. Density comes from the container size in JS.
+   ========================================================================== */
+@media (max-width:900px){
+  .af__cap{display:none}              /* no hover on touch — dead weight */
+}
+@media (max-width:560px){
+  .ws-stage__wash{filter:blur(22px)}   /* cheaper blur on small GPUs */
+  .af-settings{
+    left:max(12px,env(safe-area-inset-left,0px));
+    bottom:max(var(--ws-cmdbar-gap,12px),env(safe-area-inset-bottom,0px));
+  }
+  .af-settings__panel{padding:12px}
+  .af-settings__row{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:8px;
+  }
+  .af-settings__choices{justify-content:flex-start}
+}
+
+/* ==========================================================================
+   REDUCED MOTION — a still, composed collage. Still worth looking at.
+   ========================================================================== */
+@media (prefers-reduced-motion:reduce){
+  .ws-stage__wash,.af__float{animation:none!important}
+  .af__slot.is-awake .af__card{animation:none!important}
+  .af-settings,
+  .af-settings__toggle,
+  .af-settings__toggle::before,
+  .af-settings__toggle::after{animation:none!important}
+  .af__slot{transition:opacity .2s ease!important;transform:none!important}
+  .af__card,.af__card img{transition:box-shadow .2s ease!important}
+  .af__card:hover{transform:none!important}
+  .af__card:hover img{transform:none!important}
+}
+/* JS-forced equivalent: also applied on <=4 logical cores */
+.ws-stage.af--still .ws-stage__wash,.ws-stage.af--still .af__float{animation:none!important}
+.ws-stage.af--still .af__slot{transform:none!important}
+.ws-stage.af--still .af__card:hover{transform:none!important}
+
+/* ==========================================================================
+   HOVER FOCUS + SIDE RAIL
+   --------------------------------------------------------------------------
+   The old hover was a 4% lift and a 6% image nudge, which at thumbnail size
+   read as nothing at all. Cards are larger now and the hovered one genuinely
+   comes forward: it scales, sheds its depth blur, lifts out of the stack, and
+   the rest of the field steps back and shrinks a little so the focus is a
+   change in the whole field rather than a highlight on one tile.
+   ========================================================================== */
+
+@media (hover:hover){
+  .af__card:hover,
+  .af__card:focus-visible{
+    transform:translateY(-14px) scale(1.16);
+    box-shadow:0 40px 90px rgba(0,0,0,.66), 0 0 0 1px rgba(255,255,255,.07);
+    transition:transform .42s cubic-bezier(.34,1.28,.64,1), box-shadow .42s cubic-bezier(.22,1,.36,1);
+  }
+  .af__card:hover img,
+  .af__card:focus-visible img{transform:scale(1.1)}
+
+  /* The hovered slot leaves its depth tier entirely — no blur, full opacity,
+     and above everything else in the field. */
+  .ws-stage__field .af__slot:has(.af__card:hover),
+  .ws-stage__field .af__slot:has(.af__card:focus-visible){
+    z-index:60;
+    opacity:calc(var(--af-in) * var(--af-dim));
+    filter:blur(0);
+  }
+
+  /* …and the rest recede further than before. */
+  .ws-stage__field:hover .af__slot{
+    opacity:calc(var(--o) * .26 * var(--af-in) * var(--af-dim));
+    filter:blur(calc(var(--blur) + 1.4px));
+    transform:translate3d(calc(var(--afx) * var(--par) + var(--hx, 0px) + var(--tx, 0px)),calc(var(--afy) * var(--par) + var(--hy, 0px) + var(--ty, 0px)),var(--tz, 0px)) rotate(var(--hr, 0deg)) rotate(var(--tr, 0deg)) scale(.965) scale(var(--ts, 1));
+  }
+}
+
+/* --- side rail ----------------------------------------------------------- */
+.af-rail{
+  position:absolute;
+  top:50%;
+  translate:0 -50%;
+  z-index:44;
+  width:46px;height:46px;
+  display:grid;place-items:center;
+  border:0;border-radius:50%;
+  background:rgba(18,20,23,.62);
+  -webkit-backdrop-filter:blur(16px) saturate(1.15);
+  backdrop-filter:blur(16px) saturate(1.15);
+  color:rgba(255,255,255,.62);
+  cursor:pointer;
+  pointer-events:auto;          /* the stage itself is pointer-events:none */
+  opacity:0;
+  transition:opacity .3s cubic-bezier(.22,1,.36,1),
+             transform .3s cubic-bezier(.34,1.3,.64,1),
+             color .2s ease, background .2s ease;
+}
+
+.af-rail--prev{left:clamp(10px,2vw,26px); transform:translateX(-8px)}
+.af-rail--next{right:clamp(10px,2vw,26px); transform:translateX(8px)}
+
+.af-rail svg{width:19px;height:19px}
+
+/* Present on approach, not permanently — the field is the subject. */
+.ws-stage:hover .af-rail,
+.af-rail:focus-visible{opacity:1;transform:translateX(0)}
+
+.af-rail:hover{
+  color:#fff;
+  background:rgba(28,31,35,.82);
+  transform:translateX(0) scale(1.09);
+}
+
+.af-rail:active{transform:translateX(0) scale(.95)}
+.af-rail:focus-visible{outline:2px solid var(--accent-blue,#7fc8c2);outline-offset:3px}
+
+/* The icon turns once per press, so a repeat tap still reads as an action. */
+.af-rail.is-spun svg{animation:afRailSpin .62s cubic-bezier(.34,1.24,.64,1)}
+@keyframes afRailSpin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+
+/* --- dealing: staggered swap on a full reshuffle -------------------------- */
+.ws-stage.af--dealing .af__slot.is-swapping{
+  opacity:0;
+  transform:translate3d(calc(var(--afx) * var(--par) + var(--hx, 0px) + var(--tx, 0px)),calc(var(--afy) * var(--par) + var(--hy, 0px) + var(--ty, 18px)),var(--tz, 0px)) rotate(var(--hr, 0deg)) rotate(var(--tr, 0deg)) scale(.9) scale(var(--ts, 1));
+  transition:opacity .3s ease var(--deal,0ms), transform .3s cubic-bezier(.22,1,.36,1) var(--deal,0ms);
+}
+.ws-stage.af--dealing .af__slot:not(.is-swapping){
+  transition:opacity .46s cubic-bezier(.22,1,.36,1) var(--deal,0ms),
+             transform .58s cubic-bezier(.34,1.26,.64,1) var(--deal,0ms);
+}
+
+@media (max-width:900px){
+  .af-rail{width:40px;height:40px}
+  .af-rail svg{width:17px;height:17px}
+  /* No hover on touch — keep them visible so the control is reachable. */
+  .af-rail{opacity:.85;transform:translateX(0)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .af__card:hover,.af__card:focus-visible{transform:none}
+  .af-rail.is-spun svg{animation:none}
+  .ws-stage.af--dealing .af__slot{transition-duration:.01ms}
+}
+
+/* ==========================================================================
+   NO VIGNETTE, NO DROP SHADOWS
+   --------------------------------------------------------------------------
+   Three masks were stacking — a vertical fade on .ws-stage, a horizontal fade
+   on .ws-stage__inner, and a dock punch-out on .ws-stage__field. Where two
+   meet they multiply, so the corners went dark and the whole field read as if
+   it sat in a bowl.
+
+   The stage now runs edge to edge. Chrome remains above it through stacking
+   order and its own backdrop, so no mask is needed and the corners stay clear.
+
+   Card drop shadows go with it: depth is already carried by scale, opacity
+   and blur across the three tiers, so the shadow was only muddying the
+   artwork it sat under.
+   ========================================================================== */
+
+.ws-stage{
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+
+/* Edge-to-edge: the field is the page, it should not float in a lozenge. */
+.ws-stage__inner{
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+
+/* The dock punch-out was the third multiplier. The vertical cut above already
+   clears the dock, so this is redundant. */
+.ws-stage__field{
+  -webkit-mask-image:none;
+  mask-image:none;
+}
+
+/* --- cards: flat, no cast shadow ---------------------------------------- */
+.af__card{
+  box-shadow:none;
+}
+
+.af__card::after{
+  box-shadow:none;
+}
+
+@media (hover:hover){
+  /* Hover keeps its lift and its hairline, but reads as the card coming
+     forward — not as a shadow being switched on underneath it. */
+  .af__card:hover,
+  .af__card:focus-visible{
+    box-shadow:0 0 0 1px rgba(255,255,255,.09);
+  }
+  .af__card:hover::after,
+  .af__card:focus-visible::after{
+    box-shadow:none;
+  }
+}
+
+/* The spotlight hero carried its own 72px drop shadow. Keep the ring that
+   marks it as the focused card; drop the cast shadow like all the others. */
+.ws-stage.af--spotlight .af__slot.is-hero .af__card{
+  box-shadow:0 0 0 1px rgba(var(--accent-blue-rgb,127,200,194),.24);
+}
+
+/* A rare projector cue: one creation wakes for a moment, then returns to the
+   ambient field. Keep this as a ring and a slight lift, not a permanent glow. */
+.af__slot.is-awake .af__card{
+  animation:afCardAwake 2.1s cubic-bezier(.22,1,.36,1) both;
+}
+@keyframes afCardAwake{
+  0%,100%{transform:translateY(0) scale(1);box-shadow:0 0 0 0 rgba(var(--accent-blue-rgb,127,200,194),0)}
+  24%{transform:translateY(-6px) scale(1.035);box-shadow:0 0 0 1px rgba(var(--accent-blue-rgb,127,200,194),.42),0 0 28px rgba(var(--accent-blue-rgb,127,200,194),.14)}
+  62%{transform:translateY(-3px) scale(1.018);box-shadow:0 0 0 1px rgba(var(--accent-blue-rgb,127,200,194),.22),0 0 18px rgba(var(--accent-blue-rgb,127,200,194),.08)}
+}
+
+/* ==========================================================================
+   HERO SEQUENCE — projected line + think pulse
+   --------------------------------------------------------------------------
+   Not a text block sitting on top of the field: light cast into the same space
+   the cards float in. No box, no background, no border — the glow is the only
+   thing that says it is there.
+   ========================================================================== */
+
+.hero-seq{
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  pointer-events:none;
+  z-index:35;
+  opacity:1;
+  transition:opacity .5s cubic-bezier(.22,1,.36,1);
+}
+.hero-seq.is-gone{opacity:0}
+
+.hero-seq__line{
+  position:relative;z-index:4;
+  margin:0;
+  max-width:min(84vw,1100px);
+  min-height:1.1em;
+  text-align:center;
+  font-family:var(--font-display,Inter,system-ui,sans-serif);
+  font-size:clamp(30px,5.4vw,72px);
+  font-weight:650;
+  letter-spacing:0;
+  line-height:1.1;
+  color:transparent;
+  transition:opacity .6s cubic-bezier(.22,1,.36,1),
+             filter .6s cubic-bezier(.22,1,.36,1),
+             transform .7s cubic-bezier(.22,1,.36,1);
+}
+
+/* Dissolve: the line loses focus and lifts, rather than cutting out. */
+.hero-seq__line.is-out{
+  opacity:0;
+  filter:blur(14px);
+  transform:translateY(-16px) scale(1.03);
+}
+
+.hero-seq__particles{
+  position:absolute;inset:0;z-index:3;pointer-events:none;overflow:visible;
+}
+.hero-seq__particle{
+  position:absolute;left:50%;top:50%;display:block;
+  width:var(--ps,2px);height:var(--ps,2px);border-radius:50%;
+  background:rgba(224,250,246,.94);
+  box-shadow:0 0 8px rgba(var(--accent-blue-rgb,127,200,194),.78);
+  opacity:0;transform:translate3d(0,0,0) scale(.2);
+  --particle-scale:1;
+  animation:heroParticle 1.1s cubic-bezier(.2,.8,.25,1) var(--pd,0ms) both;
+  will-change:transform,opacity;
+}
+@keyframes heroParticle{
+  0%{opacity:0;transform:translate3d(0,0,0) scale(.2)}
+  18%{opacity:.9}
+  100%{opacity:0;transform:translate3d(calc(var(--px) * var(--particle-scale)),calc(var(--py) * var(--particle-scale)),0) scale(1)}
+}
+
+.hero-seq.is-scroll-out .hero-seq__line{
+  opacity:0;filter:blur(18px);transform:translate3d(0,-24px,0) scale(1.04);
+}
+.hero-seq.is-scroll-out .hero-seq__particle{
+  animation-duration:.7s;
+  --particle-scale:2.8;
+}
+
+/* --- per-character materialisation --------------------------------------- */
+.hero-ch{
+  display:inline-block;
+  white-space:pre;
+  /* Warm pearl is distinct from the teal field and remains readable for the
+     common colour-vision deficiencies that make cyan-on-blue ambiguous. */
+  color:rgba(255,239,193,.98);
+  -webkit-text-stroke:1px rgba(4,10,11,.48);
+  paint-order:stroke fill;
+  /* The projected look: a tight core glow plus a wide soft bloom, so the
+     glyph reads as light in air rather than as filled type. */
+  text-shadow:
+    0 1px 1px rgba(2,7,8,.72),
+    0 0 8px rgba(255,239,193,.62),
+    0 0 30px rgba(216,200,121,.34),
+    0 0 72px rgba(216,200,121,.16);
+  animation:heroCh .62s cubic-bezier(.2,1.5,.4,1) backwards;
+  will-change:transform,opacity,filter;
+}
+
+.hero-ch.is-space{text-shadow:none;animation:none}
+
+/* Overshoot, then settle. Starts blurred and slightly forward, as if the
+   projector is pulling it into focus. */
+@keyframes heroCh{
+  0%{
+    opacity:0;
+    filter:blur(9px);
+    transform:translateY(.14em) scale(1.22);
+  }
+  55%{
+    opacity:1;
+    filter:blur(0);
+    transform:translateY(-.045em) scale(.985);
+  }
+  100%{
+    opacity:1;
+    filter:blur(0);
+    transform:none;
+  }
+}
+
+/* Once complete the whole line breathes very slightly — nothing on this page
+   should be perfectly still. */
+.hero-seq__line.is-complete .hero-ch{
+  animation:heroBreathe 5.5s ease-in-out 1.2s infinite;
+}
+@keyframes heroBreathe{
+  0%,100%{opacity:1}
+  50%    {opacity:.86}
+}
+
+/* --- think pulse ---------------------------------------------------------- */
+.hero-seq__pulse{
+  position:absolute;
+  left:50%;top:50%;
+  width:min(60vw,760px);
+  aspect-ratio:1;
+  translate:-50% -50%;
+  border-radius:50%;
+  opacity:0;
+  pointer-events:none;
+  background:radial-gradient(circle,
+    rgba(var(--accent-blue-rgb,127,200,194),.13) 0%,
+    rgba(var(--accent-blue-rgb,127,200,194),.05) 38%,
+    transparent 62%);
+}
+
+.hero-seq__pulse.is-on{animation:heroPulse 2.6s cubic-bezier(.22,1,.36,1)}
+@keyframes heroPulse{
+  0%  {opacity:0;transform:scale(.24)}
+  22% {opacity:1}
+  100%{opacity:0;transform:scale(1.5)}
+}
+
+@media (max-width:640px){
+  .hero-seq__line{font-size:clamp(24px,7.5vw,38px);max-width:88vw}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .hero-ch{animation:none !important;filter:none}
+  .hero-seq__line.is-complete .hero-ch{animation:none !important}
+  .hero-seq__pulse{display:none}
+  .hero-seq__particles{display:none}
+  .hero-seq__line.is-out{transform:none;filter:none}
+}
+
+/* ==========================================================================
+   MODEL CARD FLOOR
+   --------------------------------------------------------------------------
+   The generated fallback tiles paint a perspective grid into their SVG, which
+   is why they read as objects standing in a studio. A real model thumbnail is
+   a render on a void background, so it floats. This lays the same floor under
+   it in CSS — three receding rails and three converging verticals, matching
+   the geometry the SVG uses (horizontals at 79/87/95% of the tile, verticals
+   fanning out from the same vanishing point).
+   ========================================================================== */
+
+.af__floor{
+  position:absolute;
+  left:0;right:0;bottom:0;
+  height:34%;
+  pointer-events:none;
+  z-index:1;
+  opacity:.55;
+
+  background-image:
+    /* receding rails — spacing widens toward the viewer */
+    linear-gradient(to bottom,
+      transparent 0 34%,
+      rgba(var(--accent-blue-rgb,127,200,194),.11) 34% 34.6%,
+      transparent 34.6% 62%,
+      rgba(var(--accent-blue-rgb,127,200,194),.09) 62% 62.7%,
+      transparent 62.7% 88%,
+      rgba(var(--accent-blue-rgb,127,200,194),.07) 88% 88.8%,
+      transparent 88.8%),
+    /* ground haze so the object sits in something, not on a line drawing */
+    linear-gradient(to top, rgba(0,0,0,.55), transparent 70%);
+
+  /* Fade the grid out toward the horizon rather than cutting it. */
+  -webkit-mask-image:linear-gradient(to top,#000 22%,rgba(0,0,0,.55) 62%,transparent 100%);
+  mask-image:linear-gradient(to top,#000 22%,rgba(0,0,0,.55) 62%,transparent 100%);
+}
+
+/* The converging verticals need real perspective, so they live in their own
+   layer with a 3D transform rather than being faked with skew. */
+.af__floor::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(to right,
+      transparent 0 15%,
+      rgba(var(--accent-blue-rgb,127,200,194),.09) 15% 15.5%,
+      transparent 15.5% 49.7%,
+      rgba(var(--accent-blue-rgb,127,200,194),.10) 49.7% 50.3%,
+      transparent 50.3% 84.5%,
+      rgba(var(--accent-blue-rgb,127,200,194),.09) 84.5% 85%,
+      transparent 85%);
+  transform:perspective(120px) rotateX(52deg);
+  transform-origin:50% 0%;
+  -webkit-mask-image:linear-gradient(to top,#000 10%,transparent 92%);
+  mask-image:linear-gradient(to top,#000 10%,transparent 92%);
+}
+
+/* The card's own caption sits above the floor. */
+.af__card .af__cap{position:relative;z-index:2}
+
+/* On hover the floor brightens with the card, so it reads as one object. */
+@media (hover:hover){
+  .af__card:hover .af__floor,
+  .af__card:focus-visible .af__floor{opacity:.8}
+}
+
+/* The image must not cover it: model thumbnails are contained above the floor
+   rather than cropped to fill the whole card. */
+.af__card[data-asset-type="model"] img{
+  object-fit:contain;
+  object-position:50% 42%;
+  padding:6% 8% 22%;
+}
+
+@media (prefers-reduced-motion:reduce){
+  .af__floor{transition:none}
+}
+
+/* ==========================================================================
+   DEPTH TRAVEL — a few cards approach from far back
+   --------------------------------------------------------------------------
+   The tiers place cards at a fixed depth and hold them there, so the field
+   drifts sideways but never toward you. A minority of cards now make the trip
+   in: they start small, faint and out of focus, and take the better part of a
+   minute to arrive, then recede and begin again.
+
+   Only a third of the field does this. If they all travelled it would read as
+   a zoom rather than as depth — the still cards are what the moving ones are
+   measured against.
+
+   --dz / --dop / --dbl are registered so they can actually animate; without
+   @property a custom property is a string and interpolates in one jump. They
+   compose into the transform, opacity and filter the slot already builds, so
+   this stacks with the pointer parallax and the hero displacement rather than
+   competing with any of them.
+   ========================================================================== */
+
+@property --ts  { syntax:'<number>'; inherits:false; initial-value:1 }
+@property --dop { syntax:'<number>'; inherits:false; initial-value:1 }
+@property --dbl { syntax:'<length>'; inherits:false; initial-value:0px }
+
+.af__slot.is-travelling{
+  animation:afApproach var(--travel,52s) cubic-bezier(.42,0,.4,1) var(--travel-delay,0s) infinite;
+  /* The card is moving in depth, so its shadowless flat look needs the blur to
+     carry the distance instead. */
+  will-change:transform,opacity,filter;
+}
+
+@keyframes afApproach{
+  /* far: barely there, well out of focus */
+  0%   { --ts:.46; --dop:.24; --dbl:2.6px }
+  /* the long middle of the journey is where most of the time goes, so the
+     approach reads as steady rather than as an arrival */
+  55%  { --ts:.82; --dop:.72; --dbl:.7px }
+  /* front: full presence, in focus, briefly the nearest thing in the field */
+  74%  { --ts:1.12; --dop:1; --dbl:0px }
+  /* and back out, faster than it came — recession is less interesting to watch */
+  100% { --ts:.46; --dop:.24; --dbl:2.6px }
+}
+
+/* A travelling card at its closest should sit above the static ones. */
+.af__slot.is-travelling{ z-index:calc(var(--z) + 4) }
+
+/* Hovering a travelling card pauses its journey, so it can be read. */
+@media (hover:hover){
+  .af__slot.is-travelling:hover{animation-play-state:paused}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .af__slot.is-travelling{animation:none}
+}
+
+/* --------------------------------------------------------------------------
+   Hero line: always one row
+   --------------------------------------------------------------------------
+   Each glyph is its own inline-block, so the line broke between spans whenever
+   it exceeded the 900px cap — "From imagination to production." is 31
+   characters and lands at ~899px at the 58px size, right on the edge, so some
+   messages wrapped and others did not. nowrap makes one row structural, and
+   the vw term in the clamp keeps the longest message inside the measure at
+   every width rather than relying on the cap.
+   -------------------------------------------------------------------------- */
+.hero-seq__line{
+  max-width:min(94vw,1500px) !important;
+  white-space:nowrap;
+  font-size:clamp(19px,5.1vw,58px) !important;
+}
+
+@media (max-width:640px){
+  .hero-seq__line{font-size:clamp(15px,5.4vw,30px) !important;max-width:96vw !important}
+}
+
+/* ==========================================================================
+   ZONES — the stage is one composition made of three
+   --------------------------------------------------------------------------
+   Before this everything shared a single farthest-point sample, so a video, a
+   render and a model landed wherever the sampler put them and the field had no
+   readable structure. Now each type has a place and a grammar:
+
+     .af-zone--reel   left    videos   film strip, running on a loop
+     .af-zone--core   centre  models   organic scatter, pushed by the thought
+                                       engine (hero-sequence.js targets
+                                       [data-af-zone="core"] only)
+     .af-zone--sheet  right   images   contact sheet, drifting the other way
+
+   The two rails run in OPPOSITE directions. That counter-current is what makes
+   the stage read as one moving composition rather than three lists parked side
+   by side, and it costs nothing — both are compositor transforms.
+
+   Rails are pointer-events:none containers; only .af__card opts back in, same
+   as the rest of the stage.
+   ========================================================================== */
+
+.af-zone{
+  position:absolute;
+  top:0;bottom:0;
+  pointer-events:none;
+}
+
+/* Centre keeps the full field box: its children are absolutely positioned by
+   percentage and layout() already remaps x into the core band. */
+.af-zone--core{left:0;right:0}
+
+/* --- rails --------------------------------------------------------------- */
+.af-zone--reel,
+.af-zone--sheet{
+  /* Zoom headroom: hovered cards scale up (1.16) and this zone's own
+     overflow:hidden guillotined the bloom at the column edge. Widen the zone
+     by the pad on each side and hand the pad back as inline padding, so the
+     content box — and every card in it — keeps its exact size and position
+     while the clip line moves outward past the zoom overhang. */
+  --af-zoom-pad:48px;
+  left:calc(var(--zx0) - var(--af-zoom-pad));
+  width:calc(var(--zw) + var(--af-zoom-pad) * 2);
+  padding-inline:var(--af-zoom-pad);
+  display:flex;
+  /* Spacing lives on the items as margin, NOT as flex gap — see the loop-seam
+     note on .af-reel__track. */
+  --af-cell-gap:clamp(8px,.7vw,14px);
+  /* Clear the dock at the top and the command bar at the bottom. Deliberately
+     NOT a percentage: padding percentages resolve against the INLINE size, so
+     a % here would be measured against the rail's ~200px width rather than the
+     stage height and collapse to nothing. */
+  padding-block:5vh var(--af-clear-bottom);
+  overflow:hidden;
+  /* Feather both ends so frames enter and leave the strip instead of being
+     guillotined by the container edge. */
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 11%,#000 89%,transparent 100%);
+  mask-image:linear-gradient(to bottom,transparent 0,#000 11%,#000 89%,transparent 100%);
+  opacity:calc(var(--af-in) * var(--af-dim));
+  transition:opacity .55s ease;
+}
+
+/* The rails are compositions, so they recede as one when the thought line
+   takes focus — not card by card like the scatter does. */
+.ws-stage.is-thought-focus .af-zone--reel,
+.ws-stage.is-thought-focus .af-zone--sheet{
+  opacity:calc(var(--af-in) * var(--af-dim) * .3);
+  filter:blur(1.6px);
+}
+
+.af-zone__label{
+  position:absolute;
+  top:calc(var(--af-clear-top) * .34 - 4px);
+  left:0;right:0;
+  text-align:center;
+  z-index:5;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.34em;
+  text-transform:uppercase;
+  color:var(--text-soft,rgba(242,245,243,.34));
+  opacity:0;
+  transform:translateY(-4px);
+  transition:opacity .4s ease,transform .4s cubic-bezier(.22,1,.36,1);
+  pointer-events:none;
+}
+.ws-stage:hover .af-zone__label{opacity:.62;transform:none}
+
+/* ==========================================================================
+   LEFT RAIL — THE VIDEO REEL
+   --------------------------------------------------------------------------
+   One column of identical 9:16 frames running upward forever. The track holds
+   its frames twice and animates to exactly -50%, so the loop seam is
+   invisible and there is no JS anywhere in the motion path.
+
+   Hover pauses the entire strip. That pause is what sells it: the wall stops
+   coming toward you and the frame you reached for holds still while its real
+   video fades in over the poster.
+   ========================================================================== */
+.af-zone--reel{flex-direction:column}
+
+/* The seam.
+   The track holds its frames twice and travels exactly -50%, so the loop is
+   invisible — but ONLY if half the track height equals one full set. With
+   `gap`, 2n items carry 2n-1 gaps, half of which is not n items + n gaps, and
+   the strip jumps by half a gap every cycle. Margin on each item makes every
+   cell exactly item+gap tall, so 50% lands on the seam precisely. */
+.af-reel__track{
+  display:flex;
+  flex-direction:column;
+  /* Must not be shrunk by the column parent: the track is deliberately twice
+     the visible height and the -50% travel is measured against that. Letting
+     flex compress it would put the seam in the wrong place. */
+  flex:0 0 auto;
+  width:100%;
+  animation:af-reel-run var(--reel-dur,60s) linear infinite;
+  will-change:transform;
+}
+.af-reel__track > .af__slot--reel{margin-bottom:var(--af-cell-gap,12px)}
+@keyframes af-reel-run{
+  from{transform:translate3d(0,0,0)}
+  to  {transform:translate3d(0,-50%,0)}
+}
+
+/* Pause on hover anywhere in the rail, not just on a frame — reaching toward
+   the strip should stop it before you arrive. */
+.af-zone--reel:hover .af-reel__track,
+.af-zone--reel:focus-within .af-reel__track{animation-play-state:paused}
+
+/* Sprocket holes down both edges. A repeating-linear-gradient pair, so the
+   whole film-stock read costs two gradients and no elements. */
+.af-reel__sprockets{
+  /* Sides pinned to the film strip (the padding box would put the holes
+     --af-zoom-pad away from the frames). */
+  position:absolute;inset:0 var(--af-zoom-pad,0px);
+  z-index:4;
+  pointer-events:none;
+  opacity:.5;
+  background:
+    repeating-linear-gradient(to bottom,
+      rgba(226,236,237,.16) 0 7px,transparent 7px 20px) left  / 4px 100% no-repeat,
+    repeating-linear-gradient(to bottom,
+      rgba(226,236,237,.16) 0 7px,transparent 7px 20px) right / 4px 100% no-repeat;
+  animation:af-reel-run var(--reel-dur,60s) linear infinite;
+}
+.af-zone--reel:hover .af-reel__sprockets{animation-play-state:paused}
+
+.af__slot--reel{
+  position:relative;
+  flex:0 0 auto;
+  width:100%;
+  translate:0 0;                       /* rails place by flow, not by --x/--y */
+  transform:translate3d(var(--nudge,0px),0,0) rotate(var(--tilt,0deg));
+  opacity:1;                           /* the rail owns the fade, not the slot */
+  filter:none;
+  z-index:auto;
+}
+
+/* Play badge — a quiet affordance at rest that becomes the focal point on
+   approach, then gets out of the way once the video is actually running. */
+.af__play{
+  position:absolute;top:50%;left:50%;
+  translate:-50% -50%;
+  z-index:4;
+  display:grid;place-items:center;
+  width:30px;height:30px;
+  border-radius:999px;
+  color:#fff;
+  background:rgba(7,9,10,.52);
+  border:1px solid rgba(255,255,255,.22);
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  opacity:.72;
+  transition:opacity .3s ease,transform .34s cubic-bezier(.34,1.4,.64,1);
+  pointer-events:none;
+}
+.af__play svg{width:12px;height:12px;margin-left:1px}
+
+/* A light sweep down the frame on approach — the sheen of film passing a
+   projector lamp. */
+.af__scan{
+  position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:linear-gradient(to bottom,
+    transparent 0,rgba(255,255,255,.14) 46%,rgba(255,255,255,.02) 54%,transparent 100%);
+  transform:translateY(-100%);
+  opacity:0;
+}
+
+/* The real video, attached by JS on hover only. */
+.af__vid{
+  position:absolute;inset:0;z-index:2;
+  width:100%;height:100%;
+  object-fit:cover;
+  opacity:0;
+  transition:opacity .42s ease;
+  pointer-events:none;
+}
+.af__vid.is-ready{opacity:1}
+
+@media (hover:hover){
+  /* Keyed on the card, not the rail: videos that fall back into the centre
+     scatter get the same affordance and the same inline playback. */
+  /* scale only — centring is the `translate` property on .af__play, so putting
+     a translate back in the transform would offset it by another half. */
+  .af__card:hover .af__play,
+  .af__card:focus-visible .af__play{
+    opacity:1;transform:scale(1.14);
+  }
+  .af__slot--reel .af__card:hover .af__scan,
+  .af__slot--reel .af__card:focus-visible .af__scan{
+    animation:af-scan 1.05s cubic-bezier(.4,0,.2,1);
+  }
+  /* Once the video is up the badge steps back — the motion is the signal now. */
+  .af__card:hover .af__vid.is-ready ~ .af__play{opacity:0}
+
+  /* The hovered frame leaves the strip: it grows out of the column toward the
+     centre of the stage and lifts above its neighbours. */
+  .af__slot--reel:has(.af__card:hover),
+  .af__slot--reel:has(.af__card:focus-visible){
+    z-index:60;
+  }
+  .af__slot--reel .af__card:hover,
+  .af__slot--reel .af__card:focus-visible{
+    transform:translateX(11%) scale(1.3);
+    box-shadow:0 34px 80px rgba(0,0,0,.72),0 0 0 1px rgba(var(--accent-pink-rgb,201,144,155),.34);
+  }
+  /* Neighbours in the same rail give way. */
+  .af-zone--reel:has(.af__card:hover) .af__slot--reel:not(:has(.af__card:hover)){
+    opacity:.4;
+    filter:blur(1.1px);
+  }
+}
+@keyframes af-scan{
+  from{transform:translateY(-100%);opacity:.9}
+  to  {transform:translateY(100%); opacity:0}
+}
+
+/* ==========================================================================
+   RIGHT RAIL — THE CONTACT SHEET
+   --------------------------------------------------------------------------
+   Two staggered columns of proofs drifting DOWNWARD, against the reel. Each
+   frame keeps its own aspect, carries a sheet number, and holds a slow Ken
+   Burns at rest so the sheet is alive without anything actually moving on the
+   page.
+
+   On hover the frame blooms — scales, picks up a warm rim light, and its
+   column neighbours part around it.
+   ========================================================================== */
+.af-zone--sheet{flex-direction:row;align-items:flex-start}
+
+.af-sheet__col{
+  flex:1 1 0;
+  min-width:0;
+  align-self:flex-start;   /* height from content, not stretched to the rail */
+  display:flex;
+  flex-direction:column;
+  /* Margin, not gap — same seam maths as the reel track. */
+  animation:af-sheet-run var(--sheet-dur,60s) linear infinite;
+  will-change:transform;
+}
+.af-sheet__col + .af-sheet__col{margin-left:var(--af-cell-gap,12px)}
+.af-sheet__col > .af__slot--sheet{margin-bottom:var(--af-cell-gap,12px)}
+/* Downward: start already shifted up by half and travel back to zero, so the
+   column appears to fall while still looping seamlessly. */
+@keyframes af-sheet-run{
+  from{transform:translate3d(0,-50%,0)}
+  to  {transform:translate3d(0,0,0)}
+}
+.af-zone--sheet:hover .af-sheet__col,
+.af-zone--sheet:focus-within .af-sheet__col{animation-play-state:paused}
+
+.af__slot--sheet{
+  position:relative;
+  flex:0 0 auto;
+  width:100%;
+  translate:0 0;
+  transform:rotate(var(--tilt,0deg));
+  opacity:1;
+  filter:none;
+  z-index:auto;
+}
+
+/* Zoom headroom, stacking half: rail cells sit in flow, where later siblings
+   paint above — and each sheet column is its own stacking context (the loop
+   animation's transform). Lift the hovered cell AND its column so the bloomed
+   card overlaps its neighbours instead of sliding under them. */
+@media (hover:hover){
+  .af__slot--reel:has(.af__card:hover),
+  .af__slot--reel:has(.af__card:focus-visible),
+  .af__slot--sheet:has(.af__card:hover),
+  .af__slot--sheet:has(.af__card:focus-visible){z-index:8}
+  .af-sheet__col:has(.af__card:hover),
+  .af-sheet__col:has(.af__card:focus-visible){z-index:3}
+}
+
+/* Proof-sheet framing: a hairline white border and a numbered corner. */
+.af__slot--sheet .af__card{
+  border-radius:3px;
+  box-shadow:0 10px 26px rgba(0,0,0,.44);
+}
+.af__slot--sheet .af__card::after{
+  border-color:rgba(242,245,243,.20);
+}
+.af__frameno{
+  position:absolute;right:5px;bottom:4px;z-index:4;
+  font-size:8px;font-weight:700;letter-spacing:.12em;
+  color:rgba(242,245,243,.5);
+  text-shadow:0 1px 3px rgba(0,0,0,.9);
+  pointer-events:none;
+  transition:opacity .3s ease;
+}
+
+/* Ken Burns at rest. Long, tiny, and offset per frame by the drift delay the
+   slot already carries, so no two proofs breathe together. */
+.af__slot--sheet .af__card img{
+  animation:af-kenburns 26s ease-in-out infinite alternate;
+}
+@keyframes af-kenburns{
+  from{transform:scale(1.04) translate3d(-1%,1%,0)}
+  to  {transform:scale(1.12) translate3d(1.5%,-1.5%,0)}
+}
+
+@media (hover:hover){
+  .af__slot--sheet:has(.af__card:hover),
+  .af__slot--sheet:has(.af__card:focus-visible){z-index:60}
+
+  .af__slot--sheet .af__card:hover,
+  .af__slot--sheet .af__card:focus-visible{
+    transform:translateX(-9%) scale(1.28);
+    border-radius:5px;
+    box-shadow:
+      0 34px 80px rgba(0,0,0,.7),
+      0 0 0 1px rgba(var(--accent-neo-rgb,216,200,121),.4),
+      0 0 34px rgba(var(--accent-neo-rgb,216,200,121),.14);
+  }
+  /* Hold the Ken Burns still while it is being looked at. */
+  .af__slot--sheet .af__card:hover img,
+  .af__slot--sheet .af__card:focus-visible img{
+    animation-play-state:paused;
+    transform:scale(1.1);
+  }
+  .af__slot--sheet .af__card:hover .af__frameno{opacity:0}
+
+  /* The rest of the sheet parts around the one in focus. */
+  .af-zone--sheet:has(.af__card:hover) .af__slot--sheet:not(:has(.af__card:hover)){
+    opacity:.38;
+    filter:blur(1.1px);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   The whole-field hover recession is written for the centre scatter (it
+   rebuilds the transform from --afx/--hx/etc). Rails place by flow, so that
+   rule would throw their frames back to origin the moment the pointer entered
+   the stage. Exempt them — each rail dims its own members instead.
+   -------------------------------------------------------------------------- */
+@media (hover:hover){
+  .ws-stage__field:hover .af__slot--reel,
+  .ws-stage__field:hover .af__slot--sheet{
+    transform:translate3d(var(--nudge,0px),0,0) rotate(var(--tilt,0deg));
+    opacity:1;
+    filter:none;
+  }
+  .ws-stage__field:hover .af-zone--reel,
+  .ws-stage__field:hover .af-zone--sheet{
+    opacity:calc(var(--af-in) * var(--af-dim) * .82);
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE — below 1080px JS drops the rails entirely (zoneGeometry) and
+   everything falls back into the centre scatter, so there is nothing to hide
+   here. These only tune cost on the widths that DO get rails.
+   ========================================================================== */
+@media (max-width:1380px){
+  .af-zone--sheet{--sheet-cols:1}
+  .af-zone--sheet .af-sheet__col:last-child{display:none}
+  .af-zone__label{font-size:8px;letter-spacing:.26em}
+}
+
+/* ==========================================================================
+   REDUCED MOTION / STILL — the rails become static, composed columns.
+   Still worth looking at; nothing scrolls, nothing plays.
+   ========================================================================== */
+@media (prefers-reduced-motion:reduce){
+  .af-reel__track,
+  .af-reel__sprockets,
+  .af-sheet__col{animation:none!important;transform:none!important}
+  .af__slot--sheet .af__card img{animation:none!important}
+  .af__scan{animation:none!important;display:none}
+  .af__slot--reel .af__card:hover,
+  .af__slot--sheet .af__card:hover{transform:none!important}
+}
+.ws-stage.af--still .af-reel__track,
+.ws-stage.af--still .af-reel__sprockets,
+.ws-stage.af--still .af-sheet__col{animation-play-state:paused}
+.ws-stage.af--still .af__slot--sheet .af__card img{animation-play-state:paused}

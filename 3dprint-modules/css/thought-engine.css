@@ -1,0 +1,203 @@
+/* ============================================================================
+   TimrX Thought Engine — Neural Intelligence Edition
+   Canvas handles orbital rings, filaments, and neuron pulses.
+   CSS owns: positioning, body/core/human, scan, spark, fold, axis, particles.
+   ============================================================================ */
+
+/* ── Canvas layer ───────────────────────────────────────────────────────────── */
+.thought-engine-canvas{
+  position:absolute;inset:0;
+  width:100%;height:100%;
+  pointer-events:none;z-index:0;
+}
+
+/* ── Container ─────────────────────────────────────────────────────────────── */
+.thought-engine{
+  --thought-progress:0;
+  --thought-scale:.92;
+  --core-scale:.88;
+  /* Brain is wider than it is tall */
+  position:absolute;left:50%;top:50%;z-index:2;
+  width:clamp(172px,25vw,345px);aspect-ratio:1.08/1;
+  translate:-50% -50%;pointer-events:none;
+  opacity:.38;
+  transform:translate3d(0,0,0) scale(var(--thought-scale));
+  transition:opacity .8s cubic-bezier(.22,1,.36,1),transform .9s cubic-bezier(.22,1,.36,1);
+  will-change:transform,opacity;
+}
+
+/* Central glow — brain-blob shape */
+.thought-engine::before{
+  content:"";position:absolute;
+  inset:18% 12% 18% 12%;
+  border-radius:58% 42% 62% 38% / 52% 60% 40% 48%;
+  background:rgba(255,179,71,.022);
+  box-shadow:0 0 52px rgba(255,179,71,.05),0 0 110px rgba(255,179,71,.02);
+  animation:thoughtBreath 6.8s ease-in-out infinite;
+}
+
+/* ── Shared layout ──────────────────────────────────────────────────────────── */
+.thought-engine__body,
+.thought-engine__axis,
+.thought-engine__fold,
+.thought-engine__particles{position:absolute;inset:0;display:block}
+
+/* Slow, gentle drift — brain feels alive not mechanical */
+.thought-engine__body{animation:thoughtFloat 10s ease-in-out infinite}
+
+/* ── Core — smaller silhouette ──────────────────────────────────────────────── */
+.thought-engine__core{
+  position:absolute;left:38%;top:38%;width:24%;height:24%;
+  border:1px solid rgba(255,179,71,.22);
+  border-radius:52% 48% 44% 56% / 48% 56% 44% 52%;
+  overflow:hidden;
+  background:radial-gradient(circle at 38% 32%,
+    rgba(255,179,71,.38),
+    rgba(255,210,100,.14) 28%,
+    rgba(12,18,28,.55) 68%,
+    rgba(4,7,10,.12));
+  box-shadow:0 0 18px rgba(255,179,71,.15),inset 0 0 14px rgba(255,179,71,.08);
+  transform:rotate(12deg) scale(var(--core-scale));
+  transition:transform .55s cubic-bezier(.2,1.35,.4,1),box-shadow .55s ease;
+}
+
+/* Human silhouette */
+.thought-engine__human{
+  position:absolute;left:-22%;top:-22%;width:144%;height:144%;
+  object-fit:contain;
+  opacity:.34;
+  mix-blend-mode:screen;
+  filter:saturate(.55) drop-shadow(0 0 5px rgba(255,179,71,.28));
+  transform-origin:50% 50%;
+  transform:rotate(-12deg) scale(.88);
+  animation:thoughtHuman 7.2s ease-in-out infinite;
+  z-index:0;
+}
+.thought-engine__core i,
+.thought-engine__core b{position:absolute;display:block;border-radius:50%;font-style:normal}
+.thought-engine__core i{left:20%;top:18%;width:20%;height:16%;background:rgba(255,179,71,.32);filter:blur(2px);z-index:2}
+.thought-engine__core b{right:19%;bottom:20%;width:14%;height:14%;background:rgba(255,210,100,.28);filter:blur(3px);z-index:2}
+
+/* ── Spark & scan ───────────────────────────────────────────────────────────── */
+.thought-engine__spark{
+  position:absolute;
+  left:48%;top:18%;width:3%;height:62%;border-radius:50%;
+  background:rgba(255,179,71,.20);filter:blur(4px);opacity:.35;
+  transform:rotate(42deg);animation:thoughtSpark 4.2s ease-in-out infinite;
+}
+.thought-engine__scan{
+  position:absolute;left:34%;top:49%;width:30%;height:1px;
+  background:rgba(255,179,71,.48);
+  box-shadow:0 0 8px rgba(255,179,71,.40);
+  opacity:.14;transform:translateX(-70%);
+  animation:thoughtScan 4.4s ease-in-out infinite;
+}
+
+/* ── Brain fold — interhemispheric fissure ──────────────────────────────────── */
+.thought-engine__fold{
+  position:absolute;left:50%;top:14%;
+  width:1px;height:72%;
+  background:linear-gradient(to bottom,
+    transparent,
+    rgba(255,179,71,.08) 25%,
+    rgba(255,179,71,.12) 50%,
+    rgba(255,179,71,.08) 75%,
+    transparent);
+  transform:translateX(-50%) rotate(2deg);
+  opacity:.6;
+  pointer-events:none;
+}
+
+/* ── Axis guides — very faint ───────────────────────────────────────────────── */
+.thought-engine__axis{
+  left:50%;top:50%;inset:auto;
+  width:clamp(108px,16vw,218px);height:1px;
+  transform-origin:0 50%;
+  background:rgba(255,179,71,.07);opacity:.4;
+}
+.thought-engine__axis--x{transform:rotate(22deg) translateX(-50%)}
+.thought-engine__axis--y{transform:rotate(112deg) translateX(-50%);background:rgba(255,210,100,.06)}
+
+/* ── Synaptic CSS particles — decorative dots on .thought-engine ────────────── */
+.thought-engine__particle{
+  position:absolute;
+  left:calc(50% + var(--particle-x));
+  top:calc(50% + var(--particle-y));
+  width:var(--particle-size);height:var(--particle-size);
+  border-radius:50%;
+  background:rgba(255,179,71,.60);
+  box-shadow:0 0 6px rgba(255,179,71,.34);
+  opacity:.22;
+  animation:thoughtParticle 5.4s ease-in-out var(--particle-delay) infinite;
+  will-change:transform,opacity;
+}
+
+/* ── State variants ─────────────────────────────────────────────────────────── */
+.thought-engine[data-state="thinking"]{opacity:.58}
+.thought-engine[data-state="thinking"] .thought-engine__core{
+  box-shadow:0 0 28px rgba(255,179,71,.28),inset 0 0 16px rgba(255,179,71,.14);
+}
+.thought-engine[data-state="returning"]{opacity:.46}
+
+/* Pulse wave — brain-blob shape */
+.thought-engine.is-pulsing::after{
+  content:"";position:absolute;left:50%;top:50%;width:30%;aspect-ratio:1;
+  translate:-50% -50%;
+  border:1px solid rgba(255,179,71,.36);
+  border-radius:58% 42% 62% 38% / 52% 60% 40% 48%;
+  animation:thoughtWave 1.9s cubic-bezier(.22,1,.36,1) both;
+}
+
+/* ── Keyframes ──────────────────────────────────────────────────────────────── */
+
+@keyframes thoughtBreath{
+  0%,100%{opacity:.38;transform:scale(.88)}
+  50%{opacity:.72;transform:scale(1.06)}
+}
+
+@keyframes thoughtFloat{
+  0%,100%{transform:translate3d(0,3px,0) rotate(-1.2deg)}
+  50%{transform:translate3d(0,-6px,0) rotate(1.2deg)}
+}
+
+@keyframes thoughtSpark{
+  0%,100%{opacity:.18;transform:rotate(42deg) translateY(6%)}
+  50%{opacity:.60;transform:rotate(42deg) translateY(-9%)}
+}
+
+@keyframes thoughtHuman{
+  0%,100%{opacity:.26;transform:rotate(-12deg) scale(.86)}
+  50%{opacity:.42;transform:rotate(-12deg) scale(.98)}
+}
+
+@keyframes thoughtScan{
+  0%,100%{opacity:.06;transform:translateX(-70%)}
+  48%{opacity:.64;transform:translateX(70%)}
+  60%{opacity:.08;transform:translateX(70%)}
+}
+
+@keyframes thoughtParticle{
+  0%,100%{opacity:.14;transform:translate3d(0,5px,0) scale(.65)}
+  50%{opacity:.52;transform:translate3d(2px,-8px,0) scale(1.15)}
+}
+
+@keyframes thoughtWave{
+  0%  {opacity:.60;transform:translate(-50%,-50%) scale(.35)}
+  100%{opacity:0;  transform:translate(-50%,-50%) scale(3.8)}
+}
+
+/* ── Responsive ─────────────────────────────────────────────────────────────── */
+@media (max-width:640px){
+  .thought-engine{width:clamp(138px,42vw,210px);opacity:.30}
+}
+
+/* ── Reduced motion ─────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion:reduce){
+  .thought-engine,
+  .thought-engine__body,
+  .thought-engine__particle,
+  .thought-engine::before,
+  .thought-engine__spark,
+  .thought-engine__scan{animation:none!important}
+  .thought-engine.is-pulsing::after{display:none}
+}
