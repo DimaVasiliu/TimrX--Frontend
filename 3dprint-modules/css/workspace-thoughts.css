@@ -28,6 +28,7 @@ html body.print3d-page > .ws-thoughts,
   transition: opacity 600ms ease;
 }
 
+html body.print3d-page > .ws-thoughts.is-live,
 .ws-thoughts.is-live { opacity: 1; }
 
 .ws-thoughts__eyebrow {

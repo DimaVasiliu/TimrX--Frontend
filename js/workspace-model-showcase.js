@@ -318,8 +318,32 @@
       (error) => {
         state.loading.delete(itemIndex);
         console.warn(`TimrX workspace model could not be loaded: ${MODEL_ITEMS[itemIndex].name}`, error);
+        state.loadFailures = (state.loadFailures || 0) + 1;
+        recoverIfFeedUnloadable();
       }
     );
+  }
+
+  /* If the live feed answered but none of its models actually load (auth-
+     gated proxy, expired URLs, CORS), fall back to the bundled local set —
+     an empty stage is never the right outcome. */
+  function recoverIfFeedUnloadable() {
+    if (state.usedFallbackRecovery) return;
+    if (state.showcase?.dataset.feed !== 'live') return;
+    if (state.models.size > 0) return;
+    if ((state.loadFailures || 0) < MODEL_ITEMS.length) return;
+
+    state.usedFallbackRecovery = true;
+    console.warn('TimrX live showcase models all failed to load; reverting to local curated models.');
+    MODEL_ITEMS = [...FALLBACK_MODEL_ITEMS];
+    state.activeIndex = 0;
+    state.modelUrl = MODEL_ITEMS[0].url;
+    state.showcase.dataset.feed = 'local';
+    state.loading.clear();
+    state.preloadQueue = [];
+    window.clearTimeout(state.preloadTimer);
+    loadActiveModel();
+    scheduleModelPreload();
   }
 
   function loadActiveModel() { loadModel(state.activeIndex); }

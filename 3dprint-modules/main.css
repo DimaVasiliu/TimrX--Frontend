@@ -77,7 +77,7 @@
 /* 15. Neural intelligence background */
 @import url('css/neural-brain-background.css?v=20260809b');
 @import url('css/workspace-model-showcase.css?v=20260809r');
-@import url('css/workspace-thoughts.css?v=20260809c');
+@import url('css/workspace-thoughts.css?v=20260809d');
 
 /* 16. Responsive layer for the stage + bottom chrome — imported LAST on
    purpose: it corrects nav.css launcher geometry and stage safe areas
