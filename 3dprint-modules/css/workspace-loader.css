@@ -182,7 +182,7 @@ html body.print3d-page > .workspace-loader {
   grid-auto-flow: row;
   justify-items: center;
   margin: 0;
-  font-family: "Bebas Neue", "Arial Black", "Inter", system-ui, sans-serif;
+  font-family: "Arial Black", "Inter", system-ui, sans-serif;
   font-size: clamp(70px, 10vw, 148px);
   font-weight: 900;
   line-height: 0.74;
