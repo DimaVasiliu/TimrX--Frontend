@@ -162,11 +162,11 @@
   }
 }
 
-/* ---- 768px — full screen overlay, compact 3-col grid ---- */
+/* ---- 768px — roomy mobile/tablet overlay, adaptive grid ---- */
 @media (max-width: 768px) {
   .inspire-header {
-    padding: 10px 12px;
-    gap: 8px;
+    padding: 16px 18px 14px;
+    gap: 12px;
   }
 
   .inspire-header__icon {
@@ -174,11 +174,11 @@
   }
 
   .inspire-header__title h2 {
-    font-size: 13px;
+    font-size: 15px;
   }
 
   .inspire-header__title p {
-    font-size: 10px;
+    font-size: 12px;
   }
 
   .inspire-potd {
@@ -186,30 +186,32 @@
   }
 
   .inspire-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
   }
 
   .inspire-card {
     border-radius: 8px;
+    min-height: 132px;
   }
 
   .inspire-content {
-    padding: 8px;
+    padding: 16px 18px 22px;
   }
 
   .inspire-filters {
-    gap: 4px;
+    gap: 8px;
   }
 
   .inspire-filter-btn {
-    font-size: 10px;
-    padding: 5px 10px;
+    font-size: 12px;
+    padding: 8px 14px;
   }
 
   .inspire-close-btn {
-    width: 36px;
-    height: 36px;
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
   }
 
   .inspire-trigger-btn span {
@@ -221,72 +223,113 @@
   }
 
   .inspire-shuffle-btn span {
-    font-size: 10px;
-  }
-}
-
-/* ---- 640px — keep 3-col, reduce spacing further ---- */
-@media (max-width: 640px) {
-  .inspire-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 5px;
-  }
-
-  .inspire-header {
-    padding: 8px 10px;
-  }
-
-  .inspire-content {
-    padding: 7px;
-  }
-
-  .inspire-section__title {
-    font-size: 10px;
-  }
-
-  .inspire-card__type-badge {
-    padding: 2px 5px;
-    font-size: 7px;
-  }
-
-  .inspire-card__type-badge svg {
-    width: 7px;
-    height: 7px;
-  }
-}
-
-/* ---- 430px — preserve compact 3-col mobile grid ---- */
-@media (max-width: 430px) {
-  .inspire-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 4px;
-  }
-
-  .inspire-content {
-    padding: 6px;
-  }
-
-  .inspire-header__title h2 {
     font-size: 12px;
   }
 
+  .inspire-shuffle-btn {
+    min-height: 42px;
+    padding: 0 14px;
+    border-radius: 12px;
+  }
+}
+
+/* ---- 640px — phone layout, larger cards with safe gutters ---- */
+@media (max-width: 640px) {
+  .inspire-grid {
+    grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+    gap: 10px;
+  }
+
+  .inspire-header {
+    padding: 16px 18px 14px;
+  }
+
+  .inspire-content {
+    padding: 16px 18px 22px;
+  }
+
+  .inspire-overlay .inspire-filters {
+    flex-wrap: nowrap;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+    padding: 2px 0 12px !important;
+    margin: 0 0 14px !important;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .inspire-overlay .inspire-filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .inspire-overlay .inspire-filters > * {
+    flex: 0 0 auto;
+    min-height: 42px;
+    padding: 0 18px !important;
+    font-size: 12px !important;
+  }
+
+  .inspire-section__title {
+    font-size: 11px;
+    margin-left: 2px;
+  }
+
+  .inspire-card__type-badge {
+    top: 7px;
+    left: 7px;
+    padding: 4px 7px;
+    font-size: 8px;
+  }
+
+  .inspire-card__type-badge svg {
+    width: 8px;
+    height: 8px;
+  }
+}
+
+/* ---- 430px — true phone: 2 readable columns ---- */
+@media (max-width: 430px) {
+  .inspire-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .inspire-content {
+    padding: 15px 16px 22px;
+  }
+
+  .inspire-header__title h2 {
+    font-size: 15px;
+  }
+
   .inspire-filter-btn {
-    font-size: 9px;
-    padding: 4px 8px;
+    font-size: 12px;
+    padding: 0 16px;
   }
 
   .inspire-close-btn {
-    width: 32px;
-    height: 32px;
+    width: 42px;
+    height: 42px;
   }
 
   .inspire-shuffle-btn {
-    padding: 5px 10px;
-    font-size: 10px;
+    padding: 0 14px;
+    font-size: 12px;
   }
 
   .inspire-shuffle-btn svg {
     width: 12px;
     height: 12px;
+  }
+
+  .inspire-card {
+    min-height: 128px;
+  }
+
+  .inspire-card__video-badge {
+    width: 36px;
+    height: 36px;
   }
 }

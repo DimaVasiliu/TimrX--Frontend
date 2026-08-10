@@ -1064,8 +1064,10 @@ model-viewer.inspire-model::part(default-progress-mask) {
 
 @media (max-width:760px){
   .inspire-overlay{
-    top:8px !important;left:8px !important;right:8px !important;bottom:8px !important;
-    border-radius:20px !important;
+    left:max(14px, env(safe-area-inset-left, 0px)) !important;
+    right:max(14px, env(safe-area-inset-right, 0px)) !important;
+    bottom:max(12px, env(safe-area-inset-bottom, 0px)) !important;
+    border-radius:22px !important;
   }
 }
 

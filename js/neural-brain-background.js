@@ -530,10 +530,12 @@
     this.network = network;
     this.items = [];
     this.max = 0;
+    this.speedBoost = 1;
   }
 
   KnowledgeStreams.prototype.resize = function (quality) {
     this.max = quality.compact ? 1250 : 4200;
+    this.speedBoost = quality.compact ? 1.45 : 1;
     this.items = [];
     for (var i = 0; i < this.max; i++) {
       this.items.push(this.spawn(i > this.max * 0.7));
@@ -562,7 +564,7 @@
         continue;
       }
       var wobble = 1 + Math.sin(p.phase + p.t * TAU) * 0.18;
-      p.t += p.speed * dt * wobble;
+      p.t += p.speed * dt * wobble * this.speedBoost;
       if (p.t >= 1) {
         var end = cubic(p.path.p0, p.path.p1, p.path.p2, p.path.p3, 1);
         brain.trigger(end.x, end.y);

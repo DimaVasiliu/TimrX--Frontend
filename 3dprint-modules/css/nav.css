@@ -1945,7 +1945,7 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
 
   .ws-corner-launcher__action,
   .ws-corner-launcher .assets-side-launcher {
-    top: clamp(220px, 53svh, calc(100svh - 150px)) !important;
+    top: clamp(190px, 45svh, calc(100svh - 220px)) !important;
     min-width: 52px;
     min-height: 52px;
     width: 52px;

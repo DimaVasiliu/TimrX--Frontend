@@ -58,8 +58,8 @@
 @import url('media/docs-media.css?v=20260802f');
 
 /* 10. Inspire Section */
-@import url('css/inspire.css?v=20260802f');
-@import url('media/inspire-media.css?v=20260802f');
+@import url('css/inspire.css?v=20260810a');
+@import url('media/inspire-media.css?v=20260810a');
 
 /* 11. Notification Center */
 @import url('css/notifications.css?v=20260802f');
@@ -69,17 +69,17 @@
 @import url('css/multi-color-print.css?v=20260802f');
 
 /* 13. Workspace navigation — command trigger + command palette */
-@import url('css/nav.css?v=20260809a');
+@import url('css/nav.css?v=20260810b');
 
 /* 14. Control sheet — the tool panel */
 @import url('css/panel.css?v=20260802f');
 
 /* 15. Neural intelligence background */
-@import url('css/neural-brain-background.css?v=20260809b');
-@import url('css/workspace-model-showcase.css?v=20260809r');
+@import url('css/neural-brain-background.css?v=20260810b');
+@import url('css/workspace-model-showcase.css?v=20260810b');
 @import url('css/workspace-thoughts.css?v=20260809d');
 
 /* 16. Responsive layer for the stage + bottom chrome — imported LAST on
    purpose: it corrects nav.css launcher geometry and stage safe areas
    per breakpoint (see the file header for the audit that produced it). */
-@import url('media/stage-media.css?v=20260809a');
+@import url('media/stage-media.css?v=20260810b');

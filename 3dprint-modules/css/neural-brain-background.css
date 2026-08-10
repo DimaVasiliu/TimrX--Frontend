@@ -59,13 +59,19 @@ body.print3d-page:not(.ws-viewer-open):not(.history-expanded):not(.tutorials-vie
   background:
     radial-gradient(circle at 50% 45%, transparent 0 22%, rgba(6, 6, 6, 0.12) 52%, rgba(6, 6, 6, 0.4) 100%),
     linear-gradient(180deg, rgba(6, 6, 6, 0.24), transparent 18%, transparent 74%, rgba(6, 6, 6, 0.36));
+  background-size: 112% 112%, 100% 100%;
+  background-position: 50% 45%, 50% 50%;
   mix-blend-mode: multiply;
+  animation: wsNeuralVeilDrift 18s ease-in-out infinite alternate;
 }
 
 .ws-stage::after {
   background:
     linear-gradient(90deg, rgba(6, 6, 6, 0.34), transparent 9%, transparent 91%, rgba(6, 6, 6, 0.34)),
     radial-gradient(ellipse at 50% 100%, rgba(6, 6, 6, 0.38), transparent 46%);
+  background-size: 112% 100%, 100% 118%;
+  background-position: 50% 50%, 50% 100%;
+  animation: wsNeuralEdgePulse 14s ease-in-out infinite alternate;
 }
 
 .ws-stage__inner {
@@ -124,7 +130,36 @@ body.assets-modal-open .ws-stage {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .ws-stage::before,
+  .ws-stage::after {
+    animation: none;
+  }
+
   .neural-brain-bg {
     opacity: 0.68;
+  }
+}
+
+@keyframes wsNeuralVeilDrift {
+  from {
+    background-position: 48% 43%, 50% 50%;
+    opacity: 0.94;
+  }
+
+  to {
+    background-position: 53% 48%, 50% 50%;
+    opacity: 0.82;
+  }
+}
+
+@keyframes wsNeuralEdgePulse {
+  from {
+    background-position: 48% 50%, 50% 98%;
+    opacity: 0.92;
+  }
+
+  to {
+    background-position: 53% 50%, 50% 104%;
+    opacity: 0.72;
   }
 }

@@ -196,13 +196,16 @@
   }
 
   function modelHeightForViewport() {
-    if (window.matchMedia('(max-width: 560px)').matches) return 1.94;
-    if (window.matchMedia('(max-width: 900px)').matches) return 2.42;
+    if (window.matchMedia('(max-width: 430px)').matches) return 1.76;
+    if (window.matchMedia('(max-width: 560px)').matches) return 1.84;
+    if (window.matchMedia('(max-width: 900px)').matches) return 2.18;
     return 3.24;
   }
 
   function baseCameraZ() {
-    return window.matchMedia('(max-width: 700px)').matches ? 11.2 : 22;
+    if (window.matchMedia('(max-width: 430px)').matches) return 12.4;
+    if (window.matchMedia('(max-width: 700px)').matches) return 12.0;
+    return 22;
   }
 
   function setRendererSize() {
@@ -372,15 +375,18 @@
   /* Positions/scales are targets; render() eases every wrapper toward them,
      so stepping slides the row instead of teleporting it. */
   function layoutCarousel() {
+    const phone = window.matchMedia('(max-width: 560px)').matches;
     const compact = window.matchMedia('(max-width: 700px)').matches;
     /* Wider berth between slots, larger figures, and every model standing on
        the same floor line (feet-aligned from its real bounds, not centred). */
-    const stageX = compact
+    const stageX = phone
+      ? [0, 2.9, 5.7, 8.2, 10.4, 12.2]
+      : compact
       ? [0, 3.4, 6.6, 9.4, 11.9, 14.1]
       : [0, 6.1, 11.8, 17.0, 21.8, 26.2];
     const stageZ = [0, -0.02, -0.04, -0.06, -0.08, -0.1];
-    const scaleAll = compact ? 1.34 : 1.52;
-    const FLOOR = compact ? -1.3 : -1.68;
+    const scaleAll = phone ? 1.16 : compact ? 1.18 : 1.52;
+    const FLOOR = phone ? -1.12 : compact ? -1.2 : -1.68;
 
     state.models.forEach((entry, index) => {
       const offset = signedOffset(index, state.activeIndex);

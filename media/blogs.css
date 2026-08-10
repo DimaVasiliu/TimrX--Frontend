@@ -124,11 +124,6 @@
   .submit {
     padding: clamp(28px, 5vh, 44px) 0;
   }
-
-  /* -- Mobile menu inner padding -- */
-  .blog-mobile-inner {
-    padding: 64px 24px 24px;
-  }
 }
 
 /* ===== 400px — Smallest Phones ===== */
