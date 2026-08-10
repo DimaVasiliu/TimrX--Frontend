@@ -9,16 +9,16 @@
    Choreography per line:
      1. the neural brain fires a real synapse pulse (brain.trigger()) — the
         thought visibly originates from the intelligence behind the models,
-     2. characters decode left→right: each one churns through glyph noise
-        for a few ticks, then locks into place,
+     2. characters reveal left→right with a short neural glow, then lock
+        into place,
      3. a hairline draws itself under the text with a travelling glow dot,
      4. the line holds, then dissolves character by character, and the next
         transmission begins.
 
    It parks itself whenever another surface owns the screen (panel, palette,
    viewer, expanded views), waits for the intro handoff (body.ws-intro-go)
-   before the first line, respects prefers-reduced-motion (plain crossfade,
-   no churn), and stops entirely while the tab is hidden.
+   before the first line, respects prefers-reduced-motion (plain crossfade),
+   and stops entirely while the tab is hidden.
    ========================================================================== */
 (function () {
   'use strict';
@@ -45,11 +45,9 @@
     'Generate. Inspect. Ship.'
   ];
 
-  var GLYPHS = '▚▞▓▒░╱╲<>+=/#%&';
   var REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var DECODE_STAGGER = 34;     /* ms between characters starting to churn */
-  var CHURN_TICK = 46;         /* ms between glyph swaps while churning */
-  var CHURN_TICKS = 5;         /* swaps before a character locks in */
+  var DECODE_STAGGER = 34;     /* ms between characters starting to reveal */
+  var REVEAL_MS = 170;         /* glow time before a character locks in */
   var HOLD_MS = 6400;
   var LEAVE_MS = 640;
   var GAP_MS = 900;
@@ -61,12 +59,10 @@
   var running = false;
 
   function later(fn, ms) { timers.push({ type: 'timeout', id: window.setTimeout(fn, ms) }); }
-  function every(fn, ms) { var id = window.setInterval(fn, ms); timers.push({ type: 'interval', id: id }); return id; }
   function clearTimers() {
     timers.forEach(function (timer) {
       if (!timer) return;
-      if (timer.type === 'interval') window.clearInterval(timer.id);
-      else window.clearTimeout(timer.id);
+      window.clearTimeout(timer.id);
     });
     timers = [];
   }
@@ -96,10 +92,6 @@
       '<span class="ws-thoughts__rule"><i class="ws-thoughts__spark"></i></span>';
     document.body.appendChild(root);
     lineEl = root.querySelector('[data-thoughts-line]');
-  }
-
-  function randomGlyph() {
-    return GLYPHS[Math.floor(Math.random() * GLYPHS.length)];
   }
 
   function nextLine() {
@@ -138,21 +130,14 @@
       if (span.classList.contains('is-set')) return;
       pending++;
       later(function () {
-        span.classList.add('is-churning');
-        var tick = 0;
-        var churn = every(function () {
-          tick++;
-          if (tick >= CHURN_TICKS) {
-            window.clearInterval(churn);
-            span.textContent = text[k];
-            span.classList.remove('is-churning');
-            span.classList.add('is-set');
-            pending--;
-            if (pending === 0) later(leave, HOLD_MS);
-            return;
-          }
-          span.textContent = randomGlyph();
-        }, CHURN_TICK);
+        span.textContent = text[k];
+        span.classList.add('is-revealing');
+        later(function () {
+          span.classList.remove('is-revealing');
+          span.classList.add('is-set');
+          pending--;
+          if (pending === 0) later(leave, HOLD_MS);
+        }, REVEAL_MS);
       }, k * DECODE_STAGGER);
     });
 

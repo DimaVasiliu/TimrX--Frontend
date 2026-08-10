@@ -75,7 +75,7 @@ html body.print3d-page > .ws-thoughts.is-live,
   transition: opacity 220ms ease, filter 300ms ease, color 300ms ease;
 }
 
-.ws-thoughts__ch.is-churning {
+.ws-thoughts__ch.is-revealing {
   opacity: 0.85;
   color: rgba(255, 205, 132, 0.85);
   filter: blur(0.4px);

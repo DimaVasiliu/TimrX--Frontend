@@ -7241,6 +7241,16 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const s = document.getElementById('wsSheetSub');
       if (t) t.textContent = title;
       if (s) s.textContent = sub;
+      updateSheetModeSwitch(panelType);
+    }
+
+    function updateSheetModeSwitch(panelType) {
+      const primaryPanel = isModelPanel(panelType) ? 'model' : panelType;
+      document.querySelectorAll('[data-sheet-panel]').forEach((btn) => {
+        const active = btn.getAttribute('data-sheet-panel') === primaryPanel;
+        btn.classList.toggle('is-active', active);
+        btn.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
     }
 
     function setSheetOpen(open) {
@@ -7315,6 +7325,10 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         '.ws-video-tray',      // video input mode + provider tier rows
         '.ws-cmd-trigger',     // command bar
         '.ws-cmd',             // command palette
+        '.ws-corner-launcher', // assets/viewer launchers
+        '[data-open-assets]',
+        '[data-open-3d-viewer]',
+        '[data-sheet-panel]',
         // Catch-all for any control that drives panel state but lives outside
         // the sheet. Three such trays exist today and each one was added in a
         // separate pass; keying off the attributes they already carry means a
@@ -7330,6 +7344,15 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         setSheetOpen(false);
       });
     })();
+
+    document.addEventListener('click', (event) => {
+      const modeButton = event.target.closest?.('[data-sheet-panel]');
+      if (!modeButton) return;
+      const panelType = modeButton.getAttribute('data-sheet-panel');
+      const targetButton = document.querySelector('.rail-btn[data-panel="' + panelType + '"]');
+      activateWorkspacePanel(panelType, targetButton);
+      window.TimrXSheet.open(panelType);
+    });
 
     function activateWorkspacePanel(panelType, targetButton) {
       if (!panelType) return;

@@ -72,12 +72,12 @@
 @import url('css/nav.css?v=20260810d');
 
 /* 14. Control sheet — the tool panel */
-@import url('css/panel.css?v=20260802f');
+@import url('css/panel.css?v=20260810a');
 
 /* 15. Neural intelligence background */
 @import url('css/neural-brain-background.css?v=20260810b');
 @import url('css/workspace-model-showcase.css?v=20260810b');
-@import url('css/workspace-thoughts.css?v=20260810b');
+@import url('css/workspace-thoughts.css?v=20260810c');
 
 /* 16. Responsive layer for the stage + bottom chrome — imported LAST on
    purpose: it corrects nav.css launcher geometry and stage safe areas

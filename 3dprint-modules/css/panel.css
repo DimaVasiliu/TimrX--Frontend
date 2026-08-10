@@ -140,7 +140,54 @@ body.ws-cmd-open .timrx-3dprint .ws-left {
   white-space: nowrap;
 }
 
-.ws-sheet__spacer { flex: 1 1 auto; }
+.ws-sheet__modes {
+  flex: 0 1 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  margin-left: auto;
+  border: 1px solid rgba(226, 236, 237, 0.08);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.ws-sheet__mode {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--p-muted);
+  font: inherit;
+  font-size: 11.5px;
+  font-weight: 760;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition:
+    color 0.18s var(--p-ease),
+    background 0.18s var(--p-ease),
+    transform 0.18s var(--p-ease);
+}
+
+.ws-sheet__mode:hover,
+.ws-sheet__mode:focus-visible {
+  color: var(--p-text);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.ws-sheet__mode:focus-visible {
+  outline: 2px solid rgba(127, 200, 194, 0.46);
+  outline-offset: 2px;
+}
+
+.ws-sheet__mode.is-active {
+  color: #061616;
+  background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent));
+  transform: translateY(-1px);
+}
+
+.ws-sheet__spacer { flex: 0 0 0; width: 0; }
 
 .ws-sheet__close {
   flex: none;
@@ -803,6 +850,45 @@ body.ws-cmd-open .timrx-3dprint .ws-left {
   .ws-zone + .ws-zone { border-left: 0; border-top: 1px solid var(--p-line-soft); }
   .ws-zone--commit { flex-direction: column; align-items: stretch; }
   .ws-zone--commit .gen-btn-row { flex: none; }
+}
+
+@media (max-width: 560px) {
+  .ws-sheet__head {
+    flex-wrap: wrap;
+    gap: 8px 10px;
+  }
+
+  .ws-sheet__title {
+    order: 1;
+  }
+
+  .ws-sheet__sub {
+    order: 2;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ws-sheet__close {
+    order: 3;
+  }
+
+  .ws-sheet__spacer {
+    display: none;
+  }
+
+  .ws-sheet__modes {
+    order: 4;
+    flex: 1 0 100%;
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .ws-sheet__mode {
+    flex: 1 1 0;
+    padding: 0 8px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

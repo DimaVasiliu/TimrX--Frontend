@@ -171,6 +171,19 @@ summary,
   line-height:1.56;
 }
 
+.hero-minimal-copy p[data-hero-subcopy]{
+  position:absolute;
+  width:1px;
+  height:1px;
+  margin:-1px;
+  padding:0;
+  overflow:hidden;
+  clip:rect(0 0 0 0);
+  clip-path:inset(50%);
+  white-space:nowrap;
+  border:0;
+}
+
 .hero-command-wrap{
   width:100%;
   max-width:580px;
@@ -278,18 +291,36 @@ body.hero-command-docked .prompt-generate span{
 .hero-showcase{
   opacity:.2;
   contain:paint;
+  overflow-x:auto;
+  overflow-y:hidden;
+  pointer-events:auto;
+  scroll-snap-type:x proximity;
+  scroll-padding-inline:var(--page-gutter);
+  touch-action:pan-x;
+  scrollbar-width:none;
   -webkit-mask-image:linear-gradient(180deg,transparent,#000 22%,#000 78%,transparent);
   mask-image:linear-gradient(180deg,transparent,#000 22%,#000 78%,transparent);
+  -webkit-overflow-scrolling:touch;
+}
+
+.hero-showcase::-webkit-scrollbar{
+  display:none;
 }
 
 .show-stage{
+  position:absolute;
+  inset:0 auto 0 0;
+  width:max-content;
+  min-width:100%;
   transform:none;
 }
 
 .show-card{
+  flex:0 0 clamp(190px,66vw,280px);
   width:clamp(190px,66vw,280px);
   margin-right:14px;
   border-radius:18px;
+  scroll-snap-align:center;
 }
 
 .show-card figcaption{
@@ -297,7 +328,14 @@ body.hero-command-docked .prompt-generate span{
 }
 
 .show-track{
-  animation-duration:110s;
+  width:max-content;
+  min-width:max-content;
+  animation:none;
+  transform:none;
+}
+
+.show-card--dup{
+  display:none;
 }
 
 body.hero-command-docked .hero-command{
@@ -774,8 +812,39 @@ body.hero-command-docked .hero-command{
   .desktop-cta{
     display:none;
   }
+  .hero-minimal-copy p[data-hero-subcopy]{
+    position:relative;
+    display:inline-block;
+    width:auto;
+    height:auto;
+    max-width:min(760px,calc(100vw - 48px));
+    margin:10px auto 0;
+    padding:10px 12px;
+    overflow:hidden;
+    clip:auto;
+    clip-path:none;
+    white-space:normal;
+  }
   .hero-showcase{
     opacity:.34;
+    overflow:hidden;
+    pointer-events:none;
+    scroll-snap-type:none;
+    scrollbar-width:auto;
+    touch-action:auto;
+  }
+  .show-stage{
+    position:absolute;
+    inset:0;
+    width:100%;
+    min-width:0;
+    transform:rotateX(var(--rx,5deg)) rotateY(var(--ry,0deg));
+  }
+  .show-track{
+    animation:showScroll 110s linear infinite;
+  }
+  .show-card--dup{
+    display:block;
   }
   .hero-qcarousel{
     overflow:hidden;

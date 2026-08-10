@@ -143,16 +143,16 @@
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260809b">
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260810d">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260810e">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
   <link rel="stylesheet" href="tx-menu.css?v=1">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
-  <script defer src="3dprint-modules/3dprint-app.js?v=20260810d"></script>
+  <script defer src="3dprint-modules/3dprint-app.js?v=20260810e"></script>
   <script defer src="3dprint-modules/inspire.js?v=20260803a"></script>
   <script defer src="3dprint-modules/community-gallery.js?v=20260802f"></script>
   <script defer src="js/neural-brain-background.js?v=20260810b"></script>
   <script defer src="js/workspace-loader.js?v=20260809a"></script>
-  <script defer src="js/workspace-thoughts.js?v=20260810c"></script>
+  <script defer src="js/workspace-thoughts.js?v=20260810d"></script>
 
   <!-- Visually Hidden Utility + Ticker Styles -->
   <style>
@@ -686,6 +686,11 @@
       <header class="ws-sheet__head">
         <h2 class="ws-sheet__title" id="wsSheetTitle">Model</h2>
         <p class="ws-sheet__sub" id="wsSheetSub">Describe it, tune it, generate it</p>
+        <nav class="ws-sheet__modes" aria-label="Generation mode">
+          <button type="button" class="ws-sheet__mode is-active" data-sheet-panel="model">Model</button>
+          <button type="button" class="ws-sheet__mode" data-sheet-panel="image">Image</button>
+          <button type="button" class="ws-sheet__mode" data-sheet-panel="video">Video</button>
+        </nav>
         <span class="ws-sheet__spacer"></span>
         <button type="button" class="ws-sheet__close" id="wsSheetClose" aria-label="Close controls">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12" stroke-linecap="round"/></svg>
