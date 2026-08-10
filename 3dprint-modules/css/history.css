@@ -4934,7 +4934,8 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
 .timrx-3dprint .ws-right.assets-modal .history-head{
   flex:none;
   gap:0;
-  margin-bottom:14px;
+  margin-bottom:16px;
+  padding:0 2px;
 }
 
 .timrx-3dprint .ws-right.assets-modal .history-head-top{
@@ -4945,7 +4946,7 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   display:flex;
   align-items:center;
   flex-wrap:nowrap;
-  gap:12px;
+  gap:14px;
   min-width:0;
 }
 
@@ -4962,7 +4963,8 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
 }
 .timrx-3dprint .ws-right.assets-modal .history-refresh-btn{display:none}
 .timrx-3dprint .ws-right.assets-modal .history-sort-btn{
-  min-width:116px;
+  min-width:128px;
+  padding-inline:18px;
   justify-content:center;
 }
 .timrx-3dprint .ws-right.assets-modal .history-sort-btn__label{display:inline}

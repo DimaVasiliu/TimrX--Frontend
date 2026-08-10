@@ -46,14 +46,13 @@
   ];
 
   var GLYPHS = '▚▞▓▒░╱╲<>+=/#%&';
-  var MOBILE = window.matchMedia('(max-width: 700px)').matches;
   var REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var DECODE_STAGGER = MOBILE ? 24 : 34;     /* ms between characters starting to churn */
-  var CHURN_TICK = MOBILE ? 34 : 46;         /* ms between glyph swaps while churning */
-  var CHURN_TICKS = MOBILE ? 6 : 5;          /* swaps before a character locks in */
-  var HOLD_MS = MOBILE ? 4200 : 6400;
-  var LEAVE_MS = MOBILE ? 520 : 640;
-  var GAP_MS = MOBILE ? 520 : 900;
+  var DECODE_STAGGER = 34;     /* ms between characters starting to churn */
+  var CHURN_TICK = 46;         /* ms between glyph swaps while churning */
+  var CHURN_TICKS = 5;         /* swaps before a character locks in */
+  var HOLD_MS = 6400;
+  var LEAVE_MS = 640;
+  var GAP_MS = 900;
 
   var root = null;
   var lineEl = null;
@@ -61,8 +60,16 @@
   var timers = [];
   var running = false;
 
-  function later(fn, ms) { timers.push(window.setTimeout(fn, ms)); }
-  function clearTimers() { timers.forEach(window.clearTimeout); timers = []; }
+  function later(fn, ms) { timers.push({ type: 'timeout', id: window.setTimeout(fn, ms) }); }
+  function every(fn, ms) { var id = window.setInterval(fn, ms); timers.push({ type: 'interval', id: id }); return id; }
+  function clearTimers() {
+    timers.forEach(function (timer) {
+      if (!timer) return;
+      if (timer.type === 'interval') window.clearInterval(timer.id);
+      else window.clearTimeout(timer.id);
+    });
+    timers = [];
+  }
 
   function gated() {
     var c = document.body.classList;
@@ -81,7 +88,7 @@
 
   function build() {
     root = document.createElement('div');
-    root.className = MOBILE ? 'ws-thoughts ws-thoughts--mobile' : 'ws-thoughts';
+    root.className = 'ws-thoughts';
     root.setAttribute('aria-hidden', 'true');
     root.innerHTML =
       '<span class="ws-thoughts__eyebrow">Neural feed</span>' +
@@ -133,7 +140,7 @@
       later(function () {
         span.classList.add('is-churning');
         var tick = 0;
-        var churn = window.setInterval(function () {
+        var churn = every(function () {
           tick++;
           if (tick >= CHURN_TICKS) {
             window.clearInterval(churn);
@@ -146,7 +153,6 @@
           }
           span.textContent = randomGlyph();
         }, CHURN_TICK);
-        timers.push(churn); /* clearTimeout on an interval id is harmless-ish; also clear explicitly */
       }, k * DECODE_STAGGER);
     });
 

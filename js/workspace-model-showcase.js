@@ -24,31 +24,20 @@
   const FALLBACK_MODEL_ITEMS = [
     { name: 'Fox', url: '3D%20Workspace%20Models/3DWorkspace%20Models.glb',
       prompt: 'A cute stylized fox with a fluffy tail, big expressive eyes, game-ready character', tool: 'TEXT TO 3D' },
-    { name: 'Digital Sculpture', url: '3D%20Workspace%20Models/TX-a-full-body-3d-digital-s-102.glb', scale: 0.54, y: -0.82,
-      prompt: 'A full body 3D digital sculpture, collectible figure finish', tool: 'TEXT TO 3D' },
-    { name: 'Stylized Figure', url: '3D%20Workspace%20Models/TX-a-high-quality-stylized-184.glb', scale: 0.48, y: -0.78,
-      prompt: 'A high quality stylized character figure, clean topology', tool: 'TEXT TO 3D' },
     { name: 'Hero Character', url: '3D%20Workspace%20Models/TX-a-high-quality-stylized-505.glb',
       prompt: 'A high quality stylized hero character, production textures', tool: 'TEXT TO 3D' },
-    { name: 'Humorous Character', url: '3D%20Workspace%20Models/TX-a-highly-stylized-humoro-111.glb',
-      prompt: 'A highly stylized humorous character, exaggerated proportions', tool: 'TEXT TO 3D' },
-    { name: 'Dragonborn', url: '3D%20Workspace%20Models/TX-a-male-dragonborn-barbar-235.glb',
-      prompt: 'A male dragonborn barbarian, scaled skin, battle-worn armor', tool: 'TEXT TO 3D' },
-    { name: 'Elven Ranger', url: '3D%20Workspace%20Models/TX-a-male-fantasy-elven-ran-219.glb',
-      prompt: 'A male fantasy elven ranger with bow and forest cloak', tool: 'TEXT TO 3D' },
     { name: 'Dwarven Paladin', url: '3D%20Workspace%20Models/TX-a-stout-dwarven-paladin-510.glb',
       prompt: 'A stout dwarven paladin in ornate blackened plate armor', tool: 'TEXT TO 3D' },
-    { name: 'Steampunk Character', url: '3D%20Workspace%20Models/TX-a-victorian-steampunk-re-414.glb', scale: 0.74, y: -0.18,
-      prompt: 'A victorian steampunk revolver, brass fittings, walnut grip', tool: 'TEXT TO 3D' },
     { name: 'Small Steampunk', url: '3D%20Workspace%20Models/TX-refine-a-small-steampunk-608.glb',
       prompt: 'A small steampunk automaton with glowing green eyes and a top hat', tool: 'TEXT TO 3D · REFINE' },
   ];
 
   let MODEL_ITEMS = [...FALLBACK_MODEL_ITEMS];
   const TAU = Math.PI * 2;
-  const VISIBLE_RADIUS = 5;
-  const MIN_SHOWCASE_MODELS = 4;
-  const LIVE_FEED_LIMIT = 10;
+  const VISIBLE_RADIUS = 2;
+  const MIN_SHOWCASE_MODELS = 3;
+  const LIVE_FEED_LIMIT = 4;
+  const LIVE_MODEL_MAX_BYTES = 25 * 1024 * 1024;
   const REDUCE_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   let _tweenTarget = null;
 
@@ -133,6 +122,7 @@
       id: item.id || item.post_id || url,
       name: item.name || item.title || 'Community model',
       url,
+      bytes: Number(item.bytes || item.size_bytes || item.file_size || item.optimizedBytes || 0),
       source: item.source || 'community',
       thumbnail_url: item.thumbnail_url || item.thumbnail || '',
       prompt: item.prompt || item.description || '',
@@ -161,7 +151,7 @@
       const data = await response.json();
       const liveModels = (data.models || data.items || [])
         .map(normalizeFeedModel)
-        .filter(Boolean);
+        .filter((item) => item && (!item.bytes || item.bytes <= LIVE_MODEL_MAX_BYTES));
 
       if (liveModels.length < MIN_SHOWCASE_MODELS) return false;
 
@@ -353,8 +343,10 @@
 
   function scheduleModelPreload() {
     const active = state.activeIndex;
+    const preloadRadius = window.matchMedia('(max-width: 700px)').matches ? 1 : 2;
     const ordered = MODEL_ITEMS
       .map((_, index) => ({ index, distance: Math.abs(signedOffset(index, active)) }))
+      .filter((item) => item.distance <= preloadRadius)
       .sort((a, b) => a.distance - b.distance)
       .map((item) => item.index);
 
@@ -841,7 +833,7 @@
         state.renderer = new THREE.WebGLRenderer({
           canvas: state.canvas,
           alpha: true,
-          antialias: true,
+          antialias: !window.matchMedia('(max-width: 560px)').matches,
           powerPreference: 'high-performance',
         });
       } catch (error) {

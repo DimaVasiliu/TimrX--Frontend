@@ -680,7 +680,8 @@
     display: flex;
     flex-wrap: nowrap;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    padding-inline: 1px;
   }
 
   .timrx-3dprint .ws-right.assets-modal .history-head-right {
@@ -702,12 +703,12 @@
   }
 
   .timrx-3dprint .ws-right.assets-modal .history-sort-btn {
-    flex: 0 0 clamp(92px, 26vw, 118px);
+    flex: 0 0 clamp(104px, 28vw, 124px);
     min-width: 0;
-    height: 52px;
-    padding: 0 10px;
+    height: 54px;
+    padding: 0 12px;
     justify-content: center;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
   .timrx-3dprint .ws-right.assets-modal .history-sort-btn__label {
@@ -717,7 +718,22 @@
   .timrx-3dprint .ws-right.assets-modal .history-search-wrapper {
     width: 100%;
     min-width: 0;
-    min-height: 52px;
-    padding: 0 12px;
+    min-height: 54px;
+    padding: 0 14px;
+  }
+}
+
+@media (max-width: 380px) {
+  .timrx-3dprint .ws-right.assets-modal .history-head-row-top {
+    gap: 8px;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-sort-btn {
+    flex-basis: 98px;
+    padding-inline: 10px;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .history-search-wrapper {
+    padding-inline: 12px;
   }
 }
