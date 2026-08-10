@@ -4949,8 +4949,23 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   min-width:0;
 }
 
-.timrx-3dprint .ws-right.assets-modal .history-head-center{flex:1 1 auto;min-width:0}
+.timrx-3dprint .ws-right.assets-modal .history-head-center{
+  order:2;
+  flex:1 1 320px;
+  min-width:0;
+}
 .timrx-3dprint .ws-right.assets-modal .history-search-wrapper{width:100%;max-width:none}
+.timrx-3dprint .ws-right.assets-modal .history-head-right{
+  order:1;
+  flex:0 0 auto;
+  min-width:0;
+}
+.timrx-3dprint .ws-right.assets-modal .history-refresh-btn{display:none}
+.timrx-3dprint .ws-right.assets-modal .history-sort-btn{
+  min-width:116px;
+  justify-content:center;
+}
+.timrx-3dprint .ws-right.assets-modal .history-sort-btn__label{display:inline}
 
 /* --- grid: one consistent thumbnail size --------------------------------- */
 .timrx-3dprint .ws-right.assets-modal .history .history-grid{

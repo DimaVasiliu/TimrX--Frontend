@@ -7249,10 +7249,41 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       if (sheet) sheet.setAttribute('aria-hidden', open ? 'false' : 'true');
     }
 
+    function getActiveSheetPanel() {
+      const activeModelTool = document.querySelector('.model-feature-btn.is-active[data-model-panel]');
+      const activeRail = document.querySelector('.rail-btn.is-active[data-panel]');
+      const panelType =
+        activeModelTool?.getAttribute('data-model-panel') ||
+        activeRail?.getAttribute('data-panel') ||
+        'model';
+      return panelContent[panelType] ? panelType : 'model';
+    }
+
+    function sheetHasControls() {
+      if (!leftStack) return false;
+      if (!leftStack.children.length) return false;
+      if (!leftStack.querySelector('.ws-pages')) return true;
+      return !!leftStack.querySelector(
+        '.ws-page__body > *, .ws-modes, .tab-btn, textarea, input, select, .gen-btn'
+      );
+    }
+
+    function ensureSheetContent(panelType) {
+      if (sheetHasControls()) return;
+      const targetPanel = panelContent[panelType] ? panelType : getActiveSheetPanel();
+      const primaryPanel = isModelPanel(targetPanel) ? 'model' : targetPanel;
+      const targetButton = document.querySelector('.rail-btn[data-panel="' + primaryPanel + '"]');
+      activateWorkspacePanel(targetPanel, targetButton);
+    }
+
     window.TimrXSheet = {
-      open:   () => setSheetOpen(true),
+      open:   (panelType) => {
+        ensureSheetContent(panelType);
+        setSheetOpen(true);
+      },
       close:  () => setSheetOpen(false),
       isOpen: () => document.body.classList.contains('ws-panel-open'),
+      ensureContent: ensureSheetContent,
     };
 
     (function bindSheet() {

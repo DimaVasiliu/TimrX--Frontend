@@ -46,13 +46,14 @@
   ];
 
   var GLYPHS = '▚▞▓▒░╱╲<>+=/#%&';
+  var MOBILE = window.matchMedia('(max-width: 700px)').matches;
   var REDUCE = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var DECODE_STAGGER = 34;     /* ms between characters starting to churn */
-  var CHURN_TICK = 46;         /* ms between glyph swaps while churning */
-  var CHURN_TICKS = 5;         /* swaps before a character locks in */
-  var HOLD_MS = 6400;
-  var LEAVE_MS = 640;
-  var GAP_MS = 900;
+  var DECODE_STAGGER = MOBILE ? 24 : 34;     /* ms between characters starting to churn */
+  var CHURN_TICK = MOBILE ? 34 : 46;         /* ms between glyph swaps while churning */
+  var CHURN_TICKS = MOBILE ? 6 : 5;          /* swaps before a character locks in */
+  var HOLD_MS = MOBILE ? 4200 : 6400;
+  var LEAVE_MS = MOBILE ? 520 : 640;
+  var GAP_MS = MOBILE ? 520 : 900;
 
   var root = null;
   var lineEl = null;
@@ -80,7 +81,7 @@
 
   function build() {
     root = document.createElement('div');
-    root.className = 'ws-thoughts';
+    root.className = MOBILE ? 'ws-thoughts ws-thoughts--mobile' : 'ws-thoughts';
     root.setAttribute('aria-hidden', 'true');
     root.innerHTML =
       '<span class="ws-thoughts__eyebrow">Neural feed</span>' +

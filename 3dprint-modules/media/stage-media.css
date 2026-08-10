@@ -201,8 +201,15 @@
 
   .ws-corner-launcher__action,
   .ws-corner-launcher .assets-side-launcher {
-    top: clamp(210px, 47svh, calc(100svh - 210px)) !important;
+    top: clamp(340px, 64svh, calc(100svh - 230px)) !important;
   }
+
+  body.ws-panel-open .ws-corner-launcher__action,
+  body.ws-panel-open .ws-corner-launcher .assets-side-launcher {
+    top: clamp(150px, 22svh, 230px) !important;
+    z-index: 10004 !important;
+  }
+
   .ws-corner-launcher__guide {
     width: var(--ws-cmdbar-h);
     padding: 0;

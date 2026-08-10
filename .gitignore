@@ -35,3 +35,9 @@ img/duck.glb.orig-bak
 3D Workspace Models/TX-a-full-body-3d-digital-s-102.glb
 3D Workspace Models/TX-a-highly-stylized-humoro-111.glb
 3D Workspace Models/TX-a-male-dragonborn-barbar-235.glb
+
+# Full-resolution model masters. Not served — the optimised cuts beside them
+# are. Five of these are over the 25 MiB ceiling (largest 76.8 MiB), so a
+# stray `git add -A` here fails the Pages build rather than the commit.
+# Mirrors the mono repo's own rule for the same directory.
+3D Workspace Models/_source-originals/
