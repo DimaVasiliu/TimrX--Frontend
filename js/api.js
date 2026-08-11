@@ -4801,9 +4801,14 @@ export async function startNanoBananaImageGeneration() {
       State.setHistoryActiveModelId(imageId);
     } else {
       State.updateHistoryItem(tempId, finalItem);
+      State.setHistoryActiveModelId(tempId);
     }
 
     renderHistory();
+    await Viewer.presentAsset('image', imageUrl, {
+      title: viewerTitleFor(promptRaw, 'Image Preview'),
+      hint: promptRaw || 'Generated image'
+    });
     prog.done('Image generated!');
 
     if (typeof data.new_balance === 'number' && window.WorkspaceCredits?.applyBackendBalance) {

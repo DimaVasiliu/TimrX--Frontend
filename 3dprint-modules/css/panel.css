@@ -58,7 +58,7 @@
   transform: translateX(-50%);
   z-index: 58;
 
-  width: min(660px, calc(100vw - 32px));
+  width: min(940px, calc(100vw - 28px));
   /* Grows to 540px, but never past what is actually free: the header and the
      creation dock occupy roughly 366px above, and the bar (plus the model tray
      when it is out) occupies the space below. A flat vh fraction overlapped the
@@ -69,7 +69,7 @@
      every size, so there was little to reclaim) and the cap raised so tall
      displays actually use their space. Most of the anti-scroll win comes from
      the grid below, not from raw height. */
-  height: min(780px, calc(100vh - 246px - var(--ws-cmdbar-h) - var(--ws-tray-h, 0px)));
+  height: min(860px, calc(100vh - 198px - var(--ws-cmdbar-h) - var(--ws-tray-h, 0px)));
   max-height: none;
   display: flex;
   flex-direction: column;

@@ -2294,15 +2294,13 @@ body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
 .gen-track{
   position:fixed;
   left:50%;
-  /* Lifted well clear of the command bar: at 16px it sat in the bar's shadow
-     and covered the bottom row of whatever was behind it. */
-  bottom:calc(max(var(--ws-cmdbar-gap),env(safe-area-inset-bottom,0px))
-              + var(--ws-cmdbar-h) + var(--ws-tray-h,0px) + clamp(28px,9vh,96px));
-  transform:translateX(-50%);
+  top:50%;
+  bottom:auto;
+  transform:translate(-50%,-50%);
   /* Above the Assets modal (200150) so a running job stays visible while the
      library is open; below the command palette (200500). */
   z-index:200200;
-  width:min(560px,calc(100vw - 32px));
+  width:min(720px,calc(100vw - 40px));
   pointer-events:none;
 }
 
