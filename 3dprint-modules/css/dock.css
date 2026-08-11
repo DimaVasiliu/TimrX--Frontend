@@ -148,6 +148,25 @@ body.ws-dock-on .ws-dock { display: block; }
 .ws-dock__chip .c-val { color: var(--text, #f2f5f3); font-weight: 600; }
 .ws-dock__chip .c-caret { font-size: 9px; color: var(--text-dim, #6d7779); margin-left: 1px; }
 
+/* ---- agent button (left of the prompt): opens the ⌘K AI palette ------- */
+.ws-dock__agent {
+  flex: none;
+  width: 40px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  background: rgba(var(--accent-blue-rgb), 0.08);
+  color: var(--accent-blue);
+  font-size: 16px;
+  cursor: pointer;
+  transition: border-color 0.18s ease, background 0.18s ease, transform 0.15s ease;
+}
+.ws-dock__agent:hover {
+  border-color: rgba(var(--accent-blue-rgb), 0.55);
+  background: rgba(var(--accent-blue-rgb), 0.14);
+  transform: translateY(-1px);
+}
+
 /* ---- popover ----------------------------------------------------------- */
 .ws-dock-pop {
   position: fixed;

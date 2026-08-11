@@ -330,6 +330,7 @@
     dock.innerHTML =
       '<div class="ws-dock__card">' +
       '  <div class="ws-dock__row">' +
+      '    <button type="button" class="ws-dock__agent" title="AI Agent — natural language to a staged generation (⌘K)" aria-label="Open AI agent">✦</button>' +
       '    <textarea class="ws-dock__prompt" rows="1" placeholder="Describe any idea…" aria-label="Generation prompt"></textarea>' +
       '    <button type="button" class="ws-dock__generate"><span class="ws-dock__label">Generate</span><span class="ws-dock__cost"></span></button>' +
       '  </div>' +
@@ -363,6 +364,22 @@
         e.preventDefault();
         if (!genBtn.disabled) genBtn.click();
       }
+    });
+
+    /* agent button: opens the ⌘K palette (command-ai.js stages the plan
+       from natural language). Carries the dock prompt over if one is typed. */
+    dock.querySelector('.ws-dock__agent').addEventListener('click', function () {
+      if (!window.TimrXCommand || !window.TimrXCommand.open) return;
+      window.TimrXCommand.open();
+      var text = promptEl.value.trim();
+      if (!text) return;
+      setTimeout(function () {
+        var cmdInput = $('wsCmdInput');
+        if (cmdInput && !cmdInput.value) {
+          cmdInput.value = text;
+          cmdInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+      }, 120);
     });
 
     /* generate: proxy to the live commit button */

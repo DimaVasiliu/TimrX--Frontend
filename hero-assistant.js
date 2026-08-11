@@ -520,6 +520,11 @@
   }
 
   document.querySelectorAll('[data-hero-prompt]').forEach(button=>button.addEventListener('click',()=>{const prompt=button.dataset.heroPrompt||button.textContent;track('assistant_prompt_chip_click',{prompt_length:String(prompt||'').length});if(button.dataset.requiresUpload){guideUploadFlow(prompt);return}startGeneration(prompt)}));
+  input.addEventListener('keydown',event=>{
+    if(event.key!=='Enter'||event.isComposing||event.shiftKey||event.metaKey||event.ctrlKey||event.altKey)return;
+    event.preventDefault();
+    startGeneration(input.value);
+  });
   form.addEventListener('submit',event=>{event.preventDefault();startGeneration(input.value)});
   function askAssistant(question){
     const text=String(question||(input&&input.value)||'').trim();

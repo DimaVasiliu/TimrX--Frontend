@@ -1774,8 +1774,12 @@ body.hero-command-docked .hero-command{
 }
 
 .hero-command-wrap{
-  z-index:5;
+  z-index:90;
   margin-top:4px;
+}
+
+.assistant-answer{
+  z-index:120;
 }
 
 @media(max-width:767px){
