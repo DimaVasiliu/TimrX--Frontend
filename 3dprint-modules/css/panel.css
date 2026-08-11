@@ -15,1581 +15,1587 @@
    how they look and where they sit, never what they are.
    ========================================================================== */
 
-.ws-left,
-.ws-left * { box-sizing: border-box; }
-
-/* --------------------------------------------------------------------------
-   Tokens
-   -------------------------------------------------------------------------- */
-.ws-left {
-  --p-bg:        rgba(11, 14, 16, 0.94);
-  --p-raised:    rgba(226, 236, 237, 0.05);
-  --p-raised-hi: rgba(226, 236, 237, 0.09);
-  --p-line:      rgba(226, 236, 237, 0.11);
-  --p-line-soft: rgba(226, 236, 237, 0.065);
-  --p-text:      rgba(242, 245, 243, 0.94);
-  --p-text-2:    rgba(211, 220, 220, 0.68);
-  --p-muted:     rgba(177, 188, 190, 0.48);
-  /* Functional accent. Blue carries NAVIGATION and STATE — active section,
-     focus, selected segment, a toggle that is on. White stays reserved for the
-     one committing action (Generate), so "where am I" never looks like "go". */
-  --p-accent:     #7fc8c2;
-  --p-accent-dim: rgba(127, 200, 194, 0.16);
-  --p-accent-2:   #b8a77a;
-  --p-radius:    14px;
-  --p-radius-sm: 10px;
-  --p-ease:      cubic-bezier(0.22, 1, 0.36, 1);
-
-  /* One type scale. The old panel used 24 distinct sizes; this uses four. */
-  --p-fs-label:  11.5px;
-  --p-fs-body:   13.5px;
-  --p-fs-input:  14px;
-  --p-fs-head:   15px;
-}
-
-/* --------------------------------------------------------------------------
-   Sheet shell
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left {
-  position: fixed;
-  left: 50%;
-  bottom: calc(max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px))
-               + var(--ws-cmdbar-h) + var(--ws-tray-h, 0px) + 18px);
-  transform: translateX(-50%);
-  z-index: 58;
-
-  width: min(940px, calc(100vw - 28px));
-  /* Grows to 540px, but never past what is actually free: the header and the
-     creation dock occupy roughly 366px above, and the bar (plus the model tray
-     when it is out) occupies the space below. A flat vh fraction overlapped the
-     dock at 900px and under. */
-  /* Square: one page at a time, so it no longer needs to be wide. Still
-     bounded by the free band between the creation dock and the command bar. */
-  /* Reserve trimmed 266 -> 246 (headroom above the sheet was a flat 20px at
-     every size, so there was little to reclaim) and the cap raised so tall
-     displays actually use their space. Most of the anti-scroll win comes from
-     the grid below, not from raw height. */
-  height: min(860px, calc(100vh - 198px - var(--ws-cmdbar-h) - var(--ws-tray-h, 0px)));
-  max-height: none;
-  display: flex;
-  flex-direction: column;
-  padding: 0;
-
-  background:
-    radial-gradient(120% 140% at 12% 0%, rgba(255, 255, 255, 0.05), transparent 42%),
-    var(--p-bg);
-  -webkit-backdrop-filter: blur(28px) saturate(1.2);
-  backdrop-filter: blur(28px) saturate(1.2);
-  border: 0;
-  border-radius: 22px;
-  box-shadow:
-    0 40px 100px rgba(0, 0, 0, 0.66),
-    inset 0 1px 0 rgba(255, 255, 255, 0.07);
-
-  /* Closed by default. The workspace opens with the viewport clear. */
-  opacity: 0;
-  visibility: hidden;
-  transform: translateX(-50%) translateY(26px) scale(0.985);
-  pointer-events: none;
-  transition:
-    opacity 0.34s var(--p-ease),
-    transform 0.44s var(--p-ease),
-    visibility 0s linear 0.44s;
-}
-
-body.ws-panel-open .timrx-3dprint .ws-left {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0) scale(1);
-  pointer-events: auto;
-  transition-delay: 0s, 0s, 0s;
-}
-
-/* Never competes with the palette. */
-body.ws-cmd-open .timrx-3dprint .ws-left {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.16s var(--p-ease);
-}
-
-/* --------------------------------------------------------------------------
-   Sheet header — mode title, sub-tabs, close
-   -------------------------------------------------------------------------- */
-.ws-sheet__head {
-  flex: none;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 14px 18px 12px;
-  border-bottom: 1px solid var(--p-line-soft);
-}
-
-.ws-sheet__title {
-  font-size: var(--p-fs-head);
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--p-text);
-  margin: 0;
-  white-space: nowrap;
-}
-
-.ws-sheet__sub {
-  font-size: var(--p-fs-label);
-  color: var(--p-muted);
-  margin: 0;
-  white-space: nowrap;
-}
-
-.ws-sheet__modes {
-  flex: 0 1 auto;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px;
-  margin-left: auto;
-  border: 1px solid rgba(226, 236, 237, 0.08);
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.22);
-}
-
-.ws-sheet__mode {
-  min-height: 30px;
-  padding: 0 12px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--p-muted);
-  font: inherit;
-  font-size: 11.5px;
-  font-weight: 760;
-  letter-spacing: 0.02em;
-  cursor: pointer;
-  transition:
-    color 0.18s var(--p-ease),
-    background 0.18s var(--p-ease),
-    transform 0.18s var(--p-ease);
-}
-
-.ws-sheet__mode:hover,
-.ws-sheet__mode:focus-visible {
-  color: var(--p-text);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.ws-sheet__mode:focus-visible {
-  outline: 2px solid rgba(127, 200, 194, 0.46);
-  outline-offset: 2px;
-}
-
-.ws-sheet__mode.is-active {
-  color: #061616;
-  background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent));
-  transform: translateY(-1px);
-}
-
-.ws-sheet__spacer { flex: 0 0 0; width: 0; }
-
-.ws-sheet__close {
-  flex: none;
-  width: 30px;
-  height: 30px;
-  display: grid;
-  place-items: center;
-  border: 0;
-  border-radius: 50%;
-  background: var(--p-raised);
-  color: var(--p-text-2);
-  cursor: pointer;
-  transition: background 0.18s var(--p-ease), color 0.18s var(--p-ease), transform 0.18s var(--p-ease);
-}
-
-.ws-sheet__close:hover { background: var(--p-raised-hi); color: #fff; transform: scale(1.08); }
-.ws-sheet__close svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
-
-/* --------------------------------------------------------------------------
-   Scroll body + the three zones
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .pane-stack {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 0;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
-}
-
-.timrx-3dprint .pane-stack::-webkit-scrollbar { width: 10px; }
-.timrx-3dprint .pane-stack::-webkit-scrollbar-track { background: transparent; }
-.timrx-3dprint .pane-stack::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
-  border: 3px solid transparent;
-  background-clip: content-box;
-  border-radius: 999px;
-}
-
-/* --------------------------------------------------------------------------
-   Cards — the templates still emit .card wrappers; flatten them.
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .card {
-  background: none;
-  border: 0;
-  border-radius: 0;
-  box-shadow: none;
-  padding: 0;
-  margin: 0;
-}
-
-.timrx-3dprint .ws-left .card-divider {
-  height: 1px;
-  background: var(--p-line-soft);
-  margin: 14px 0;
-  border: 0;
-}
-
-/* --------------------------------------------------------------------------
-   Mode tabs (Text to 3D / Image to 3D / Multi-Image)
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .tab-btn {
-  flex: none !important;
-  padding: 8px 14px !important;
-  font-size: var(--p-fs-body) !important;
-  font-weight: 600 !important;
-  color: var(--p-muted) !important;
-  background: transparent !important;
-  border: 0 !important;
-  border-radius: 999px !important;
-  cursor: pointer;
-  transition: color 0.18s var(--p-ease), background 0.18s var(--p-ease) !important;
-}
-
-.timrx-3dprint .ws-left .tab-btn:hover { color: var(--p-text) !important; background: var(--p-raised) !important; }
-
-.timrx-3dprint .ws-left .tab-btn.active {
-  color: #0b0b0d !important;
-  background: #fff !important;
-}
-
-/* --------------------------------------------------------------------------
-   Labels and hints
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left label,
-.timrx-3dprint .ws-left .field-label-inline,
-.timrx-3dprint .ws-left .video-section-label,
-.timrx-3dprint .ws-left .vs-label {
-  font-size: var(--p-fs-label);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--p-text-2);
-}
-
-.timrx-3dprint .ws-left .field-hint,
-.timrx-3dprint .ws-left .vs-hint,
-.timrx-3dprint .ws-left .timrx-order__hint {
-  font-size: 11.5px;
-  line-height: 1.5;
-  letter-spacing: 0;
-  text-transform: none;
-  font-weight: 400;
-  color: var(--p-muted);
-}
-
-.timrx-3dprint .ws-left .field-optional,
-.timrx-3dprint .ws-left .vs-optional {
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  color: var(--p-muted);
-}
-
-.timrx-3dprint .ws-left .info-dot {
-  display: inline-grid;
-  place-items: center;
-  width: 14px;
-  height: 14px;
-  margin-left: 5px;
-  border-radius: 50%;
-  background: var(--p-raised);
-  color: var(--p-muted);
-  font-size: 9px;
-  font-style: normal;
-  cursor: help;
-}
-
-/* --------------------------------------------------------------------------
-   Text inputs, textareas, selects — one consistent field treatment
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left textarea,
-.timrx-3dprint .ws-left input[type="text"],
-.timrx-3dprint .ws-left input[type="number"],
-.timrx-3dprint .ws-left select {
-  width: 100%;
-  padding: 10px 12px;
-  font-family: inherit;
-  font-size: var(--p-fs-input);
-  color: var(--p-text);
-  background: var(--p-raised);
-  border: 1px solid transparent;
-  border-radius: var(--p-radius-sm);
-  outline: none;
-  transition: background 0.18s var(--p-ease), border-color 0.18s var(--p-ease);
-}
-
-.timrx-3dprint .ws-left textarea::placeholder,
-.timrx-3dprint .ws-left input::placeholder { color: rgba(255, 255, 255, 0.3); }
-
-.timrx-3dprint .ws-left textarea:hover,
-.timrx-3dprint .ws-left input:hover,
-.timrx-3dprint .ws-left select:hover { background: var(--p-raised-hi); }
-
-.timrx-3dprint .ws-left textarea:focus,
-.timrx-3dprint .ws-left input:focus,
-.timrx-3dprint .ws-left select:focus {
-  background: var(--p-raised-hi);
-  border-color: rgba(255, 255, 255, 0.32);
-}
-
-.timrx-3dprint .ws-left textarea:focus-visible,
-.timrx-3dprint .ws-left input:focus-visible,
-.timrx-3dprint .ws-left select:focus-visible {
-  outline: 2px solid rgba(255, 255, 255, 0.45);
-  outline-offset: 2px;
-}
-
-.timrx-3dprint .ws-left textarea {
-  min-height: 96px;
-  line-height: 1.55;
-  resize: vertical;
-}
-
-.timrx-3dprint .ws-left .negative-prompt-input { min-height: 58px; }
-
-.timrx-3dprint .ws-left select {
-  appearance: none;
-  -webkit-appearance: none;
-  padding-right: 30px;
-  background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-opacity='.55' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 10px center;
-  background-size: 14px;
-  cursor: pointer;
-}
-
-.timrx-3dprint .ws-left select option { background: #16161a; color: #fff; }
-
-/* --------------------------------------------------------------------------
-   Field rows — label left, control right, on one line
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .field-row-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 4px 18px;
-}
-
-.timrx-3dprint .ws-left .field-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(96px, 132px);
-  align-items: center;
-  gap: 10px;
-  padding: 7px 0;
-  border-bottom: 1px solid var(--p-line-soft);
-}
-
-.timrx-3dprint .ws-left .field-row:last-child { border-bottom: 0; }
-
-.timrx-3dprint .ws-left .field-select-inline { padding: 7px 28px 7px 10px; font-size: 13px; }
-
-.timrx-3dprint .ws-left .field-group {
-  padding: 8px 0;
-  border-bottom: 1px solid var(--p-line-soft);
-}
-
-.timrx-3dprint .ws-left .field-group > .field-label-inline { display: block; margin-bottom: 7px; }
-
-.timrx-3dprint .ws-left .inline-field { display: grid; gap: 6px; margin-bottom: 10px; }
-
-/* --------------------------------------------------------------------------
-   Segmented control
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .segment-group {
-  display: inline-flex;
-  padding: 3px;
-  gap: 2px;
-  background: rgba(0, 0, 0, 0.32);
-  border: 0;
-  border-radius: 999px;
-}
-
-.timrx-3dprint .ws-left .segment {
-  padding: 6px 13px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--p-muted);
-  background: transparent;
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: color 0.16s var(--p-ease), background 0.16s var(--p-ease);
-}
-
-.timrx-3dprint .ws-left .segment:hover { color: var(--p-text); }
-.timrx-3dprint .ws-left .segment.is-active { color: #0b0b0d; background: #fff; }
-
-/* --------------------------------------------------------------------------
-   Stepper
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .stepper-input {
-  position: relative;
-  display: flex;
-  align-items: center;
-  background: var(--p-raised);
-  border-radius: var(--p-radius-sm);
-  overflow: hidden;
-}
-
-.timrx-3dprint .ws-left .stepper-input input {
-  background: none;
-  border: 0;
-  padding: 8px 26px 8px 12px;
-  -moz-appearance: textfield;
-}
-
-.timrx-3dprint .ws-left .stepper-input input::-webkit-outer-spin-button,
-.timrx-3dprint .ws-left .stepper-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-
-.timrx-3dprint .ws-left .stepper-arrows {
-  position: absolute;
-  right: 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.timrx-3dprint .ws-left .stepper-arrows button {
-  width: 18px;
-  height: 13px;
-  display: grid;
-  place-items: center;
-  font-size: 8px;
-  line-height: 1;
-  color: var(--p-muted);
-  background: transparent;
-  border: 0;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.timrx-3dprint .ws-left .stepper-arrows button:hover { color: #fff; background: var(--p-raised-hi); }
-
-/* --------------------------------------------------------------------------
-   Toggle switch
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .toggle-switch,
-.timrx-3dprint .ws-left .toggle.sm {
-  position: relative;
-  display: inline-block;
-  width: 38px;
-  height: 22px;
-  flex: none;
-  justify-self: end;
-}
-
-.timrx-3dprint .ws-left .toggle-switch input,
-.timrx-3dprint .ws-left .toggle.sm input { opacity: 0; width: 0; height: 0; position: absolute; }
-
-.timrx-3dprint .ws-left .toggle-slider,
-.timrx-3dprint .ws-left .toggle.sm .slider {
-  position: absolute;
-  inset: 0;
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.2s var(--p-ease);
-}
-
-.timrx-3dprint .ws-left .toggle-slider::before,
-.timrx-3dprint .ws-left .toggle.sm .slider::before {
-  content: "";
-  position: absolute;
-  left: 3px;
-  top: 3px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #fff;
-  transition: transform 0.24s cubic-bezier(0.34, 1.4, 0.64, 1);
-}
-
-.timrx-3dprint .ws-left input:checked + .toggle-slider,
-.timrx-3dprint .ws-left input:checked + .slider { background: rgba(255, 255, 255, 0.85); }
-
-.timrx-3dprint .ws-left input:checked + .toggle-slider::before,
-.timrx-3dprint .ws-left input:checked + .slider::before { transform: translateX(16px); background: #0b0b0d; }
-
-.timrx-3dprint .ws-left input:focus-visible + .toggle-slider,
-.timrx-3dprint .ws-left input:focus-visible + .slider { outline: 2px solid rgba(255,255,255,.5); outline-offset: 2px; }
-
-/* --------------------------------------------------------------------------
-   Prompt block — enhance row, counter
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .enhance-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 8px;
-}
-
-.timrx-3dprint .ws-left .enhance-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 13px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--p-text);
-  background: var(--p-raised);
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.18s var(--p-ease), transform 0.18s var(--p-ease);
-}
-
-.timrx-3dprint .ws-left .enhance-btn:hover { background: var(--p-raised-hi); transform: translateY(-1px); }
-.timrx-3dprint .ws-left .enhance-btn-icon { width: 13px; height: 13px; }
-
-.timrx-3dprint .ws-left .negative-prompt-field { margin-top: 14px; display: grid; gap: 6px; }
-
-/* --------------------------------------------------------------------------
-   Uploads / drop zones
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .video-drop-zone,
-.timrx-3dprint .ws-left .drop-zone {
-  display: grid;
-  place-items: center;
-  gap: 6px;
-  padding: 18px 12px;
-  min-height: 96px;
-  font-size: 12px;
-  color: var(--p-muted);
-  text-align: center;
-  background: var(--p-raised);
-  border: 1px dashed rgba(255, 255, 255, 0.16);
-  border-radius: var(--p-radius);
-  cursor: pointer;
-  transition: background 0.2s var(--p-ease), border-color 0.2s var(--p-ease), transform 0.2s var(--p-ease);
-}
-
-.timrx-3dprint .ws-left .video-drop-zone:hover,
-.timrx-3dprint .ws-left .drop-zone:hover {
-  background: var(--p-raised-hi);
-  border-color: rgba(255, 255, 255, 0.34);
-  color: var(--p-text);
-  transform: translateY(-2px);
-}
-
-.timrx-3dprint .ws-left .video-drop-zone svg { width: 20px; height: 20px; opacity: 0.6; }
-
-.timrx-3dprint .ws-left .video-image-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  align-items: start;
-}
-
-.timrx-3dprint .ws-left .video-preview-wrap {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: var(--p-radius);
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.35);
-}
-
-.timrx-3dprint .ws-left .video-preview-img { width: 100%; height: 100%; object-fit: contain; }
-
-.timrx-3dprint .ws-left .video-preview-placeholder {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: rgba(255, 255, 255, 0.16);
-}
-
-.timrx-3dprint .ws-left .video-preview-placeholder svg { width: 26px; height: 26px; }
-
-/* --------------------------------------------------------------------------
-   Format chips (checkbox pills)
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .texture-format-grid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.timrx-3dprint .ws-left .texture-format-option input { position: absolute; opacity: 0; width: 0; height: 0; }
-
-.timrx-3dprint .ws-left .texture-format-chip {
-  display: inline-block;
-  padding: 6px 12px;
-  font-size: 11.5px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  color: var(--p-muted);
-  background: var(--p-raised);
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.16s var(--p-ease), color 0.16s var(--p-ease);
-}
-
-.timrx-3dprint .ws-left .texture-format-option:hover .texture-format-chip { background: var(--p-raised-hi); color: var(--p-text); }
-
-.timrx-3dprint .ws-left .texture-format-option input:checked + .texture-format-chip {
-  color: #0b0b0d;
-  background: #fff;
-}
-
-.timrx-3dprint .ws-left .texture-format-option input:focus-visible + .texture-format-chip {
-  outline: 2px solid rgba(255, 255, 255, 0.5);
-  outline-offset: 2px;
-}
-
-/* --------------------------------------------------------------------------
-   Progressive disclosure
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left details {
-  margin-top: 12px;
-  border-top: 1px solid var(--p-line-soft);
-  padding-top: 10px;
-}
-
-.timrx-3dprint .ws-left summary {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  list-style: none;
-  padding: 6px 0;
-  font-size: var(--p-fs-label);
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--p-text-2);
-  cursor: pointer;
-}
-
-.timrx-3dprint .ws-left summary::-webkit-details-marker { display: none; }
-
-.timrx-3dprint .ws-left summary::before {
-  content: "";
-  width: 7px;
-  height: 7px;
-  border-right: 1.6px solid currentColor;
-  border-bottom: 1.6px solid currentColor;
-  transform: rotate(-45deg);
-  transition: transform 0.22s var(--p-ease);
-}
-
-.timrx-3dprint .ws-left details[open] > summary::before { transform: rotate(45deg); }
-.timrx-3dprint .ws-left summary:hover { color: var(--p-text); }
-
-/* --------------------------------------------------------------------------
-   Commit zone — estimate + generate
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .gen-footer-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 14px;
-  background: var(--p-raised);
-  border-radius: var(--p-radius);
-}
-
-.timrx-3dprint .ws-left .gen-meta {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  font-size: 12.5px;
-  color: var(--p-text-2);
-  font-variant-numeric: tabular-nums;
-}
-
-.timrx-3dprint .ws-left .gen-divider { color: rgba(255, 255, 255, 0.18); }
-.timrx-3dprint .ws-left .gen-credits { font-weight: 700; color: var(--p-text); }
-.timrx-3dprint .ws-left .gen-btn-row { display: flex; flex-direction: column; gap: 8px; }
-
-.timrx-3dprint .ws-left .gen-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  width: 100%;
-  padding: 14px 18px;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 0.01em;
-  color: #0b0b0d;
-  background: linear-gradient(180deg, #ffffff, #e7e9ed);
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: transform 0.2s var(--p-ease), box-shadow 0.2s var(--p-ease), opacity 0.2s var(--p-ease);
-  box-shadow: 0 12px 30px rgba(255, 255, 255, 0.14);
-}
-
-.timrx-3dprint .ws-left .gen-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 40px rgba(255, 255, 255, 0.22);
-}
-
-.timrx-3dprint .ws-left .gen-btn:active:not(:disabled) { transform: translateY(0) scale(0.985); }
-
-.timrx-3dprint .ws-left .gen-btn:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-  box-shadow: none;
-  background: rgba(255, 255, 255, 0.2);
-  color: rgba(255, 255, 255, 0.6);
-}
-
-.timrx-3dprint .ws-left .gen-btn-icon { width: 15px; height: 15px; }
-
-.timrx-3dprint .ws-left .btn-cost-badge {
-  padding: 3px 8px;
-  font-size: 11px;
-  font-weight: 700;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.14);
-  font-variant-numeric: tabular-nums;
-}
-
-.timrx-3dprint .ws-left .gen-btn--preview {
-  background: var(--p-raised-hi);
-  color: var(--p-text);
-  box-shadow: none;
-}
-
-/* --------------------------------------------------------------------------
-   Video-specific groupings
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .vs-section { display: grid; gap: 8px; margin-bottom: 14px; }
-.timrx-3dprint .ws-left .vs-settings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
-}
-.timrx-3dprint .ws-left .vs-setting { display: grid; gap: 5px; }
-
-.timrx-3dprint .ws-left .vs-toggle-btn,
-.timrx-3dprint .ws-left .video-gallery-btn,
-.timrx-3dprint .ws-left .vs-motion-trigger {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  padding: 9px 14px;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--p-text-2);
-  background: var(--p-raised);
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.18s var(--p-ease), color 0.18s var(--p-ease);
-}
-
-.timrx-3dprint .ws-left .vs-toggle-btn:hover,
-.timrx-3dprint .ws-left .video-gallery-btn:hover,
-.timrx-3dprint .ws-left .vs-motion-trigger:hover { background: var(--p-raised-hi); color: #fff; }
-
-.timrx-3dprint .ws-left .vs-toggle-btn svg,
-.timrx-3dprint .ws-left .video-gallery-btn svg { width: 14px; height: 14px; }
-
-.timrx-3dprint .ws-left .video-utils-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 10px;
-}
-
-/* --------------------------------------------------------------------------
-   Neutralise inline styles the templates still carry
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left [style*="background:rgba(255,255,255,.04)"],
-.timrx-3dprint .ws-left [style*="background: rgba(255,255,255,.04)"] {
-  background: var(--p-raised) !important;
-  border-color: transparent !important;
-}
-
-/* --------------------------------------------------------------------------
-   Responsive — the three zones collapse in a deliberate order
-   -------------------------------------------------------------------------- */
-@media (max-width: 1180px) {
-  .ws-zones { grid-template-columns: minmax(280px, 1fr) minmax(0, 1.2fr); }
-  .ws-zone--commit {
-    grid-column: 1 / -1;
-    position: static;
-    border-left: 0;
-    border-top: 1px solid var(--p-line-soft);
-    flex-direction: row;
-    align-items: center;
-    gap: 16px;
-  }
-  .ws-zone--commit .gen-footer-card { flex: 1 1 auto; flex-direction: row; align-items: center; }
-  .ws-zone--commit .gen-btn-row { flex: 0 0 240px; }
-}
-
-@media (max-width: 820px) {
-  .timrx-3dprint .ws-left {
-    width: calc(100vw - 20px);
-    max-height: min(58vh, 520px);
-    border-radius: 20px;
-  }
-  .ws-zones { grid-template-columns: minmax(0, 1fr); }
-  .ws-zone + .ws-zone { border-left: 0; border-top: 1px solid var(--p-line-soft); }
-  .ws-zone--commit { flex-direction: column; align-items: stretch; }
-  .ws-zone--commit .gen-btn-row { flex: none; }
-}
-
-@media (max-width: 560px) {
-  .ws-sheet__head {
-    flex-wrap: wrap;
-    gap: 8px 10px;
-  }
-
-  .ws-sheet__title {
-    order: 1;
-  }
-
-  .ws-sheet__sub {
-    order: 2;
-    flex: 1 1 auto;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .ws-sheet__close {
-    order: 3;
-  }
-
-  .ws-sheet__spacer {
-    display: none;
-  }
-
-  .ws-sheet__modes {
-    order: 4;
-    flex: 1 0 100%;
-    width: 100%;
-    margin-left: 0;
-  }
-
-  .ws-sheet__mode {
-    flex: 1 1 0;
-    padding: 0 8px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .timrx-3dprint .ws-left { transition: opacity 0.2s linear, visibility 0s linear 0.2s; transform: translateX(-50%); }
-  body.ws-panel-open .timrx-3dprint .ws-left { transform: translateX(-50%); }
-  .timrx-3dprint .ws-left * { transition-duration: 0.01ms !important; }
-}
-
-
-/* ==========================================================================
-   SECTIONED SETTINGS
-   --------------------------------------------------------------------------
-   The panel used to be one tall scroll. Splitting the settings into tabs means
-   each view fits the sheet, so navigating is a click instead of a hunt.
-   ========================================================================== */
-
-.ws-sect__tabs {
-  display: flex;
-  gap: 2px;
-  padding: 3px;
-  margin-bottom: 14px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 999px;
-}
-
-.ws-sect__tab {
-  flex: 1 1 auto;
-  padding: 8px 14px;
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 650;
-  letter-spacing: 0.01em;
-  color: var(--p-muted);
-  background: transparent;
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.18s var(--p-ease), background 0.18s var(--p-ease);
-}
-
-.ws-sect__tab:hover { color: var(--p-text); background: rgba(255, 255, 255, 0.05); }
-
-.ws-sect__tab.is-active {
-  color: #04141d;
-  background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent));
-}
-
-.ws-sect__tab:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
-
-.ws-sect__pane { display: none; }
-.ws-sect__pane.is-active { display: block; }
-
-/* Mode tabs (Text to 3D / Image to 3D / Multi-Image) sit above the prompt. */
-.timrx-3dprint .ws-left .ws-modes {
-  display: flex !important;
-  gap: 3px !important;
-  padding: 3px !important;
-  margin: 0 0 14px !important;
-  background: rgba(0, 0, 0, 0.3) !important;
-  border: 0 !important;
-  border-radius: 999px !important;
-}
-
-.timrx-3dprint .ws-left .tab-btn.active {
-  color: #04141d !important;
-  background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent)) !important;
-}
-
-/* --------------------------------------------------------------------------
-   Accent applied to state, never to the commit action
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .segment.is-active {
-  color: #04141d;
-  background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent));
-}
-
-.timrx-3dprint .ws-left input:checked + .toggle-slider,
-.timrx-3dprint .ws-left input:checked + .slider { background: var(--p-accent); }
-.timrx-3dprint .ws-left input:checked + .toggle-slider::before,
-.timrx-3dprint .ws-left input:checked + .slider::before { background: #04141d; }
-
-.timrx-3dprint .ws-left .texture-format-option input:checked + .texture-format-chip {
-  color: #04141d;
-  background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent));
-}
-
-.timrx-3dprint .ws-left textarea:focus,
-.timrx-3dprint .ws-left input:focus,
-.timrx-3dprint .ws-left select:focus { border-color: var(--p-accent); }
-
-.timrx-3dprint .ws-left textarea:focus-visible,
-.timrx-3dprint .ws-left input:focus-visible,
-.timrx-3dprint .ws-left select:focus-visible {
-  outline-color: var(--p-accent);
-}
-
-.timrx-3dprint .ws-left .enhance-btn { color: var(--p-accent-2); }
-.timrx-3dprint .ws-left .enhance-btn:hover { background: var(--p-accent-dim); }
-
-/* --------------------------------------------------------------------------
-   Zone sizing — the prompt no longer eats the sheet
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .ws-zone--intent textarea { min-height: 78px; max-height: 120px; }
-.timrx-3dprint .ws-left .ws-zone--intent .negative-prompt-input { min-height: 52px; }
-
-/* Settings rows stack label over control — far easier to scan than a wide
-   label-left / control-right row with a gulf between them. */
-.timrx-3dprint .ws-left .ws-zone--settings .field-row-grid {
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px 14px;
-}
-
-.timrx-3dprint .ws-left .ws-zone--settings .field-row {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-  padding: 0;
-  border-bottom: 0;
-}
-
-.timrx-3dprint .ws-left .ws-zone--settings .field-row .field-label-inline { display: block; }
-.timrx-3dprint .ws-left .ws-zone--settings .field-group { padding: 0; border-bottom: 0; }
-.timrx-3dprint .ws-left .ws-zone--settings .toggle-switch { justify-self: start; }
-
-/* Short viewports: the prompt fields are the tallest thing in the sheet, so
-   they give up height first rather than letting the panel start scrolling. */
-@media (max-height: 880px) {
-  .timrx-3dprint .ws-left .ws-zone--intent textarea { min-height: 60px; max-height: 78px; }
-  .timrx-3dprint .ws-left .ws-zone--intent .negative-prompt-input { min-height: 42px; }
-  .timrx-3dprint .ws-left .ws-zone { padding: 12px 16px 14px; }
-  .ws-sect__tabs { margin-bottom: 10px; }
-  /* The negative-prompt explainer is the longest line in the sheet; it wraps to
-     three rows at this width and is what tipped the column over. */
-  .timrx-3dprint .ws-left .ws-zone--intent .field-hint { font-size: 11px; line-height: 1.35; }
-  .timrx-3dprint .ws-left .negative-prompt-field { margin-top: 10px; gap: 4px; }
-  .timrx-3dprint .ws-left .enhance-row { margin-top: 6px; }
-}
-
-@media (max-height: 780px) {
-  .timrx-3dprint .ws-left .ws-zone--intent textarea { min-height: 54px; max-height: 70px; }
-  .timrx-3dprint .ws-left .field-hint { display: none; }
-  .ws-sheet__head { padding: 10px 16px 9px; }
-}
-
-/* ==========================================================================
-   PAGED SHEET
-   --------------------------------------------------------------------------
-   Prompt → Settings → Output. One page on screen at a time, so a panel with
-   90 controls is never taller than the sheet and nothing scrolls sideways in
-   the reader's head. Assignment is by what a block IS, not by measurement.
-   ========================================================================== */
-
-.ws-pages {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  min-height: 0;
-}
-
-.ws-pages__track {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overflow-x: hidden;
-  padding: 16px 20px 8px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
-}
-
-.ws-pages__track::-webkit-scrollbar { width: 10px; }
-.ws-pages__track::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.14);
-  border: 3px solid transparent;
-  background-clip: content-box;
-  border-radius: 999px;
-}
-
-.ws-page { display: none; animation: wsPageIn 0.32s var(--p-ease); }
-.ws-page.is-active { display: block; }
-
-@keyframes wsPageIn {
-  from { opacity: 0; transform: translateX(14px); }
-  to   { opacity: 1; transform: translateX(0); }
-}
-
-.ws-page__head { margin-bottom: 14px; }
-.ws-page__title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  color: var(--p-text);
-}
-.ws-page__hint { margin: 3px 0 0; font-size: 12px; color: var(--p-muted); }
-.ws-page__body { display: flex; flex-direction: column; gap: 14px; }
-.ws-page__empty { font-size: 13px; color: var(--p-muted); padding: 18px 0; }
-
-/* Settings page reads as a two-column grid — pairs of related fields. */
-.ws-page[data-page="settings"] .ws-page__body { display: block; }
-.ws-page[data-page="settings"] .field-row-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-}
-.ws-page[data-page="settings"] .field-row,
-.ws-page[data-page="settings"] .field-group {
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-  padding: 0 0 12px;
-  border-bottom: 0;
-}
-.ws-page[data-page="settings"] .field-row .field-label-inline { display: block; }
-.ws-page[data-page="settings"] .toggle-switch { justify-self: start; }
-
-/* --------------------------------------------------------------------------
-   Pager
-   -------------------------------------------------------------------------- */
-.ws-pager {
-  flex: none;
-  display: grid;
-  grid-template-columns: 88px minmax(0, 1fr) 88px;
-  align-items: center;
-  gap: 10px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--p-line-soft);
-}
-
-.ws-pager__btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  padding: 9px 12px;
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 650;
-  color: var(--p-text-2);
-  background: var(--p-raised);
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background 0.18s var(--p-ease), color 0.18s var(--p-ease), opacity 0.18s var(--p-ease);
-}
-
-.ws-pager__btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.ws-pager__btn:hover:not(:disabled) { background: var(--p-raised-hi); color: #fff; }
-.ws-pager__btn:disabled { opacity: 0.28; cursor: default; }
-.ws-pager__btn:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
-
-.ws-pager__btn--next {
-  color: #04141d;
-  background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent));
-}
-.ws-pager__btn--next:hover:not(:disabled) { color: #04141d; filter: brightness(1.06); }
-.ws-pager__btn--next:disabled { background: var(--p-raised); color: var(--p-text-2); }
-
-.ws-pager__dots { display: flex; justify-content: center; gap: 6px; }
-
-.ws-pager__dot {
-  padding: 7px 14px;
-  font: inherit;
-  font-size: 11.5px;
-  font-weight: 650;
-  color: var(--p-muted);
-  background: transparent;
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.18s var(--p-ease), background 0.18s var(--p-ease);
-}
-
-.ws-pager__dot:hover { color: var(--p-text); background: var(--p-raised); }
-.ws-pager__dot.is-active { color: var(--p-text); background: var(--p-raised-hi); }
-.ws-pager__dot:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
-
-@media (max-width: 560px) {
-  .ws-pager { grid-template-columns: 44px minmax(0, 1fr) 44px; }
-  .ws-pager__btn span { display: none; }
-  .ws-pager__dot { padding: 7px 10px; font-size: 11px; }
-  .ws-page[data-page="settings"] .field-row-grid { grid-template-columns: 1fr; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ws-page { animation: none; }
-}
-
-/* ==========================================================================
-   PAGE GRIDS
-   --------------------------------------------------------------------------
-   Everything that can pair up, pairs up. A stack of full-width dropdowns is
-   both taller than it needs to be and harder to scan than two short columns —
-   the eye has to travel the whole card width to connect a label to its value.
-   ========================================================================== */
-
-.ws-page__body {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px 16px;
-  align-items: start;
-}
-
-/* Blocks that carry their own internal layout, or that need the full measure,
-   span both columns. Everything else halves. */
-.ws-page__body > .field-row-grid,
-.ws-page__body > .vs-settings-grid,
-.ws-page__body > .texture-format-group,
-.ws-page__body > .gen-footer-card,
-.ws-page__body > .video-image-grid,
-.ws-page__body > details,
-.ws-page__body > h3,
-.ws-page__body > .vs-label,
-.ws-page__body > .enhance-row,
-.ws-page__body > .field-hint,
-.ws-page__body > .vs-hint,
-.ws-page__body > p,
-.ws-page__body > textarea,
-.ws-page__body > .negative-prompt-field,
-.ws-page__body > .tab-content,
-.ws-page__body > .ws-modes,
-.ws-page__body > [class*="notice"],
-.ws-page__body > [class*="banner"],
-.ws-page__body > [class*="hint"] { grid-column: 1 / -1; }
-
-/* A bound label+control pair occupies one cell, so two fields sit per row. */
-.ws-page__body > .ws-field { display: grid; gap: 6px; align-content: start; }
-.ws-page__body > .ws-field > label { margin: 0; }
-.ws-page__body > .ws-field > .field-hint { margin-top: 2px; }
-/* An unpaired label is a section heading, not a field label. */
-.ws-page__body > label { grid-column: 1 / -1; }
-
-/* Inner grids get real columns rather than one tall stack. */
-.ws-page[data-page="settings"] .field-row-grid,
-.ws-page[data-page="settings"] .vs-settings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
-  gap: 12px 16px;
-}
-
-/* No control runs the full width of the card for no reason. */
-.timrx-3dprint .ws-left .ws-page select,
-.timrx-3dprint .ws-left .ws-page input[type="text"],
-.timrx-3dprint .ws-left .ws-page input[type="number"],
-.timrx-3dprint .ws-left .ws-page .stepper-input { max-width: 320px; }
-
-.timrx-3dprint .ws-left .ws-page textarea { max-width: none; }
-
-/* Paired actions sit side by side instead of stacking as two full-width
-   slabs — this is what made the animate panel so tall. */
-.ws-page__body > .gen-btn--rail {
-  grid-column: auto;
-  width: auto !important;
-  margin: 0 !important;
-  padding: 11px 16px !important;
-  font-size: 13px !important;
-}
-
-.ws-page__body > .gen-btn--rail + .gen-btn--rail { margin: 0 !important; }
-
-/* Uploads pair with the field beside them rather than owning a whole row. */
-.ws-page__body > .video-image-grid {
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  max-width: 460px;
-}
-
-.timrx-3dprint .ws-left .ws-page .video-drop-zone { min-height: 84px; padding: 14px 12px; }
-
-/* Tighter vertical rhythm inside a page now that things sit side by side. */
-.ws-page__body > .field-group,
-.ws-page__body > .field-row,
-.ws-page__body > .inline-field { padding-bottom: 0; margin: 0; }
-
-.ws-page__body > .inline-field { display: grid; gap: 6px; }
-
-@media (max-width: 560px) {
-  .ws-page__body { grid-template-columns: minmax(0, 1fr); }
-  .ws-page__body > .gen-btn--rail { grid-column: 1 / -1; }
-  .timrx-3dprint .ws-left .ws-page select,
-  .timrx-3dprint .ws-left .ws-page input[type="text"],
-  .timrx-3dprint .ws-left .ws-page input[type="number"] { max-width: none; }
-}
-
-/* Rail actions anywhere in a page, not only as direct children — the animate
-   panel nests its "Load Latest Rigged Model" / "Choose from History" pair one
-   level down, so they were still rendering as two 620px slabs. */
-.timrx-3dprint .ws-left .ws-page .gen-btn--rail {
-  width: auto !important;
-  min-width: 0;
-  margin: 0 !important;
-  padding: 11px 16px !important;
-  font-size: 13px !important;
-  flex: 0 1 auto;
-}
-
-/* Any wrapper holding rail actions becomes a wrapping row. */
-.timrx-3dprint .ws-left .ws-page *:has(> .gen-btn--rail) {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  align-items: center;
-}
-
-/* Long explanatory paragraphs are the other thing inflating page height. */
-.timrx-3dprint .ws-left .ws-page .field-hint,
-.timrx-3dprint .ws-left .ws-page .vs-hint { font-size: 11.5px; line-height: 1.45; }
-
-/* Section headings inside a page were rendering at card-title scale. */
-.timrx-3dprint .ws-left .ws-page h3 {
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: -0.005em;
-  color: var(--p-text);
-  margin: 4px 0 0;
-}
-
-/* Guidance prose is the tallest thing on several settings pages (remesh gave
-   it 204px). Cap it and let it scroll in place rather than pushing the whole
-   page past the sheet — the text stays reachable, the controls stay visible. */
-.timrx-3dprint .ws-left .ws-page [class*="guidance"],
-.timrx-3dprint .ws-left .ws-page [class*="-notice"],
-.timrx-3dprint .ws-left .ws-page .card-desc {
-  grid-column: 1 / -1;
-  max-height: 88px;
-  overflow-y: auto;
-  font-size: 11.5px;
-  line-height: 1.45;
-  color: var(--p-muted);
-  padding-right: 4px;
-  scrollbar-width: thin;
-}
-
-/* Preset tiles pack into a dense grid instead of a tall list.
-   :not([class*="collapsed"]) matters — video ships its prompt-template and
-   motion-preset panels collapsed, and an unqualified `display: grid` here
-   overrode that and unfolded 791px of hidden content onto the Output page. */
-.timrx-3dprint .ws-left .ws-page [class*="presets"]:not([class*="collapsed"]) {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
-  gap: 6px;
-}
-
-.timrx-3dprint .ws-left .ws-page [class*="presets"]:not([class*="collapsed"]) button {
-  padding: 8px 10px;
-  font-size: 11.5px;
-  border-radius: 10px;
-}
-
-/* ==========================================================================
-   HORIZONTAL FIELD GROUPS · NARROWER COMMIT
-   ========================================================================== */
-
-/* Panels wrap their fields in their own container (.image-settings-grid,
-   .vs-settings-grid, .remesh-settings-grid …). Those containers span the card,
-   so the outer two-column grid never saw the individual fields and every
-   dropdown stacked vertically down the left half. Give the containers real
-   columns of their own. */
-.timrx-3dprint .ws-left .ws-page [class*="settings-grid"],
-.timrx-3dprint .ws-left .ws-page [class*="-fields"],
-.timrx-3dprint .ws-left .ws-page [class*="-options-grid"] {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
-  gap: 12px 16px;
-  align-items: start;
-}
-
-.timrx-3dprint .ws-left .ws-page [class*="settings-grid"] > .inline-field,
-.timrx-3dprint .ws-left .ws-page [class*="settings-grid"] > .field-row {
-  display: grid;
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  border-bottom: 0;
-}
-
-/* Category headings inside a preset grid are not tiles — they introduce the
-   row beneath them, so they must span rather than sit in a column and shove
-   the first two presets sideways. */
-.timrx-3dprint .ws-left .ws-page [class*="presets"] > :not(button) {
-  grid-column: 1 / -1;
-  font-size: 10.5px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--p-muted);
-  margin-top: 4px;
-}
-
-/* Commit block: stacked as before, just no longer the width of the card. */
-.timrx-3dprint .ws-left .ws-page .gen-footer-card {
-  grid-column: 1 / -1;
-  max-width: 320px;
-  justify-self: start;
-}
-
-.timrx-3dprint .ws-left .ws-page .gen-btn { max-width: 100%; }
-
-/* The estimate row reads better centred over a narrow button than stretched. */
-.timrx-3dprint .ws-left .ws-page .gen-meta { justify-content: flex-start; }
-
-@media (max-width: 560px) {
-  .timrx-3dprint .ws-left .ws-page .gen-footer-card { max-width: none; }
-}
-
-/* ==========================================================================
-   SPARSE OUTPUT PAGE
-   --------------------------------------------------------------------------
-   Most panels put only the estimate and Generate on Output, which left a small
-   raised card pinned to the top-left of a mostly empty square. When a page
-   carries fewer than three blocks it centres instead, and the card sheds its
-   background — a container is only worth drawing when it separates things, and
-   here there is nothing to separate it from.
-
-   .ws-page--sparse is set by organiseSheet(). The CSS-only version of this test
-   needed :has() inside :has(), which is invalid and was dropped silently.
-   ========================================================================== */
-
-.ws-page[data-page="output"].ws-page--sparse.is-active {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100%;
-  text-align: center;
-}
-
-.ws-page--sparse .ws-page__head { margin-bottom: 24px; }
-
-.ws-page[data-page="output"].ws-page--sparse .ws-page__body {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  width: 100%;
-}
-
-/* No background, no border, no padding — just the two things that matter. */
-.timrx-3dprint .ws-left .ws-page[data-page="output"].ws-page--sparse .gen-footer-card {
-  background: none;
-  padding: 0;
-  gap: 16px;
-  max-width: 360px;
-  width: 100%;
-  align-items: center;
-}
-
-.ws-page[data-page="output"].ws-page--sparse .gen-meta {
-  justify-content: center;
-  font-size: 13px;
-}
-
-.ws-page[data-page="output"].ws-page--sparse .gen-btn-row {
-  width: 100%;
-  align-items: stretch;
-}
-
-/* A little more presence now that it stands alone. */
-.timrx-3dprint .ws-left .ws-page[data-page="output"].ws-page--sparse .gen-btn {
-  width: 100%;
-  max-width: 340px;
-  padding: 15px 22px;
-  font-size: 14.5px;
-}
-
-/* rig and animate have no .gen-footer-card and mark their commit button
-   .gen-btn--rail like every other button in those panels, so the rail rule
-   (width:auto) was shrinking the one control the page exists for. On a sparse
-   Output page the commit button is sized by id, which is the same set main.js
-   delegates on. */
-.timrx-3dprint .ws-left .ws-page[data-page="output"].ws-page--sparse #startRigBtn,
-.timrx-3dprint .ws-left .ws-page[data-page="output"].ws-page--sparse #applyAnimationBtn2,
-.timrx-3dprint .ws-left .ws-page[data-page="output"].ws-page--sparse #applyRemeshBtn,
-.timrx-3dprint .ws-left .ws-page[data-page="output"].ws-page--sparse #generateTextureBtn {
-  width: 100% !important;
-  max-width: 340px;
-  padding: 15px 22px !important;
-  font-size: 14.5px !important;
-  flex: 0 0 auto;
-  align-self: center;
-}
-
-/* Any wrapper around the commit button centres it rather than flowing it left. */
-.ws-page[data-page="output"].ws-page--sparse .ws-page__body > *:has(> .gen-btn) {
-  justify-content: center;
-  width: 100%;
-}
-
-/* ==========================================================================
-   MODE TABS · VIDEO TRAY · FIELD CONSISTENCY
-   ========================================================================== */
-
-/* Mode tabs centre and lose the black trough — the active pill already carries
-   the state, so the container behind it was only adding weight. */
-.timrx-3dprint .ws-left .ws-modes {
-  background: transparent !important;
-  justify-content: center !important;
-  padding: 0 !important;
-  gap: 6px !important;
-  margin-bottom: 16px !important;
-}
-
-/* Panels that wrap their prompt in a mode container were laying it out in one
-   half of the two-column grid, so the video textarea rendered at 302px inside
-   a 620px card. These wrappers hold the prompt — they take the full measure. */
-.ws-page__body > .video-mode-content,
-.ws-page__body > .video-input-section,
-.ws-page__body > [class*="mode-content"],
-.ws-page__body > [class*="input-section"] { grid-column: 1 / -1; }
-
-.timrx-3dprint .ws-left .ws-page .video-mode-content textarea,
-.timrx-3dprint .ws-left .ws-page .video-input-section textarea { width: 100%; }
-
-/* --------------------------------------------------------------------------
-   Video tray rows (Text / Animate, then the provider tiers)
-   --------------------------------------------------------------------------
-   These were running the full 760px of the tray. They are a mode choice, not a
-   commit action, so they get the width the words need and centre under it. */
-.ws-video-tray__row {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  max-width: 440px;
-  margin-inline: auto;
-}
-
-.ws-video-tray__row.video-mode-switcher { max-width: 340px; }
-
-.ws-video-tray__row + .ws-video-tray__row { margin-top: 8px; max-width: 520px; }
-
-.ws-video-tray__btn {
-  flex: 1 1 0;
-  min-width: 0;
-  padding: 10px 14px;
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.ws-video-tray__row + .ws-video-tray__row .ws-video-tray__btn {
-  padding: 8px 12px;
-  font-size: 12px;
-}
-
-/* --------------------------------------------------------------------------
-   One field treatment everywhere
-   --------------------------------------------------------------------------
-   Panels were mixing control heights: some fields came from .inline-field,
-   some from .field-row, some raw. Match them so a card reads as one system.
-   -------------------------------------------------------------------------- */
-.timrx-3dprint .ws-left .ws-page select,
-.timrx-3dprint .ws-left .ws-page input[type="text"],
-.timrx-3dprint .ws-left .ws-page input[type="number"] {
-  min-height: 40px;
-  padding: 9px 12px;
-  font-size: 13.5px;
-}
-
-.timrx-3dprint .ws-left .ws-page select { padding-right: 30px; }
-
-.timrx-3dprint .ws-left .ws-page .stepper-input { min-height: 40px; }
-.timrx-3dprint .ws-left .ws-page .stepper-input input { min-height: 0; }
-
-.timrx-3dprint .ws-left .ws-page label,
-.timrx-3dprint .ws-left .ws-page .field-label-inline,
-.timrx-3dprint .ws-left .ws-page .video-section-label,
-.timrx-3dprint .ws-left .ws-page .vs-label {
-  font-size: 11px;
-  letter-spacing: 0.07em;
-  line-height: 1.3;
-}
-
-.timrx-3dprint .ws-left .ws-page .ws-field,
-.timrx-3dprint .ws-left .ws-page .inline-field { gap: 7px; }
-
-/* Two inputs (textureStyleImageUrl, rigTextureImageUrl) inherited the page's
-   1.6 line-height while every other control had one set, so they computed 42px
-   against everyone else's 40. Pin it so height comes from padding alone. */
-.timrx-3dprint .ws-left .ws-page select,
-.timrx-3dprint .ws-left .ws-page input[type="text"],
-.timrx-3dprint .ws-left .ws-page input[type="number"] { line-height: 1.2; }
-
-/* ==========================================================================
-   FULL-MEASURE BLOCKS
-   --------------------------------------------------------------------------
-   A prompt or an upload takes the whole card width in every panel. Model and
-   video already did, because their prompts arrive wrapped in .tab-content /
-   .video-mode-content which are in the span list. Image's prompt does not —
-   binding its <label> to its <textarea> put it inside a .ws-field, and a
-   .ws-field is an ordinary one-column cell, so it rendered at 302px against
-   the other panels' 620px. Span by what a block CONTAINS, not by its class.
-   ========================================================================== */
-
-.ws-page__body > .ws-field:has(textarea),
-.ws-page__body > *:has(> textarea),
-.ws-page__body > *:has(input[type="file"]),
-.ws-page__body > *:has(.video-drop-zone, .drop-zone),
-.ws-page__body > [class*="assets-stack"],
-.ws-page__body > [class*="upload"] {
-  grid-column: 1 / -1;
-}
-
-/* Uploads keep a sensible measure rather than stretching a drop target across
-   the whole card — full width is for the prompt, not for a file picker. */
-.timrx-3dprint .ws-left .ws-page [class*="assets-stack"] { max-width: 460px; }
+   .ws-left,
+   .ws-left * { box-sizing: border-box; }
+   
+   /* --------------------------------------------------------------------------
+      Tokens
+      -------------------------------------------------------------------------- */
+   .ws-left {
+     --p-bg:        rgba(24, 31, 33, 0.96);
+     --p-raised:    rgba(52, 64, 66, 0.42);
+     --p-raised-hi: rgba(66, 78, 79, 0.56);
+     --p-line:      rgba(210, 224, 222, 0.18);
+     --p-line-soft: rgba(210, 224, 222, 0.105);
+     --p-text:      rgba(242, 245, 243, 0.94);
+     --p-text-2:    rgba(211, 220, 220, 0.68);
+     --p-muted:     rgba(177, 188, 190, 0.48);
+     /* Functional accent. Blue carries NAVIGATION and STATE — active section,
+        focus, selected segment, a toggle that is on. White stays reserved for the
+        one committing action (Generate), so "where am I" never looks like "go". */
+     --p-accent:     #7fc8c2;
+     --p-accent-dim: rgba(127, 200, 194, 0.16);
+     --p-accent-2:   #b8a77a;
+     --p-radius:    14px;
+     --p-radius-sm: 10px;
+     --p-ease:      cubic-bezier(0.22, 1, 0.36, 1);
+   
+     /* One type scale. The old panel used 24 distinct sizes; this uses four. */
+     --p-fs-label:  11.5px;
+     --p-fs-body:   13.5px;
+     --p-fs-input:  14px;
+     --p-fs-head:   15px;
+   }
+   
+   /* --------------------------------------------------------------------------
+      Sheet shell
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left {
+     position: fixed;
+     left: 50%;
+     bottom: calc(max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px))
+                  + var(--ws-cmdbar-h) + var(--ws-tray-h, 0px) + 18px);
+     transform: translateX(-50%);
+     z-index: 58;
+   
+     width: min(940px, calc(100vw - 28px));
+     /* Grows to 540px, but never past what is actually free: the header and the
+        creation dock occupy roughly 366px above, and the bar (plus the model tray
+        when it is out) occupies the space below. A flat vh fraction overlapped the
+        dock at 900px and under. */
+     /* Square: one page at a time, so it no longer needs to be wide. Still
+        bounded by the free band between the creation dock and the command bar. */
+     /* Reserve trimmed 266 -> 246 (headroom above the sheet was a flat 20px at
+        every size, so there was little to reclaim) and the cap raised so tall
+        displays actually use their space. Most of the anti-scroll win comes from
+        the grid below, not from raw height. */
+     height: min(860px, calc(100vh - 198px - var(--ws-cmdbar-h) - var(--ws-tray-h, 0px)));
+     max-height: none;
+     display: flex;
+     flex-direction: column;
+     padding: 0;
+   
+     background:
+       radial-gradient(120% 130% at 10% 0%, rgba(127, 200, 194, 0.075), transparent 40%),
+       radial-gradient(110% 120% at 96% 0%, rgba(184, 167, 122, 0.07), transparent 38%),
+       linear-gradient(180deg, rgba(28, 36, 38, 0.98), var(--p-bg));
+     -webkit-backdrop-filter: blur(28px) saturate(1.2);
+     backdrop-filter: blur(28px) saturate(1.2);
+     border: 1px solid rgba(210, 224, 222, 0.14);
+     border-radius: 22px;
+     box-shadow:
+       0 40px 100px rgba(0, 0, 0, 0.58),
+       inset 0 1px 0 rgba(255, 255, 255, 0.075);
+   
+     /* Closed by default. The workspace opens with the viewport clear. */
+     opacity: 0;
+     visibility: hidden;
+     transform: translateX(-50%) translateY(26px) scale(0.985);
+     pointer-events: none;
+     transition:
+       opacity 0.34s var(--p-ease),
+       transform 0.44s var(--p-ease),
+       visibility 0s linear 0.44s;
+   }
+   
+   body.ws-panel-open .timrx-3dprint .ws-left {
+     opacity: 1;
+     visibility: visible;
+     transform: translateX(-50%) translateY(0) scale(1);
+     pointer-events: auto;
+     transition-delay: 0s, 0s, 0s;
+   }
+   
+   /* Never competes with the palette. */
+   body.ws-cmd-open .timrx-3dprint .ws-left {
+     opacity: 0;
+     pointer-events: none;
+     transition: opacity 0.16s var(--p-ease);
+   }
+   
+   /* --------------------------------------------------------------------------
+      Sheet header — mode title, sub-tabs, close
+      -------------------------------------------------------------------------- */
+   .ws-sheet__head {
+     flex: none;
+     display: flex;
+     align-items: center;
+     gap: 16px;
+     padding: 14px 18px 12px;
+     border-bottom: 1px solid var(--p-line-soft);
+     background: rgba(34, 43, 45, 0.54);
+   }
+   
+   .ws-sheet__title {
+     font-size: var(--p-fs-head);
+     font-weight: 700;
+     letter-spacing: -0.01em;
+     color: var(--p-text);
+     margin: 0;
+     white-space: nowrap;
+   }
+   
+   .ws-sheet__sub {
+     font-size: var(--p-fs-label);
+     color: var(--p-muted);
+     margin: 0;
+     white-space: nowrap;
+   }
+   
+   .ws-sheet__modes {
+     flex: 0 1 auto;
+     display: inline-flex;
+     align-items: center;
+     gap: 4px;
+     padding: 4px;
+     margin-left: auto;
+     border: 1px solid rgba(226, 236, 237, 0.08);
+     border-radius: 999px;
+     background: rgba(0, 0, 0, 0.22);
+   }
+   
+   .ws-sheet__mode {
+     min-height: 30px;
+     padding: 0 12px;
+     border: 0;
+     border-radius: 999px;
+     background: transparent;
+     color: var(--p-muted);
+     font: inherit;
+     font-size: 11.5px;
+     font-weight: 760;
+     letter-spacing: 0.02em;
+     cursor: pointer;
+     transition:
+       color 0.18s var(--p-ease),
+       background 0.18s var(--p-ease),
+       transform 0.18s var(--p-ease);
+   }
+   
+   .ws-sheet__mode:hover,
+   .ws-sheet__mode:focus-visible {
+     color: var(--p-text);
+     background: rgba(255, 255, 255, 0.05);
+   }
+   
+   .ws-sheet__mode:focus-visible {
+     outline: 2px solid rgba(127, 200, 194, 0.46);
+     outline-offset: 2px;
+   }
+   
+   .ws-sheet__mode.is-active {
+     color: #061616;
+     background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent));
+     transform: translateY(-1px);
+   }
+   
+   .ws-sheet__spacer { flex: 0 0 0; width: 0; }
+   
+   .ws-sheet__close {
+     flex: none;
+     width: 30px;
+     height: 30px;
+     display: grid;
+     place-items: center;
+     border: 0;
+     border-radius: 50%;
+     background: var(--p-raised);
+     color: var(--p-text-2);
+     cursor: pointer;
+     transition: background 0.18s var(--p-ease), color 0.18s var(--p-ease), transform 0.18s var(--p-ease);
+   }
+   
+   .ws-sheet__close:hover { background: var(--p-raised-hi); color: #fff; transform: scale(1.08); }
+   .ws-sheet__close svg { width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 2; }
+   
+   /* --------------------------------------------------------------------------
+      Scroll body + the three zones
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .pane-stack {
+     flex: 1 1 auto;
+     min-height: 0;
+     overflow-y: auto;
+     overflow-x: hidden;
+     padding: 0;
+     scrollbar-width: thin;
+     scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+   }
+   
+   .timrx-3dprint .pane-stack::-webkit-scrollbar { width: 10px; }
+   .timrx-3dprint .pane-stack::-webkit-scrollbar-track { background: transparent; }
+   .timrx-3dprint .pane-stack::-webkit-scrollbar-thumb {
+     background: rgba(255, 255, 255, 0.14);
+     border: 3px solid transparent;
+     background-clip: content-box;
+     border-radius: 999px;
+   }
+   
+   /* --------------------------------------------------------------------------
+      Cards — the templates still emit .card wrappers; flatten them.
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .card {
+     background: none;
+     border: 0;
+     border-radius: 0;
+     box-shadow: none;
+     padding: 0;
+     margin: 0;
+   }
+   
+   .timrx-3dprint .ws-left .card-divider {
+     height: 1px;
+     background: var(--p-line-soft);
+     margin: 14px 0;
+     border: 0;
+   }
+   
+   /* --------------------------------------------------------------------------
+      Mode tabs (Text to 3D / Image to 3D / Multi-Image)
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .tab-btn {
+     flex: none !important;
+     padding: 8px 14px !important;
+     font-size: var(--p-fs-body) !important;
+     font-weight: 600 !important;
+     color: var(--p-muted) !important;
+     background: transparent !important;
+     border: 0 !important;
+     border-radius: 999px !important;
+     cursor: pointer;
+     transition: color 0.18s var(--p-ease), background 0.18s var(--p-ease) !important;
+   }
+   
+   .timrx-3dprint .ws-left .tab-btn:hover { color: var(--p-text) !important; background: var(--p-raised) !important; }
+   
+   .timrx-3dprint .ws-left .tab-btn.active {
+     color: #0b0b0d !important;
+     background: #fff !important;
+   }
+   
+   /* --------------------------------------------------------------------------
+      Labels and hints
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left label,
+   .timrx-3dprint .ws-left .field-label-inline,
+   .timrx-3dprint .ws-left .video-section-label,
+   .timrx-3dprint .ws-left .vs-label {
+     font-size: var(--p-fs-label);
+     font-weight: 600;
+     letter-spacing: 0.04em;
+     text-transform: uppercase;
+     color: var(--p-text-2);
+   }
+   
+   .timrx-3dprint .ws-left .field-hint,
+   .timrx-3dprint .ws-left .vs-hint,
+   .timrx-3dprint .ws-left .timrx-order__hint {
+     font-size: 11.5px;
+     line-height: 1.5;
+     letter-spacing: 0;
+     text-transform: none;
+     font-weight: 400;
+     color: var(--p-muted);
+   }
+   
+   .timrx-3dprint .ws-left .field-optional,
+   .timrx-3dprint .ws-left .vs-optional {
+     font-weight: 400;
+     text-transform: none;
+     letter-spacing: 0;
+     color: var(--p-muted);
+   }
+   
+   .timrx-3dprint .ws-left .info-dot {
+     display: inline-grid;
+     place-items: center;
+     width: 14px;
+     height: 14px;
+     margin-left: 5px;
+     border-radius: 50%;
+     background: var(--p-raised);
+     color: var(--p-muted);
+     font-size: 9px;
+     font-style: normal;
+     cursor: help;
+   }
+   
+   /* --------------------------------------------------------------------------
+      Text inputs, textareas, selects — one consistent field treatment
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left textarea,
+   .timrx-3dprint .ws-left input[type="text"],
+   .timrx-3dprint .ws-left input[type="number"],
+   .timrx-3dprint .ws-left select {
+     width: 100%;
+     padding: 10px 12px;
+     font-family: inherit;
+     font-size: var(--p-fs-input);
+     color: var(--p-text);
+     background: var(--p-raised);
+     border: 1px solid rgba(210, 224, 222, 0.08);
+     border-radius: var(--p-radius-sm);
+     outline: none;
+     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.025);
+     transition: background 0.18s var(--p-ease), border-color 0.18s var(--p-ease);
+   }
+   
+   .timrx-3dprint .ws-left textarea::placeholder,
+   .timrx-3dprint .ws-left input::placeholder { color: rgba(214, 224, 224, 0.38); }
+   
+   .timrx-3dprint .ws-left textarea:hover,
+   .timrx-3dprint .ws-left input:hover,
+   .timrx-3dprint .ws-left select:hover { background: var(--p-raised-hi); }
+   
+   .timrx-3dprint .ws-left textarea:focus,
+   .timrx-3dprint .ws-left input:focus,
+   .timrx-3dprint .ws-left select:focus {
+     background: var(--p-raised-hi);
+     border-color: rgba(255, 255, 255, 0.32);
+   }
+   
+   .timrx-3dprint .ws-left textarea:focus-visible,
+   .timrx-3dprint .ws-left input:focus-visible,
+   .timrx-3dprint .ws-left select:focus-visible {
+     outline: 2px solid rgba(255, 255, 255, 0.45);
+     outline-offset: 2px;
+   }
+   
+   .timrx-3dprint .ws-left textarea {
+     min-height: 96px;
+     line-height: 1.55;
+     resize: vertical;
+   }
+   
+   .timrx-3dprint .ws-left .negative-prompt-input { min-height: 58px; }
+   
+   .timrx-3dprint .ws-left select {
+     appearance: none;
+     -webkit-appearance: none;
+     padding-right: 30px;
+     background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-opacity='.55' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+     background-repeat: no-repeat;
+     background-position: right 10px center;
+     background-size: 14px;
+     cursor: pointer;
+   }
+   
+   .timrx-3dprint .ws-left select option { background: #16161a; color: #fff; }
+   
+   /* --------------------------------------------------------------------------
+      Field rows — label left, control right, on one line
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .field-row-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+     gap: 4px 18px;
+   }
+   
+   .timrx-3dprint .ws-left .field-row {
+     display: grid;
+     grid-template-columns: minmax(0, 1fr) minmax(96px, 132px);
+     align-items: center;
+     gap: 10px;
+     padding: 7px 0;
+     border-bottom: 1px solid var(--p-line-soft);
+   }
+   
+   .timrx-3dprint .ws-left .field-row:last-child { border-bottom: 0; }
+   
+   .timrx-3dprint .ws-left .field-select-inline { padding: 7px 28px 7px 10px; font-size: 13px; }
+   
+   .timrx-3dprint .ws-left .field-group {
+     padding: 8px 0;
+     border-bottom: 1px solid var(--p-line-soft);
+   }
+   
+   .timrx-3dprint .ws-left .field-group > .field-label-inline { display: block; margin-bottom: 7px; }
+   
+   .timrx-3dprint .ws-left .inline-field { display: grid; gap: 6px; margin-bottom: 10px; }
+   
+   /* --------------------------------------------------------------------------
+      Segmented control
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .segment-group {
+     display: inline-flex;
+     padding: 3px;
+     gap: 2px;
+     background: rgba(14, 19, 21, 0.72);
+     border: 1px solid rgba(210, 224, 222, 0.08);
+     border-radius: 999px;
+   }
+   
+   .timrx-3dprint .ws-left .segment {
+     padding: 6px 13px;
+     font-size: 12px;
+     font-weight: 600;
+     color: var(--p-muted);
+     background: transparent;
+     border: 0;
+     border-radius: 999px;
+     cursor: pointer;
+     transition: color 0.16s var(--p-ease), background 0.16s var(--p-ease);
+   }
+   
+   .timrx-3dprint .ws-left .segment:hover { color: var(--p-text); }
+   .timrx-3dprint .ws-left .segment.is-active { color: #0b0b0d; background: #fff; }
+   
+   /* --------------------------------------------------------------------------
+      Stepper
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .stepper-input {
+     position: relative;
+     display: flex;
+     align-items: center;
+     background: var(--p-raised);
+     border-radius: var(--p-radius-sm);
+     overflow: hidden;
+   }
+   
+   .timrx-3dprint .ws-left .stepper-input input {
+     background: none;
+     border: 0;
+     padding: 8px 26px 8px 12px;
+     -moz-appearance: textfield;
+   }
+   
+   .timrx-3dprint .ws-left .stepper-input input::-webkit-outer-spin-button,
+   .timrx-3dprint .ws-left .stepper-input input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+   
+   .timrx-3dprint .ws-left .stepper-arrows {
+     position: absolute;
+     right: 4px;
+     display: flex;
+     flex-direction: column;
+     gap: 1px;
+   }
+   
+   .timrx-3dprint .ws-left .stepper-arrows button {
+     width: 18px;
+     height: 13px;
+     display: grid;
+     place-items: center;
+     font-size: 8px;
+     line-height: 1;
+     color: var(--p-muted);
+     background: transparent;
+     border: 0;
+     border-radius: 4px;
+     cursor: pointer;
+   }
+   
+   .timrx-3dprint .ws-left .stepper-arrows button:hover { color: #fff; background: var(--p-raised-hi); }
+   
+   /* --------------------------------------------------------------------------
+      Toggle switch
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .toggle-switch,
+   .timrx-3dprint .ws-left .toggle.sm {
+     position: relative;
+     display: inline-block;
+     width: 38px;
+     height: 22px;
+     flex: none;
+     justify-self: end;
+   }
+   
+   .timrx-3dprint .ws-left .toggle-switch input,
+   .timrx-3dprint .ws-left .toggle.sm input { opacity: 0; width: 0; height: 0; position: absolute; }
+   
+   .timrx-3dprint .ws-left .toggle-slider,
+   .timrx-3dprint .ws-left .toggle.sm .slider {
+     position: absolute;
+     inset: 0;
+     background: rgba(255, 255, 255, 0.12);
+     border-radius: 999px;
+     cursor: pointer;
+     transition: background 0.2s var(--p-ease);
+   }
+   
+   .timrx-3dprint .ws-left .toggle-slider::before,
+   .timrx-3dprint .ws-left .toggle.sm .slider::before {
+     content: "";
+     position: absolute;
+     left: 3px;
+     top: 3px;
+     width: 16px;
+     height: 16px;
+     border-radius: 50%;
+     background: #fff;
+     transition: transform 0.24s cubic-bezier(0.34, 1.4, 0.64, 1);
+   }
+   
+   .timrx-3dprint .ws-left input:checked + .toggle-slider,
+   .timrx-3dprint .ws-left input:checked + .slider { background: rgba(255, 255, 255, 0.85); }
+   
+   .timrx-3dprint .ws-left input:checked + .toggle-slider::before,
+   .timrx-3dprint .ws-left input:checked + .slider::before { transform: translateX(16px); background: #0b0b0d; }
+   
+   .timrx-3dprint .ws-left input:focus-visible + .toggle-slider,
+   .timrx-3dprint .ws-left input:focus-visible + .slider { outline: 2px solid rgba(255,255,255,.5); outline-offset: 2px; }
+   
+   /* --------------------------------------------------------------------------
+      Prompt block — enhance row, counter
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .enhance-row {
+     display: flex;
+     align-items: center;
+     justify-content: space-between;
+     gap: 10px;
+     margin-top: 8px;
+   }
+   
+   .timrx-3dprint .ws-left .enhance-btn {
+     display: inline-flex;
+     align-items: center;
+     gap: 6px;
+     padding: 7px 13px;
+     font-size: 12px;
+     font-weight: 600;
+     color: var(--p-text);
+     background: var(--p-raised);
+     border: 0;
+     border-radius: 999px;
+     cursor: pointer;
+     transition: background 0.18s var(--p-ease), transform 0.18s var(--p-ease);
+   }
+   
+   .timrx-3dprint .ws-left .enhance-btn:hover { background: var(--p-raised-hi); transform: translateY(-1px); }
+   .timrx-3dprint .ws-left .enhance-btn-icon { width: 13px; height: 13px; }
+   
+   .timrx-3dprint .ws-left .negative-prompt-field { margin-top: 14px; display: grid; gap: 6px; }
+   
+   /* --------------------------------------------------------------------------
+      Uploads / drop zones
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .video-drop-zone,
+   .timrx-3dprint .ws-left .drop-zone {
+     display: grid;
+     place-items: center;
+     gap: 6px;
+     padding: 18px 12px;
+     min-height: 96px;
+     font-size: 12px;
+     color: var(--p-muted);
+     text-align: center;
+     background: var(--p-raised);
+     border: 1px dashed rgba(255, 255, 255, 0.16);
+     border-radius: var(--p-radius);
+     cursor: pointer;
+     transition: background 0.2s var(--p-ease), border-color 0.2s var(--p-ease), transform 0.2s var(--p-ease);
+   }
+   
+   .timrx-3dprint .ws-left .video-drop-zone:hover,
+   .timrx-3dprint .ws-left .drop-zone:hover {
+     background: var(--p-raised-hi);
+     border-color: rgba(255, 255, 255, 0.34);
+     color: var(--p-text);
+     transform: translateY(-2px);
+   }
+   
+   .timrx-3dprint .ws-left .video-drop-zone svg { width: 20px; height: 20px; opacity: 0.6; }
+   
+   .timrx-3dprint .ws-left .video-image-grid {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 10px;
+     align-items: start;
+   }
+   
+   .timrx-3dprint .ws-left .video-preview-wrap {
+     position: relative;
+     aspect-ratio: 1;
+     border-radius: var(--p-radius);
+     overflow: hidden;
+     background: rgba(0, 0, 0, 0.35);
+   }
+   
+   .timrx-3dprint .ws-left .video-preview-img { width: 100%; height: 100%; object-fit: contain; }
+   
+   .timrx-3dprint .ws-left .video-preview-placeholder {
+     position: absolute;
+     inset: 0;
+     display: grid;
+     place-items: center;
+     color: rgba(255, 255, 255, 0.16);
+   }
+   
+   .timrx-3dprint .ws-left .video-preview-placeholder svg { width: 26px; height: 26px; }
+   
+   /* --------------------------------------------------------------------------
+      Format chips (checkbox pills)
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .texture-format-grid {
+     display: flex;
+     flex-wrap: wrap;
+     gap: 6px;
+     margin-top: 8px;
+   }
+   
+   .timrx-3dprint .ws-left .texture-format-option input { position: absolute; opacity: 0; width: 0; height: 0; }
+   
+   .timrx-3dprint .ws-left .texture-format-chip {
+     display: inline-block;
+     padding: 6px 12px;
+     font-size: 11.5px;
+     font-weight: 700;
+     letter-spacing: 0.06em;
+     color: var(--p-muted);
+     background: var(--p-raised);
+     border-radius: 999px;
+     cursor: pointer;
+     transition: background 0.16s var(--p-ease), color 0.16s var(--p-ease);
+   }
+   
+   .timrx-3dprint .ws-left .texture-format-option:hover .texture-format-chip { background: var(--p-raised-hi); color: var(--p-text); }
+   
+   .timrx-3dprint .ws-left .texture-format-option input:checked + .texture-format-chip {
+     color: #0b0b0d;
+     background: #fff;
+   }
+   
+   .timrx-3dprint .ws-left .texture-format-option input:focus-visible + .texture-format-chip {
+     outline: 2px solid rgba(255, 255, 255, 0.5);
+     outline-offset: 2px;
+   }
+   
+   /* --------------------------------------------------------------------------
+      Progressive disclosure
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left details {
+     margin-top: 12px;
+     border-top: 1px solid var(--p-line-soft);
+     padding-top: 10px;
+   }
+   
+   .timrx-3dprint .ws-left summary {
+     display: flex;
+     align-items: center;
+     gap: 7px;
+     list-style: none;
+     padding: 6px 0;
+     font-size: var(--p-fs-label);
+     font-weight: 600;
+     letter-spacing: 0.06em;
+     text-transform: uppercase;
+     color: var(--p-text-2);
+     cursor: pointer;
+   }
+   
+   .timrx-3dprint .ws-left summary::-webkit-details-marker { display: none; }
+   
+   .timrx-3dprint .ws-left summary::before {
+     content: "";
+     width: 7px;
+     height: 7px;
+     border-right: 1.6px solid currentColor;
+     border-bottom: 1.6px solid currentColor;
+     transform: rotate(-45deg);
+     transition: transform 0.22s var(--p-ease);
+   }
+   
+   .timrx-3dprint .ws-left details[open] > summary::before { transform: rotate(45deg); }
+   .timrx-3dprint .ws-left summary:hover { color: var(--p-text); }
+   
+   /* --------------------------------------------------------------------------
+      Commit zone — estimate + generate
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .gen-footer-card {
+     display: flex;
+     flex-direction: column;
+     gap: 12px;
+     padding: 14px;
+     background: var(--p-raised);
+     border-radius: var(--p-radius);
+   }
+   
+   .timrx-3dprint .ws-left .gen-meta {
+     display: flex;
+     align-items: baseline;
+     gap: 8px;
+     font-size: 12.5px;
+     color: var(--p-text-2);
+     font-variant-numeric: tabular-nums;
+   }
+   
+   .timrx-3dprint .ws-left .gen-divider { color: rgba(255, 255, 255, 0.18); }
+   .timrx-3dprint .ws-left .gen-credits { font-weight: 700; color: var(--p-text); }
+   .timrx-3dprint .ws-left .gen-btn-row { display: flex; flex-direction: column; gap: 8px; }
+   
+   .timrx-3dprint .ws-left .gen-btn {
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     gap: 9px;
+     width: 100%;
+     padding: 14px 18px;
+     font-size: 14px;
+     font-weight: 700;
+     letter-spacing: 0.01em;
+     color: #0b0b0d;
+     background: linear-gradient(180deg, #ffffff, #e7e9ed);
+     border: 0;
+     border-radius: 999px;
+     cursor: pointer;
+     transition: transform 0.2s var(--p-ease), box-shadow 0.2s var(--p-ease), opacity 0.2s var(--p-ease);
+     box-shadow: 0 12px 30px rgba(255, 255, 255, 0.14);
+   }
+   
+   .timrx-3dprint .ws-left .gen-btn:hover:not(:disabled) {
+     transform: translateY(-2px);
+     box-shadow: 0 18px 40px rgba(255, 255, 255, 0.22);
+   }
+   
+   .timrx-3dprint .ws-left .gen-btn:active:not(:disabled) { transform: translateY(0) scale(0.985); }
+   
+   .timrx-3dprint .ws-left .gen-btn:disabled {
+     opacity: 0.4;
+     cursor: not-allowed;
+     box-shadow: none;
+     background: rgba(255, 255, 255, 0.2);
+     color: rgba(255, 255, 255, 0.6);
+   }
+   
+   .timrx-3dprint .ws-left .gen-btn-icon { width: 15px; height: 15px; }
+   
+   .timrx-3dprint .ws-left .btn-cost-badge {
+     padding: 3px 8px;
+     font-size: 11px;
+     font-weight: 700;
+     border-radius: 999px;
+     background: rgba(0, 0, 0, 0.14);
+     font-variant-numeric: tabular-nums;
+   }
+   
+   .timrx-3dprint .ws-left .gen-btn--preview {
+     background: var(--p-raised-hi);
+     color: var(--p-text);
+     box-shadow: none;
+   }
+   
+   /* --------------------------------------------------------------------------
+      Video-specific groupings
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .vs-section { display: grid; gap: 8px; margin-bottom: 14px; }
+   .timrx-3dprint .ws-left .vs-settings-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+     gap: 10px;
+   }
+   .timrx-3dprint .ws-left .vs-setting { display: grid; gap: 5px; }
+   
+   .timrx-3dprint .ws-left .vs-toggle-btn,
+   .timrx-3dprint .ws-left .video-gallery-btn,
+   .timrx-3dprint .ws-left .vs-motion-trigger {
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     gap: 7px;
+     padding: 9px 14px;
+     font-size: 12.5px;
+     font-weight: 600;
+     color: var(--p-text-2);
+     background: var(--p-raised);
+     border: 0;
+     border-radius: 999px;
+     cursor: pointer;
+     transition: background 0.18s var(--p-ease), color 0.18s var(--p-ease);
+   }
+   
+   .timrx-3dprint .ws-left .vs-toggle-btn:hover,
+   .timrx-3dprint .ws-left .video-gallery-btn:hover,
+   .timrx-3dprint .ws-left .vs-motion-trigger:hover { background: var(--p-raised-hi); color: #fff; }
+   
+   .timrx-3dprint .ws-left .vs-toggle-btn svg,
+   .timrx-3dprint .ws-left .video-gallery-btn svg { width: 14px; height: 14px; }
+   
+   .timrx-3dprint .ws-left .video-utils-row {
+     display: flex;
+     align-items: center;
+     gap: 8px;
+     flex-wrap: wrap;
+     margin-top: 10px;
+   }
+   
+   /* --------------------------------------------------------------------------
+      Neutralise inline styles the templates still carry
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left [style*="background:rgba(255,255,255,.04)"],
+   .timrx-3dprint .ws-left [style*="background: rgba(255,255,255,.04)"] {
+     background: var(--p-raised) !important;
+     border-color: transparent !important;
+   }
+   
+   /* --------------------------------------------------------------------------
+      Responsive — the three zones collapse in a deliberate order
+      -------------------------------------------------------------------------- */
+   @media (max-width: 1180px) {
+     .ws-zones { grid-template-columns: minmax(280px, 1fr) minmax(0, 1.2fr); }
+     .ws-zone--commit {
+       grid-column: 1 / -1;
+       position: static;
+       border-left: 0;
+       border-top: 1px solid var(--p-line-soft);
+       flex-direction: row;
+       align-items: center;
+       gap: 16px;
+     }
+     .ws-zone--commit .gen-footer-card { flex: 1 1 auto; flex-direction: row; align-items: center; }
+     .ws-zone--commit .gen-btn-row { flex: 0 0 240px; }
+   }
+   
+   @media (max-width: 820px) {
+     .timrx-3dprint .ws-left {
+       width: calc(100vw - 20px);
+       max-height: min(58vh, 520px);
+       border-radius: 20px;
+     }
+     .ws-zones { grid-template-columns: minmax(0, 1fr); }
+     .ws-zone + .ws-zone { border-left: 0; border-top: 1px solid var(--p-line-soft); }
+     .ws-zone--commit { flex-direction: column; align-items: stretch; }
+     .ws-zone--commit .gen-btn-row { flex: none; }
+   }
+   
+   @media (max-width: 560px) {
+     .ws-sheet__head {
+       flex-wrap: wrap;
+       gap: 8px 10px;
+     }
+   
+     .ws-sheet__title {
+       order: 1;
+     }
+   
+     .ws-sheet__sub {
+       order: 2;
+       flex: 1 1 auto;
+       min-width: 0;
+       overflow: hidden;
+       text-overflow: ellipsis;
+     }
+   
+     .ws-sheet__close {
+       order: 3;
+     }
+   
+     .ws-sheet__spacer {
+       display: none;
+     }
+   
+     .ws-sheet__modes {
+       order: 4;
+       flex: 1 0 100%;
+       width: 100%;
+       margin-left: 0;
+     }
+   
+     .ws-sheet__mode {
+       flex: 1 1 0;
+       padding: 0 8px;
+     }
+   }
+   
+   @media (prefers-reduced-motion: reduce) {
+     .timrx-3dprint .ws-left { transition: opacity 0.2s linear, visibility 0s linear 0.2s; transform: translateX(-50%); }
+     body.ws-panel-open .timrx-3dprint .ws-left { transform: translateX(-50%); }
+     .timrx-3dprint .ws-left * { transition-duration: 0.01ms !important; }
+   }
+   
+   
+   /* ==========================================================================
+      SECTIONED SETTINGS
+      --------------------------------------------------------------------------
+      The panel used to be one tall scroll. Splitting the settings into tabs means
+      each view fits the sheet, so navigating is a click instead of a hunt.
+      ========================================================================== */
+   
+   .ws-sect__tabs {
+     display: flex;
+     gap: 2px;
+     padding: 3px;
+     margin-bottom: 14px;
+     background: rgba(0, 0, 0, 0.3);
+     border-radius: 999px;
+   }
+   
+   .ws-sect__tab {
+     flex: 1 1 auto;
+     padding: 8px 14px;
+     font: inherit;
+     font-size: 12.5px;
+     font-weight: 650;
+     letter-spacing: 0.01em;
+     color: var(--p-muted);
+     background: transparent;
+     border: 0;
+     border-radius: 999px;
+     cursor: pointer;
+     white-space: nowrap;
+     transition: color 0.18s var(--p-ease), background 0.18s var(--p-ease);
+   }
+   
+   .ws-sect__tab:hover { color: var(--p-text); background: rgba(255, 255, 255, 0.05); }
+   
+   .ws-sect__tab.is-active {
+     color: #04141d;
+     background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent));
+   }
+   
+   .ws-sect__tab:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
+   
+   .ws-sect__pane { display: none; }
+   .ws-sect__pane.is-active { display: block; }
+   
+   /* Mode tabs (Text to 3D / Image to 3D / Multi-Image) sit above the prompt. */
+   .timrx-3dprint .ws-left .ws-modes {
+     display: flex !important;
+     gap: 3px !important;
+     padding: 3px !important;
+     margin: 0 0 14px !important;
+     background: rgba(14, 19, 21, 0.72) !important;
+     border: 1px solid rgba(210, 224, 222, 0.08) !important;
+     border-radius: 999px !important;
+   }
+   
+   .timrx-3dprint .ws-left .tab-btn.active {
+     color: #04141d !important;
+     background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent)) !important;
+   }
+   
+   /* --------------------------------------------------------------------------
+      Accent applied to state, never to the commit action
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .segment.is-active {
+     color: #04141d;
+     background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent));
+   }
+   
+   .timrx-3dprint .ws-left input:checked + .toggle-slider,
+   .timrx-3dprint .ws-left input:checked + .slider { background: var(--p-accent); }
+   .timrx-3dprint .ws-left input:checked + .toggle-slider::before,
+   .timrx-3dprint .ws-left input:checked + .slider::before { background: #04141d; }
+   
+   .timrx-3dprint .ws-left .texture-format-option input:checked + .texture-format-chip {
+     color: #04141d;
+     background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent));
+   }
+   
+   .timrx-3dprint .ws-left textarea:focus,
+   .timrx-3dprint .ws-left input:focus,
+   .timrx-3dprint .ws-left select:focus { border-color: var(--p-accent); }
+   
+   .timrx-3dprint .ws-left textarea:focus-visible,
+   .timrx-3dprint .ws-left input:focus-visible,
+   .timrx-3dprint .ws-left select:focus-visible {
+     outline-color: var(--p-accent);
+   }
+   
+   .timrx-3dprint .ws-left .enhance-btn { color: var(--p-accent-2); }
+   .timrx-3dprint .ws-left .enhance-btn:hover { background: var(--p-accent-dim); }
+   
+   /* --------------------------------------------------------------------------
+      Zone sizing — the prompt no longer eats the sheet
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .ws-zone--intent textarea { min-height: 78px; max-height: 120px; }
+   .timrx-3dprint .ws-left .ws-zone--intent .negative-prompt-input { min-height: 52px; }
+   
+   /* Settings rows stack label over control — far easier to scan than a wide
+      label-left / control-right row with a gulf between them. */
+   .timrx-3dprint .ws-left .ws-zone--settings .field-row-grid {
+     grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+     gap: 12px 14px;
+   }
+   
+   .timrx-3dprint .ws-left .ws-zone--settings .field-row {
+     grid-template-columns: minmax(0, 1fr);
+     gap: 6px;
+     padding: 0;
+     border-bottom: 0;
+   }
+   
+   .timrx-3dprint .ws-left .ws-zone--settings .field-row .field-label-inline { display: block; }
+   .timrx-3dprint .ws-left .ws-zone--settings .field-group { padding: 0; border-bottom: 0; }
+   .timrx-3dprint .ws-left .ws-zone--settings .toggle-switch { justify-self: start; }
+   
+   /* Short viewports: the prompt fields are the tallest thing in the sheet, so
+      they give up height first rather than letting the panel start scrolling. */
+   @media (max-height: 880px) {
+     .timrx-3dprint .ws-left .ws-zone--intent textarea { min-height: 60px; max-height: 78px; }
+     .timrx-3dprint .ws-left .ws-zone--intent .negative-prompt-input { min-height: 42px; }
+     .timrx-3dprint .ws-left .ws-zone { padding: 12px 16px 14px; }
+     .ws-sect__tabs { margin-bottom: 10px; }
+     /* The negative-prompt explainer is the longest line in the sheet; it wraps to
+        three rows at this width and is what tipped the column over. */
+     .timrx-3dprint .ws-left .ws-zone--intent .field-hint { font-size: 11px; line-height: 1.35; }
+     .timrx-3dprint .ws-left .negative-prompt-field { margin-top: 10px; gap: 4px; }
+     .timrx-3dprint .ws-left .enhance-row { margin-top: 6px; }
+   }
+   
+   @media (max-height: 780px) {
+     .timrx-3dprint .ws-left .ws-zone--intent textarea { min-height: 54px; max-height: 70px; }
+     .timrx-3dprint .ws-left .field-hint { display: none; }
+     .ws-sheet__head { padding: 10px 16px 9px; }
+   }
+   
+   /* ==========================================================================
+      PAGED SHEET
+      --------------------------------------------------------------------------
+      Prompt → Settings → Output. One page on screen at a time, so a panel with
+      90 controls is never taller than the sheet and nothing scrolls sideways in
+      the reader's head. Assignment is by what a block IS, not by measurement.
+      ========================================================================== */
+   
+   .ws-pages {
+     display: flex;
+     flex-direction: column;
+     height: 100%;
+     min-height: 0;
+   }
+   
+   .ws-pages__track {
+     flex: 1 1 auto;
+     min-height: 0;
+     overflow-y: auto;
+     overflow-x: hidden;
+     padding: 16px 20px 8px;
+     background: linear-gradient(180deg, rgba(18, 24, 26, 0.5), rgba(15, 20, 22, 0.68));
+     scrollbar-width: thin;
+     scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
+   }
+   
+   .ws-pages__track::-webkit-scrollbar { width: 10px; }
+   .ws-pages__track::-webkit-scrollbar-thumb {
+     background: rgba(255, 255, 255, 0.14);
+     border: 3px solid transparent;
+     background-clip: content-box;
+     border-radius: 999px;
+   }
+   
+   .ws-page { display: none; animation: wsPageIn 0.32s var(--p-ease); }
+   .ws-page.is-active { display: block; }
+   
+   @keyframes wsPageIn {
+     from { opacity: 0; transform: translateX(14px); }
+     to   { opacity: 1; transform: translateX(0); }
+   }
+   
+   .ws-page__head { margin-bottom: 14px; }
+   .ws-page__title {
+     margin: 0;
+     font-size: 14px;
+     font-weight: 700;
+     letter-spacing: -0.01em;
+     color: var(--p-text);
+   }
+   .ws-page__hint { margin: 3px 0 0; font-size: 12px; color: var(--p-muted); }
+   .ws-page__body { display: flex; flex-direction: column; gap: 14px; }
+   .ws-page__empty { font-size: 13px; color: var(--p-muted); padding: 18px 0; }
+   
+   /* Settings page reads as a two-column grid — pairs of related fields. */
+   .ws-page[data-page="settings"] .ws-page__body { display: block; }
+   .ws-page[data-page="settings"] .field-row-grid {
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 14px;
+   }
+   .ws-page[data-page="settings"] .field-row,
+   .ws-page[data-page="settings"] .field-group {
+     grid-template-columns: minmax(0, 1fr);
+     gap: 6px;
+     padding: 0 0 12px;
+     border-bottom: 0;
+   }
+   .ws-page[data-page="settings"] .field-row .field-label-inline { display: block; }
+   .ws-page[data-page="settings"] .toggle-switch { justify-self: start; }
+   
+   /* --------------------------------------------------------------------------
+      Pager
+      -------------------------------------------------------------------------- */
+   .ws-pager {
+     flex: none;
+     display: grid;
+     grid-template-columns: 88px minmax(0, 1fr) 88px;
+     align-items: center;
+     gap: 10px;
+     padding: 12px 16px;
+     border-top: 1px solid var(--p-line-soft);
+     background: rgba(15, 20, 22, 0.88);
+   }
+   
+   .ws-pager__btn {
+     display: inline-flex;
+     align-items: center;
+     justify-content: center;
+     gap: 5px;
+     padding: 9px 12px;
+     font: inherit;
+     font-size: 12.5px;
+     font-weight: 650;
+     color: var(--p-text-2);
+     background: var(--p-raised);
+     border: 0;
+     border-radius: 999px;
+     cursor: pointer;
+     transition: background 0.18s var(--p-ease), color 0.18s var(--p-ease), opacity 0.18s var(--p-ease);
+   }
+   
+   .ws-pager__btn svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+   .ws-pager__btn:hover:not(:disabled) { background: var(--p-raised-hi); color: #fff; }
+   .ws-pager__btn:disabled { opacity: 0.28; cursor: default; }
+   .ws-pager__btn:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
+   
+   .ws-pager__btn--next {
+     color: #04141d;
+     background: linear-gradient(180deg, var(--p-accent-2), var(--p-accent));
+   }
+   .ws-pager__btn--next:hover:not(:disabled) { color: #04141d; filter: brightness(1.06); }
+   .ws-pager__btn--next:disabled { background: var(--p-raised); color: var(--p-text-2); }
+   
+   .ws-pager__dots { display: flex; justify-content: center; gap: 6px; }
+   
+   .ws-pager__dot {
+     padding: 7px 14px;
+     font: inherit;
+     font-size: 11.5px;
+     font-weight: 650;
+     color: var(--p-muted);
+     background: transparent;
+     border: 0;
+     border-radius: 999px;
+     cursor: pointer;
+     white-space: nowrap;
+     transition: color 0.18s var(--p-ease), background 0.18s var(--p-ease);
+   }
+   
+   .ws-pager__dot:hover { color: var(--p-text); background: var(--p-raised); }
+   .ws-pager__dot.is-active { color: var(--p-text); background: var(--p-raised-hi); }
+   .ws-pager__dot:focus-visible { outline: 2px solid var(--p-accent); outline-offset: 2px; }
+   
+   @media (max-width: 560px) {
+     .ws-pager { grid-template-columns: 44px minmax(0, 1fr) 44px; }
+     .ws-pager__btn span { display: none; }
+     .ws-pager__dot { padding: 7px 10px; font-size: 11px; }
+     .ws-page[data-page="settings"] .field-row-grid { grid-template-columns: 1fr; }
+   }
+   
+   @media (prefers-reduced-motion: reduce) {
+     .ws-page { animation: none; }
+   }
+   
+   /* ==========================================================================
+      PAGE GRIDS
+      --------------------------------------------------------------------------
+      Everything that can pair up, pairs up. A stack of full-width dropdowns is
+      both taller than it needs to be and harder to scan than two short columns —
+      the eye has to travel the whole card width to connect a label to its value.
+      ========================================================================== */
+   
+   .ws-page__body {
+     display: grid;
+     grid-template-columns: repeat(2, minmax(0, 1fr));
+     gap: 12px 16px;
+     align-items: start;
+   }
+   
+   /* Blocks that carry their own internal layout, or that need the full measure,
+      span both columns. Everything else halves. */
+   .ws-page__body > .field-row-grid,
+   .ws-page__body > .vs-settings-grid,
+   .ws-page__body > .texture-format-group,
+   .ws-page__body > .gen-footer-card,
+   .ws-page__body > .video-image-grid,
+   .ws-page__body > details,
+   .ws-page__body > h3,
+   .ws-page__body > .vs-label,
+   .ws-page__body > .enhance-row,
+   .ws-page__body > .field-hint,
+   .ws-page__body > .vs-hint,
+   .ws-page__body > p,
+   .ws-page__body > textarea,
+   .ws-page__body > .negative-prompt-field,
+   .ws-page__body > .tab-content,
+   .ws-page__body > .ws-modes,
+   .ws-page__body > [class*="notice"],
+   .ws-page__body > [class*="banner"],
+   .ws-page__body > [class*="hint"] { grid-column: 1 / -1; }
+   
+   /* A bound label+control pair occupies one cell, so two fields sit per row. */
+   .ws-page__body > .ws-field { display: grid; gap: 6px; align-content: start; }
+   .ws-page__body > .ws-field > label { margin: 0; }
+   .ws-page__body > .ws-field > .field-hint { margin-top: 2px; }
+   /* An unpaired label is a section heading, not a field label. */
+   .ws-page__body > label { grid-column: 1 / -1; }
+   
+   /* Inner grids get real columns rather than one tall stack. */
+   .ws-page[data-page="settings"] .field-row-grid,
+   .ws-page[data-page="settings"] .vs-settings-grid {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+     gap: 12px 16px;
+   }
+   
+   /* No control runs the full width of the card for no reason. */
+   .timrx-3dprint .ws-left .ws-page select,
+   .timrx-3dprint .ws-left .ws-page input[type="text"],
+   .timrx-3dprint .ws-left .ws-page input[type="number"],
+   .timrx-3dprint .ws-left .ws-page .stepper-input { max-width: 320px; }
+   
+   .timrx-3dprint .ws-left .ws-page textarea { max-width: none; }
+   
+   /* Paired actions sit side by side instead of stacking as two full-width
+      slabs — this is what made the animate panel so tall. */
+   .ws-page__body > .gen-btn--rail {
+     grid-column: auto;
+     width: auto !important;
+     margin: 0 !important;
+     padding: 11px 16px !important;
+     font-size: 13px !important;
+   }
+   
+   .ws-page__body > .gen-btn--rail + .gen-btn--rail { margin: 0 !important; }
+   
+   /* Uploads pair with the field beside them rather than owning a whole row. */
+   .ws-page__body > .video-image-grid {
+     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+     max-width: 460px;
+   }
+   
+   .timrx-3dprint .ws-left .ws-page .video-drop-zone { min-height: 84px; padding: 14px 12px; }
+   
+   /* Tighter vertical rhythm inside a page now that things sit side by side. */
+   .ws-page__body > .field-group,
+   .ws-page__body > .field-row,
+   .ws-page__body > .inline-field { padding-bottom: 0; margin: 0; }
+   
+   .ws-page__body > .inline-field { display: grid; gap: 6px; }
+   
+   @media (max-width: 560px) {
+     .ws-page__body { grid-template-columns: minmax(0, 1fr); }
+     .ws-page__body > .gen-btn--rail { grid-column: 1 / -1; }
+     .timrx-3dprint .ws-left .ws-page select,
+     .timrx-3dprint .ws-left .ws-page input[type="text"],
+     .timrx-3dprint .ws-left .ws-page input[type="number"] { max-width: none; }
+   }
+   
+   /* Rail actions anywhere in a page, not only as direct children — the animate
+      panel nests its "Load Latest Rigged Model" / "Choose from History" pair one
+      level down, so they were still rendering as two 620px slabs. */
+   .timrx-3dprint .ws-left .ws-page .gen-btn--rail {
+     width: auto !important;
+     min-width: 0;
+     margin: 0 !important;
+     padding: 11px 16px !important;
+     font-size: 13px !important;
+     flex: 0 1 auto;
+   }
+   
+   /* Any wrapper holding rail actions becomes a wrapping row. */
+   .timrx-3dprint .ws-left .ws-page *:has(> .gen-btn--rail) {
+     display: flex;
+     flex-wrap: wrap;
+     gap: 8px;
+     align-items: center;
+   }
+   
+   /* Long explanatory paragraphs are the other thing inflating page height. */
+   .timrx-3dprint .ws-left .ws-page .field-hint,
+   .timrx-3dprint .ws-left .ws-page .vs-hint { font-size: 11.5px; line-height: 1.45; }
+   
+   /* Section headings inside a page were rendering at card-title scale. */
+   .timrx-3dprint .ws-left .ws-page h3 {
+     font-size: 13px;
+     font-weight: 700;
+     letter-spacing: -0.005em;
+     color: var(--p-text);
+     margin: 4px 0 0;
+   }
+   
+   /* Guidance prose is the tallest thing on several settings pages (remesh gave
+      it 204px). Cap it and let it scroll in place rather than pushing the whole
+      page past the sheet — the text stays reachable, the controls stay visible. */
+   .timrx-3dprint .ws-left .ws-page [class*="guidance"],
+   .timrx-3dprint .ws-left .ws-page [class*="-notice"],
+   .timrx-3dprint .ws-left .ws-page .card-desc {
+     grid-column: 1 / -1;
+     max-height: 88px;
+     overflow-y: auto;
+     font-size: 11.5px;
+     line-height: 1.45;
+     color: var(--p-muted);
+     padding-right: 4px;
+     scrollbar-width: thin;
+   }
+   
+   /* Preset tiles pack into a dense grid instead of a tall list.
+      :not([class*="collapsed"]) matters — video ships its prompt-template and
+      motion-preset panels collapsed, and an unqualified `display: grid` here
+      overrode that and unfolded 791px of hidden content onto the Output page. */
+   .timrx-3dprint .ws-left .ws-page [class*="presets"]:not([class*="collapsed"]) {
+     grid-column: 1 / -1;
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+     gap: 6px;
+   }
+   
+   .timrx-3dprint .ws-left .ws-page [class*="presets"]:not([class*="collapsed"]) button {
+     padding: 8px 10px;
+     font-size: 11.5px;
+     border-radius: 10px;
+   }
+   
+   /* ==========================================================================
+      HORIZONTAL FIELD GROUPS · NARROWER COMMIT
+      ========================================================================== */
+   
+   /* Panels wrap their fields in their own container (.image-settings-grid,
+      .vs-settings-grid, .remesh-settings-grid …). Those containers span the card,
+      so the outer two-column grid never saw the individual fields and every
+      dropdown stacked vertically down the left half. Give the containers real
+      columns of their own. */
+   .timrx-3dprint .ws-left .ws-page [class*="settings-grid"],
+   .timrx-3dprint .ws-left .ws-page [class*="-fields"],
+   .timrx-3dprint .ws-left .ws-page [class*="-options-grid"] {
+     grid-column: 1 / -1;
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr));
+     gap: 12px 16px;
+     align-items: start;
+   }
+   
+   .timrx-3dprint .ws-left .ws-page [class*="settings-grid"] > .inline-field,
+   .timrx-3dprint .ws-left .ws-page [class*="settings-grid"] > .field-row {
+     display: grid;
+     gap: 6px;
+     margin: 0;
+     padding: 0;
+     border-bottom: 0;
+   }
+   
+   /* Category headings inside a preset grid are not tiles — they introduce the
+      row beneath them, so they must span rather than sit in a column and shove
+      the first two presets sideways. */
+   .timrx-3dprint .ws-left .ws-page [class*="presets"] > :not(button) {
+     grid-column: 1 / -1;
+     font-size: 10.5px;
+     font-weight: 700;
+     letter-spacing: 0.12em;
+     text-transform: uppercase;
+     color: var(--p-muted);
+     margin-top: 4px;
+   }
+   
+   /* Commit block: stacked as before, just no longer the width of the card. */
+   .timrx-3dprint .ws-left .ws-page .gen-footer-card {
+     grid-column: 1 / -1;
+     max-width: 320px;
+     justify-self: start;
+   }
+   
+   .timrx-3dprint .ws-left .ws-page .gen-btn { max-width: 100%; }
+   
+   /* The estimate row reads better centred over a narrow button than stretched. */
+   .timrx-3dprint .ws-left .ws-page .gen-meta { justify-content: flex-start; }
+   
+   @media (max-width: 560px) {
+     .timrx-3dprint .ws-left .ws-page .gen-footer-card { max-width: none; }
+   }
+   
+   /* ==========================================================================
+      SPARSE OUTPUT PAGE
+      --------------------------------------------------------------------------
+      Most panels put only the estimate and Generate on Output, which left a small
+      raised card pinned to the top-left of a mostly empty square. When a page
+      carries fewer than three blocks it centres instead, and the card sheds its
+      background — a container is only worth drawing when it separates things, and
+      here there is nothing to separate it from.
+   
+      .ws-page--sparse is set by organiseSheet(). The CSS-only version of this test
+      needed :has() inside :has(), which is invalid and was dropped silently.
+      ========================================================================== */
+   
+   .ws-page[data-page="output"].ws-page--sparse.is-active {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     justify-content: center;
+     min-height: 100%;
+     text-align: center;
+   }
+   
+   .ws-page--sparse .ws-page__head { margin-bottom: 24px; }
+   
+   .ws-page[data-page="output"].ws-page--sparse .ws-page__body {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     width: 100%;
+   }
+   
+   /* No background, no border, no padding — just the two things that matter. */
+   .timrx-3dprint .ws-left .ws-page[data-page="output"].ws-page--sparse .gen-footer-card {
+     background: none;
+     padding: 0;
+     gap: 16px;
+     max-width: 360px;
+     width: 100%;
+     align-items: center;
+   }
+   
+   .ws-page[data-page="output"].ws-page--sparse .gen-meta {
+     justify-content: center;
+     font-size: 13px;
+   }
+   
+   .ws-page[data-page="output"].ws-page--sparse .gen-btn-row {
+     width: 100%;
+     align-items: stretch;
+   }
+   
+   /* A little more presence now that it stands alone. */
+   .timrx-3dprint .ws-left .ws-page[data-page="output"].ws-page--sparse .gen-btn {
+     width: 100%;
+     max-width: 340px;
+     padding: 15px 22px;
+     font-size: 14.5px;
+   }
+   
+   /* rig and animate have no .gen-footer-card and mark their commit button
+      .gen-btn--rail like every other button in those panels, so the rail rule
+      (width:auto) was shrinking the one control the page exists for. On a sparse
+      Output page the commit button is sized by id, which is the same set main.js
+      delegates on. */
+   .timrx-3dprint .ws-left .ws-page[data-page="output"].ws-page--sparse #startRigBtn,
+   .timrx-3dprint .ws-left .ws-page[data-page="output"].ws-page--sparse #applyAnimationBtn2,
+   .timrx-3dprint .ws-left .ws-page[data-page="output"].ws-page--sparse #applyRemeshBtn,
+   .timrx-3dprint .ws-left .ws-page[data-page="output"].ws-page--sparse #generateTextureBtn {
+     width: 100% !important;
+     max-width: 340px;
+     padding: 15px 22px !important;
+     font-size: 14.5px !important;
+     flex: 0 0 auto;
+     align-self: center;
+   }
+   
+   /* Any wrapper around the commit button centres it rather than flowing it left. */
+   .ws-page[data-page="output"].ws-page--sparse .ws-page__body > *:has(> .gen-btn) {
+     justify-content: center;
+     width: 100%;
+   }
+   
+   /* ==========================================================================
+      MODE TABS · VIDEO TRAY · FIELD CONSISTENCY
+      ========================================================================== */
+   
+   /* Mode tabs centre and lose the black trough — the active pill already carries
+      the state, so the container behind it was only adding weight. */
+   .timrx-3dprint .ws-left .ws-modes {
+     background: transparent !important;
+     justify-content: center !important;
+     padding: 0 !important;
+     gap: 6px !important;
+     margin-bottom: 16px !important;
+   }
+   
+   /* Panels that wrap their prompt in a mode container were laying it out in one
+      half of the two-column grid, so the video textarea rendered at 302px inside
+      a 620px card. These wrappers hold the prompt — they take the full measure. */
+   .ws-page__body > .video-mode-content,
+   .ws-page__body > .video-input-section,
+   .ws-page__body > [class*="mode-content"],
+   .ws-page__body > [class*="input-section"] { grid-column: 1 / -1; }
+   
+   .timrx-3dprint .ws-left .ws-page .video-mode-content textarea,
+   .timrx-3dprint .ws-left .ws-page .video-input-section textarea { width: 100%; }
+   
+   /* --------------------------------------------------------------------------
+      Video tray rows (Text / Animate, then the provider tiers)
+      --------------------------------------------------------------------------
+      These were running the full 760px of the tray. They are a mode choice, not a
+      commit action, so they get the width the words need and centre under it. */
+   .ws-video-tray__row {
+     display: flex;
+     justify-content: center;
+     gap: 8px;
+     width: 100%;
+     max-width: 440px;
+     margin-inline: auto;
+   }
+   
+   .ws-video-tray__row.video-mode-switcher { max-width: 340px; }
+   
+   .ws-video-tray__row + .ws-video-tray__row { margin-top: 8px; max-width: 520px; }
+   
+   .ws-video-tray__btn {
+     flex: 1 1 0;
+     min-width: 0;
+     padding: 10px 14px;
+     font-size: 13px;
+     white-space: nowrap;
+   }
+   
+   .ws-video-tray__row + .ws-video-tray__row .ws-video-tray__btn {
+     padding: 8px 12px;
+     font-size: 12px;
+   }
+   
+   /* --------------------------------------------------------------------------
+      One field treatment everywhere
+      --------------------------------------------------------------------------
+      Panels were mixing control heights: some fields came from .inline-field,
+      some from .field-row, some raw. Match them so a card reads as one system.
+      -------------------------------------------------------------------------- */
+   .timrx-3dprint .ws-left .ws-page select,
+   .timrx-3dprint .ws-left .ws-page input[type="text"],
+   .timrx-3dprint .ws-left .ws-page input[type="number"] {
+     min-height: 40px;
+     padding: 9px 12px;
+     font-size: 13.5px;
+   }
+   
+   .timrx-3dprint .ws-left .ws-page select { padding-right: 30px; }
+   
+   .timrx-3dprint .ws-left .ws-page .stepper-input { min-height: 40px; }
+   .timrx-3dprint .ws-left .ws-page .stepper-input input { min-height: 0; }
+   
+   .timrx-3dprint .ws-left .ws-page label,
+   .timrx-3dprint .ws-left .ws-page .field-label-inline,
+   .timrx-3dprint .ws-left .ws-page .video-section-label,
+   .timrx-3dprint .ws-left .ws-page .vs-label {
+     font-size: 11px;
+     letter-spacing: 0.07em;
+     line-height: 1.3;
+   }
+   
+   .timrx-3dprint .ws-left .ws-page .ws-field,
+   .timrx-3dprint .ws-left .ws-page .inline-field { gap: 7px; }
+   
+   /* Two inputs (textureStyleImageUrl, rigTextureImageUrl) inherited the page's
+      1.6 line-height while every other control had one set, so they computed 42px
+      against everyone else's 40. Pin it so height comes from padding alone. */
+   .timrx-3dprint .ws-left .ws-page select,
+   .timrx-3dprint .ws-left .ws-page input[type="text"],
+   .timrx-3dprint .ws-left .ws-page input[type="number"] { line-height: 1.2; }
+   
+   /* ==========================================================================
+      FULL-MEASURE BLOCKS
+      --------------------------------------------------------------------------
+      A prompt or an upload takes the whole card width in every panel. Model and
+      video already did, because their prompts arrive wrapped in .tab-content /
+      .video-mode-content which are in the span list. Image's prompt does not —
+      binding its <label> to its <textarea> put it inside a .ws-field, and a
+      .ws-field is an ordinary one-column cell, so it rendered at 302px against
+      the other panels' 620px. Span by what a block CONTAINS, not by its class.
+      ========================================================================== */
+   
+   .ws-page__body > .ws-field:has(textarea),
+   .ws-page__body > *:has(> textarea),
+   .ws-page__body > *:has(input[type="file"]),
+   .ws-page__body > *:has(.video-drop-zone, .drop-zone),
+   .ws-page__body > [class*="assets-stack"],
+   .ws-page__body > [class*="upload"] {
+     grid-column: 1 / -1;
+   }
+   
+   /* Uploads keep a sensible measure rather than stretching a drop target across
+      the whole card — full width is for the prompt, not for a file picker. */
+   .timrx-3dprint .ws-left .ws-page [class*="assets-stack"] { max-width: 460px; }
+   

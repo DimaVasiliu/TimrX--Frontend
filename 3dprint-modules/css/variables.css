@@ -9,12 +9,20 @@
   --surface-2: #121719;
   --surface-3: #182024;
   --surface-warm: #181611;
+  --surface-base: #111719;
+  --surface-elevated: #1b2426;
+  --surface-inset: #0d1214;
+  --surface-raised: #243033;
 
   --text: #f2f5f3;
+  --text-primary: #f2f5f3;
+  --text-secondary: #a7b0b2;
   --muted: #a7b0b2;
   --line: rgba(226, 236, 237, 0.075);
   --border-soft: rgba(226, 236, 237, 0.09);
   --border-strong: rgba(226, 236, 237, 0.16);
+  --border-subtle: rgba(210, 224, 222, 0.1);
+  --border-default: rgba(210, 224, 222, 0.18);
   --text-soft: rgba(242, 245, 243, 0.74);
   --text-dim: rgba(167, 176, 178, 0.58);
 
@@ -27,6 +35,8 @@
   --accent-pink-rgb: 201, 144, 155;
   /* Neon accent for selected thumbnails / key highlights */
   --accent-neo: #d8c879;
+  --accent-warning: #bfa96a;
+  --accent-error: #c86b6b;
 
   /* Type */
   --font-ui: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;

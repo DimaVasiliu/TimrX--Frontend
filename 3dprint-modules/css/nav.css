@@ -20,2582 +20,2587 @@
    reads it for clearance, so the bar can be resized in one place without
    anything sliding underneath it.
    -------------------------------------------------------------------------- */
-:root {
-  --ws-cmdbar-h: 82px;
-  --ws-cmdbar-gap: 24px;
-  --ws-cmdbar-w: 980px;
-  --ws-cmdbar-zone: calc(var(--ws-cmdbar-h) + var(--ws-cmdbar-gap) * 2);
-}
-
-/* The workspace reset (`.timrx-3dprint *`) sets border-box, but the bar and the
-   palette are body-level siblings of it and were falling back to content-box.
-   Rows are `width:100%` plus 20px of horizontal padding, so every row rendered
-   14px wider than its scroll container and the right-hand meta label was cut
-   off ("Page" → "Pag"). Scope the reset to this subtree instead. */
-.ws-cmd-trigger,
-.ws-cmd-trigger *,
-.ws-cmd,
-.ws-cmd *,
-.ws-tray,
-.ws-tray * {
-  box-sizing: border-box;
-}
-
-.ws-cmd-trigger {
-  position: fixed;
-  left: 50%;
-  bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px));
-  transform: translateX(-50%);
-  z-index: 60;
-
-  display: inline-flex;
-  align-items: center;
-  gap: 16px;
-  width: min(var(--ws-cmdbar-w), calc(100vw - 40px));
-  min-height: var(--ws-cmdbar-h);
-  padding: 12px 14px 12px 24px;
-
-  font: inherit;
-  font-size: 18px;
-  color: rgba(226, 236, 237, 0.76);
-  text-align: left;
-
-  background:
-    radial-gradient(circle at 22% 0%, rgba(var(--accent-blue-rgb), 0.075), transparent 30%),
-    radial-gradient(circle at 88% 100%, rgba(var(--accent-purple-rgb), 0.06), transparent 34%),
-    linear-gradient(180deg, rgba(24, 32, 36, 0.9), rgba(12, 16, 18, 0.88));
-  -webkit-backdrop-filter: blur(22px) saturate(1.12);
-  backdrop-filter: blur(22px) saturate(1.12);
-  border: 1px solid var(--border-strong);
-  border-radius: 999px;
-  box-shadow:
-    0 24px 62px rgba(0, 0, 0, 0.38),
-    inset 0 1px 0 rgba(242, 245, 243, 0.065),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.24);
-  cursor: text;
-  isolation: isolate;
-
-  transition:
-    color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.ws-cmd-trigger:hover,
-.ws-cmd-trigger:focus-visible {
-  color: rgba(242, 245, 243, 0.96);
-  border-color: rgba(127, 200, 194, 0.28);
-  background:
-    radial-gradient(circle at 22% 0%, rgba(var(--accent-blue-rgb), 0.11), transparent 32%),
-    radial-gradient(circle at 88% 100%, rgba(var(--accent-purple-rgb), 0.08), transparent 36%),
-    linear-gradient(180deg, rgba(29, 39, 43, 0.94), rgba(13, 18, 20, 0.9));
-  transform: translateX(-50%) translateY(-2px);
-  box-shadow:
-    0 28px 70px rgba(0, 0, 0, 0.42),
-    inset 0 1px 0 rgba(242, 245, 243, 0.09);
-}
-
-.ws-cmd-trigger:focus-visible {
-  outline: 2px solid rgba(127, 200, 194, 0.58);
-  outline-offset: 3px;
-}
-
-.ws-cmd-trigger__icon {
-  width: 24px;
-  height: 24px;
-  flex: none;
-  opacity: 0.82;
-  color: rgba(127, 200, 194, 0.9);
-}
-
-.ws-cmd-trigger__label {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-weight: 650;
-  letter-spacing: 0;
-}
-
-.ws-cmd-trigger__chips {
-  flex: none;
-  display: inline-flex;
-  gap: 6px;
-}
-
-.ws-cmd-trigger__chips span {
-  padding: 7px 10px;
-  border: 0;
-  background: transparent;
-  color: var(--text-dim);
-  font-size: 11px;
-  font-weight: 750;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.ws-cmd-trigger__kbd {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 1px;
-  padding: 9px 13px;
-  font-family: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--text-dim);
-  background: transparent;
-  border: 0;
-}
-
-/* Hidden while an expanded view is scrolled (tutorials / docs / community). */
-.ws-cmd-trigger.nav-hidden {
-  opacity: 0;
-  transform: translateX(-50%) translateY(24px);
-  pointer-events: none;
-}
-
-/* --------------------------------------------------------------------------
-   Clearance for the bar
-   -------------------------------------------------------------------------- */
-
-/* Desktop: fixed-height workspace. The viewer action toolbar is absolutely
-   positioned at bottom:24px inside the viewer, which put it directly under the
-   command bar. Lift it above the reserved zone. */
-@media (min-width: 1281px) {
-  /* Lift the toolbar only. Padding the grid as well would shrink the viewer by
-     the same amount twice over, and the viewer is the one thing on this page
-     that should be getting larger. The bar floats over the viewport instead. */
-  .timrx-3dprint .viewer-toolbar {
-    bottom: calc(var(--ws-cmdbar-zone) - 8px);
-    /* The zone grows when the model tray appears; ride that change rather
-       than jumping. One element, so the layout cost is negligible. */
-    transition: bottom 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+   :root {
+    --ws-cmdbar-h: 82px;
+    --ws-cmdbar-gap: 24px;
+    --ws-cmdbar-w: 980px;
+    --ws-cmdbar-zone: calc(var(--ws-cmdbar-h) + var(--ws-cmdbar-gap) * 2);
   }
-}
-
-/* Below 1281px the workspace becomes a scrolling stack, so the bar floats over
-   content instead of over the viewer. Pad the end of the scroll so the last
-   card is never trapped underneath it. */
-@media (max-width: 1280px) {
-  .timrx-3dprint .ws-grid {
-    padding-bottom: var(--ws-cmdbar-zone);
-  }
-}
-
-/* --------------------------------------------------------------------------
-   Palette shell
-   -------------------------------------------------------------------------- */
-.ws-cmd {
-  position: fixed;
-  inset: 0;
-  /* Above the expansion views (200000) but below the auth modal. */
-  z-index: 200500;
-  display: grid;
-  /* Anchored to the bottom so the panel grows up out of the command bar and
-     the field stays exactly where the bar was — no eye travel on open. */
-  align-items: end;
-  justify-items: center;
-  padding: clamp(40px, 8vh, 90px) 16px
-           max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px));
-}
-
-/* The bar becomes the palette's field, so it must not sit behind the backdrop
-   as a second copy of itself. */
-body.ws-cmd-open .ws-cmd-trigger {
-  opacity: 0;
-  pointer-events: none;
-  transition-duration: 0.1s;
-}
-
-body.assets-modal-open .ws-cmd-trigger {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  animation: none !important;
-}
-
-.ws-cmd[hidden] { display: none; }
-
-.ws-cmd__backdrop {
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(ellipse at 50% 62%, rgba(var(--accent-blue-rgb), 0.055), transparent 42%),
-    rgba(6, 9, 10, 0.68);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  opacity: 0;
-  transition: opacity 0.16s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.ws-cmd.is-open .ws-cmd__backdrop { opacity: 1; }
-
-.ws-cmd__panel {
-  position: relative;
-  /* Matches the bar's width so the two read as one object. */
-  width: min(var(--ws-cmdbar-w), calc(100vw - 40px));
-  max-height: min(700px, 76vh);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(var(--accent-blue-rgb), 0.09), transparent 34%),
-    radial-gradient(circle at 86% 100%, rgba(var(--accent-purple-rgb), 0.07), transparent 36%),
-    linear-gradient(180deg, rgba(22, 29, 32, 0.98), rgba(10, 13, 15, 0.98));
-  -webkit-backdrop-filter: blur(28px) saturate(1.14);
-  backdrop-filter: blur(28px) saturate(1.14);
-  border: 1px solid var(--border-strong);
-  border-radius: 28px;
-  box-shadow:
-    0 38px 110px rgba(0, 0, 0, 0.58),
-    inset 0 1px 0 rgba(242, 245, 243, 0.06);
-  opacity: 0;
-  transform: translateY(10px) scale(0.99);
-  transition:
-    opacity 0.16s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* Bottom-anchored stacking: results, then the legend, then the field last so
-   it lands on the command bar's own position. */
-.ws-cmd__list  { order: 0; }
-.ws-cmd__empty { order: 1; }
-.ws-cmd__foot  { order: 2; }
-.ws-cmd__field { order: 3; }
-
-.ws-cmd.is-open .ws-cmd__panel {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-/* --------------------------------------------------------------------------
-   Field
-   -------------------------------------------------------------------------- */
-/* Sized to match .ws-cmd-trigger so the swap is seamless. */
-.ws-cmd__field {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  min-height: var(--ws-cmdbar-h);
-  padding: 12px 14px 12px 24px;
-  border-top: 1px solid var(--border-soft);
-  flex: none;
-}
-
-.ws-cmd__field-icon {
-  width: 24px;
-  height: 24px;
-  flex: none;
-  opacity: 0.7;
-  color: var(--accent-blue);
-}
-
-.ws-cmd__field input {
-  flex: 1 1 auto;
-  min-width: 0;
-  padding: 0;
-  font: inherit;
-  font-size: 18px;
-  color: var(--text);
-  background: transparent !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  outline: none;
-}
-
-.ws-cmd__field input::placeholder { color: rgba(167, 176, 178, 0.5); }
-
-.ws-cmd__esc {
-  flex: none;
-  padding: 7px 12px;
-  font: inherit;
-  font-size: 12.5px;
-  font-weight: 600;
-  color: var(--text-dim);
-  background: transparent;
-  border: 0;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: color 0.15s cubic-bezier(0.22, 1, 0.36, 1),
-              border-color 0.15s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.ws-cmd__esc:hover { color: var(--text); }
-
-/* --------------------------------------------------------------------------
-   Results
-   -------------------------------------------------------------------------- */
-.ws-cmd__list {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  padding: 12px;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(var(--accent-blue-rgb), 0.2) transparent;
-}
-
-.ws-cmd__list::-webkit-scrollbar { width: 10px; }
-.ws-cmd__list::-webkit-scrollbar-track { background: transparent; }
-.ws-cmd__list::-webkit-scrollbar-thumb {
-  background: rgba(var(--accent-blue-rgb), 0.16);
-  border: 3px solid transparent;
-  background-clip: content-box;
-  border-radius: 999px;
-}
-.ws-cmd__list::-webkit-scrollbar-thumb:hover { background: rgba(var(--accent-blue-rgb), 0.28); background-clip: content-box; }
-
-/* Chrome makes overflow containers keyboard-focusable and paints a focus ring
-   on them; clipped by the panel it read as a stray blue line across the top.
-   Every row is reachable with the arrow keys, so the ring adds nothing here. */
-.ws-cmd__list:focus,
-.ws-cmd__list:focus-visible { outline: none; }
-
-.ws-cmd__group { padding: 4px 0; }
-.ws-cmd__group[hidden] { display: none; }
-.ws-cmd__group + .ws-cmd__group { margin-top: 2px; }
-
-.ws-cmd__group-label {
-  margin: 8px 0 5px;
-  padding: 0 12px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--text-dim);
-}
-
-.ws-cmd__item {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  width: 100%;
-  padding: 13px 16px;
-  font: inherit;
-  font-size: 15px;
-  color: var(--text-soft);
-  text-align: left;
-  text-decoration: none;
-  background: none;
-  border: 0;
-  border-radius: 15px;
-  cursor: pointer;
-  transition: background 0.12s cubic-bezier(0.22, 1, 0.36, 1),
-              color 0.12s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.ws-cmd__item[hidden] { display: none; }
-
-.ws-cmd__item.is-active {
-  background:
-    linear-gradient(90deg, rgba(var(--accent-blue-rgb), 0.14), rgba(var(--accent-purple-rgb), 0.07));
-  color: var(--text);
-}
-
-/* Non-colour cue for the highlighted row, so the selection survives
-   forced-colors and low-contrast displays. */
-.ws-cmd__item.is-active .ws-cmd__item-icon { opacity: 1; }
-.ws-cmd__item.is-active .ws-cmd__item-meta { color: var(--text-soft); }
-
-.ws-cmd__item:focus-visible {
-  outline: 0;
-}
-
-.ws-cmd__item-icon {
-  width: 21px;
-  height: 21px;
-  flex: none;
-  opacity: 0.55;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.ws-cmd__item-label {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.ws-cmd__item-meta {
-  flex: none;
-  font-size: 11.5px;
-  letter-spacing: 0.05em;
-  color: var(--text-dim);
-  white-space: nowrap;
-}
-
-.ws-cmd__empty {
-  padding: 30px 20px 34px;
-  font-size: 14px;
-  text-align: center;
-  color: var(--text-dim);
-}
-
-@media (forced-colors: active) {
-  .ws-cmd__item.is-active { outline: 2px solid Highlight; outline-offset: -2px; }
-}
-
-.ws-cmd__empty[hidden] { display: none; }
-
-/* --------------------------------------------------------------------------
-   Footer legend
-   -------------------------------------------------------------------------- */
-.ws-cmd__foot {
-  flex: none;
-  display: flex;
-  gap: 16px;
-  padding: 9px 20px;
-  font-size: 11px;
-  color: var(--text-dim);
-  border-top: 1px solid var(--border-soft);
-}
-
-@media (max-width: 760px) {
-  :root {
-    --ws-cmdbar-h: 66px;
-    --ws-cmdbar-gap: 12px;
-  }
-
-  .ws-cmd-trigger {
-    width: calc(100vw - 20px);
-    padding: 10px 12px 10px 18px;
-    font-size: 15px;
-  }
-
-  .ws-cmd-trigger__chips {
-    display: none;
-  }
-
-  .ws-cmd-trigger__kbd {
-    display: none;
-  }
-
-  .ws-cmd__panel {
-    width: calc(100vw - 20px);
-    border-radius: 22px;
-  }
-
-  .ws-cmd__field input {
-    font-size: 15px;
-  }
-}
-
-.ws-cmd__foot kbd {
-  display: inline-block;
-  min-width: 17px;
-  margin-right: 4px;
-  padding: 2px 4px;
-  font-family: inherit;
-  font-size: 10.5px;
-  text-align: center;
-  color: var(--text-soft);
-  background: rgba(18, 24, 26, 0.7);
-  border: 1px solid var(--border-soft);
-  border-radius: 4px;
-}
-
-body.ws-cmd-open { overflow: hidden; }
-
-/* --------------------------------------------------------------------------
-   Mobile credits block (inside the burger sheet)
-   The header credits pill and Buy button collapse below 900px; without this
-   there is no way to see a balance or top up on a phone.
-   -------------------------------------------------------------------------- */
-.ws-mobile-credits {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 22px;
-  padding: 14px 16px;
-  background:
-    linear-gradient(180deg, rgba(24, 32, 36, 0.72), rgba(12, 16, 18, 0.84));
-  border: 1px solid var(--border-soft);
-  border-radius: 14px;
-}
-
-.ws-mobile-credits__row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.ws-mobile-credits__label {
-  font-size: 13px;
-  color: var(--text-dim);
-}
-
-.ws-mobile-credits__val {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-}
-
-.ws-mobile-credits__buy {
-  margin-top: 4px;
-  padding: 11px 14px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #071011;
-  text-align: center;
-  text-decoration: none;
-  background: linear-gradient(135deg, var(--accent-blue), rgba(var(--accent-purple-rgb), 0.86));
-  border-radius: 10px;
-}
-
-/* --------------------------------------------------------------------------
-   Responsive
-   -------------------------------------------------------------------------- */
-/* Laptop — keep the bar clear of the left/right panes. */
-@media (max-width: 1180px) {
-  :root { --ws-cmdbar-w: 640px; }
-}
-
-/* Tablet — no physical keyboard, so the shortcut chip stops earning its space. */
-@media (max-width: 900px) {
-  :root { --ws-cmdbar-h: 58px; --ws-cmdbar-gap: 18px; --ws-cmdbar-w: 600px; }
-
-  .ws-cmd-trigger__kbd { display: none; }
-  .ws-cmd-trigger { font-size: 15px; padding-right: 22px; }
-
-  .ws-cmd__panel { max-height: 68vh; }
-  .ws-cmd__foot { display: none; }
-}
-
-/* Phone — near full-bleed bar, larger hit targets. */
-@media (max-width: 560px) {
-  :root { --ws-cmdbar-h: 54px; --ws-cmdbar-gap: 12px; }
-
-  .ws-cmd-trigger {
-    width: calc(100vw - 20px);
-    gap: 12px;
-    padding: 10px 20px;
-    font-size: 15px;
-  }
-  .ws-cmd-trigger__icon { width: 18px; height: 18px; }
-
-  .ws-cmd { padding: 6vh 10px max(12px, env(safe-area-inset-bottom, 0px)); }
-  .ws-cmd__panel { width: calc(100vw - 20px); max-height: 74vh; border-radius: 20px; }
-  .ws-cmd__field { padding: 10px 20px; }
-  .ws-cmd__item { padding: 13px 14px; font-size: 15px; }
-  .ws-cmd__item-meta { display: none; }
-}
-
-/* Very short viewports (landscape phone): the bar must not eat the workspace. */
-@media (max-height: 560px) {
-  :root { --ws-cmdbar-h: 48px; --ws-cmdbar-gap: 10px; }
-  .ws-cmd-trigger { font-size: 14.5px; }
-  .ws-cmd__panel { max-height: 82vh; }
-  .ws-cmd__foot { display: none; }
-}
-
-/* --------------------------------------------------------------------------
-   Reduced motion
-   The old rule scoped to `.timrx-3dprint *`, which does not contain the header
-   — so header animation kept running for users who asked for none.
-   -------------------------------------------------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-  .ws-cmd__backdrop,
-  .ws-cmd__panel,
-  .ws-cmd-trigger {
-    transition-duration: 0.01ms;
-  }
-  .ws-cmd__panel { transform: none; }
-  .ws-cmd.is-open .ws-cmd__panel { transform: none; }
-}
-
-/* ==========================================================================
-   HEADER CHROME — arrival choreography + link to the command bar
-   --------------------------------------------------------------------------
-   The header actions and the command bar are one system at two depths. They
-   are never joined by a rule, a capsule or a divider — the relationship is
-   carried entirely by shared material, shared easing, and a light response
-   that travels between them.
-
-   Entrance is authored in CSS rather than triggered from JS so there is no
-   frame where the chrome is painted in its final position before animating.
-   `backwards` fill makes each element hold its 0% state through its delay.
-   ========================================================================== */
-
-:root {
-  --ws-arrive-dur: 1150ms;
-  --ws-arrive-ease: cubic-bezier(0.16, 1, 0.3, 1);
-  --ws-chrome-ease: cubic-bezier(0.34, 1.4, 0.64, 1);
-}
-
-/* Depth arrival: far away, edge-on and out of focus, tumbling forward past
-   the resting plane before settling back onto it. */
-@keyframes wsChromeArrive {
-  0% {
-    opacity: 0;
-    transform: perspective(1100px) translate3d(0, -30px, -1250px)
-               rotateX(-42deg) rotateY(-165deg) scale(0.7);
-    filter: blur(10px);
-  }
-  50% { opacity: 1; }
-  62% { filter: blur(0); }
-  74% {
-    transform: perspective(1100px) translate3d(0, 2px, 70px)
-               rotateX(3deg) rotateY(9deg) scale(1.07);
-  }
-  100% {
-    opacity: 1;
-    transform: perspective(1100px) translate3d(0, 0, 0)
-               rotateX(0) rotateY(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-/* The brand swings in from the left rather than tumbling — it is a wordmark,
-   and a full spin on type reads as a gimmick. */
-@keyframes wsBrandArrive {
-  0% {
-    opacity: 0;
-    transform: perspective(1100px) translate3d(-26px, -14px, -900px) rotateY(-42deg) scale(0.82);
-    filter: blur(8px);
-  }
-  55% { opacity: 1; filter: blur(0); }
-  78% { transform: perspective(1100px) translate3d(0, 0, 40px) rotateY(4deg) scale(1.03); }
-  100% {
-    opacity: 1;
-    transform: perspective(1100px) translate3d(0, 0, 0) rotateY(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-/* The bar answers from below and behind, arriving last — it closes the
-   circuit the header opened. translateX(-50%) leads so it composes with the
-   element's own centring transform. */
-@keyframes wsBarArrive {
-  0% {
-    opacity: 0;
-    transform: translateX(-50%) perspective(1300px) translate3d(0, 96px, -820px)
-               rotateX(34deg) scale(0.82);
-    filter: blur(12px);
-  }
-  55% { opacity: 1; }
-  68% { filter: blur(0); }
-  80% {
-    transform: translateX(-50%) perspective(1300px) translate3d(0, -7px, 46px)
-               rotateX(-3deg) scale(1.025);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(-50%) perspective(1300px) translate3d(0, 0, 0)
-               rotateX(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-@keyframes wsCornerLauncherArrive {
-  0% {
-    opacity: 0;
-    transform: perspective(1300px) translate3d(0, 96px, -820px)
-               rotateX(34deg) scale(0.82);
-    filter: blur(12px);
-  }
-  55% { opacity: 1; }
-  68% { filter: blur(0); }
-  80% {
-    transform: perspective(1300px) translate3d(0, -7px, 46px)
-               rotateX(-3deg) scale(1.025);
-  }
-  100% {
-    opacity: 1;
-    transform: perspective(1300px) translate3d(0, 0, 0)
-               rotateX(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-.ws-header-left,
-.ws-credits > * {
-  animation: wsChromeArrive var(--ws-arrive-dur) var(--ws-arrive-ease) backwards;
-  transform-origin: 50% 50%;
-}
-
-.ws-header-left { animation-name: wsBrandArrive; animation-delay: 60ms; }
-
-/* One by one, right to left in reading weight: identity, then alerts, then
-   discovery, then balance, then the commitment. */
-#accountBeacon      { animation-delay: 260ms; }
-#notificationBell   { animation-delay: 350ms; }
-#inspireTriggerBtn  { animation-delay: 440ms; }
-.ws-credits-pill    { animation-delay: 530ms; }
-.ws-credits-buy     { animation-delay: 620ms; }
-
-.ws-cmd-trigger {
-  animation: wsBarArrive var(--ws-arrive-dur) var(--ws-arrive-ease) 760ms backwards;
-}
-
-html body.print3d-page > .ws-corner-launcher {
-  animation: wsCornerLauncherArrive var(--ws-arrive-dur) var(--ws-arrive-ease) 760ms backwards;
-  transform-origin: 50% 50%;
-}
-
-/* --------------------------------------------------------------------------
-   Enhanced header actions — light, not outlines
-   -------------------------------------------------------------------------- */
-.ws-credits > * {
-  transition:
-    transform 0.26s var(--ws-chrome-ease),
-    filter 0.26s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.26s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-#accountBeacon:hover,
-#notificationBell:hover,
-#inspireTriggerBtn:hover,
-.ws-credits-pill:hover,
-.ws-credits-buy:hover {
-  transform: translateY(-3px) scale(1.07);
-  /* drop-shadow follows the glyph, so nothing reads as a ring around a
-     transparent button the way a box-shadow would. */
-  filter: drop-shadow(0 6px 16px rgba(255, 255, 255, 0.22))
-          drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
-}
-
-.ws-credits-buy:hover { filter: drop-shadow(0 8px 22px rgba(255, 255, 255, 0.36)); }
-
-#accountBeacon:active,
-#notificationBell:active,
-#inspireTriggerBtn:active,
-.ws-credits-pill:active,
-.ws-credits-buy:active { transform: translateY(-1px) scale(0.95); }
-
-/* --------------------------------------------------------------------------
-   The link: light travelling between the bar and the header
-   --------------------------------------------------------------------------
-   Reaching for the command bar lifts the header actions in sequence, nearest
-   first, so the response reads as one wave rather than five separate hovers.
-   -------------------------------------------------------------------------- */
-body.ws-cmd-hot .ws-credits > * {
-  transform: translateY(-2px);
-  filter: drop-shadow(0 4px 14px rgba(255, 255, 255, 0.16));
-}
-
-body.ws-cmd-hot .ws-credits-buy    { transition-delay: 0ms; }
-body.ws-cmd-hot .ws-credits-pill   { transition-delay: 45ms; }
-body.ws-cmd-hot #inspireTriggerBtn { transition-delay: 90ms; }
-body.ws-cmd-hot #notificationBell  { transition-delay: 135ms; }
-body.ws-cmd-hot #accountBeacon     { transition-delay: 180ms; }
-
-/* …and the reverse: touching the header warms the bar. */
-body.ws-chrome-hot .ws-cmd-trigger {
-  box-shadow: none;
-}
-
-/* Opening the palette pushes the header back in depth so the two surfaces
-   never compete for the same plane. */
-body.ws-cmd-open .ws-credits,
-body.ws-cmd-open .ws-header-left {
-  transform: perspective(1100px) translateZ(-70px);
-  opacity: 0.4;
-  filter: blur(1.5px);
-  transition:
-    transform 0.34s var(--ws-arrive-ease),
-    opacity 0.34s var(--ws-arrive-ease),
-    filter 0.34s var(--ws-arrive-ease);
-}
-
-.ws-credits,
-.ws-header-left {
-  transition:
-    transform 0.42s var(--ws-arrive-ease),
-    opacity 0.42s var(--ws-arrive-ease),
-    filter 0.42s var(--ws-arrive-ease);
-}
-
-/* --------------------------------------------------------------------------
-   Reduced motion — the sequence still reads, it just stops moving in depth.
-   -------------------------------------------------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-  @keyframes wsChromeArrive { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes wsBrandArrive  { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes wsBarArrive    { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes wsCornerLauncherArrive { from { opacity: 0; } to { opacity: 1; } }
-
-  .ws-header-left,
-  .ws-credits > *,
+  
+  /* The workspace reset (`.timrx-3dprint *`) sets border-box, but the bar and the
+     palette are body-level siblings of it and were falling back to content-box.
+     Rows are `width:100%` plus 20px of horizontal padding, so every row rendered
+     14px wider than its scroll container and the right-hand meta label was cut
+     off ("Page" → "Pag"). Scope the reset to this subtree instead. */
   .ws-cmd-trigger,
-  html body.print3d-page > .ws-corner-launcher { animation-duration: 320ms; filter: none; }
-
+  .ws-cmd-trigger *,
+  .ws-cmd,
+  .ws-cmd *,
+  .ws-tray,
+  .ws-tray * {
+    box-sizing: border-box;
+  }
+  
+  .ws-cmd-trigger {
+    position: fixed;
+    left: 50%;
+    bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 60;
+  
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    width: min(var(--ws-cmdbar-w), calc(100vw - 40px));
+    min-height: var(--ws-cmdbar-h);
+    padding: 12px 14px 12px 24px;
+  
+    font: inherit;
+    font-size: 18px;
+    color: rgba(226, 236, 237, 0.76);
+    text-align: left;
+  
+    background:
+      radial-gradient(circle at 22% 0%, rgba(var(--accent-blue-rgb), 0.075), transparent 30%),
+      radial-gradient(circle at 88% 100%, rgba(var(--accent-purple-rgb), 0.06), transparent 34%),
+      linear-gradient(180deg, rgba(24, 32, 36, 0.9), rgba(12, 16, 18, 0.88));
+    -webkit-backdrop-filter: blur(22px) saturate(1.12);
+    backdrop-filter: blur(22px) saturate(1.12);
+    border: 1px solid var(--border-strong);
+    border-radius: 999px;
+    box-shadow:
+      0 24px 62px rgba(0, 0, 0, 0.38),
+      inset 0 1px 0 rgba(242, 245, 243, 0.065),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.24);
+    cursor: text;
+    isolation: isolate;
+  
+    transition:
+      color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  .ws-cmd-trigger:hover,
+  .ws-cmd-trigger:focus-visible {
+    color: rgba(242, 245, 243, 0.96);
+    border-color: rgba(127, 200, 194, 0.28);
+    background:
+      radial-gradient(circle at 22% 0%, rgba(var(--accent-blue-rgb), 0.11), transparent 32%),
+      radial-gradient(circle at 88% 100%, rgba(var(--accent-purple-rgb), 0.08), transparent 36%),
+      linear-gradient(180deg, rgba(29, 39, 43, 0.94), rgba(13, 18, 20, 0.9));
+    transform: translateX(-50%) translateY(-2px);
+    box-shadow:
+      0 28px 70px rgba(0, 0, 0, 0.42),
+      inset 0 1px 0 rgba(242, 245, 243, 0.09);
+  }
+  
+  .ws-cmd-trigger:focus-visible {
+    outline: 2px solid rgba(127, 200, 194, 0.58);
+    outline-offset: 3px;
+  }
+  
+  .ws-cmd-trigger__icon {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    opacity: 0.82;
+    color: rgba(127, 200, 194, 0.9);
+  }
+  
+  .ws-cmd-trigger__label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: 650;
+    letter-spacing: 0;
+  }
+  
+  .ws-cmd-trigger__chips {
+    flex: none;
+    display: inline-flex;
+    gap: 6px;
+  }
+  
+  .ws-cmd-trigger__chips span {
+    padding: 7px 10px;
+    border: 0;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 11px;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  
+  .ws-cmd-trigger__kbd {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    padding: 9px 13px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    color: var(--text-dim);
+    background: transparent;
+    border: 0;
+  }
+  
+  /* Hidden while an expanded view is scrolled (tutorials / docs / community). */
+  .ws-cmd-trigger.nav-hidden {
+    opacity: 0;
+    transform: translateX(-50%) translateY(24px);
+    pointer-events: none;
+  }
+  
+  /* --------------------------------------------------------------------------
+     Clearance for the bar
+     -------------------------------------------------------------------------- */
+  
+  /* Desktop: fixed-height workspace. The viewer action toolbar is absolutely
+     positioned at bottom:24px inside the viewer, which put it directly under the
+     command bar. Lift it above the reserved zone. */
+  @media (min-width: 1281px) {
+    /* Lift the toolbar only. Padding the grid as well would shrink the viewer by
+       the same amount twice over, and the viewer is the one thing on this page
+       that should be getting larger. The bar floats over the viewport instead. */
+    .timrx-3dprint .viewer-toolbar {
+      bottom: calc(var(--ws-cmdbar-zone) - 8px);
+      /* The zone grows when the model tray appears; ride that change rather
+         than jumping. One element, so the layout cost is negligible. */
+      transition: bottom 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+  }
+  
+  /* Below 1281px the workspace becomes a scrolling stack, so the bar floats over
+     content instead of over the viewer. Pad the end of the scroll so the last
+     card is never trapped underneath it. */
+  @media (max-width: 1280px) {
+    .timrx-3dprint .ws-grid {
+      padding-bottom: var(--ws-cmdbar-zone);
+    }
+  }
+  
+  /* --------------------------------------------------------------------------
+     Palette shell
+     -------------------------------------------------------------------------- */
+  .ws-cmd {
+    position: fixed;
+    inset: 0;
+    /* Above the expansion views (200000) but below the auth modal. */
+    z-index: 200500;
+    display: grid;
+    /* Anchored to the bottom so the panel grows up out of the command bar and
+       the field stays exactly where the bar was — no eye travel on open. */
+    align-items: end;
+    justify-items: center;
+    padding: clamp(40px, 8vh, 90px) 16px
+             max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px));
+  }
+  
+  /* The bar becomes the palette's field, so it must not sit behind the backdrop
+     as a second copy of itself. */
+  body.ws-cmd-open .ws-cmd-trigger {
+    opacity: 0;
+    pointer-events: none;
+    transition-duration: 0.1s;
+  }
+  
+  body.assets-modal-open .ws-cmd-trigger {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    animation: none !important;
+  }
+  
+  .ws-cmd[hidden] { display: none; }
+  
+  .ws-cmd__backdrop {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse at 50% 62%, rgba(var(--accent-blue-rgb), 0.055), transparent 42%),
+      rgba(6, 9, 10, 0.68);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+    opacity: 0;
+    transition: opacity 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  .ws-cmd.is-open .ws-cmd__backdrop { opacity: 1; }
+  
+  .ws-cmd__panel {
+    position: relative;
+    /* Matches the bar's width so the two read as one object. */
+    width: min(var(--ws-cmdbar-w), calc(100vw - 40px));
+    max-height: min(700px, 76vh);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at 18% 0%, rgba(var(--accent-blue-rgb), 0.09), transparent 34%),
+      radial-gradient(circle at 86% 100%, rgba(var(--accent-purple-rgb), 0.07), transparent 36%),
+      linear-gradient(180deg, rgba(22, 29, 32, 0.98), rgba(10, 13, 15, 0.98));
+    -webkit-backdrop-filter: blur(28px) saturate(1.14);
+    backdrop-filter: blur(28px) saturate(1.14);
+    border: 1px solid var(--border-strong);
+    border-radius: 28px;
+    box-shadow:
+      0 38px 110px rgba(0, 0, 0, 0.58),
+      inset 0 1px 0 rgba(242, 245, 243, 0.06);
+    opacity: 0;
+    transform: translateY(10px) scale(0.99);
+    transition:
+      opacity 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  
+  /* Bottom-anchored stacking: results, then the legend, then the field last so
+     it lands on the command bar's own position. */
+  .ws-cmd__list  { order: 0; }
+  .ws-cmd__empty { order: 1; }
+  .ws-cmd__foot  { order: 2; }
+  .ws-cmd__field { order: 3; }
+  
+  .ws-cmd.is-open .ws-cmd__panel {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  
+  /* --------------------------------------------------------------------------
+     Field
+     -------------------------------------------------------------------------- */
+  /* Sized to match .ws-cmd-trigger so the swap is seamless. */
+  .ws-cmd__field {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    min-height: var(--ws-cmdbar-h);
+    padding: 12px 14px 12px 24px;
+    border-top: 1px solid var(--border-soft);
+    flex: none;
+  }
+  
+  .ws-cmd__field-icon {
+    width: 24px;
+    height: 24px;
+    flex: none;
+    opacity: 0.7;
+    color: var(--accent-blue);
+  }
+  
+  .ws-cmd__field input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0;
+    font: inherit;
+    font-size: 18px;
+    color: var(--text);
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    outline: none;
+  }
+  
+  .ws-cmd__field input::placeholder { color: rgba(167, 176, 178, 0.5); }
+  
+  .ws-cmd__esc {
+    flex: none;
+    padding: 7px 12px;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-dim);
+    background: transparent;
+    border: 0;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: color 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+                border-color 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  .ws-cmd__esc:hover { color: var(--text); }
+  
+  /* --------------------------------------------------------------------------
+     Results
+     -------------------------------------------------------------------------- */
+  .ws-cmd__list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(var(--accent-blue-rgb), 0.2) transparent;
+  }
+  
+  .ws-cmd__list::-webkit-scrollbar { width: 10px; }
+  .ws-cmd__list::-webkit-scrollbar-track { background: transparent; }
+  .ws-cmd__list::-webkit-scrollbar-thumb {
+    background: rgba(var(--accent-blue-rgb), 0.16);
+    border: 3px solid transparent;
+    background-clip: content-box;
+    border-radius: 999px;
+  }
+  .ws-cmd__list::-webkit-scrollbar-thumb:hover { background: rgba(var(--accent-blue-rgb), 0.28); background-clip: content-box; }
+  
+  /* Chrome makes overflow containers keyboard-focusable and paints a focus ring
+     on them; clipped by the panel it read as a stray blue line across the top.
+     Every row is reachable with the arrow keys, so the ring adds nothing here. */
+  .ws-cmd__list:focus,
+  .ws-cmd__list:focus-visible { outline: none; }
+  
+  .ws-cmd__group { padding: 4px 0; }
+  .ws-cmd__group[hidden] { display: none; }
+  .ws-cmd__group + .ws-cmd__group { margin-top: 2px; }
+  
+  .ws-cmd__group-label {
+    margin: 8px 0 5px;
+    padding: 0 12px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  
+  .ws-cmd__item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    padding: 13px 16px;
+    font: inherit;
+    font-size: 15px;
+    color: var(--text-soft);
+    text-align: left;
+    text-decoration: none;
+    background: none;
+    border: 0;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: background 0.12s cubic-bezier(0.22, 1, 0.36, 1),
+                color 0.12s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  .ws-cmd__item[hidden] { display: none; }
+  
+  .ws-cmd__item.is-active {
+    background:
+      linear-gradient(90deg, rgba(var(--accent-blue-rgb), 0.14), rgba(var(--accent-purple-rgb), 0.07));
+    color: var(--text);
+  }
+  
+  /* Non-colour cue for the highlighted row, so the selection survives
+     forced-colors and low-contrast displays. */
+  .ws-cmd__item.is-active .ws-cmd__item-icon { opacity: 1; }
+  .ws-cmd__item.is-active .ws-cmd__item-meta { color: var(--text-soft); }
+  
+  .ws-cmd__item:focus-visible {
+    outline: 0;
+  }
+  
+  .ws-cmd__item-icon {
+    width: 21px;
+    height: 21px;
+    flex: none;
+    opacity: 0.55;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  
+  .ws-cmd__item-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .ws-cmd__item-meta {
+    flex: none;
+    font-size: 11.5px;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    white-space: nowrap;
+  }
+  
+  .ws-cmd__empty {
+    padding: 30px 20px 34px;
+    font-size: 14px;
+    text-align: center;
+    color: var(--text-dim);
+  }
+  
+  @media (forced-colors: active) {
+    .ws-cmd__item.is-active { outline: 2px solid Highlight; outline-offset: -2px; }
+  }
+  
+  .ws-cmd__empty[hidden] { display: none; }
+  
+  /* --------------------------------------------------------------------------
+     Footer legend
+     -------------------------------------------------------------------------- */
+  .ws-cmd__foot {
+    flex: none;
+    display: flex;
+    gap: 16px;
+    padding: 9px 20px;
+    font-size: 11px;
+    color: var(--text-dim);
+    border-top: 1px solid var(--border-soft);
+  }
+  
+  @media (max-width: 760px) {
+    :root {
+      --ws-cmdbar-h: 66px;
+      --ws-cmdbar-gap: 12px;
+    }
+  
+    .ws-cmd-trigger {
+      width: calc(100vw - 20px);
+      padding: 10px 12px 10px 18px;
+      font-size: 15px;
+    }
+  
+    .ws-cmd-trigger__chips {
+      display: none;
+    }
+  
+    .ws-cmd-trigger__kbd {
+      display: none;
+    }
+  
+    .ws-cmd__panel {
+      width: calc(100vw - 20px);
+      border-radius: 22px;
+    }
+  
+    .ws-cmd__field input {
+      font-size: 15px;
+    }
+  }
+  
+  .ws-cmd__foot kbd {
+    display: inline-block;
+    min-width: 17px;
+    margin-right: 4px;
+    padding: 2px 4px;
+    font-family: inherit;
+    font-size: 10.5px;
+    text-align: center;
+    color: var(--text-soft);
+    background: rgba(18, 24, 26, 0.7);
+    border: 1px solid var(--border-soft);
+    border-radius: 4px;
+  }
+  
+  body.ws-cmd-open { overflow: hidden; }
+  
+  /* --------------------------------------------------------------------------
+     Mobile credits block (inside the burger sheet)
+     The header credits pill and Buy button collapse below 900px; without this
+     there is no way to see a balance or top up on a phone.
+     -------------------------------------------------------------------------- */
+  .ws-mobile-credits {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 22px;
+    padding: 14px 16px;
+    background:
+      linear-gradient(180deg, rgba(24, 32, 36, 0.72), rgba(12, 16, 18, 0.84));
+    border: 1px solid var(--border-soft);
+    border-radius: 14px;
+  }
+  
+  .ws-mobile-credits__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  
+  .ws-mobile-credits__label {
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  
+  .ws-mobile-credits__val {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+  }
+  
+  .ws-mobile-credits__buy {
+    margin-top: 4px;
+    padding: 11px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #071011;
+    text-align: center;
+    text-decoration: none;
+    background: linear-gradient(135deg, var(--accent-blue), rgba(var(--accent-purple-rgb), 0.86));
+    border-radius: 10px;
+  }
+  
+  /* --------------------------------------------------------------------------
+     Responsive
+     -------------------------------------------------------------------------- */
+  /* Laptop — keep the bar clear of the left/right panes. */
+  @media (max-width: 1180px) {
+    :root { --ws-cmdbar-w: 640px; }
+  }
+  
+  /* Tablet — no physical keyboard, so the shortcut chip stops earning its space. */
+  @media (max-width: 900px) {
+    :root { --ws-cmdbar-h: 58px; --ws-cmdbar-gap: 18px; --ws-cmdbar-w: 600px; }
+  
+    .ws-cmd-trigger__kbd { display: none; }
+    .ws-cmd-trigger { font-size: 15px; padding-right: 22px; }
+  
+    .ws-cmd__panel { max-height: 68vh; }
+    .ws-cmd__foot { display: none; }
+  }
+  
+  /* Phone — near full-bleed bar, larger hit targets. */
+  @media (max-width: 560px) {
+    :root { --ws-cmdbar-h: 54px; --ws-cmdbar-gap: 12px; }
+  
+    .ws-cmd-trigger {
+      width: calc(100vw - 20px);
+      gap: 12px;
+      padding: 10px 20px;
+      font-size: 15px;
+    }
+    .ws-cmd-trigger__icon { width: 18px; height: 18px; }
+  
+    .ws-cmd { padding: 6vh 10px max(12px, env(safe-area-inset-bottom, 0px)); }
+    .ws-cmd__panel { width: calc(100vw - 20px); max-height: 74vh; border-radius: 20px; }
+    .ws-cmd__field { padding: 10px 20px; }
+    .ws-cmd__item { padding: 13px 14px; font-size: 15px; }
+    .ws-cmd__item-meta { display: none; }
+  }
+  
+  /* Very short viewports (landscape phone): the bar must not eat the workspace. */
+  @media (max-height: 560px) {
+    :root { --ws-cmdbar-h: 48px; --ws-cmdbar-gap: 10px; }
+    .ws-cmd-trigger { font-size: 14.5px; }
+    .ws-cmd__panel { max-height: 82vh; }
+    .ws-cmd__foot { display: none; }
+  }
+  
+  /* --------------------------------------------------------------------------
+     Reduced motion
+     The old rule scoped to `.timrx-3dprint *`, which does not contain the header
+     — so header animation kept running for users who asked for none.
+     -------------------------------------------------------------------------- */
+  @media (prefers-reduced-motion: reduce) {
+    .ws-cmd__backdrop,
+    .ws-cmd__panel,
+    .ws-cmd-trigger {
+      transition-duration: 0.01ms;
+    }
+    .ws-cmd__panel { transform: none; }
+    .ws-cmd.is-open .ws-cmd__panel { transform: none; }
+  }
+  
+  /* ==========================================================================
+     HEADER CHROME — arrival choreography + link to the command bar
+     --------------------------------------------------------------------------
+     The header actions and the command bar are one system at two depths. They
+     are never joined by a rule, a capsule or a divider — the relationship is
+     carried entirely by shared material, shared easing, and a light response
+     that travels between them.
+  
+     Entrance is authored in CSS rather than triggered from JS so there is no
+     frame where the chrome is painted in its final position before animating.
+     `backwards` fill makes each element hold its 0% state through its delay.
+     ========================================================================== */
+  
+  :root {
+    --ws-arrive-dur: 1150ms;
+    --ws-arrive-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --ws-chrome-ease: cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+  
+  /* Depth arrival: far away, edge-on and out of focus, tumbling forward past
+     the resting plane before settling back onto it. */
+  @keyframes wsChromeArrive {
+    0% {
+      opacity: 0;
+      transform: perspective(1100px) translate3d(0, -30px, -1250px)
+                 rotateX(-42deg) rotateY(-165deg) scale(0.7);
+      filter: blur(10px);
+    }
+    50% { opacity: 1; }
+    62% { filter: blur(0); }
+    74% {
+      transform: perspective(1100px) translate3d(0, 2px, 70px)
+                 rotateX(3deg) rotateY(9deg) scale(1.07);
+    }
+    100% {
+      opacity: 1;
+      transform: perspective(1100px) translate3d(0, 0, 0)
+                 rotateX(0) rotateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+  
+  /* The brand swings in from the left rather than tumbling — it is a wordmark,
+     and a full spin on type reads as a gimmick. */
+  @keyframes wsBrandArrive {
+    0% {
+      opacity: 0;
+      transform: perspective(1100px) translate3d(-26px, -14px, -900px) rotateY(-42deg) scale(0.82);
+      filter: blur(8px);
+    }
+    55% { opacity: 1; filter: blur(0); }
+    78% { transform: perspective(1100px) translate3d(0, 0, 40px) rotateY(4deg) scale(1.03); }
+    100% {
+      opacity: 1;
+      transform: perspective(1100px) translate3d(0, 0, 0) rotateY(0) scale(1);
+      filter: blur(0);
+    }
+  }
+  
+  /* The bar answers from below and behind, arriving last — it closes the
+     circuit the header opened. translateX(-50%) leads so it composes with the
+     element's own centring transform. */
+  @keyframes wsBarArrive {
+    0% {
+      opacity: 0;
+      transform: translateX(-50%) perspective(1300px) translate3d(0, 96px, -820px)
+                 rotateX(34deg) scale(0.82);
+      filter: blur(12px);
+    }
+    55% { opacity: 1; }
+    68% { filter: blur(0); }
+    80% {
+      transform: translateX(-50%) perspective(1300px) translate3d(0, -7px, 46px)
+                 rotateX(-3deg) scale(1.025);
+    }
+    100% {
+      opacity: 1;
+      transform: translateX(-50%) perspective(1300px) translate3d(0, 0, 0)
+                 rotateX(0) scale(1);
+      filter: blur(0);
+    }
+  }
+  
+  @keyframes wsCornerLauncherArrive {
+    0% {
+      opacity: 0;
+      transform: perspective(1300px) translate3d(0, 96px, -820px)
+                 rotateX(34deg) scale(0.82);
+      filter: blur(12px);
+    }
+    55% { opacity: 1; }
+    68% { filter: blur(0); }
+    80% {
+      transform: perspective(1300px) translate3d(0, -7px, 46px)
+                 rotateX(-3deg) scale(1.025);
+    }
+    100% {
+      opacity: 1;
+      transform: perspective(1300px) translate3d(0, 0, 0)
+                 rotateX(0) scale(1);
+      filter: blur(0);
+    }
+  }
+  
+  .ws-header-left,
+  .ws-credits > * {
+    animation: wsChromeArrive var(--ws-arrive-dur) var(--ws-arrive-ease) backwards;
+    transform-origin: 50% 50%;
+  }
+  
+  .ws-header-left { animation-name: wsBrandArrive; animation-delay: 60ms; }
+  
+  /* One by one, right to left in reading weight: identity, then alerts, then
+     discovery, then balance, then the commitment. */
+  #accountBeacon      { animation-delay: 260ms; }
+  #notificationBell   { animation-delay: 350ms; }
+  #inspireTriggerBtn  { animation-delay: 440ms; }
+  .ws-credits-pill    { animation-delay: 530ms; }
+  .ws-credits-buy     { animation-delay: 620ms; }
+  
+  .ws-cmd-trigger {
+    animation: wsBarArrive var(--ws-arrive-dur) var(--ws-arrive-ease) 760ms backwards;
+  }
+  
+  html body.print3d-page > .ws-corner-launcher {
+    animation: wsCornerLauncherArrive var(--ws-arrive-dur) var(--ws-arrive-ease) 760ms backwards;
+    transform-origin: 50% 50%;
+  }
+  
+  /* --------------------------------------------------------------------------
+     Enhanced header actions — light, not outlines
+     -------------------------------------------------------------------------- */
+  .ws-credits > * {
+    transition:
+      transform 0.26s var(--ws-chrome-ease),
+      filter 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
   #accountBeacon:hover,
   #notificationBell:hover,
   #inspireTriggerBtn:hover,
   .ws-credits-pill:hover,
-  .ws-credits-buy:hover,
-  body.ws-cmd-hot .ws-credits > * { transform: none; }
-
+  .ws-credits-buy:hover {
+    transform: translateY(-3px) scale(1.07);
+    /* drop-shadow follows the glyph, so nothing reads as a ring around a
+       transparent button the way a box-shadow would. */
+    filter: drop-shadow(0 6px 16px rgba(255, 255, 255, 0.22))
+            drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+  }
+  
+  .ws-credits-buy:hover { filter: drop-shadow(0 8px 22px rgba(255, 255, 255, 0.36)); }
+  
+  #accountBeacon:active,
+  #notificationBell:active,
+  #inspireTriggerBtn:active,
+  .ws-credits-pill:active,
+  .ws-credits-buy:active { transform: translateY(-1px) scale(0.95); }
+  
+  /* --------------------------------------------------------------------------
+     The link: light travelling between the bar and the header
+     --------------------------------------------------------------------------
+     Reaching for the command bar lifts the header actions in sequence, nearest
+     first, so the response reads as one wave rather than five separate hovers.
+     -------------------------------------------------------------------------- */
+  body.ws-cmd-hot .ws-credits > * {
+    transform: translateY(-2px);
+    filter: drop-shadow(0 4px 14px rgba(255, 255, 255, 0.16));
+  }
+  
+  body.ws-cmd-hot .ws-credits-buy    { transition-delay: 0ms; }
+  body.ws-cmd-hot .ws-credits-pill   { transition-delay: 45ms; }
+  body.ws-cmd-hot #inspireTriggerBtn { transition-delay: 90ms; }
+  body.ws-cmd-hot #notificationBell  { transition-delay: 135ms; }
+  body.ws-cmd-hot #accountBeacon     { transition-delay: 180ms; }
+  
+  /* …and the reverse: touching the header warms the bar. */
+  body.ws-chrome-hot .ws-cmd-trigger {
+    box-shadow: none;
+  }
+  
+  /* Opening the palette pushes the header back in depth so the two surfaces
+     never compete for the same plane. */
   body.ws-cmd-open .ws-credits,
-  body.ws-cmd-open .ws-header-left { transform: none; filter: none; }
-}
-
-/* ==========================================================================
-   MODEL TOOL TRAY — rides above the command bar
-   --------------------------------------------------------------------------
-   Remesh / Texture / Rig / Animate only apply once a model exists, so they no
-   longer hang off the Model mode button. They surface next to the input the
-   moment model mode is active and stand down when it is not.
-
-   3dprint-app.js toggles `body.ws-model-mode` from syncCreationDock(); every
-   behaviour below keys off that single class.
-   ========================================================================== */
-
-body.print3d-page {
-  --ws-tray-h: 0px;
-  /* Redefined on <body> (the :root copy is the no-tray fallback) so the tray's
-     height folds into the same reserved zone the viewer toolbar and the
-     scrolling layout already read for clearance. */
-  --ws-cmdbar-zone: calc(var(--ws-cmdbar-h) + var(--ws-cmdbar-gap) * 2 + var(--ws-tray-h));
-}
-
-body.print3d-page.ws-model-mode.ws-panel-open { --ws-tray-h: 60px; }
-body.print3d-page.ws-video-mode.ws-panel-open { --ws-tray-h: 112px; }
-
-.ws-tray {
-  position: fixed;
-  left: 50%;
-  bottom: calc(max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px))
-               + var(--ws-cmdbar-h) + 14px);
-  transform: translateX(-50%);
-  z-index: 59;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 8px;
-  width: min(var(--ws-cmdbar-w), calc(100vw - 40px));
-  padding: 0 6px;
-
-  /* Hidden state must also leave the a11y tree and the tab order, but not
-     before the exit transition has played. */
-  visibility: hidden;
-  transition: visibility 0s linear 380ms;
-}
-
-/* .ws-intro-done is added by command-palette.js when the command bar's own
-   arrival animation ends. Without it the tray was fully revealed at ~780ms
-   while the bar had not even started appearing (~915ms) and did not land
-   until ~2085ms — the tools showed up before the thing they belong to. */
-body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray {
-  visibility: visible;
-  transition-delay: 0s;
-}
-
-/* Never covers the palette. */
-body.ws-cmd-open .ws-tray {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.16s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-body.assets-modal-open .ws-tray {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-
-.ws-video-tray,
-.ws-video-tray *,
-.ws-video-provider,
-.ws-video-provider * {
-  box-sizing: border-box;
-}
-
-.ws-video-tray {
-  position: fixed;
-  left: 50%;
-  bottom: calc(max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px))
-               + var(--ws-cmdbar-h) + 14px);
-  transform: translateX(-50%) translateY(22px) scale(0.96);
-  z-index: 59;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  width: min(760px, calc(100vw - 40px));
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  filter: blur(8px);
-  transition:
-    opacity 0.28s var(--ws-arrive-ease),
-    transform 0.38s var(--ws-arrive-ease),
-    filter 0.28s var(--ws-arrive-ease),
-    visibility 0s linear 360ms;
-}
-
-html body.print3d-page > .ws-video-tray {
-  position: fixed;
-  z-index: 59;
-}
-
-body.ws-video-mode.ws-intro-done.ws-panel-open .ws-video-tray {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
-  filter: blur(0);
-  transform: translateX(-50%) translateY(0) scale(1);
-  transition-delay: 0s;
-}
-
-body.ws-cmd-open .ws-video-tray,
-body.assets-modal-open .ws-video-tray {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-
-.ws-video-tray__row {
-  display: flex;
-  justify-content: center;
-  gap: 8px;
-  width: 100%;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: transparent;
-}
-
-.ws-video-tray__row--providers {
-  width: min(560px, 100%);
-}
-
-.ws-video-tray__btn,
-.ws-video-provider {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  font: inherit;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.ws-video-tray__btn {
-  gap: 9px;
-  min-width: 132px;
-  padding: 11px 18px;
-  border-radius: 999px;
-  color: var(--text-soft);
-  background:
-    linear-gradient(180deg, rgba(24, 32, 36, 0.82), rgba(11, 14, 16, 0.82));
-  -webkit-backdrop-filter: blur(22px) saturate(1.2);
-  backdrop-filter: blur(22px) saturate(1.2);
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(242, 245, 243, 0.045);
-  font-size: 13.5px;
-  font-weight: 650;
-  transition:
-    color 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
-}
-
-.ws-video-tray__btn.hidden {
-  display: none !important;
-}
-
-.ws-video-tray__icon {
-  width: 16px;
-  height: 16px;
-  flex: none;
-  opacity: 0.68;
-}
-
-.ws-video-tray__btn:hover,
-.ws-video-provider:hover {
-  color: var(--text);
-  transform: translateY(-2px);
-}
-
-.ws-video-tray__btn.is-active {
-  color: #071011;
-  background: linear-gradient(180deg, var(--accent-blue), rgba(127, 200, 194, 0.82));
-  box-shadow: 0 16px 40px rgba(var(--accent-blue-rgb), 0.16), 0 6px 16px rgba(0, 0, 0, 0.42);
-}
-
-.ws-video-provider {
-  flex: 1 1 0;
-  min-width: 0;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px 12px;
-  border-radius: 999px;
-  color: var(--text-dim);
-  background: rgba(18, 24, 26, 0.66);
-  -webkit-backdrop-filter: blur(18px) saturate(1.12);
-  backdrop-filter: blur(18px) saturate(1.12);
-  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(242, 245, 243, 0.035);
-  transition:
-    color 0.2s ease,
-    background 0.2s ease,
-    transform 0.2s ease;
-}
-
-.ws-video-provider .vpb-name {
-  overflow: hidden;
-  max-width: 100%;
-  text-overflow: ellipsis;
-  font-size: 12px;
-  font-weight: 750;
-  line-height: 1.1;
-}
-
-.ws-video-provider .vpb-tag {
-  overflow: hidden;
-  max-width: 100%;
-  text-overflow: ellipsis;
-  font-size: 10px;
-  font-weight: 650;
-  color: rgba(167, 176, 178, 0.48);
-}
-
-.ws-video-provider.is-active {
-  color: var(--text);
-  background: rgba(var(--accent-purple-rgb), 0.15);
-  border: 0;
-}
-
-.ws-video-provider.is-unavailable,
-.ws-video-provider:disabled {
-  opacity: 0.52;
-  cursor: not-allowed;
-  transform: none;
-  filter: grayscale(0.35);
-}
-
-.ws-video-provider.is-unavailable .vpb-tag::after,
-.ws-video-provider:disabled .vpb-tag::after {
-  content: " off";
-  color: rgba(167, 176, 178, 0.62);
-  text-transform: uppercase;
-}
-
-.ws-video-provider.is-unavailable:hover,
-.ws-video-provider:disabled:hover {
-  color: var(--text-dim);
-  transform: none;
-}
-
-.ws-tray__btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 11px 18px;
-  font: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: -0.005em;
-  color: var(--text-soft);
-  white-space: nowrap;
-
-  background:
-    linear-gradient(180deg, rgba(24, 32, 36, 0.84), rgba(11, 14, 16, 0.82));
-  -webkit-backdrop-filter: blur(22px) saturate(1.2);
-  backdrop-filter: blur(22px) saturate(1.2);
-  border: 0;
-  border-radius: 999px;
-  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(242, 245, 243, 0.045);
-  cursor: pointer;
-
-  /* Rest state: tucked behind the bar, small and out of focus. */
-  opacity: 0;
-  transform: translateY(26px) scale(0.86);
-  filter: blur(7px);
-  pointer-events: none;
-
-  transition:
-    opacity 0.42s var(--ws-arrive-ease),
-    transform 0.52s var(--ws-arrive-ease),
-    filter 0.42s var(--ws-arrive-ease),
-    color 0.2s ease,
-    background 0.2s ease,
-    box-shadow 0.2s ease;
-}
-
-body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  filter: blur(0);
-  pointer-events: auto;
-}
-
-/* Rise one after another, left to right. Leaving is deliberately un-staggered
-   and quicker — a slow exit reads as lag, a slow entrance reads as craft. */
-body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(1) { transition-delay: 40ms; }
-body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(2) { transition-delay: 95ms; }
-body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(3) { transition-delay: 150ms; }
-body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(4) { transition-delay: 205ms; }
-body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(5) { transition-delay: 260ms; }
-
-.ws-tray__icon {
-  width: 16px;
-  height: 16px;
-  flex: none;
-  opacity: 0.6;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  transition: opacity 0.2s ease;
-}
-
-.ws-tray__btn:hover {
-  color: var(--text);
-  background: linear-gradient(180deg, rgba(30, 40, 44, 0.92), rgba(15, 19, 21, 0.88));
-  transform: translateY(-3px) scale(1.03);
-  box-shadow: 0 20px 44px rgba(0, 0, 0, 0.56);
-}
-
-.ws-tray__btn:hover .ws-tray__icon { opacity: 0.95; }
-.ws-tray__btn:active { transform: translateY(-1px) scale(0.97); }
-
-.ws-tray__btn:focus-visible {
-  outline: 2px solid rgba(var(--accent-blue-rgb), 0.5);
-  outline-offset: 3px;
-}
-
-/* Active tool: brightest object in the group, with a non-colour cue. */
-.ws-tray__btn.is-active {
-  color: #071011;
-  background: linear-gradient(180deg, var(--accent-blue), rgba(127, 200, 194, 0.82));
-  box-shadow: 0 16px 40px rgba(var(--accent-blue-rgb), 0.16), 0 6px 16px rgba(0, 0, 0, 0.42);
-}
-
-.ws-tray__btn.is-active .ws-tray__icon { opacity: 1; stroke-width: 2; }
-.ws-tray__btn.is-active:hover {
-  color: #071011;
-  background: linear-gradient(180deg, #9bd8d3, var(--accent-blue));
-}
-
-@media (forced-colors: active) {
-  .ws-tray__btn.is-active { outline: 2px solid Highlight; outline-offset: 2px; }
-}
-
-/* --------------------------------------------------------------------------
-   Responsive
-   -------------------------------------------------------------------------- */
-@media (max-width: 900px) {
-  body.print3d-page.ws-model-mode.ws-panel-open { --ws-tray-h: 56px; }
-  body.print3d-page.ws-video-mode.ws-panel-open { --ws-tray-h: 104px; }
-  .ws-tray { gap: 6px; }
-  .ws-tray__btn { padding: 10px 15px; font-size: 13px; }
-  .ws-video-tray {
-    width: min(680px, calc(100vw - 24px));
-    gap: 7px;
+  body.ws-cmd-open .ws-header-left {
+    transform: perspective(1100px) translateZ(-70px);
+    opacity: 0.4;
+    filter: blur(1.5px);
+    transition:
+      transform 0.34s var(--ws-arrive-ease),
+      opacity 0.34s var(--ws-arrive-ease),
+      filter 0.34s var(--ws-arrive-ease);
   }
-  .ws-video-tray__btn {
-    min-width: 118px;
-    padding: 10px 15px;
-    font-size: 13px;
+  
+  .ws-credits,
+  .ws-header-left {
+    transition:
+      transform 0.42s var(--ws-arrive-ease),
+      opacity 0.42s var(--ws-arrive-ease),
+      filter 0.42s var(--ws-arrive-ease);
   }
-  .ws-video-provider {
-    padding: 7px 10px;
+  
+  /* --------------------------------------------------------------------------
+     Reduced motion — the sequence still reads, it just stops moving in depth.
+     -------------------------------------------------------------------------- */
+  @media (prefers-reduced-motion: reduce) {
+    @keyframes wsChromeArrive { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes wsBrandArrive  { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes wsBarArrive    { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes wsCornerLauncherArrive { from { opacity: 0; } to { opacity: 1; } }
+  
+    .ws-header-left,
+    .ws-credits > *,
+    .ws-cmd-trigger,
+    html body.print3d-page > .ws-corner-launcher { animation-duration: 320ms; filter: none; }
+  
+    #accountBeacon:hover,
+    #notificationBell:hover,
+    #inspireTriggerBtn:hover,
+    .ws-credits-pill:hover,
+    .ws-credits-buy:hover,
+    body.ws-cmd-hot .ws-credits > * { transform: none; }
+  
+    body.ws-cmd-open .ws-credits,
+    body.ws-cmd-open .ws-header-left { transform: none; filter: none; }
   }
-}
-
-@media (max-width: 560px) {
-  /* Two rows of chips would eat the viewport, so the tray scrolls sideways. */
-  body.print3d-page.ws-model-mode { --ws-tray-h: 52px; }
-  body.print3d-page.ws-video-mode { --ws-tray-h: 100px; }
+  
+  /* ==========================================================================
+     MODEL TOOL TRAY — rides above the command bar
+     --------------------------------------------------------------------------
+     Remesh / Texture / Rig / Animate only apply once a model exists, so they no
+     longer hang off the Model mode button. They surface next to the input the
+     moment model mode is active and stand down when it is not.
+  
+     3dprint-app.js toggles `body.ws-model-mode` from syncCreationDock(); every
+     behaviour below keys off that single class.
+     ========================================================================== */
+  
+  body.print3d-page {
+    --ws-tray-h: 0px;
+    /* Redefined on <body> (the :root copy is the no-tray fallback) so the tray's
+       height folds into the same reserved zone the viewer toolbar and the
+       scrolling layout already read for clearance. */
+    --ws-cmdbar-zone: calc(var(--ws-cmdbar-h) + var(--ws-cmdbar-gap) * 2 + var(--ws-tray-h));
+  }
+  
+  body.print3d-page.ws-model-mode.ws-panel-open { --ws-tray-h: 60px; }
+  body.print3d-page.ws-video-mode.ws-panel-open { --ws-tray-h: 112px; }
+  
   .ws-tray {
-    width: 100vw;
-    flex-wrap: nowrap;
-    justify-content: flex-start;
-    overflow-x: auto;
-    scrollbar-width: none;
-    padding: 0 10px;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
-    mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
-  }
-  .ws-tray::-webkit-scrollbar { display: none; }
-  .ws-tray__btn { padding: 10px 14px; font-size: 12.5px; }
-  .ws-tray__icon { width: 15px; height: 15px; }
-
-  .ws-video-tray {
-    width: 100vw;
-    padding: 0 10px;
-    align-items: stretch;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
-    mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
-  }
-
-  .ws-video-tray__row {
-    justify-content: flex-start;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .ws-video-tray__row::-webkit-scrollbar { display: none; }
-
-  .ws-video-tray__btn {
-    min-width: 112px;
-    padding: 10px 14px;
-    font-size: 12.5px;
-  }
-
-  .ws-video-provider {
-    flex: 0 0 auto;
-    min-width: 126px;
-    padding: 7px 11px;
-  }
-
-  .ws-video-tray__icon {
-    width: 15px;
-    height: 15px;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ws-tray__btn {
-    transform: none;
-    filter: none;
-    transition: opacity 0.2s linear, color 0.2s linear, background 0.2s linear;
-  }
-  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn { transform: none; transition-delay: 0s; }
-  .ws-tray__btn:hover,
-  .ws-tray__btn:active { transform: none; }
-
-  .ws-video-tray {
+    position: fixed;
+    left: 50%;
+    bottom: calc(max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px))
+                 + var(--ws-cmdbar-h) + 14px);
     transform: translateX(-50%);
-    filter: none;
-    transition: opacity 0.2s linear;
+    z-index: 59;
+  
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: min(var(--ws-cmdbar-w), calc(100vw - 40px));
+    padding: 0 6px;
+  
+    /* Hidden state must also leave the a11y tree and the tab order, but not
+       before the exit transition has played. */
+    visibility: hidden;
+    transition: visibility 0s linear 380ms;
   }
-
+  
+  /* .ws-intro-done is added by command-palette.js when the command bar's own
+     arrival animation ends. Without it the tray was fully revealed at ~780ms
+     while the bar had not even started appearing (~915ms) and did not land
+     until ~2085ms — the tools showed up before the thing they belong to. */
+  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray {
+    visibility: visible;
+    transition-delay: 0s;
+  }
+  
+  /* Never covers the palette. */
+  body.ws-cmd-open .ws-tray {
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  body.assets-modal-open .ws-tray {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  
+  .ws-video-tray,
+  .ws-video-tray *,
+  .ws-video-provider,
+  .ws-video-provider * {
+    box-sizing: border-box;
+  }
+  
+  .ws-video-tray {
+    position: fixed;
+    left: 50%;
+    bottom: calc(max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px))
+                 + var(--ws-cmdbar-h) + 14px);
+    transform: translateX(-50%) translateY(22px) scale(0.96);
+    z-index: 59;
+  
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    width: min(760px, calc(100vw - 40px));
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    filter: blur(8px);
+    transition:
+      opacity 0.28s var(--ws-arrive-ease),
+      transform 0.38s var(--ws-arrive-ease),
+      filter 0.28s var(--ws-arrive-ease),
+      visibility 0s linear 360ms;
+  }
+  
+  html body.print3d-page > .ws-video-tray {
+    position: fixed;
+    z-index: 59;
+  }
+  
   body.ws-video-mode.ws-intro-done.ws-panel-open .ws-video-tray {
-    transform: translateX(-50%);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    filter: blur(0);
+    transform: translateX(-50%) translateY(0) scale(1);
+    transition-delay: 0s;
   }
-
+  
+  body.ws-cmd-open .ws-video-tray,
+  body.assets-modal-open .ws-video-tray {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  
+  .ws-video-tray__row {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+  }
+  
+  .ws-video-tray__row--providers {
+    width: min(560px, 100%);
+  }
+  
+  .ws-video-tray__btn,
+  .ws-video-provider {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    font: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  
+  .ws-video-tray__btn {
+    gap: 9px;
+    min-width: 132px;
+    padding: 11px 18px;
+    border-radius: 999px;
+    color: var(--text-soft);
+    background:
+      linear-gradient(180deg, rgba(24, 32, 36, 0.82), rgba(11, 14, 16, 0.82));
+    -webkit-backdrop-filter: blur(22px) saturate(1.2);
+    backdrop-filter: blur(22px) saturate(1.2);
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(242, 245, 243, 0.045);
+    font-size: 13.5px;
+    font-weight: 650;
+    transition:
+      color 0.2s ease,
+      background 0.2s ease,
+      box-shadow 0.2s ease,
+      transform 0.2s ease;
+  }
+  
+  .ws-video-tray__btn.hidden {
+    display: none !important;
+  }
+  
+  .ws-video-tray__icon {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    opacity: 0.68;
+  }
+  
   .ws-video-tray__btn:hover,
   .ws-video-provider:hover {
+    color: var(--text);
+    transform: translateY(-2px);
+  }
+  
+  .ws-video-tray__btn.is-active {
+    color: #071011;
+    background: linear-gradient(180deg, var(--accent-blue), rgba(127, 200, 194, 0.82));
+    box-shadow: 0 16px 40px rgba(var(--accent-blue-rgb), 0.16), 0 6px 16px rgba(0, 0, 0, 0.42);
+  }
+  
+  .ws-video-provider {
+    flex: 1 1 0;
+    min-width: 0;
+    flex-direction: column;
+    gap: 2px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    color: var(--text-dim);
+    background: rgba(18, 24, 26, 0.66);
+    -webkit-backdrop-filter: blur(18px) saturate(1.12);
+    backdrop-filter: blur(18px) saturate(1.12);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(242, 245, 243, 0.035);
+    transition:
+      color 0.2s ease,
+      background 0.2s ease,
+      transform 0.2s ease;
+  }
+  
+  .ws-video-provider .vpb-name {
+    overflow: hidden;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    font-size: 12px;
+    font-weight: 750;
+    line-height: 1.1;
+  }
+  
+  .ws-video-provider .vpb-tag {
+    overflow: hidden;
+    max-width: 100%;
+    text-overflow: ellipsis;
+    font-size: 10px;
+    font-weight: 650;
+    color: rgba(167, 176, 178, 0.48);
+  }
+  
+  .ws-video-provider.is-active {
+    color: var(--text);
+    background: rgba(var(--accent-purple-rgb), 0.15);
+    border: 0;
+  }
+  
+  .ws-video-provider.is-unavailable,
+  .ws-video-provider:disabled {
+    opacity: 0.52;
+    cursor: not-allowed;
+    transform: none;
+    filter: grayscale(0.35);
+  }
+  
+  .ws-video-provider.is-unavailable .vpb-tag::after,
+  .ws-video-provider:disabled .vpb-tag::after {
+    content: " off";
+    color: rgba(167, 176, 178, 0.62);
+    text-transform: uppercase;
+  }
+  
+  .ws-video-provider.is-unavailable:hover,
+  .ws-video-provider:disabled:hover {
+    color: var(--text-dim);
     transform: none;
   }
-}
-
-/* ==========================================================================
-   Bottom-right workspace launcher
-   ========================================================================== */
-.ws-corner-launcher,
-.ws-corner-launcher *,
-.ws-prompt-guide-launcher,
-.ws-prompt-guide-launcher * {
-  box-sizing: border-box;
-}
-
-html body.print3d-page > .ws-corner-launcher {
-  position: fixed !important;
-  inset: 0 !important;
-  z-index: 10000 !important;
-  display: block;
-  width: 100vw !important;
-  height: 100svh !important;
-  pointer-events: none;
-}
-
-.ws-prompt-guide-launcher {
-  position: fixed !important;
-  left: calc(50% + (min(var(--ws-cmdbar-w), calc(100vw - 40px)) / 2) + var(--ws-cmdbar-h) + 36px) !important;
-  right: auto !important;
-  bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px)) !important;
-  top: auto !important;
-  z-index: 10000 !important;
-  display: inline-flex;
-  align-items: flex-end;
-  width: auto !important;
-  height: auto !important;
-  pointer-events: none;
-  animation: wsCornerLauncherArrive var(--ws-arrive-dur) var(--ws-arrive-ease) 760ms backwards;
-  transform-origin: 50% 50%;
-}
-
-.ws-corner-launcher__guide,
-.ws-prompt-guide,
-.ws-prompt-guide * {
-  box-sizing: border-box;
-}
-
-.ws-corner-launcher__guide {
-  position: relative;
-  order: 2;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: var(--ws-cmdbar-h);
-  padding: 0 12px;
-  border: 0;
-  border-radius: 999px;
-  color: rgba(226, 237, 235, 0.78);
-  background: transparent;
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  box-shadow: none;
-  font: inherit;
-  font-size: 11px;
-  font-weight: 760;
-  letter-spacing: 0.04em;
-  cursor: pointer;
-  pointer-events: auto;
-  transition:
-    color 0.22s ease,
-    background 0.22s ease,
-    transform 0.28s var(--ws-arrive-ease),
-    filter 0.22s ease;
-}
-
-.ws-corner-launcher__guide svg {
-  width: 20px;
-  height: 20px;
-  flex: none;
-  color: var(--accent);
-  filter: drop-shadow(0 4px 10px rgba(var(--accent-blue-rgb), 0.18));
-}
-
-.ws-corner-launcher__guide:hover,
-.ws-corner-launcher__guide:focus-visible,
-.ws-prompt-guide-launcher.guide-open .ws-corner-launcher__guide {
-  color: var(--text);
-  background: transparent;
-  transform: translateY(-3px);
-  filter: drop-shadow(0 8px 16px rgba(var(--accent-blue-rgb), 0.15));
-}
-
-.ws-corner-launcher__guide:focus-visible {
-  outline: 2px solid rgba(var(--accent-blue-rgb), 0.48);
-  outline-offset: 4px;
-}
-
-.ws-prompt-guide {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 12px);
-  width: min(348px, calc(100vw - 24px));
-  padding: 18px;
-  border: 1px solid rgba(154, 191, 187, 0.2);
-  border-radius: 18px;
-  color: var(--text);
-  background:
-    linear-gradient(145deg, rgba(22, 31, 33, 0.96), rgba(9, 13, 15, 0.97));
-  -webkit-backdrop-filter: blur(22px) saturate(1.08);
-  backdrop-filter: blur(22px) saturate(1.08);
-  box-shadow:
-    0 20px 44px rgba(0, 0, 0, 0.42),
-    inset 0 1px 0 rgba(242, 245, 243, 0.06);
-  opacity: 0;
-  transform: translateY(10px) scale(0.96);
-  transform-origin: 92% 100%;
-  pointer-events: none;
-  transition:
-    opacity 0.22s ease,
-    transform 0.3s var(--ws-arrive-ease);
-}
-
-.ws-prompt-guide-launcher.guide-open .ws-prompt-guide {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-}
-
-.ws-prompt-guide__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-  padding-bottom: 13px;
-  border-bottom: 1px solid rgba(154, 191, 187, 0.12);
-}
-
-.ws-prompt-guide__eyebrow {
-  display: block;
-  margin-bottom: 5px;
-  color: var(--accent-blue);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-}
-
-.ws-prompt-guide h2 {
-  margin: 0;
-  color: var(--text);
-  font-size: 16px;
-  line-height: 1.2;
-  letter-spacing: 0;
-}
-
-.ws-prompt-guide__close {
-  display: grid;
-  place-items: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  color: var(--text-soft);
-  background: rgba(255, 255, 255, 0.06);
-  font-size: 20px;
-  line-height: 1;
-  cursor: pointer;
-}
-
-.ws-prompt-guide__close:hover,
-.ws-prompt-guide__close:focus-visible {
-  color: var(--text);
-  background: rgba(255, 255, 255, 0.12);
-}
-
-.ws-prompt-guide__close:focus-visible {
-  outline: 2px solid rgba(var(--accent-blue-rgb), 0.48);
-  outline-offset: 2px;
-}
-
-.ws-prompt-guide__intro {
-  margin: 14px 0 13px;
-  color: var(--text-soft);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
-.ws-prompt-guide__steps {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  counter-reset: prompt-step;
-}
-
-.ws-prompt-guide__steps li {
-  display: grid;
-  grid-template-columns: 76px minmax(0, 1fr);
-  gap: 8px;
-  color: var(--text-soft);
-  font-size: 11px;
-  line-height: 1.35;
-}
-
-.ws-prompt-guide__steps li::before {
-  counter-increment: prompt-step;
-  content: "0" counter(prompt-step);
-  grid-row: 1;
-  grid-column: 1;
-  color: var(--accent);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.ws-prompt-guide__steps b {
-  grid-column: 1;
-  padding-left: 22px;
-  color: var(--text);
-  font-weight: 760;
-}
-
-.ws-prompt-guide__steps span {
-  grid-column: 2;
-  grid-row: 1;
-}
-
-.ws-prompt-guide__examples {
-  display: grid;
-  gap: 7px;
-  margin-top: 15px;
-  padding-top: 13px;
-  border-top: 1px solid rgba(154, 191, 187, 0.12);
-}
-
-.ws-prompt-guide__examples button {
-  display: block;
-  width: 100%;
-  padding: 9px 10px;
-  border: 0;
-  border-radius: 9px;
-  color: var(--text-soft);
-  background: rgba(255, 255, 255, 0.045);
-  font: inherit;
-  font-size: 11px;
-  line-height: 1.35;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
-}
-
-.ws-prompt-guide__examples button span {
-  display: inline-block;
-  margin-right: 7px;
-  color: var(--accent-blue);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-}
-
-.ws-prompt-guide__examples button:hover,
-.ws-prompt-guide__examples button:focus-visible {
-  color: var(--text);
-  background: rgba(var(--accent-blue-rgb), 0.12);
-  transform: translateX(2px);
-}
-
-.ws-prompt-guide__examples button:focus-visible {
-  outline: 2px solid rgba(var(--accent-blue-rgb), 0.44);
-  outline-offset: 2px;
-}
-
-@media (max-width: 560px) {
-  .ws-corner-launcher__guide {
-    width: var(--ws-cmdbar-h);
-    padding: 0;
-  }
-
-  .ws-corner-launcher__guide span {
-    display: none;
-  }
-
-  .ws-prompt-guide {
-    right: -4px;
-    width: min(348px, calc(100vw - 20px));
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ws-corner-launcher__guide,
-  .ws-prompt-guide {
-    transition-duration: 0.01ms;
-  }
-}
-
-.ws-corner-launcher__action,
-.ws-corner-launcher .assets-side-launcher {
-  position: fixed !important;
-  top: clamp(260px, 52svh, calc(100svh - 190px)) !important;
-  z-index: 10002 !important;
-  display: inline-flex !important;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  min-width: 148px;
-  min-height: 54px;
-  padding: 0 18px;
-  border: 1px solid rgba(136, 236, 224, 0.24) !important;
-  border-radius: 999px;
-  color: rgba(231, 240, 238, 0.84) !important;
-  background:
-    linear-gradient(120deg, rgba(10, 16, 18, 0.08), rgba(146, 231, 218, 0.15) 48%, rgba(10, 16, 18, 0.08)),
-    linear-gradient(145deg, rgba(18, 25, 28, 0.7), rgba(6, 8, 10, 0.82)) !important;
-  -webkit-backdrop-filter: blur(18px) saturate(1.1) !important;
-  backdrop-filter: blur(18px) saturate(1.1) !important;
-  box-shadow:
-    0 18px 42px rgba(0, 0, 0, 0.34),
-    0 0 0 1px rgba(255, 255, 255, 0.045) inset,
-    0 0 34px rgba(var(--accent-blue-rgb), 0.08) !important;
-  font: inherit;
-  font-size: 11px;
-  font-weight: 820;
-  letter-spacing: 0.11em;
-  text-transform: uppercase;
-  cursor: pointer;
-  pointer-events: auto;
-  isolation: isolate;
-  overflow: hidden;
-  transform: translate3d(0, -50%, 0);
-  transition:
-    color 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.24s ease,
-    transform 0.28s var(--ws-arrive-ease);
-}
-
-.ws-corner-launcher__action--assets {
-  left: clamp(20px, 4vw, 72px) !important;
-}
-
-.ws-corner-launcher__action--viewer {
-  right: clamp(20px, 4vw, 72px) !important;
-}
-
-body.ws-panel-open .ws-corner-launcher__action,
-body.ws-panel-open .ws-corner-launcher .assets-side-launcher {
-  top: clamp(148px, 22svh, 260px) !important;
-  z-index: 10004 !important;
-}
-
-.ws-corner-launcher__action::before,
-.ws-corner-launcher__action::after {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-  z-index: -1;
-}
-
-.ws-corner-launcher__action::before {
-  inset: 7px;
-  border-radius: inherit;
-  border: 1px solid rgba(246, 224, 181, 0.12);
-}
-
-.ws-corner-launcher__action::after {
-  inset: -55% -18%;
-  background:
-    linear-gradient(100deg, transparent 18%, rgba(245, 226, 190, 0.28), transparent 52%);
-  opacity: 0.48;
-  transform: translateX(-72%) rotate(8deg);
-  animation: wsEdgeActionScan 4.8s ease-in-out infinite;
-}
-
-.ws-corner-launcher__beam {
-  position: absolute;
-  inset: auto 18px -12px;
-  height: 1px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, transparent, rgba(var(--accent-blue-rgb), 0.58), transparent);
-  box-shadow: 0 0 18px rgba(var(--accent-blue-rgb), 0.25);
-  opacity: 0.78;
-}
-
-.ws-corner-launcher__action:hover,
-.ws-corner-launcher__action:focus-visible {
-  color: var(--text) !important;
-  border-color: rgba(136, 236, 224, 0.44) !important;
-  box-shadow:
-    0 20px 46px rgba(0, 0, 0, 0.38),
-    0 0 0 1px rgba(255, 255, 255, 0.06) inset,
-    0 0 44px rgba(var(--accent-blue-rgb), 0.18) !important;
-  transform: translate3d(0, -50%, 0) scale(1.045);
-}
-
-.ws-corner-launcher__action:focus-visible {
-  outline: 2px solid rgba(var(--accent-blue-rgb), 0.48);
-  outline-offset: 5px;
-}
-
-.ws-corner-launcher__action svg {
-  width: 20px !important;
-  height: 20px !important;
-  flex: none;
-  color: var(--accent-blue);
-  filter: drop-shadow(0 0 10px rgba(var(--accent-blue-rgb), 0.2));
-}
-
-.ws-corner-launcher__action span:not(.ws-corner-launcher__beam) {
-  font-size: inherit !important;
-  font-weight: inherit !important;
-  letter-spacing: inherit !important;
-  text-transform: inherit !important;
-}
-
-body.assets-modal-open .ws-corner-launcher,
-body.ws-cmd-open .ws-corner-launcher,
-body.assets-modal-open .ws-prompt-guide-launcher,
-body.ws-cmd-open .ws-prompt-guide-launcher {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.ws-mobile-tab[data-open-assets] {
-  display: none !important;
-}
-
-body.ws-viewer-open .timrx-3dprint .ws-grid {
-  display: grid !important;
-  width: 100%;
-  height: 100%;
-  min-height: 0;
-  margin: 0 auto;
-  padding: clamp(14px, 2.4vh, 28px) clamp(14px, 2.4vw, 34px);
-  grid-template-columns: minmax(0, 1fr) !important;
-  grid-template-areas: "viewer" !important;
-  grid-template-rows: minmax(0, 1fr) !important;
-  column-gap: 0 !important;
-  align-content: center;
-  justify-items: center;
-  overflow: visible;
-}
-
-body.ws-viewer-open .ws-header,
-body.ws-viewer-open .ws-cmd-trigger,
-body.ws-viewer-open .ws-tray,
-body.ws-viewer-open .ws-video-tray,
-body.ws-viewer-open .timrx-3dprint .ws-rail,
-body.ws-viewer-open .timrx-3dprint .ws-left,
-body.ws-viewer-open .timrx-3dprint .ws-right,
-body.ws-viewer-open .ws-mobile-tabs,
-body.ws-viewer-open .ws-corner-launcher,
-body.ws-viewer-open .ws-prompt-guide-launcher,
-html body.print3d-page.ws-viewer-open > .cc-banner {
-  opacity: 0 !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-}
-
-@keyframes wsEdgeActionScan {
-  0%,
-  36% {
+  
+  .ws-tray__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 11px 18px;
+    font: inherit;
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: -0.005em;
+    color: var(--text-soft);
+    white-space: nowrap;
+  
+    background:
+      linear-gradient(180deg, rgba(24, 32, 36, 0.84), rgba(11, 14, 16, 0.82));
+    -webkit-backdrop-filter: blur(22px) saturate(1.2);
+    backdrop-filter: blur(22px) saturate(1.2);
+    border: 0;
+    border-radius: 999px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(242, 245, 243, 0.045);
+    cursor: pointer;
+  
+    /* Rest state: tucked behind the bar, small and out of focus. */
     opacity: 0;
-    transform: translateX(-76%) rotate(8deg);
+    transform: translateY(26px) scale(0.86);
+    filter: blur(7px);
+    pointer-events: none;
+  
+    transition:
+      opacity 0.42s var(--ws-arrive-ease),
+      transform 0.52s var(--ws-arrive-ease),
+      filter 0.42s var(--ws-arrive-ease),
+      color 0.2s ease,
+      background 0.2s ease,
+      box-shadow 0.2s ease;
   }
-  48% {
-    opacity: 0.5;
-  }
-  68%,
-  100% {
-    opacity: 0;
-    transform: translateX(76%) rotate(8deg);
-  }
-}
-
-body.ws-viewer-open .timrx-3dprint .ws-grid > :not(.ws-viewer) {
-  display: none !important;
-}
-
-body.ws-viewer-open .timrx-3dprint .ws-viewer {
-  grid-column: 1 / -1 !important;
-  grid-area: viewer !important;
-  display: flex !important;
-  width: min(96vw, 1960px);
-  max-width: calc(100vw - clamp(28px, 4.8vw, 68px));
-  height: min(90vh, 1020px);
-  max-height: calc(100vh - clamp(32px, 5vh, 56px));
-  min-height: min(620px, calc(100vh - 56px));
-  justify-self: center;
-  align-self: center;
-  margin: 0;
-  z-index: 70;
-}
-
-body.ws-viewer-open .timrx-3dprint .viewer-wrap {
-  height: 100%;
-  min-height: 0;
-  background:
-    radial-gradient(circle at 50% 0%, rgba(var(--accent-blue-rgb), 0.08), transparent 34%),
-    linear-gradient(180deg, rgba(18, 24, 26, 0.94), rgba(9, 12, 13, 0.96));
-  border-color: var(--border-soft);
-}
-
-body.ws-viewer-open .timrx-3dprint {
-  height: 100vh;
-  width: 100vw !important;
-  max-width: none !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: hidden;
-}
-
-html:has(body.ws-viewer-open),
-body.ws-viewer-open {
-  width: 100%;
-  max-width: 100%;
-  overflow: hidden !important;
-}
-
-/* The viewer owns its action dock while expanded. Keep it hidden until
-   viewer.js marks a real model as loaded, then restore the existing controls
-   above the canvas footer. The command bar is hidden in this mode, so the
-   normal page-level clearance is no longer needed. */
-body.ws-viewer-open .timrx-3dprint .viewer-toolbar {
-  bottom: clamp(18px, 3vh, 36px);
-  z-index: 80;
-}
-
-body.ws-viewer-open .timrx-3dprint .viewer-toolbar.visible {
-  opacity: 1 !important;
-  visibility: visible !important;
-  pointer-events: auto !important;
-  transform: translateX(-50%) translateY(0);
-}
-
-body.ws-viewer-open .viewer-close-btn {
-  display: inline-flex !important;
-}
-
-body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
-  display: flex;
-  align-items: flex-start;
-  justify-content: flex-end;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.timrx-3dprint .viewer-close-btn {
-  display: none !important;
-}
-
-@media (max-width: 900px) {
-  body.ws-viewer-open .timrx-3dprint {
-    padding: 0 !important;
-  }
-
-  body.ws-viewer-open .timrx-3dprint .ws-grid {
-    padding: 12px;
-  }
-
-  body.ws-viewer-open .timrx-3dprint .ws-viewer {
-    width: min(100%, calc(100vw - 24px));
-    height: min(86vh, 760px);
-    min-height: min(560px, calc(100vh - 32px));
-    max-height: calc(100vh - 24px);
-  }
-
-  body.ws-viewer-open .timrx-3dprint .viewer-overlay-head {
-    padding: 12px 12px 22px;
-  }
-
-  body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-sub {
-    display: none;
-  }
-
-  body.ws-viewer-open .timrx-3dprint .viewer-toolbar {
-    left: 12px;
-    right: 12px;
-    max-width: calc(100% - 24px);
-    overflow-x: auto;
-    justify-content: flex-start;
-    transform: translateY(20px);
-  }
-
-  body.ws-viewer-open .timrx-3dprint .viewer-toolbar.visible {
-    transform: translateY(0);
-  }
-}
-
-@media (max-width: 560px) {
-  body.ws-viewer-open .timrx-3dprint .ws-viewer {
-    width: min(100%, calc(100vw - 16px));
-    height: min(84vh, 720px);
-    min-height: min(480px, calc(100vh - 24px));
-  }
-
-  body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
-    gap: 10px;
-  }
-
-  body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .icon-btn {
-    padding: 8px 9px;
-  }
-
-  body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .icon-btn span {
-    display: none;
-  }
-}
-
-@keyframes cornerLauncherOrbit {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes cornerLauncherPulse {
-  0%, 72%, 100% {
-    opacity: 0;
-    transform: scale(0.86);
-  }
-  82% {
-    opacity: 0.72;
-  }
-  96% {
-    opacity: 0;
-    transform: scale(1.38);
-  }
-}
-
-@keyframes cornerLauncherNudge {
-  0%, 70%, 100% { transform: translateY(0) rotate(0deg); }
-  76% { transform: translateY(-4px) rotate(-2deg); }
-  82% { transform: translateY(0) rotate(2deg); }
-  88% { transform: translateY(-2px) rotate(0deg); }
-}
-
-@keyframes cornerLauncherCubeFloat {
-  0%, 100% { transform: translateY(0) scale(1); }
-  46% { transform: translateY(-1.8px) scale(1.04); }
-}
-
-@keyframes cornerLauncherSpark {
-  0%, 100% {
-    opacity: 0.42;
-    transform: scale(0.75) rotate(0deg);
-  }
-  45% {
+  
+  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn {
     opacity: 1;
-    transform: scale(1.08) rotate(90deg);
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+    pointer-events: auto;
   }
-}
-
-@media (max-width: 560px) {
+  
+  /* Rise one after another, left to right. Leaving is deliberately un-staggered
+     and quicker — a slow exit reads as lag, a slow entrance reads as craft. */
+  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(1) { transition-delay: 40ms; }
+  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(2) { transition-delay: 95ms; }
+  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(3) { transition-delay: 150ms; }
+  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(4) { transition-delay: 205ms; }
+  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(5) { transition-delay: 260ms; }
+  
+  .ws-tray__icon {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    opacity: 0.6;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: opacity 0.2s ease;
+  }
+  
+  .ws-tray__btn:hover {
+    color: var(--text);
+    background: linear-gradient(180deg, rgba(30, 40, 44, 0.92), rgba(15, 19, 21, 0.88));
+    transform: translateY(-3px) scale(1.03);
+    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.56);
+  }
+  
+  .ws-tray__btn:hover .ws-tray__icon { opacity: 0.95; }
+  .ws-tray__btn:active { transform: translateY(-1px) scale(0.97); }
+  
+  .ws-tray__btn:focus-visible {
+    outline: 2px solid rgba(var(--accent-blue-rgb), 0.5);
+    outline-offset: 3px;
+  }
+  
+  /* Active tool: brightest object in the group, with a non-colour cue. */
+  .ws-tray__btn.is-active {
+    color: #071011;
+    background: linear-gradient(180deg, var(--accent-blue), rgba(127, 200, 194, 0.82));
+    box-shadow: 0 16px 40px rgba(var(--accent-blue-rgb), 0.16), 0 6px 16px rgba(0, 0, 0, 0.42);
+  }
+  
+  .ws-tray__btn.is-active .ws-tray__icon { opacity: 1; stroke-width: 2; }
+  .ws-tray__btn.is-active:hover {
+    color: #071011;
+    background: linear-gradient(180deg, #9bd8d3, var(--accent-blue));
+  }
+  
+  @media (forced-colors: active) {
+    .ws-tray__btn.is-active { outline: 2px solid Highlight; outline-offset: 2px; }
+  }
+  
+  /* --------------------------------------------------------------------------
+     Responsive
+     -------------------------------------------------------------------------- */
+  @media (max-width: 900px) {
+    body.print3d-page.ws-model-mode.ws-panel-open { --ws-tray-h: 56px; }
+    body.print3d-page.ws-video-mode.ws-panel-open { --ws-tray-h: 104px; }
+    .ws-tray { gap: 6px; }
+    .ws-tray__btn { padding: 10px 15px; font-size: 13px; }
+    .ws-video-tray {
+      width: min(680px, calc(100vw - 24px));
+      gap: 7px;
+    }
+    .ws-video-tray__btn {
+      min-width: 118px;
+      padding: 10px 15px;
+      font-size: 13px;
+    }
+    .ws-video-provider {
+      padding: 7px 10px;
+    }
+  }
+  
+  @media (max-width: 560px) {
+    /* Two rows of chips would eat the viewport, so the tray scrolls sideways. */
+    body.print3d-page.ws-model-mode { --ws-tray-h: 52px; }
+    body.print3d-page.ws-video-mode { --ws-tray-h: 100px; }
+    .ws-tray {
+      width: 100vw;
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      overflow-x: auto;
+      scrollbar-width: none;
+      padding: 0 10px;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+      mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+    }
+    .ws-tray::-webkit-scrollbar { display: none; }
+    .ws-tray__btn { padding: 10px 14px; font-size: 12.5px; }
+    .ws-tray__icon { width: 15px; height: 15px; }
+  
+    .ws-video-tray {
+      width: 100vw;
+      padding: 0 10px;
+      align-items: stretch;
+      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+      mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
+    }
+  
+    .ws-video-tray__row {
+      justify-content: flex-start;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+  
+    .ws-video-tray__row::-webkit-scrollbar { display: none; }
+  
+    .ws-video-tray__btn {
+      min-width: 112px;
+      padding: 10px 14px;
+      font-size: 12.5px;
+    }
+  
+    .ws-video-provider {
+      flex: 0 0 auto;
+      min-width: 126px;
+      padding: 7px 11px;
+    }
+  
+    .ws-video-tray__icon {
+      width: 15px;
+      height: 15px;
+    }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .ws-tray__btn {
+      transform: none;
+      filter: none;
+      transition: opacity 0.2s linear, color 0.2s linear, background 0.2s linear;
+    }
+    body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn { transform: none; transition-delay: 0s; }
+    .ws-tray__btn:hover,
+    .ws-tray__btn:active { transform: none; }
+  
+    .ws-video-tray {
+      transform: translateX(-50%);
+      filter: none;
+      transition: opacity 0.2s linear;
+    }
+  
+    body.ws-video-mode.ws-intro-done.ws-panel-open .ws-video-tray {
+      transform: translateX(-50%);
+    }
+  
+    .ws-video-tray__btn:hover,
+    .ws-video-provider:hover {
+      transform: none;
+    }
+  }
+  
+  /* ==========================================================================
+     Bottom-right workspace launcher
+     ========================================================================== */
+  .ws-corner-launcher,
+  .ws-corner-launcher *,
+  .ws-prompt-guide-launcher,
+  .ws-prompt-guide-launcher * {
+    box-sizing: border-box;
+  }
+  
   html body.print3d-page > .ws-corner-launcher {
+    position: fixed !important;
     inset: 0 !important;
+    z-index: 10000 !important;
+    display: block;
     width: 100vw !important;
     height: 100svh !important;
+    pointer-events: none;
   }
-
-  html body.print3d-page > .ws-prompt-guide-launcher {
-    left: auto !important;
-    right: max(12px, env(safe-area-inset-right, 0px)) !important;
+  
+  .ws-prompt-guide-launcher {
+    position: fixed !important;
+    left: calc(50% + (min(var(--ws-cmdbar-w), calc(100vw - 40px)) / 2) + var(--ws-cmdbar-h) + 36px) !important;
+    right: auto !important;
     bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px)) !important;
+    top: auto !important;
+    z-index: 10000 !important;
+    display: inline-flex;
+    align-items: flex-end;
+    width: auto !important;
+    height: auto !important;
+    pointer-events: none;
+    animation: wsCornerLauncherArrive var(--ws-arrive-dur) var(--ws-arrive-ease) 760ms backwards;
+    transform-origin: 50% 50%;
   }
-
+  
+  .ws-corner-launcher__guide,
+  .ws-prompt-guide,
+  .ws-prompt-guide * {
+    box-sizing: border-box;
+  }
+  
+  .ws-corner-launcher__guide {
+    position: relative;
+    order: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: var(--ws-cmdbar-h);
+    padding: 0 12px;
+    border: 0;
+    border-radius: 999px;
+    color: rgba(226, 237, 235, 0.78);
+    background: transparent;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    box-shadow: none;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 760;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    pointer-events: auto;
+    transition:
+      color 0.22s ease,
+      background 0.22s ease,
+      transform 0.28s var(--ws-arrive-ease),
+      filter 0.22s ease;
+  }
+  
+  .ws-corner-launcher__guide svg {
+    width: 20px;
+    height: 20px;
+    flex: none;
+    color: var(--accent);
+    filter: drop-shadow(0 4px 10px rgba(var(--accent-blue-rgb), 0.18));
+  }
+  
+  .ws-corner-launcher__guide:hover,
+  .ws-corner-launcher__guide:focus-visible,
+  .ws-prompt-guide-launcher.guide-open .ws-corner-launcher__guide {
+    color: var(--text);
+    background: transparent;
+    transform: translateY(-3px);
+    filter: drop-shadow(0 8px 16px rgba(var(--accent-blue-rgb), 0.15));
+  }
+  
+  .ws-corner-launcher__guide:focus-visible {
+    outline: 2px solid rgba(var(--accent-blue-rgb), 0.48);
+    outline-offset: 4px;
+  }
+  
+  .ws-prompt-guide {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 12px);
+    width: min(348px, calc(100vw - 24px));
+    padding: 18px;
+    border: 1px solid rgba(154, 191, 187, 0.2);
+    border-radius: 18px;
+    color: var(--text);
+    background:
+      linear-gradient(145deg, rgba(22, 31, 33, 0.96), rgba(9, 13, 15, 0.97));
+    -webkit-backdrop-filter: blur(22px) saturate(1.08);
+    backdrop-filter: blur(22px) saturate(1.08);
+    box-shadow:
+      0 20px 44px rgba(0, 0, 0, 0.42),
+      inset 0 1px 0 rgba(242, 245, 243, 0.06);
+    opacity: 0;
+    transform: translateY(10px) scale(0.96);
+    transform-origin: 92% 100%;
+    pointer-events: none;
+    transition:
+      opacity 0.22s ease,
+      transform 0.3s var(--ws-arrive-ease);
+  }
+  
+  .ws-prompt-guide-launcher.guide-open .ws-prompt-guide {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+  }
+  
+  .ws-prompt-guide__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 14px;
+    padding-bottom: 13px;
+    border-bottom: 1px solid rgba(154, 191, 187, 0.12);
+  }
+  
+  .ws-prompt-guide__eyebrow {
+    display: block;
+    margin-bottom: 5px;
+    color: var(--accent-blue);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+  }
+  
+  .ws-prompt-guide h2 {
+    margin: 0;
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.2;
+    letter-spacing: 0;
+  }
+  
+  .ws-prompt-guide__close {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    color: var(--text-soft);
+    background: rgba(255, 255, 255, 0.06);
+    font-size: 20px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  
+  .ws-prompt-guide__close:hover,
+  .ws-prompt-guide__close:focus-visible {
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.12);
+  }
+  
+  .ws-prompt-guide__close:focus-visible {
+    outline: 2px solid rgba(var(--accent-blue-rgb), 0.48);
+    outline-offset: 2px;
+  }
+  
+  .ws-prompt-guide__intro {
+    margin: 14px 0 13px;
+    color: var(--text-soft);
+    font-size: 12px;
+    line-height: 1.5;
+  }
+  
+  .ws-prompt-guide__steps {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: prompt-step;
+  }
+  
+  .ws-prompt-guide__steps li {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr);
+    gap: 8px;
+    color: var(--text-soft);
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  
+  .ws-prompt-guide__steps li::before {
+    counter-increment: prompt-step;
+    content: "0" counter(prompt-step);
+    grid-row: 1;
+    grid-column: 1;
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+  }
+  
+  .ws-prompt-guide__steps b {
+    grid-column: 1;
+    padding-left: 22px;
+    color: var(--text);
+    font-weight: 760;
+  }
+  
+  .ws-prompt-guide__steps span {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  
+  .ws-prompt-guide__examples {
+    display: grid;
+    gap: 7px;
+    margin-top: 15px;
+    padding-top: 13px;
+    border-top: 1px solid rgba(154, 191, 187, 0.12);
+  }
+  
+  .ws-prompt-guide__examples button {
+    display: block;
+    width: 100%;
+    padding: 9px 10px;
+    border: 0;
+    border-radius: 9px;
+    color: var(--text-soft);
+    background: rgba(255, 255, 255, 0.045);
+    font: inherit;
+    font-size: 11px;
+    line-height: 1.35;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  }
+  
+  .ws-prompt-guide__examples button span {
+    display: inline-block;
+    margin-right: 7px;
+    color: var(--accent-blue);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+  
+  .ws-prompt-guide__examples button:hover,
+  .ws-prompt-guide__examples button:focus-visible {
+    color: var(--text);
+    background: rgba(var(--accent-blue-rgb), 0.12);
+    transform: translateX(2px);
+  }
+  
+  .ws-prompt-guide__examples button:focus-visible {
+    outline: 2px solid rgba(var(--accent-blue-rgb), 0.44);
+    outline-offset: 2px;
+  }
+  
+  @media (max-width: 560px) {
+    .ws-corner-launcher__guide {
+      width: var(--ws-cmdbar-h);
+      padding: 0;
+    }
+  
+    .ws-corner-launcher__guide span {
+      display: none;
+    }
+  
+    .ws-prompt-guide {
+      right: -4px;
+      width: min(348px, calc(100vw - 20px));
+    }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .ws-corner-launcher__guide,
+    .ws-prompt-guide {
+      transition-duration: 0.01ms;
+    }
+  }
+  
   .ws-corner-launcher__action,
   .ws-corner-launcher .assets-side-launcher {
-    top: clamp(360px, 67svh, calc(100svh - 245px)) !important;
-    min-width: 52px;
-    min-height: 52px;
-    width: 52px;
-    padding: 0;
+    position: fixed !important;
+    top: clamp(260px, 52svh, calc(100svh - 190px)) !important;
+    z-index: 10002 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-width: 148px;
+    min-height: 54px;
+    padding: 0 18px;
+    border: 1px solid rgba(136, 236, 224, 0.24) !important;
+    border-radius: 999px;
+    color: rgba(231, 240, 238, 0.84) !important;
+    background:
+      linear-gradient(120deg, rgba(10, 16, 18, 0.08), rgba(146, 231, 218, 0.15) 48%, rgba(10, 16, 18, 0.08)),
+      linear-gradient(145deg, rgba(18, 25, 28, 0.7), rgba(6, 8, 10, 0.82)) !important;
+    -webkit-backdrop-filter: blur(18px) saturate(1.1) !important;
+    backdrop-filter: blur(18px) saturate(1.1) !important;
+    box-shadow:
+      0 18px 42px rgba(0, 0, 0, 0.34),
+      0 0 0 1px rgba(255, 255, 255, 0.045) inset,
+      0 0 34px rgba(var(--accent-blue-rgb), 0.08) !important;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 820;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    cursor: pointer;
+    pointer-events: auto;
+    isolation: isolate;
+    overflow: hidden;
+    transform: translate3d(0, -50%, 0);
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease,
+      box-shadow 0.24s ease,
+      transform 0.28s var(--ws-arrive-ease);
   }
-
+  
+  .ws-corner-launcher__action--assets {
+    left: clamp(20px, 4vw, 72px) !important;
+  }
+  
+  .ws-corner-launcher__action--viewer {
+    right: clamp(20px, 4vw, 72px) !important;
+  }
+  
   body.ws-panel-open .ws-corner-launcher__action,
   body.ws-panel-open .ws-corner-launcher .assets-side-launcher {
-    top: clamp(132px, 24svh, 210px) !important;
+    top: clamp(148px, 22svh, 260px) !important;
+    z-index: 10004 !important;
   }
-
-  .ws-corner-launcher__action--assets {
-    left: max(12px, env(safe-area-inset-left, 0px)) !important;
+  
+  .ws-corner-launcher__action::before,
+  .ws-corner-launcher__action::after {
+    content: "";
+    position: absolute;
+    pointer-events: none;
+    z-index: -1;
   }
-
-  .ws-corner-launcher__action--viewer {
-    right: max(12px, env(safe-area-inset-right, 0px)) !important;
+  
+  .ws-corner-launcher__action::before {
+    inset: 7px;
+    border-radius: inherit;
+    border: 1px solid rgba(246, 224, 181, 0.12);
   }
-
-  .ws-corner-launcher__action span:not(.ws-corner-launcher__beam) {
-    display: none;
+  
+  .ws-corner-launcher__action::after {
+    inset: -55% -18%;
+    background:
+      linear-gradient(100deg, transparent 18%, rgba(245, 226, 190, 0.28), transparent 52%);
+    opacity: 0.48;
+    transform: translateX(-72%) rotate(8deg);
+    animation: wsEdgeActionScan 4.8s ease-in-out infinite;
   }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ws-corner-launcher__action::after,
-  .ws-prompt-guide-launcher,
+  
   .ws-corner-launcher__beam {
-    animation: none;
+    position: absolute;
+    inset: auto 18px -12px;
+    height: 1px;
+    border-radius: 999px;
+    background: linear-gradient(90deg, transparent, rgba(var(--accent-blue-rgb), 0.58), transparent);
+    box-shadow: 0 0 18px rgba(var(--accent-blue-rgb), 0.25);
+    opacity: 0.78;
   }
-}
-
-/* ==========================================================================
-   CREATION MODE SWITCH — header centre
-   --------------------------------------------------------------------------
-   Was three stacked cards occupying a full grid row above the viewer. Now a
-   single segmented control in the header's free middle cell, which returns
-   that row to the viewport.
-
-   The active state is carried by one indicator that TRAVELS between segments
-   rather than three independent backgrounds lighting up. A shared element that
-   moves reads as one control with a position; three that toggle read as three
-   controls that happen to agree.
-
-   Icons are built from <i> elements, not path data, so their parts can move
-   independently — the cube's faces, the camera's lens, the photo's horizon.
-   ========================================================================== */
-
-.ws-modes-switch {
-  position: relative;
-  display: flex;
-  align-items: stretch;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.035);
-  -webkit-backdrop-filter: blur(18px) saturate(1.1);
-  backdrop-filter: blur(18px) saturate(1.1);
-  isolation: isolate;
-}
-
-/* The travelling indicator. transform only — no width/left animation. */
-.ws-modes-switch__glow {
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 4px;
-  width: calc((100% - 8px) / 3);
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.07));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 6px 18px rgba(0, 0, 0, 0.35);
-  z-index: -1;
-  transition: transform 0.46s cubic-bezier(0.34, 1.32, 0.64, 1);
-}
-
-.ws-modes-switch[data-mode="model"] .ws-modes-switch__glow { transform: translateX(0); }
-.ws-modes-switch[data-mode="video"] .ws-modes-switch__glow { transform: translateX(100%); }
-.ws-modes-switch[data-mode="image"] .ws-modes-switch__glow { transform: translateX(200%); }
-
-.timrx-3dprint .ws-modes-switch .ws-mode,
-.ws-modes-switch .ws-mode {
-  flex: 1 1 0;
-  min-width: 0;
-  display: grid;
-  grid-template-columns: 20px minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  align-items: center;
-  gap: 0 9px;
-  padding: 7px 16px 7px 12px;
-  background: none;
-  border: 0;
-  border-radius: 999px;
-  color: rgba(255, 255, 255, 0.5);
-  cursor: pointer;
-  text-align: left;
-  transition: color 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.ws-mode__label {
-  grid-column: 2;
-  font-size: 12.5px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1.15;
-  white-space: nowrap;
-}
-
-.ws-mode__meta {
-  grid-column: 2;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.01em;
-  line-height: 1.2;
-  color: rgba(255, 255, 255, 0.34);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  /* Only the active mode explains itself — the others stay quiet. */
-  max-height: 0;
-  opacity: 0;
-  transition: max-height 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.ws-mode:hover { color: rgba(255, 255, 255, 0.85); }
-.ws-mode.is-active { color: #fff; }
-.ws-mode.is-active .ws-mode__meta { max-height: 14px; opacity: 1; }
-.ws-mode:focus-visible { outline: 2px solid var(--accent-blue, #7fc8c2); outline-offset: 2px; }
-
-/* --------------------------------------------------------------------------
-   Icons — assembled from elements so their parts can move
-   -------------------------------------------------------------------------- */
-.mode-ico {
-  grid-column: 1;
-  grid-row: 1 / span 2;
-  position: relative;
-  width: 20px;
-  height: 20px;
-  display: block;
-  color: currentColor;
-}
-
-.mode-ico i { position: absolute; display: block; }
-
-/* Cube: three faces that separate slightly, then lock together when active. */
-.mode-ico--cube i {
-  inset: 3px;
-  border: 1.6px solid currentColor;
-  border-radius: 2px;
-  transition: transform 0.5s cubic-bezier(0.34, 1.32, 0.64, 1), opacity 0.3s ease;
-}
-.mode-ico--cube i:nth-child(1) { transform: translate(-2.5px, -2.5px); opacity: 0.4; }
-.mode-ico--cube i:nth-child(2) { transform: translate(0, 0); opacity: 0.7; }
-.mode-ico--cube i:nth-child(3) { transform: translate(2.5px, 2.5px); opacity: 0.4; }
-
-.ws-mode:hover .mode-ico--cube i:nth-child(1) { transform: translate(-3.5px, -3.5px) rotate(-6deg); }
-.ws-mode:hover .mode-ico--cube i:nth-child(3) { transform: translate(3.5px, 3.5px) rotate(6deg); }
-
-.ws-mode.is-active .mode-ico--cube i:nth-child(1) { transform: translate(-2px, -2px); opacity: 0.55; }
-.ws-mode.is-active .mode-ico--cube i:nth-child(2) { opacity: 1; }
-.ws-mode.is-active .mode-ico--cube i:nth-child(3) { transform: translate(2px, 2px); opacity: 0.55; }
-
-/* Video: body plus a lens barrel that pushes out on hover. */
-.mode-ico--video i:nth-child(1) {
-  left: 1px; top: 5px; width: 12px; height: 11px;
-  border: 1.6px solid currentColor; border-radius: 3px;
-}
-.mode-ico--video i:nth-child(2) {
-  right: 1px; top: 7.5px; width: 0; height: 0;
-  border-top: 3.2px solid transparent;
-  border-bottom: 3.2px solid transparent;
-  border-left: 5.5px solid currentColor;
-  transition: transform 0.4s cubic-bezier(0.34, 1.32, 0.64, 1);
-}
-.ws-mode:hover .mode-ico--video i:nth-child(2),
-.ws-mode.is-active .mode-ico--video i:nth-child(2) { transform: translateX(1.5px); }
-
-/* Image: frame, a sun that rises, and a horizon that lifts. */
-.mode-ico--image i:nth-child(1) {
-  inset: 2px; border: 1.6px solid currentColor; border-radius: 3px;
-}
-.mode-ico--image i:nth-child(2) {
-  left: 5.5px; top: 5.5px; width: 3px; height: 3px;
-  border-radius: 50%; background: currentColor;
-  transition: transform 0.42s cubic-bezier(0.34, 1.32, 0.64, 1);
-}
-.mode-ico--image i:nth-child(3) {
-  left: 3.5px; right: 3.5px; bottom: 5px; height: 1.6px;
-  background: currentColor; border-radius: 2px;
-  transform-origin: left center;
-  transition: transform 0.42s cubic-bezier(0.34, 1.32, 0.64, 1);
-}
-.ws-mode:hover .mode-ico--image i:nth-child(2),
-.ws-mode.is-active .mode-ico--image i:nth-child(2) { transform: translate(1px, -1.5px); }
-.ws-mode:hover .mode-ico--image i:nth-child(3),
-.ws-mode.is-active .mode-ico--image i:nth-child(3) { transform: rotate(-8deg) scaleX(0.9); }
-
-/* --------------------------------------------------------------------------
-   Header placement + responsive
-   -------------------------------------------------------------------------- */
-.ws-header > .ws-modes-switch { flex: 0 1 auto; }
-
-@media (max-width: 1180px) {
-  .ws-mode__meta { display: none; }
-  .ws-modes-switch .ws-mode { padding: 8px 14px 8px 11px; }
-}
-
-@media (max-width: 900px) {
-  .ws-mode__label { display: none; }
-  .ws-modes-switch .ws-mode { grid-template-columns: 20px; padding: 9px 12px; justify-items: center; }
-}
-
-@media (max-width: 620px) {
-  .ws-header > .ws-modes-switch { display: none; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ws-modes-switch__glow,
-  .mode-ico i,
-  .ws-mode__meta { transition-duration: 0.01ms; }
-}
-
-/* ==========================================================================
-   MODE SWITCH — unframed
-   --------------------------------------------------------------------------
-   No container, no indicator pill, no borders. With the chrome gone the active
-   state is carried entirely by weight, colour and the icon's own posture — the
-   glyph assembles itself when its mode is live and rests apart when it is not.
-   ========================================================================== */
-
-.ws-header > .ws-modes-switch { justify-self: center; }
-
-.ws-modes-switch {
-  background: none !important;
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-  border: 0 !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  gap: 10px;
-}
-
-.ws-modes-switch__glow { display: none !important; }
-
-.timrx-3dprint .ws-modes-switch .ws-mode,
-.ws-modes-switch .ws-mode {
-  flex: 0 0 auto;
-  background: none !important;
-  border: 0 !important;
-  box-shadow: none !important;
-  border-radius: 12px;
-  padding: 8px 18px;
-  gap: 0 11px;
-  color: rgba(255, 255, 255, 0.42);
-}
-
-.ws-mode:hover { color: rgba(255, 255, 255, 0.8); }
-.ws-mode.is-active { color: #fff; }
-
-.ws-mode__label {
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  transition: font-weight 0.2s ease, letter-spacing 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.ws-mode.is-active .ws-mode__label { font-weight: 750; letter-spacing: 0.015em; }
-
-.ws-mode__meta {
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.38);
-  max-width: 0;
-  transition: max-height 0.34s cubic-bezier(0.22, 1, 0.36, 1),
-              max-width 0.34s cubic-bezier(0.22, 1, 0.36, 1),
-              opacity 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.ws-mode.is-active .ws-mode__meta { max-height: 14px; max-width: 200px; opacity: 1; }
-
-.ws-mode:focus-visible {
-  outline: 2px solid var(--accent-blue, #7fc8c2);
-  outline-offset: 4px;
-  border-radius: 12px;
-}
-
-/* --------------------------------------------------------------------------
-   Icons — the active glyph is alive, the others are at rest
-   -------------------------------------------------------------------------- */
-.mode-ico { width: 22px; height: 22px; }
-
-/* Cube: faces breathe apart and back while its mode is live. */
-.ws-mode.is-active .mode-ico--cube i:nth-child(1) { animation: modeCubeA 3.6s ease-in-out infinite; }
-.ws-mode.is-active .mode-ico--cube i:nth-child(3) { animation: modeCubeB 3.6s ease-in-out infinite; }
-
-@keyframes modeCubeA {
-  0%, 100% { transform: translate(-2px, -2px); }
-  50%      { transform: translate(-3.4px, -3.4px) rotate(-4deg); }
-}
-@keyframes modeCubeB {
-  0%, 100% { transform: translate(2px, 2px); }
-  50%      { transform: translate(3.4px, 3.4px) rotate(4deg); }
-}
-
-/* Video: the lens eases in and out, like a slow zoom. */
-.ws-mode.is-active .mode-ico--video i:nth-child(2) { animation: modeLens 2.8s ease-in-out infinite; }
-@keyframes modeLens {
-  0%, 100% { transform: translateX(0.5px); }
-  50%      { transform: translateX(2.4px); }
-}
-
-/* Image: the sun tracks a slow arc above the horizon. */
-.ws-mode.is-active .mode-ico--image i:nth-child(2) { animation: modeSun 4.2s ease-in-out infinite; }
-@keyframes modeSun {
-  0%, 100% { transform: translate(0.5px, -1px); }
-  50%      { transform: translate(2px, -2.4px); }
-}
-
-@media (max-width: 1180px) {
-  .ws-modes-switch { gap: 6px; }
-  .ws-modes-switch .ws-mode { padding: 8px 14px; }
-}
-
-@media (max-width: 900px) {
-  .ws-modes-switch .ws-mode { padding: 8px 12px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .ws-mode.is-active .mode-ico i { animation: none !important; }
-}
-
-/* ==========================================================================
-   GENERATION TRACKER
-   --------------------------------------------------------------------------
-   Sits above the command bar, on the same rail as the trays, so everything
-   that reports on the current job lives in one band. Present only while
-   something is running.
-   ========================================================================== */
-
-.gen-track{
-  position:fixed;
-  left:50%;
-  top:50%;
-  bottom:auto;
-  transform:translate(-50%,-50%);
-  /* Above the Assets modal (200150) so a running job stays visible while the
-     library is open; below the command palette (200500). */
-  z-index:200200;
-  width:min(720px,calc(100vw - 40px));
-  pointer-events:none;
-}
-
-.gen-track[hidden]{display:none}
-
-.gen-track__list{display:flex;flex-direction:column;gap:8px}
-
-.gen-card{
-  display:grid;
-  grid-template-columns:34px minmax(0,1fr);
-  align-items:center;
-  gap:12px;
-  padding:11px 16px 11px 12px;
-  border-radius:16px;
-  background:rgba(16,17,21,.9);
-  -webkit-backdrop-filter:blur(20px) saturate(1.15);
-  backdrop-filter:blur(20px) saturate(1.15);
-  animation:genCardIn .42s cubic-bezier(.34,1.28,.64,1) backwards;
-}
-
-@keyframes genCardIn{
-  from{opacity:0;transform:translateY(14px) scale(.97)}
-  to{opacity:1;transform:none}
-}
-
-.gen-card__ico{
-  width:34px;height:34px;
-  display:grid;place-items:center;
-  border-radius:11px;
-  background:rgba(255,255,255,.06);
-  color:var(--accent-blue,#7fc8c2);
-}
-.gen-card__ico svg{width:17px;height:17px}
-
-/* The icon breathes while work is happening — a still icon beside a moving
-   bar reads as a stalled job. */
-.gen-card:not(.is-done) .gen-card__ico{animation:genPulse 2.4s ease-in-out infinite}
-@keyframes genPulse{
-  0%,100%{opacity:.72;transform:scale(1)}
-  50%    {opacity:1;transform:scale(1.07)}
-}
-
-.gen-card__body{display:grid;gap:5px;min-width:0}
-
-.gen-card__top{
-  display:flex;align-items:baseline;justify-content:space-between;gap:10px;
-}
-
-.gen-card__stage{
-  font-size:12.5px;font-weight:700;letter-spacing:.01em;
-  color:rgba(255,255,255,.92);
-}
-
-.gen-card__pct{
-  font-size:12px;font-weight:600;
-  color:var(--accent-blue,#7fc8c2);
-  font-variant-numeric:tabular-nums;
-}
-
-.gen-card__prompt{
-  font-size:11.5px;line-height:1.35;
-  color:rgba(255,255,255,.42);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-}
-
-/* The track carries the road and the figure walking it, so the bar itself can
-   keep clipping its fill while the walker stands above the clip. */
-.gen-card__track{
-  position:relative;display:block;
-  padding-top:20px;                 /* headroom for the figure */
-}
-
-.gen-card__bar{
-  position:relative;display:block;height:4px;border-radius:999px;
-  background:
-    repeating-linear-gradient(90deg,
-      rgba(255,255,255,.14) 0 5px, rgba(255,255,255,0) 5px 11px);
-  overflow:hidden;
-}
-
-.gen-card__bar i{
-  position:absolute;inset:0 auto 0 0;display:block;border-radius:inherit;
-  background:linear-gradient(90deg,var(--accent-blue,#7fc8c2),var(--accent-purple,#b8a77a));
-  box-shadow:0 0 10px rgba(127,200,194,.35);
-  transition:width .5s cubic-bezier(.22,1,.36,1);
-}
-
-/* --- the walker ----------------------------------------------------------- */
-.gen-card__walker{
-  position:absolute;
-  bottom:2px;                        /* feet on the road */
-  transform:translateX(-50%);
-  color:var(--accent-blue,#7fc8c2);
-  /* Matches the fill's easing so the figure and the head of the bar arrive
-     together rather than the walker snapping ahead. */
-  transition:left .5s cubic-bezier(.22,1,.36,1);
-  filter:drop-shadow(0 0 6px rgba(127,200,194,.32));
-}
-
-.gen-walk{
-  display:block;width:17px;height:19px;
-  animation:genBob .29s ease-in-out infinite alternate;
-}
-
-@keyframes genBob{
-  from{transform:translateY(0)}
-  to  {transform:translateY(-1.3px)}
-}
-
-/* Limbs pivot at the shoulder and the hip, arms counter-swinging the legs. */
-.gen-walk__limb{transform-box:view-box}
-.gen-walk__arm-a,.gen-walk__arm-b{transform-origin:10px 10.2px}
-.gen-walk__leg-a,.gen-walk__leg-b{transform-origin:10px 15.4px}
-
-.gen-walk__leg-a,.gen-walk__arm-b{animation:genStride .56s ease-in-out infinite}
-.gen-walk__leg-b,.gen-walk__arm-a{animation:genStride .56s ease-in-out infinite reverse}
-
-@keyframes genStride{
-  0%,100%{transform:rotate(19deg)}
-  50%    {transform:rotate(-19deg)}
-}
-
-/* No percentage from the provider yet: the fill sweeps and the figure paces
-   the whole road, turning at each end, so a long queue never reads as stuck. */
-.gen-card.is-indeterminate .gen-card__bar i{
-  width:38% !important;
-  animation:genSweep 1.5s cubic-bezier(.65,0,.35,1) infinite;
-}
-@keyframes genSweep{
-  0%  {transform:translateX(-105%)}
-  100%{transform:translateX(275%)}
-}
-
-.gen-card.is-indeterminate .gen-card__walker{
-  transition:none;
-  animation:genPace 4.2s ease-in-out infinite;
-}
-@keyframes genPace{
-  0%      {left:3%;  transform:translateX(-50%) scaleX(1)}
-  46%     {left:97%; transform:translateX(-50%) scaleX(1)}
-  50%,52% {left:97%; transform:translateX(-50%) scaleX(-1)}
-  96%     {left:3%;  transform:translateX(-50%) scaleX(-1)}
-  100%    {left:3%;  transform:translateX(-50%) scaleX(1)}
-}
-
-@media (max-width:560px){
-  .gen-track{width:calc(100vw - 20px)}
-  .gen-card__prompt{display:none}
-}
-
-@media (prefers-reduced-motion:reduce){
-  .gen-card{animation:none}
-  .gen-card__ico{animation:none !important}
-  .gen-card.is-indeterminate .gen-card__bar i{animation:none;width:100% !important;opacity:.5}
-  /* The figure stays — standing at the current progress — but stops moving. */
-  .gen-walk,.gen-walk__limb{animation:none !important}
-  .gen-card.is-indeterminate .gen-card__walker{animation:none;left:50%}
-}
-
-/* ==========================================================================
-   MODE SWITCH — weight and presence
-   --------------------------------------------------------------------------
-   The unframed version read as quiet to the point of being missable: 13px
-   labels at 42% opacity with 22px glyphs, packed 10px apart. With no container
-   to carry them, the type and the icons have to do that work themselves.
-   ========================================================================== */
-
-.ws-modes-switch{
-  gap:22px;                       /* was 10px — they were reading as one blob */
-}
-
-.timrx-3dprint .ws-modes-switch .ws-mode,
-.ws-modes-switch .ws-mode{
-  padding:10px 20px;
-  gap:0 13px;
-  /* Inactive modes were nearly invisible at .42; they are navigation, not
-     decoration, and have to look clickable before you hover them. */
-  color:rgba(255,255,255,.58);
-}
-
-.ws-mode:hover{color:rgba(255,255,255,.92)}
-.ws-mode.is-active{color:#fff}
-
-.ws-mode__label{
-  font-size:15px;
-  font-weight:650;
-  letter-spacing:-.005em;
-}
-
-.ws-mode.is-active .ws-mode__label{
-  font-weight:750;
-  letter-spacing:0;
-}
-
-.ws-mode__meta{
-  font-size:11px;
-  color:rgba(255,255,255,.46);
-}
-
-.mode-ico{width:26px;height:26px}
-
-/* Glyph strokes scale with the icon, or a 26px icon drawn at 1.6px reads
-   thinner than the 22px one it replaced. */
-.mode-ico--cube i{inset:4px;border-width:1.9px}
-.mode-ico--cube i:nth-child(1){transform:translate(-3px,-3px)}
-.mode-ico--cube i:nth-child(3){transform:translate(3px,3px)}
-.ws-mode:hover .mode-ico--cube i:nth-child(1){transform:translate(-4.2px,-4.2px) rotate(-6deg)}
-.ws-mode:hover .mode-ico--cube i:nth-child(3){transform:translate(4.2px,4.2px) rotate(6deg)}
-.ws-mode.is-active .mode-ico--cube i:nth-child(1){transform:translate(-2.4px,-2.4px)}
-.ws-mode.is-active .mode-ico--cube i:nth-child(3){transform:translate(2.4px,2.4px)}
-
-.mode-ico--video i:nth-child(1){left:1px;top:6px;width:15px;height:14px;border-width:1.9px}
-.mode-ico--video i:nth-child(2){
-  right:1px;top:9.5px;
-  border-top-width:4px;border-bottom-width:4px;border-left-width:6.5px;
-}
-
-.mode-ico--image i:nth-child(1){inset:3px;border-width:1.9px}
-.mode-ico--image i:nth-child(2){left:7px;top:7px;width:3.6px;height:3.6px}
-.mode-ico--image i:nth-child(3){left:4.5px;right:4.5px;bottom:6.5px;height:1.9px}
-
-/* Keep the active cube's breathing amplitude proportional to the new size. */
-@keyframes modeCubeA{
-  0%,100%{transform:translate(-2.4px,-2.4px)}
-  50%    {transform:translate(-4px,-4px) rotate(-4deg)}
-}
-@keyframes modeCubeB{
-  0%,100%{transform:translate(2.4px,2.4px)}
-  50%    {transform:translate(4px,4px) rotate(4deg)}
-}
-
-@media (max-width:1180px){
-  .ws-modes-switch{gap:14px}
-  .ws-modes-switch .ws-mode{padding:9px 16px}
-  .ws-mode__label{font-size:14px}
-}
-
-@media (max-width:900px){
-  .ws-modes-switch{gap:10px}
-  .ws-modes-switch .ws-mode{padding:9px 13px}
-  .mode-ico{width:24px;height:24px}
-}
-
-/* --- command AI confirmation ---------------------------------------------- */
-.cmdai{padding:16px 18px;display:grid;gap:11px}
-.cmdai__head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
-.cmdai__kind{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--accent-blue,#7fc8c2)}
-.cmdai__cost{font-size:13px;font-weight:700;color:rgba(255,255,255,.9);font-variant-numeric:tabular-nums}
-.cmdai__cost.is-blocked{color:#e0a23c}
-.cmdai__prompt{margin:0;font-size:15px;line-height:1.45;color:rgba(255,255,255,.92)}
-.cmdai__chips{display:flex;flex-wrap:wrap;gap:6px}
-.cmdai__chip{padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:600;
-  color:rgba(255,255,255,.72);background:rgba(255,255,255,.07)}
-.cmdai__chip-label{color:rgba(255,255,255,.48);font-weight:500;margin-right:2px}
-.cmdai__note{margin:0;font-size:11.5px;color:#e0a23c}
-.cmdai__actions{display:flex;gap:8px;margin-top:2px}
-.cmdai__btn{padding:11px 18px;border:0;border-radius:999px;font:inherit;font-size:13px;
-  font-weight:650;cursor:pointer;background:rgba(255,255,255,.08);color:rgba(255,255,255,.85)}
-.cmdai__btn--go{flex:1 1 auto;color:#04141d;
-  background:linear-gradient(180deg,var(--accent-blue,#7fc8c2),
-    color-mix(in srgb,var(--accent-blue,#7fc8c2) 82%,#000))}
-.cmdai__btn:disabled{opacity:.45;cursor:not-allowed;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
-.cmdai__btn:hover:not(:disabled){filter:brightness(1.08)}
-.cmdai__fine{margin:0;font-size:10.5px;color:rgba(255,255,255,.34)}
-.cmdai__thinking{padding:22px 18px;font-size:13.5px;color:rgba(255,255,255,.5);text-align:center}
-
-/* Shared mobile menu (tx-menu.css) — the drawer is a direct child of <body>, so
-   `body.print3d-page > :not(.workspace-modal-overlay) { position: relative;
-   z-index: 2 }` outranks it on both counts. Left alone that buries the drawer
-   under the header/rail/command bar AND drops it into normal flow, where it
-   cannot scroll because the body is locked while the menu is open. Same trick
-   the Discord share overlay uses: re-scope with enough specificity to win. */
-body.print3d-page > .tx-menu {
-  position: fixed;
-  inset: 0 0 0 auto;
-  z-index: 300010;
-}
-
-body.print3d-page > .tx-menu-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 300009;
-}
-
-/* .ws-header is `1fr auto 1fr`, and with only two children .ws-credits — which
-   carries the menu toggle — lands in the middle `auto` column, leaving the
-   trailing 1fr empty and the toggle stranded mid-header. Pin the cluster to the
-   last column so its justify-self:end reaches the right edge.
-   Must be a single-cell placement, not a `2 / -1` span: between 640px and
-   1023px the modes rail is the second child, a span would collide with it and
-   auto-placement would drop the credits onto a second grid row — doubling the
-   header height to 124px. */
-@media (max-width: 1023.98px) {
-  body.print3d-page .ws-header > .ws-credits {
-    grid-column: -2 / -1;
+  
+  .ws-corner-launcher__action:hover,
+  .ws-corner-launcher__action:focus-visible {
+    color: var(--text) !important;
+    border-color: rgba(136, 236, 224, 0.44) !important;
+    box-shadow:
+      0 20px 46px rgba(0, 0, 0, 0.38),
+      0 0 0 1px rgba(255, 255, 255, 0.06) inset,
+      0 0 44px rgba(var(--accent-blue-rgb), 0.18) !important;
+    transform: translate3d(0, -50%, 0) scale(1.045);
   }
-}
+  
+  .ws-corner-launcher__action:focus-visible {
+    outline: 2px solid rgba(var(--accent-blue-rgb), 0.48);
+    outline-offset: 5px;
+  }
+  
+  .ws-corner-launcher__action svg {
+    width: 20px !important;
+    height: 20px !important;
+    flex: none;
+    color: var(--accent-blue);
+    filter: drop-shadow(0 0 10px rgba(var(--accent-blue-rgb), 0.2));
+  }
+  
+  .ws-corner-launcher__action span:not(.ws-corner-launcher__beam) {
+    font-size: inherit !important;
+    font-weight: inherit !important;
+    letter-spacing: inherit !important;
+    text-transform: inherit !important;
+  }
+  
+  body.assets-modal-open .ws-corner-launcher,
+  body.ws-cmd-open .ws-corner-launcher,
+  body.assets-modal-open .ws-prompt-guide-launcher,
+  body.ws-cmd-open .ws-prompt-guide-launcher {
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  .ws-mobile-tab[data-open-assets] {
+    display: none !important;
+  }
+  
+  body.ws-viewer-open .timrx-3dprint .ws-grid {
+    display: grid !important;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0 auto;
+    padding: clamp(14px, 2.4vh, 28px) clamp(14px, 2.4vw, 34px);
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-template-areas: "viewer" !important;
+    grid-template-rows: minmax(0, 1fr) !important;
+    column-gap: 0 !important;
+    align-content: center;
+    justify-items: center;
+    overflow: visible;
+  }
+  
+  body.ws-viewer-open .ws-header,
+  body.ws-viewer-open .ws-cmd-trigger,
+  body.ws-viewer-open .ws-tray,
+  body.ws-viewer-open .ws-video-tray,
+  body.ws-viewer-open .timrx-3dprint .ws-rail,
+  body.ws-viewer-open .timrx-3dprint .ws-left,
+  body.ws-viewer-open .timrx-3dprint .ws-right,
+  body.ws-viewer-open .ws-mobile-tabs,
+  body.ws-viewer-open .ws-corner-launcher,
+  body.ws-viewer-open .ws-prompt-guide-launcher,
+  html body.print3d-page.ws-viewer-open > .cc-banner {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+  
+  @keyframes wsEdgeActionScan {
+    0%,
+    36% {
+      opacity: 0;
+      transform: translateX(-76%) rotate(8deg);
+    }
+    48% {
+      opacity: 0.5;
+    }
+    68%,
+    100% {
+      opacity: 0;
+      transform: translateX(76%) rotate(8deg);
+    }
+  }
+  
+  body.ws-viewer-open .timrx-3dprint .ws-grid > :not(.ws-viewer) {
+    display: none !important;
+  }
+  
+  body.ws-viewer-open .timrx-3dprint .ws-viewer {
+    grid-column: 1 / -1 !important;
+    grid-area: viewer !important;
+    display: flex !important;
+    width: min(96vw, 1960px);
+    max-width: calc(100vw - clamp(28px, 4.8vw, 68px));
+    height: min(90vh, 1020px);
+    max-height: calc(100vh - clamp(32px, 5vh, 56px));
+    min-height: min(620px, calc(100vh - 56px));
+    justify-self: center;
+    align-self: center;
+    margin: 0;
+    z-index: 70;
+  }
+  
+  body.ws-viewer-open .timrx-3dprint .viewer-wrap {
+    height: 100%;
+    min-height: 0;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(var(--accent-blue-rgb), 0.08), transparent 34%),
+      linear-gradient(180deg, rgba(18, 24, 26, 0.94), rgba(9, 12, 13, 0.96));
+    border-color: var(--border-soft);
+  }
+  
+  body.ws-viewer-open .timrx-3dprint {
+    height: 100vh;
+    width: 100vw !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden;
+  }
+  
+  html:has(body.ws-viewer-open),
+  body.ws-viewer-open {
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden !important;
+  }
+  
+  /* The viewer owns its action dock while expanded. Keep it hidden until
+     viewer.js marks a real model as loaded, then restore the existing controls
+     above the canvas footer. The command bar is hidden in this mode, so the
+     normal page-level clearance is no longer needed. */
+  body.ws-viewer-open .timrx-3dprint .viewer-toolbar {
+    bottom: clamp(18px, 3vh, 36px);
+    z-index: 80;
+  }
+  
+  body.ws-viewer-open .timrx-3dprint .viewer-toolbar.visible {
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+    transform: translateX(-50%) translateY(0);
+  }
+  
+  body.ws-viewer-open .viewer-close-btn {
+    display: inline-flex !important;
+  }
+  
+  body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  
+  .timrx-3dprint .viewer-close-btn {
+    display: none !important;
+  }
+  
+  @media (max-width: 900px) {
+    body.ws-viewer-open .timrx-3dprint {
+      padding: 0 !important;
+    }
+  
+    body.ws-viewer-open .timrx-3dprint .ws-grid {
+      padding: 12px;
+    }
+  
+    body.ws-viewer-open .timrx-3dprint .ws-viewer {
+      width: min(100%, calc(100vw - 24px));
+      height: min(86vh, 760px);
+      min-height: min(560px, calc(100vh - 32px));
+      max-height: calc(100vh - 24px);
+    }
+  
+    body.ws-viewer-open .timrx-3dprint .viewer-overlay-head {
+      padding: 12px 12px 22px;
+    }
+  
+    body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-sub {
+      display: none;
+    }
+  
+    body.ws-viewer-open .timrx-3dprint .viewer-toolbar {
+      left: 12px;
+      right: 12px;
+      max-width: calc(100% - 24px);
+      overflow-x: auto;
+      justify-content: flex-start;
+      transform: translateY(20px);
+    }
+  
+    body.ws-viewer-open .timrx-3dprint .viewer-toolbar.visible {
+      transform: translateY(0);
+    }
+  }
+  
+  @media (max-width: 560px) {
+    body.ws-viewer-open .timrx-3dprint .ws-viewer {
+      width: min(100%, calc(100vw - 16px));
+      height: min(84vh, 720px);
+      min-height: min(480px, calc(100vh - 24px));
+    }
+  
+    body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
+      gap: 10px;
+    }
+  
+    body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .icon-btn {
+      padding: 8px 9px;
+    }
+  
+    body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .icon-btn span {
+      display: none;
+    }
+  }
+  
+  @keyframes cornerLauncherOrbit {
+    to { transform: rotate(360deg); }
+  }
+  
+  @keyframes cornerLauncherPulse {
+    0%, 72%, 100% {
+      opacity: 0;
+      transform: scale(0.86);
+    }
+    82% {
+      opacity: 0.72;
+    }
+    96% {
+      opacity: 0;
+      transform: scale(1.38);
+    }
+  }
+  
+  @keyframes cornerLauncherNudge {
+    0%, 70%, 100% { transform: translateY(0) rotate(0deg); }
+    76% { transform: translateY(-4px) rotate(-2deg); }
+    82% { transform: translateY(0) rotate(2deg); }
+    88% { transform: translateY(-2px) rotate(0deg); }
+  }
+  
+  @keyframes cornerLauncherCubeFloat {
+    0%, 100% { transform: translateY(0) scale(1); }
+    46% { transform: translateY(-1.8px) scale(1.04); }
+  }
+  
+  @keyframes cornerLauncherSpark {
+    0%, 100% {
+      opacity: 0.42;
+      transform: scale(0.75) rotate(0deg);
+    }
+    45% {
+      opacity: 1;
+      transform: scale(1.08) rotate(90deg);
+    }
+  }
+  
+  @media (max-width: 560px) {
+    html body.print3d-page > .ws-corner-launcher {
+      inset: 0 !important;
+      width: 100vw !important;
+      height: 100svh !important;
+    }
+  
+    html body.print3d-page > .ws-prompt-guide-launcher {
+      left: auto !important;
+      right: max(12px, env(safe-area-inset-right, 0px)) !important;
+      bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px)) !important;
+    }
+  
+    .ws-corner-launcher__action,
+    .ws-corner-launcher .assets-side-launcher {
+      top: clamp(360px, 67svh, calc(100svh - 245px)) !important;
+      min-width: 52px;
+      min-height: 52px;
+      width: 52px;
+      padding: 0;
+    }
+  
+    body.ws-panel-open .ws-corner-launcher__action,
+    body.ws-panel-open .ws-corner-launcher .assets-side-launcher {
+      top: clamp(132px, 24svh, 210px) !important;
+    }
+  
+    .ws-corner-launcher__action--assets {
+      left: max(12px, env(safe-area-inset-left, 0px)) !important;
+    }
+  
+    .ws-corner-launcher__action--viewer {
+      right: max(12px, env(safe-area-inset-right, 0px)) !important;
+    }
+  
+    .ws-corner-launcher__action span:not(.ws-corner-launcher__beam) {
+      display: none;
+    }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .ws-corner-launcher__action::after,
+    .ws-prompt-guide-launcher,
+    .ws-corner-launcher__beam {
+      animation: none;
+    }
+  }
+  
+  /* ==========================================================================
+     CREATION MODE SWITCH — header centre
+     --------------------------------------------------------------------------
+     Was three stacked cards occupying a full grid row above the viewer. Now a
+     single segmented control in the header's free middle cell, which returns
+     that row to the viewport.
+  
+     The active state is carried by one indicator that TRAVELS between segments
+     rather than three independent backgrounds lighting up. A shared element that
+     moves reads as one control with a position; three that toggle read as three
+     controls that happen to agree.
+  
+     Icons are built from <i> elements, not path data, so their parts can move
+     independently — the cube's faces, the camera's lens, the photo's horizon.
+     ========================================================================== */
+  
+  .ws-modes-switch {
+    position: relative;
+    display: flex;
+    align-items: stretch;
+    gap: 2px;
+    padding: 4px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.035);
+    -webkit-backdrop-filter: blur(18px) saturate(1.1);
+    backdrop-filter: blur(18px) saturate(1.1);
+    isolation: isolate;
+  }
+  
+  /* The travelling indicator. transform only — no width/left animation. */
+  .ws-modes-switch__glow {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    left: 4px;
+    width: calc((100% - 8px) / 3);
+    border-radius: 999px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.07));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18), 0 6px 18px rgba(0, 0, 0, 0.35);
+    z-index: -1;
+    transition: transform 0.46s cubic-bezier(0.34, 1.32, 0.64, 1);
+  }
+  
+  .ws-modes-switch[data-mode="model"] .ws-modes-switch__glow { transform: translateX(0); }
+  .ws-modes-switch[data-mode="video"] .ws-modes-switch__glow { transform: translateX(100%); }
+  .ws-modes-switch[data-mode="image"] .ws-modes-switch__glow { transform: translateX(200%); }
+  
+  .timrx-3dprint .ws-modes-switch .ws-mode,
+  .ws-modes-switch .ws-mode {
+    flex: 1 1 0;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    align-items: center;
+    gap: 0 9px;
+    padding: 7px 16px 7px 12px;
+    background: none;
+    border: 0;
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.5);
+    cursor: pointer;
+    text-align: left;
+    transition: color 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  .ws-mode__label {
+    grid-column: 2;
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    line-height: 1.15;
+    white-space: nowrap;
+  }
+  
+  .ws-mode__meta {
+    grid-column: 2;
+    font-size: 10px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+    color: rgba(255, 255, 255, 0.34);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* Only the active mode explains itself — the others stay quiet. */
+    max-height: 0;
+    opacity: 0;
+    transition: max-height 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  .ws-mode:hover { color: rgba(255, 255, 255, 0.85); }
+  .ws-mode.is-active { color: #fff; }
+  .ws-mode.is-active .ws-mode__meta { max-height: 14px; opacity: 1; }
+  .ws-mode:focus-visible { outline: 2px solid var(--accent-blue, #7fc8c2); outline-offset: 2px; }
+  
+  /* --------------------------------------------------------------------------
+     Icons — assembled from elements so their parts can move
+     -------------------------------------------------------------------------- */
+  .mode-ico {
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    position: relative;
+    width: 20px;
+    height: 20px;
+    display: block;
+    color: currentColor;
+  }
+  
+  .mode-ico i { position: absolute; display: block; }
+  
+  /* Cube: three faces that separate slightly, then lock together when active. */
+  .mode-ico--cube i {
+    inset: 3px;
+    border: 1.6px solid currentColor;
+    border-radius: 2px;
+    transition: transform 0.5s cubic-bezier(0.34, 1.32, 0.64, 1), opacity 0.3s ease;
+  }
+  .mode-ico--cube i:nth-child(1) { transform: translate(-2.5px, -2.5px); opacity: 0.4; }
+  .mode-ico--cube i:nth-child(2) { transform: translate(0, 0); opacity: 0.7; }
+  .mode-ico--cube i:nth-child(3) { transform: translate(2.5px, 2.5px); opacity: 0.4; }
+  
+  .ws-mode:hover .mode-ico--cube i:nth-child(1) { transform: translate(-3.5px, -3.5px) rotate(-6deg); }
+  .ws-mode:hover .mode-ico--cube i:nth-child(3) { transform: translate(3.5px, 3.5px) rotate(6deg); }
+  
+  .ws-mode.is-active .mode-ico--cube i:nth-child(1) { transform: translate(-2px, -2px); opacity: 0.55; }
+  .ws-mode.is-active .mode-ico--cube i:nth-child(2) { opacity: 1; }
+  .ws-mode.is-active .mode-ico--cube i:nth-child(3) { transform: translate(2px, 2px); opacity: 0.55; }
+  
+  /* Video: body plus a lens barrel that pushes out on hover. */
+  .mode-ico--video i:nth-child(1) {
+    left: 1px; top: 5px; width: 12px; height: 11px;
+    border: 1.6px solid currentColor; border-radius: 3px;
+  }
+  .mode-ico--video i:nth-child(2) {
+    right: 1px; top: 7.5px; width: 0; height: 0;
+    border-top: 3.2px solid transparent;
+    border-bottom: 3.2px solid transparent;
+    border-left: 5.5px solid currentColor;
+    transition: transform 0.4s cubic-bezier(0.34, 1.32, 0.64, 1);
+  }
+  .ws-mode:hover .mode-ico--video i:nth-child(2),
+  .ws-mode.is-active .mode-ico--video i:nth-child(2) { transform: translateX(1.5px); }
+  
+  /* Image: frame, a sun that rises, and a horizon that lifts. */
+  .mode-ico--image i:nth-child(1) {
+    inset: 2px; border: 1.6px solid currentColor; border-radius: 3px;
+  }
+  .mode-ico--image i:nth-child(2) {
+    left: 5.5px; top: 5.5px; width: 3px; height: 3px;
+    border-radius: 50%; background: currentColor;
+    transition: transform 0.42s cubic-bezier(0.34, 1.32, 0.64, 1);
+  }
+  .mode-ico--image i:nth-child(3) {
+    left: 3.5px; right: 3.5px; bottom: 5px; height: 1.6px;
+    background: currentColor; border-radius: 2px;
+    transform-origin: left center;
+    transition: transform 0.42s cubic-bezier(0.34, 1.32, 0.64, 1);
+  }
+  .ws-mode:hover .mode-ico--image i:nth-child(2),
+  .ws-mode.is-active .mode-ico--image i:nth-child(2) { transform: translate(1px, -1.5px); }
+  .ws-mode:hover .mode-ico--image i:nth-child(3),
+  .ws-mode.is-active .mode-ico--image i:nth-child(3) { transform: rotate(-8deg) scaleX(0.9); }
+  
+  /* --------------------------------------------------------------------------
+     Header placement + responsive
+     -------------------------------------------------------------------------- */
+  .ws-header > .ws-modes-switch { flex: 0 1 auto; }
+  
+  @media (max-width: 1180px) {
+    .ws-mode__meta { display: none; }
+    .ws-modes-switch .ws-mode { padding: 8px 14px 8px 11px; }
+  }
+  
+  @media (max-width: 900px) {
+    .ws-mode__label { display: none; }
+    .ws-modes-switch .ws-mode { grid-template-columns: 20px; padding: 9px 12px; justify-items: center; }
+  }
+  
+  @media (max-width: 620px) {
+    .ws-header > .ws-modes-switch { display: none; }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .ws-modes-switch__glow,
+    .mode-ico i,
+    .ws-mode__meta { transition-duration: 0.01ms; }
+  }
+  
+  /* ==========================================================================
+     MODE SWITCH — unframed
+     --------------------------------------------------------------------------
+     No container, no indicator pill, no borders. With the chrome gone the active
+     state is carried entirely by weight, colour and the icon's own posture — the
+     glyph assembles itself when its mode is live and rests apart when it is not.
+     ========================================================================== */
+  
+  .ws-header > .ws-modes-switch { justify-self: center; }
+  
+  .ws-modes-switch {
+    background: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    gap: 10px;
+  }
+  
+  .ws-modes-switch__glow { display: none !important; }
+  
+  .timrx-3dprint .ws-modes-switch .ws-mode,
+  .ws-modes-switch .ws-mode {
+    flex: 0 0 auto;
+    background: none !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    border-radius: 12px;
+    padding: 8px 18px;
+    gap: 0 11px;
+    color: rgba(255, 255, 255, 0.42);
+  }
+  
+  .ws-mode:hover { color: rgba(255, 255, 255, 0.8); }
+  .ws-mode.is-active { color: #fff; }
+  
+  .ws-mode__label {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    transition: font-weight 0.2s ease, letter-spacing 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  .ws-mode.is-active .ws-mode__label { font-weight: 750; letter-spacing: 0.015em; }
+  
+  .ws-mode__meta {
+    font-size: 10px;
+    color: rgba(255, 255, 255, 0.38);
+    max-width: 0;
+    transition: max-height 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+                max-width 0.34s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  
+  .ws-mode.is-active .ws-mode__meta { max-height: 14px; max-width: 200px; opacity: 1; }
+  
+  .ws-mode:focus-visible {
+    outline: 2px solid var(--accent-blue, #7fc8c2);
+    outline-offset: 4px;
+    border-radius: 12px;
+  }
+  
+  /* --------------------------------------------------------------------------
+     Icons — the active glyph is alive, the others are at rest
+     -------------------------------------------------------------------------- */
+  .mode-ico { width: 22px; height: 22px; }
+  
+  /* Cube: faces breathe apart and back while its mode is live. */
+  .ws-mode.is-active .mode-ico--cube i:nth-child(1) { animation: modeCubeA 3.6s ease-in-out infinite; }
+  .ws-mode.is-active .mode-ico--cube i:nth-child(3) { animation: modeCubeB 3.6s ease-in-out infinite; }
+  
+  @keyframes modeCubeA {
+    0%, 100% { transform: translate(-2px, -2px); }
+    50%      { transform: translate(-3.4px, -3.4px) rotate(-4deg); }
+  }
+  @keyframes modeCubeB {
+    0%, 100% { transform: translate(2px, 2px); }
+    50%      { transform: translate(3.4px, 3.4px) rotate(4deg); }
+  }
+  
+  /* Video: the lens eases in and out, like a slow zoom. */
+  .ws-mode.is-active .mode-ico--video i:nth-child(2) { animation: modeLens 2.8s ease-in-out infinite; }
+  @keyframes modeLens {
+    0%, 100% { transform: translateX(0.5px); }
+    50%      { transform: translateX(2.4px); }
+  }
+  
+  /* Image: the sun tracks a slow arc above the horizon. */
+  .ws-mode.is-active .mode-ico--image i:nth-child(2) { animation: modeSun 4.2s ease-in-out infinite; }
+  @keyframes modeSun {
+    0%, 100% { transform: translate(0.5px, -1px); }
+    50%      { transform: translate(2px, -2.4px); }
+  }
+  
+  @media (max-width: 1180px) {
+    .ws-modes-switch { gap: 6px; }
+    .ws-modes-switch .ws-mode { padding: 8px 14px; }
+  }
+  
+  @media (max-width: 900px) {
+    .ws-modes-switch .ws-mode { padding: 8px 12px; }
+  }
+  
+  @media (prefers-reduced-motion: reduce) {
+    .ws-mode.is-active .mode-ico i { animation: none !important; }
+  }
+  
+  /* ==========================================================================
+     GENERATION TRACKER
+     --------------------------------------------------------------------------
+     Sits above the command bar, on the same rail as the trays, so everything
+     that reports on the current job lives in one band. Present only while
+     something is running.
+     ========================================================================== */
+  
+  .gen-track{
+    position:fixed;
+    left:50%;
+    top:50%;
+    bottom:auto;
+    transform:translate(-50%,-50%);
+    /* Above the Assets modal (200150) so a running job stays visible while the
+       library is open; below the command palette (200500). */
+    z-index:200200;
+    width:min(720px,calc(100vw - 40px));
+    pointer-events:none;
+  }
+  
+  .gen-track[hidden]{display:none}
+  
+  .gen-track__list{display:flex;flex-direction:column;gap:8px}
+  
+  .gen-card{
+    display:grid;
+    grid-template-columns:34px minmax(0,1fr);
+    align-items:center;
+    gap:12px;
+    padding:11px 16px 11px 12px;
+    border-radius:16px;
+    background:
+      radial-gradient(100% 140% at 0% 0%, rgba(127,200,194,.075), transparent 38%),
+      linear-gradient(180deg, rgba(31,38,42,.94), rgba(23,28,32,.96));
+    border:1px solid rgba(210,224,222,.12);
+    box-shadow:0 22px 70px rgba(0,0,0,.44), inset 0 1px 0 rgba(255,255,255,.05);
+    -webkit-backdrop-filter:blur(20px) saturate(1.15);
+    backdrop-filter:blur(20px) saturate(1.15);
+    animation:genCardIn .42s cubic-bezier(.34,1.28,.64,1) backwards;
+  }
+  
+  @keyframes genCardIn{
+    from{opacity:0;transform:translateY(14px) scale(.97)}
+    to{opacity:1;transform:none}
+  }
+  
+  .gen-card__ico{
+    width:34px;height:34px;
+    display:grid;place-items:center;
+    border-radius:11px;
+    background:rgba(73,90,91,.32);
+    color:var(--accent-blue,#7fc8c2);
+  }
+  .gen-card__ico svg{width:17px;height:17px}
+  
+  /* The icon breathes while work is happening — a still icon beside a moving
+     bar reads as a stalled job. */
+  .gen-card:not(.is-done) .gen-card__ico{animation:genPulse 2.4s ease-in-out infinite}
+  @keyframes genPulse{
+    0%,100%{opacity:.72;transform:scale(1)}
+    50%    {opacity:1;transform:scale(1.07)}
+  }
+  
+  .gen-card__body{display:grid;gap:5px;min-width:0}
+  
+  .gen-card__top{
+    display:flex;align-items:baseline;justify-content:space-between;gap:10px;
+  }
+  
+  .gen-card__stage{
+    font-size:12.5px;font-weight:700;letter-spacing:.01em;
+    color:rgba(255,255,255,.92);
+  }
+  
+  .gen-card__pct{
+    font-size:12px;font-weight:600;
+    color:var(--accent-blue,#7fc8c2);
+    font-variant-numeric:tabular-nums;
+  }
+  
+  .gen-card__prompt{
+    font-size:11.5px;line-height:1.35;
+    color:rgba(255,255,255,.42);
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  
+  /* The track carries the road and the figure walking it, so the bar itself can
+     keep clipping its fill while the walker stands above the clip. */
+  .gen-card__track{
+    position:relative;display:block;
+    padding-top:20px;                 /* headroom for the figure */
+  }
+  
+  .gen-card__bar{
+    position:relative;display:block;height:4px;border-radius:999px;
+    background:
+      repeating-linear-gradient(90deg,
+        rgba(255,255,255,.14) 0 5px, rgba(255,255,255,0) 5px 11px);
+    overflow:hidden;
+  }
+  
+  .gen-card__bar i{
+    position:absolute;inset:0 auto 0 0;display:block;border-radius:inherit;
+    background:linear-gradient(90deg,var(--accent-blue,#7fc8c2),var(--accent-purple,#b8a77a));
+    box-shadow:0 0 10px rgba(127,200,194,.35);
+    transition:width .5s cubic-bezier(.22,1,.36,1);
+  }
+  
+  /* --- the walker ----------------------------------------------------------- */
+  .gen-card__walker{
+    position:absolute;
+    bottom:2px;                        /* feet on the road */
+    transform:translateX(-50%);
+    color:var(--accent-blue,#7fc8c2);
+    /* Matches the fill's easing so the figure and the head of the bar arrive
+       together rather than the walker snapping ahead. */
+    transition:left .5s cubic-bezier(.22,1,.36,1);
+    filter:drop-shadow(0 0 6px rgba(127,200,194,.32));
+  }
+  
+  .gen-walk{
+    display:block;width:17px;height:19px;
+    animation:genBob .29s ease-in-out infinite alternate;
+  }
+  
+  @keyframes genBob{
+    from{transform:translateY(0)}
+    to  {transform:translateY(-1.3px)}
+  }
+  
+  /* Limbs pivot at the shoulder and the hip, arms counter-swinging the legs. */
+  .gen-walk__limb{transform-box:view-box}
+  .gen-walk__arm-a,.gen-walk__arm-b{transform-origin:10px 10.2px}
+  .gen-walk__leg-a,.gen-walk__leg-b{transform-origin:10px 15.4px}
+  
+  .gen-walk__leg-a,.gen-walk__arm-b{animation:genStride .56s ease-in-out infinite}
+  .gen-walk__leg-b,.gen-walk__arm-a{animation:genStride .56s ease-in-out infinite reverse}
+  
+  @keyframes genStride{
+    0%,100%{transform:rotate(19deg)}
+    50%    {transform:rotate(-19deg)}
+  }
+  
+  /* No percentage from the provider yet: the fill sweeps and the figure paces
+     the whole road, turning at each end, so a long queue never reads as stuck. */
+  .gen-card.is-indeterminate .gen-card__bar i{
+    width:38% !important;
+    animation:genSweep 1.5s cubic-bezier(.65,0,.35,1) infinite;
+  }
+  @keyframes genSweep{
+    0%  {transform:translateX(-105%)}
+    100%{transform:translateX(275%)}
+  }
+  
+  .gen-card.is-indeterminate .gen-card__walker{
+    transition:none;
+    animation:genPace 4.2s ease-in-out infinite;
+  }
+  @keyframes genPace{
+    0%      {left:3%;  transform:translateX(-50%) scaleX(1)}
+    46%     {left:97%; transform:translateX(-50%) scaleX(1)}
+    50%,52% {left:97%; transform:translateX(-50%) scaleX(-1)}
+    96%     {left:3%;  transform:translateX(-50%) scaleX(-1)}
+    100%    {left:3%;  transform:translateX(-50%) scaleX(1)}
+  }
+  
+  @media (max-width:560px){
+    .gen-track{width:calc(100vw - 20px)}
+    .gen-card__prompt{display:none}
+  }
+  
+  @media (prefers-reduced-motion:reduce){
+    .gen-card{animation:none}
+    .gen-card__ico{animation:none !important}
+    .gen-card.is-indeterminate .gen-card__bar i{animation:none;width:100% !important;opacity:.5}
+    /* The figure stays — standing at the current progress — but stops moving. */
+    .gen-walk,.gen-walk__limb{animation:none !important}
+    .gen-card.is-indeterminate .gen-card__walker{animation:none;left:50%}
+  }
+  
+  /* ==========================================================================
+     MODE SWITCH — weight and presence
+     --------------------------------------------------------------------------
+     The unframed version read as quiet to the point of being missable: 13px
+     labels at 42% opacity with 22px glyphs, packed 10px apart. With no container
+     to carry them, the type and the icons have to do that work themselves.
+     ========================================================================== */
+  
+  .ws-modes-switch{
+    gap:22px;                       /* was 10px — they were reading as one blob */
+  }
+  
+  .timrx-3dprint .ws-modes-switch .ws-mode,
+  .ws-modes-switch .ws-mode{
+    padding:10px 20px;
+    gap:0 13px;
+    /* Inactive modes were nearly invisible at .42; they are navigation, not
+       decoration, and have to look clickable before you hover them. */
+    color:rgba(255,255,255,.58);
+  }
+  
+  .ws-mode:hover{color:rgba(255,255,255,.92)}
+  .ws-mode.is-active{color:#fff}
+  
+  .ws-mode__label{
+    font-size:15px;
+    font-weight:650;
+    letter-spacing:-.005em;
+  }
+  
+  .ws-mode.is-active .ws-mode__label{
+    font-weight:750;
+    letter-spacing:0;
+  }
+  
+  .ws-mode__meta{
+    font-size:11px;
+    color:rgba(255,255,255,.46);
+  }
+  
+  .mode-ico{width:26px;height:26px}
+  
+  /* Glyph strokes scale with the icon, or a 26px icon drawn at 1.6px reads
+     thinner than the 22px one it replaced. */
+  .mode-ico--cube i{inset:4px;border-width:1.9px}
+  .mode-ico--cube i:nth-child(1){transform:translate(-3px,-3px)}
+  .mode-ico--cube i:nth-child(3){transform:translate(3px,3px)}
+  .ws-mode:hover .mode-ico--cube i:nth-child(1){transform:translate(-4.2px,-4.2px) rotate(-6deg)}
+  .ws-mode:hover .mode-ico--cube i:nth-child(3){transform:translate(4.2px,4.2px) rotate(6deg)}
+  .ws-mode.is-active .mode-ico--cube i:nth-child(1){transform:translate(-2.4px,-2.4px)}
+  .ws-mode.is-active .mode-ico--cube i:nth-child(3){transform:translate(2.4px,2.4px)}
+  
+  .mode-ico--video i:nth-child(1){left:1px;top:6px;width:15px;height:14px;border-width:1.9px}
+  .mode-ico--video i:nth-child(2){
+    right:1px;top:9.5px;
+    border-top-width:4px;border-bottom-width:4px;border-left-width:6.5px;
+  }
+  
+  .mode-ico--image i:nth-child(1){inset:3px;border-width:1.9px}
+  .mode-ico--image i:nth-child(2){left:7px;top:7px;width:3.6px;height:3.6px}
+  .mode-ico--image i:nth-child(3){left:4.5px;right:4.5px;bottom:6.5px;height:1.9px}
+  
+  /* Keep the active cube's breathing amplitude proportional to the new size. */
+  @keyframes modeCubeA{
+    0%,100%{transform:translate(-2.4px,-2.4px)}
+    50%    {transform:translate(-4px,-4px) rotate(-4deg)}
+  }
+  @keyframes modeCubeB{
+    0%,100%{transform:translate(2.4px,2.4px)}
+    50%    {transform:translate(4px,4px) rotate(4deg)}
+  }
+  
+  @media (max-width:1180px){
+    .ws-modes-switch{gap:14px}
+    .ws-modes-switch .ws-mode{padding:9px 16px}
+    .ws-mode__label{font-size:14px}
+  }
+  
+  @media (max-width:900px){
+    .ws-modes-switch{gap:10px}
+    .ws-modes-switch .ws-mode{padding:9px 13px}
+    .mode-ico{width:24px;height:24px}
+  }
+  
+  /* --- command AI confirmation ---------------------------------------------- */
+  .cmdai{padding:16px 18px;display:grid;gap:11px}
+  .cmdai__head{display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .cmdai__kind{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--accent-blue,#7fc8c2)}
+  .cmdai__cost{font-size:13px;font-weight:700;color:rgba(255,255,255,.9);font-variant-numeric:tabular-nums}
+  .cmdai__cost.is-blocked{color:#e0a23c}
+  .cmdai__prompt{margin:0;font-size:15px;line-height:1.45;color:rgba(255,255,255,.92)}
+  .cmdai__chips{display:flex;flex-wrap:wrap;gap:6px}
+  .cmdai__chip{padding:5px 11px;border-radius:999px;font-size:11.5px;font-weight:600;
+    color:rgba(255,255,255,.72);background:rgba(255,255,255,.07)}
+  .cmdai__chip-label{color:rgba(255,255,255,.48);font-weight:500;margin-right:2px}
+  .cmdai__note{margin:0;font-size:11.5px;color:#e0a23c}
+  .cmdai__actions{display:flex;gap:8px;margin-top:2px}
+  .cmdai__btn{padding:11px 18px;border:0;border-radius:999px;font:inherit;font-size:13px;
+    font-weight:650;cursor:pointer;background:rgba(255,255,255,.08);color:rgba(255,255,255,.85)}
+  .cmdai__btn--go{flex:1 1 auto;color:#04141d;
+    background:linear-gradient(180deg,var(--accent-blue,#7fc8c2),
+      color-mix(in srgb,var(--accent-blue,#7fc8c2) 82%,#000))}
+  .cmdai__btn:disabled{opacity:.45;cursor:not-allowed;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6)}
+  .cmdai__btn:hover:not(:disabled){filter:brightness(1.08)}
+  .cmdai__fine{margin:0;font-size:10.5px;color:rgba(255,255,255,.34)}
+  .cmdai__thinking{padding:22px 18px;font-size:13.5px;color:rgba(255,255,255,.5);text-align:center}
+  
+  /* Shared mobile menu (tx-menu.css) — the drawer is a direct child of <body>, so
+     `body.print3d-page > :not(.workspace-modal-overlay) { position: relative;
+     z-index: 2 }` outranks it on both counts. Left alone that buries the drawer
+     under the header/rail/command bar AND drops it into normal flow, where it
+     cannot scroll because the body is locked while the menu is open. Same trick
+     the Discord share overlay uses: re-scope with enough specificity to win. */
+  body.print3d-page > .tx-menu {
+    position: fixed;
+    inset: 0 0 0 auto;
+    z-index: 300010;
+  }
+  
+  body.print3d-page > .tx-menu-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 300009;
+  }
+  
+  /* .ws-header is `1fr auto 1fr`, and with only two children .ws-credits — which
+     carries the menu toggle — lands in the middle `auto` column, leaving the
+     trailing 1fr empty and the toggle stranded mid-header. Pin the cluster to the
+     last column so its justify-self:end reaches the right edge.
+     Must be a single-cell placement, not a `2 / -1` span: between 640px and
+     1023px the modes rail is the second child, a span would collide with it and
+     auto-placement would drop the credits onto a second grid row — doubling the
+     header height to 124px. */
+  @media (max-width: 1023.98px) {
+    body.print3d-page .ws-header > .ws-credits {
+      grid-column: -2 / -1;
+    }
+  }
+  

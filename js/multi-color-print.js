@@ -255,17 +255,18 @@ function _injectStyles() {
   s.textContent = `
     #multi-color-modal,
     #meshy-mcp-modal {
-      position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;
+      position:fixed;inset:0;background:rgba(8,12,13,.66);display:flex;
       align-items:center;justify-content:center;z-index:99999;backdrop-filter:blur(4px);
     }
     .mcp-container {
-      width:min(1200px,92vw);height:min(720px,88vh);background:#0f0f11;
-      border:1px solid rgba(255,255,255,.07);border-radius:12px;
+      width:min(1200px,92vw);height:min(720px,88vh);
+      background:linear-gradient(180deg,#1b2426,#14191b);
+      border:1px solid rgba(210,224,222,.14);border-radius:12px;
       display:flex;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.8);
     }
     .mcp-viewer {
-      flex:1 1 60%;min-width:0;background:#121214;position:relative;
-      border-right:1px solid rgba(255,255,255,.07);cursor:crosshair;
+      flex:1 1 60%;min-width:0;background:#151c1f;position:relative;
+      border-right:1px solid rgba(210,224,222,.1);cursor:crosshair;
     }
     .mcp-viewer.orbiting { cursor:grab; }
     .mcp-sidebar {
@@ -278,7 +279,7 @@ function _injectStyles() {
     .mcp-header{display:flex;align-items:center;justify-content:space-between;}
     .mcp-header h2{margin:0;font-size:14px;font-weight:700;color:rgba(255,255,255,.95);}
     .mcp-close{width:26px;height:26px;display:flex;align-items:center;justify-content:center;
-      background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:6px;
+      background:rgba(52,64,66,.36);border:1px solid rgba(210,224,222,.12);border-radius:6px;
       color:rgba(255,255,255,.5);cursor:pointer;transition:.15s;}
     .mcp-close:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.8);}
     .mcp-label{font-size:10px;font-weight:600;color:rgba(255,255,255,.5);
@@ -288,7 +289,7 @@ function _injectStyles() {
       border:1px solid rgba(255,255,255,.06);border-radius:6px;cursor:pointer;
       transition:.15s;user-select:none;}
     .mcp-filament:hover{background:rgba(255,255,255,.03);}
-    .mcp-filament.active{border-color:rgba(14,165,233,.5);background:rgba(14,165,233,.06);}
+    .mcp-filament.active{border-color:rgba(127,200,194,.5);background:rgba(127,200,194,.08);}
     .mcp-filament-swatch{width:22px;height:22px;border-radius:4px;
       border:1px solid rgba(0,0,0,.3);flex-shrink:0;}
     .mcp-filament-info{flex:1;min-width:0;}
@@ -302,48 +303,48 @@ function _injectStyles() {
     .mcp-add-btn{flex:1;padding:5px 0;border:1px dashed rgba(255,255,255,.1);
       border-radius:6px;background:none;color:rgba(255,255,255,.4);font-size:10px;
       cursor:pointer;transition:.15s;text-align:center;}
-    .mcp-add-btn:hover{border-color:rgba(14,165,233,.3);color:rgba(14,165,233,.7);}
+    .mcp-add-btn:hover{border-color:rgba(127,200,194,.34);color:rgba(127,200,194,.76);}
     .mcp-palette{display:flex;flex-direction:column;gap:4px;}
     .mcp-palette-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;}
     .mcp-palette-sw{aspect-ratio:1;border-radius:3px;border:1px solid rgba(0,0,0,.25);
       cursor:pointer;transition:.12s;}
     .mcp-palette-sw:hover{transform:scale(1.12);box-shadow:0 2px 6px rgba(0,0,0,.4);}
-    .mcp-palette-sw.selected{outline:2px solid #0ea5e9;outline-offset:1px;}
+    .mcp-palette-sw.selected{outline:2px solid #7fc8c2;outline-offset:1px;}
     .mcp-section{padding:8px;background:rgba(255,255,255,.02);
       border:1px solid rgba(255,255,255,.04);border-radius:8px;}
     .mcp-brush-row{display:flex;gap:4px;}
     .mcp-brush-btn{flex:1;padding:4px 0;border:1px solid rgba(255,255,255,.08);
       border-radius:5px;background:none;color:rgba(255,255,255,.5);font-size:10px;
       cursor:pointer;transition:.15s;text-align:center;}
-    .mcp-brush-btn.active{border-color:rgba(14,165,233,.4);color:#0ea5e9;
-      background:rgba(14,165,233,.08);}
+    .mcp-brush-btn.active{border-color:rgba(127,200,194,.42);color:#7fc8c2;
+      background:rgba(127,200,194,.1);}
     .mcp-size-presets{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-top:6px;}
     .mcp-size-preset{padding:4px 0;border:1px solid rgba(255,255,255,.07);border-radius:5px;
       background:rgba(255,255,255,.025);color:rgba(255,255,255,.42);font-size:9px;
       cursor:pointer;transition:.15s;text-align:center;}
-    .mcp-size-preset:hover{border-color:rgba(14,165,233,.35);color:rgba(14,165,233,.82);}
+    .mcp-size-preset:hover{border-color:rgba(127,200,194,.36);color:rgba(127,200,194,.82);}
     .mcp-label-tools{display:flex;flex-direction:column;gap:7px;margin-top:7px;}
-    .mcp-label-tools input[type="text"]{width:100%;background:rgba(0,0,0,.25);
-      border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.9);
+    .mcp-label-tools input[type="text"]{width:100%;background:rgba(17,23,25,.78);
+      border:1px solid rgba(210,224,222,.12);color:rgba(255,255,255,.9);
       border-radius:6px;padding:7px 8px;font-size:11px;outline:none;box-sizing:border-box;
       text-transform:uppercase;letter-spacing:.04em;}
-    .mcp-label-tools input[type="text"]:focus{border-color:rgba(14,165,233,.45);}
+    .mcp-label-tools input[type="text"]:focus{border-color:rgba(127,200,194,.46);}
     .mcp-label-slider-row{display:flex;justify-content:space-between;align-items:center;
       gap:8px;font-size:9px;color:rgba(255,255,255,.42);}
-    .mcp-label-slider-row strong{font-size:9px;color:rgba(14,165,233,.78);font-weight:700;}
+    .mcp-label-slider-row strong{font-size:9px;color:rgba(127,200,194,.78);font-weight:700;}
     .mcp-label-actions{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
     #mcp-brush-size::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
-      border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
+      border-radius:50%;background:linear-gradient(135deg,#7fc8c2,#b8a77a);border:2px solid #151c1f;cursor:pointer;}
     #mcp-brush-size::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
-      background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
+      background:linear-gradient(135deg,#7fc8c2,#b8a77a);border:2px solid #151c1f;cursor:pointer;}
     #mcp-label-size::-webkit-slider-thumb,
     #mcp-label-depth::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;
-      border-radius:50%;background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
+      border-radius:50%;background:linear-gradient(135deg,#7fc8c2,#b8a77a);border:2px solid #151c1f;cursor:pointer;}
     #mcp-label-size::-moz-range-thumb,
     #mcp-label-depth::-moz-range-thumb{width:12px;height:12px;border-radius:50%;
-      background:linear-gradient(135deg,#0ea5e9,#8b5cf6);border:2px solid #121214;cursor:pointer;}
+      background:linear-gradient(135deg,#7fc8c2,#b8a77a);border:2px solid #151c1f;cursor:pointer;}
     .mcp-brush-cursor{position:absolute;left:0;top:0;border:1px solid rgba(125,211,252,.95);
-      border-radius:999px;box-shadow:0 0 0 1px rgba(0,0,0,.55),0 0 18px rgba(14,165,233,.22);
+      border-radius:999px;box-shadow:0 0 0 1px rgba(0,0,0,.55),0 0 18px rgba(127,200,194,.2);
       pointer-events:none;z-index:4;display:none;transform:translate(-50%,-50%);}
     .mcp-brush-cursor.eraser{border-color:rgba(248,113,113,.95);box-shadow:0 0 0 1px rgba(0,0,0,.55),0 0 18px rgba(248,113,113,.18);}
     .mcp-actions{display:flex;flex-direction:column;gap:6px;margin-top:auto;
@@ -351,21 +352,21 @@ function _injectStyles() {
     .mcp-btn{padding:8px 14px;border-radius:6px;font-size:12px;font-weight:600;
       border:none;cursor:pointer;transition:.2s;display:flex;align-items:center;
       justify-content:center;gap:6px;white-space:nowrap;}
-    .mcp-btn-primary{background:linear-gradient(135deg,#0ea5e9,#8b5cf6);color:#fff;
-      box-shadow:0 4px 12px rgba(14,165,233,.35);}
-    .mcp-btn-primary:hover{box-shadow:0 6px 16px rgba(14,165,233,.45);transform:translateY(-1px);}
+    .mcp-btn-primary{background:linear-gradient(135deg,#7fc8c2,#b8a77a);color:#061616;
+      box-shadow:0 4px 12px rgba(127,200,194,.28);}
+    .mcp-btn-primary:hover{box-shadow:0 6px 16px rgba(127,200,194,.34);transform:translateY(-1px);}
     .mcp-btn-secondary{background:rgba(255,255,255,.05);
       border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.7);}
     .mcp-btn-secondary:hover{background:rgba(255,255,255,.08);color:rgba(255,255,255,.9);}
     .mcp-btn-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);
       color:rgba(239,68,68,.8);}
     .mcp-btn-danger:hover{background:rgba(239,68,68,.15);}
-    .mcp-info{display:flex;gap:6px;padding:8px;background:rgba(14,165,233,.04);
-      border:1px solid rgba(14,165,233,.08);border-radius:6px;font-size:10px;
+    .mcp-info{display:flex;gap:6px;padding:8px;background:rgba(127,200,194,.055);
+      border:1px solid rgba(127,200,194,.1);border-radius:6px;font-size:10px;
       line-height:1.5;color:rgba(255,255,255,.45);}
-    .mcp-info svg{color:rgba(14,165,233,.4);flex-shrink:0;margin-top:1px;}
-    .mcp-check-card{border-radius:8px;border:1px solid rgba(255,255,255,.06);
-      background:rgba(0,0,0,.18);padding:8px;display:flex;flex-direction:column;gap:6px;}
+    .mcp-info svg{color:rgba(127,200,194,.46);flex-shrink:0;margin-top:1px;}
+    .mcp-check-card{border-radius:8px;border:1px solid rgba(210,224,222,.1);
+      background:rgba(17,23,25,.62);padding:8px;display:flex;flex-direction:column;gap:6px;}
     .mcp-check-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
     .mcp-score{font-size:18px;font-weight:800;line-height:1;padding:6px 8px;border-radius:7px;
       background:rgba(255,255,255,.06);color:rgba(255,255,255,.85);min-width:48px;text-align:center;}
@@ -379,15 +380,15 @@ function _injectStyles() {
     .mcp-input-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
     .mcp-field{display:flex;flex-direction:column;gap:3px;}
     .mcp-field span{font-size:9px;text-transform:uppercase;letter-spacing:.4px;color:rgba(255,255,255,.35);}
-    .mcp-field input{background:rgba(0,0,0,.25);border:1px solid rgba(255,255,255,.08);
+    .mcp-field input{background:rgba(17,23,25,.78);border:1px solid rgba(210,224,222,.12);
       color:rgba(255,255,255,.85);border-radius:6px;padding:6px 7px;font-size:11px;outline:none;}
-    .mcp-field input:focus{border-color:rgba(14,165,233,.45);}
+    .mcp-field input:focus{border-color:rgba(127,200,194,.46);}
     .mcp-check-toggle{display:flex;align-items:center;gap:6px;font-size:10px;color:rgba(255,255,255,.5);}
     .mcp-btn[disabled],.mcp-brush-btn[disabled]{opacity:.5;cursor:not-allowed;transform:none!important;box-shadow:none!important;}
     .mcp-stats{font-size:10px;color:rgba(255,255,255,.3);text-align:center;padding:4px 0;}
     .mcp-viewer-hint{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
       font-size:10px;color:rgba(255,255,255,.25);pointer-events:none;
-      background:rgba(0,0,0,.5);padding:3px 10px;border-radius:4px;}
+      background:rgba(17,23,25,.76);padding:3px 10px;border-radius:4px;}
     @media(max-width:768px){
       .mcp-container{flex-direction:column;}
       .mcp-viewer{flex:0 0 50%;border-right:none;border-bottom:1px solid rgba(255,255,255,.07);}
@@ -440,7 +441,7 @@ function _createAutoModal() {
         </div>
         <div class="mcp-section" id="meshy-mcp-progress-wrap" style="display:none;">
           <div style="height:5px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;">
-            <div id="meshy-mcp-progress" style="height:100%;width:0%;background:linear-gradient(90deg,#0ea5e9,#8b5cf6);transition:width .25s;"></div>
+            <div id="meshy-mcp-progress" style="height:100%;width:0%;background:linear-gradient(90deg,#7fc8c2,#b8a77a);transition:width .25s;"></div>
           </div>
         </div>
         <div class="mcp-actions">
@@ -2236,7 +2237,7 @@ function _renderSidebar() {
       <div style="margin-top:6px;">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px;">
           <span style="font-size:9px;color:rgba(255,255,255,.4);">Brush Size</span>
-          <span style="font-size:9px;color:rgba(14,165,233,.8);font-weight:600;" id="mcp-brush-val">${_formatBrushRadius(_brushRadius)}</span>
+          <span style="font-size:9px;color:rgba(127,200,194,.8);font-weight:600;" id="mcp-brush-val">${_formatBrushRadius(_brushRadius)}</span>
         </div>
         <input type="range" min="0" max="${BRUSH_SLIDER_STEPS}" step="1" value="${_brushSliderValue()}"
           style="-webkit-appearance:none;width:100%;height:3px;border-radius:2px;background:rgba(255,255,255,.1);outline:none;cursor:pointer;"

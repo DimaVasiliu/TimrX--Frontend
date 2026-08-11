@@ -834,7 +834,7 @@ body.print3d-page > .assets-side-launcher:focus-visible,
   position: fixed;
   inset: 0;
   z-index: 200100;
-  background: rgba(6, 9, 10, 0.72);
+  background: rgba(8, 12, 13, 0.66);
   -webkit-backdrop-filter: blur(7px);
   backdrop-filter: blur(7px);
   opacity: 0;
@@ -888,10 +888,10 @@ body.assets-modal-open .timrx-3dprint .assets-side-launcher {
   border-radius: 24px;
   border: 1px solid var(--border-strong);
   background:
-    radial-gradient(circle at 8% 0%, rgba(var(--accent-blue-rgb), 0.07), transparent 34%),
-    radial-gradient(circle at 92% 0%, rgba(var(--accent-purple-rgb), 0.07), transparent 36%),
-    linear-gradient(180deg, rgba(18, 24, 26, 0.98), rgba(10, 13, 15, 0.98));
-  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(242, 245, 243, 0.05);
+    radial-gradient(circle at 8% 0%, rgba(var(--accent-blue-rgb), 0.085), transparent 34%),
+    radial-gradient(circle at 92% 0%, rgba(var(--accent-purple-rgb), 0.075), transparent 36%),
+    linear-gradient(180deg, rgba(31, 39, 41, 0.98), rgba(20, 26, 28, 0.985));
+  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.54), inset 0 1px 0 rgba(242, 245, 243, 0.07);
 }
 
 .timrx-3dprint .assets-modal-titlebar {
@@ -2658,7 +2658,7 @@ body.history-expanded .timrx-3dprint .history-pager {
     align-items: center;
     justify-content: center;
   
-    background: rgba(0, 0, 0, 0.75);
+    background: rgba(8, 12, 13, 0.68);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
   
@@ -2679,9 +2679,11 @@ body.history-expanded .timrx-3dprint .history-pager {
     padding: 24px;
     border-radius: 20px;
   
-    background: linear-gradient(135deg, #1a1a1a 0%, #151515 100%);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+    background:
+      radial-gradient(120% 140% at 0% 0%, rgba(127, 200, 194, 0.06), transparent 42%),
+      linear-gradient(180deg, #20292b 0%, #171d20 100%);
+    border: 1px solid rgba(210, 224, 222, 0.14);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.54), inset 0 1px 0 rgba(255,255,255,.055);
   
     transform: scale(0.95);
     transition: transform 0.3s ease;
@@ -2715,7 +2717,7 @@ body.history-expanded .timrx-3dprint .history-pager {
     height: 32px;
     border-radius: 8px;
     border: 1px solid rgba(255, 255, 255, 0.1);
-    background: rgba(0, 0, 0, 0.3);
+    background: rgba(52, 64, 66, 0.36);
     color: #999;
     display: grid;
     place-items: center;
@@ -2774,8 +2776,8 @@ body.history-expanded .timrx-3dprint .history-pager {
   
   /* Secondary: subtle glass outline */
   .btn-secondary {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(52, 64, 66, 0.36);
+    border: 1px solid rgba(210, 224, 222, 0.14);
     color: #e0e0e0;
   }
   
@@ -4916,14 +4918,14 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   width:38px;
   height:38px;
   border-radius:10px;
-  border:1px solid rgba(255,255,255,.08);
-  background:rgba(255,255,255,.03);
+  border:1px solid rgba(210,224,222,.12);
+  background:rgba(52,64,66,.35);
   transition:background .15s ease,border-color .15s ease,color .15s ease;
 }
 
 .timrx-3dprint .ws-right.assets-modal .assets-modal-close:hover{
-  background:rgba(255,255,255,.08);
-  border-color:rgba(255,255,255,.16);
+  background:rgba(66,78,79,.52);
+  border-color:rgba(210,224,222,.2);
 }
 
 /* --- head: filters / search / refresh / sort on one line ------------------ */
