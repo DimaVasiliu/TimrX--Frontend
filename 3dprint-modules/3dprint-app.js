@@ -917,6 +917,41 @@
             </div>
           </div>
 
+          <div class="field-row-grid field-row-grid--meshy-api" style="margin-top:12px">
+            <div class="field-row">
+              <span class="field-label-inline">Texture Resolution</span>
+              <select id="modelTextureResolution" class="field-select-inline">
+                <option value="2k" selected>2K</option>
+                <option value="4k">4K</option>
+                <option value="8k">8K</option>
+              </select>
+            </div>
+
+            <div class="field-row">
+              <span class="field-label-inline">Ultra Geometry</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="modelUltraMode">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="field-row">
+              <span class="field-label-inline">Transparent Thumbnail</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="modelAlphaThumbnail">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <div class="field-row">
+              <span class="field-label-inline">Multi-view Thumbnails</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="modelMultiViewThumbnails">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+          </div>
+
           <details class="advanced-toggles" style="margin-top:8px">
             <summary style="font-size:11px;color:#888;cursor:pointer;user-select:none">Advanced Preview Settings</summary>
             <div style="margin-top:10px;display:flex;flex-direction:column;gap:12px">
@@ -941,41 +976,6 @@
                   <span class="field-label-inline">Auto Size</span>
                   <label class="toggle-switch">
                     <input type="checkbox" id="modelAutoSize">
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div class="field-row">
-                  <span class="field-label-inline">Ultra Geometry</span>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="modelUltraMode">
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-
-                <div class="field-row">
-                  <span class="field-label-inline">Transparent Thumbnail</span>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="modelAlphaThumbnail">
-                    <span class="toggle-slider"></span>
-                  </label>
-                </div>
-              </div>
-
-              <div class="field-row-grid">
-                <div class="field-row">
-                  <span class="field-label-inline">Texture Resolution</span>
-                  <select id="modelTextureResolution" class="field-select-inline">
-                    <option value="2k" selected>2K</option>
-                    <option value="4k">4K</option>
-                    <option value="8k">8K</option>
-                  </select>
-                </div>
-
-                <div class="field-row">
-                  <span class="field-label-inline">Multi-view Thumbnails</span>
-                  <label class="toggle-switch">
-                    <input type="checkbox" id="modelMultiViewThumbnails">
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
