@@ -178,11 +178,112 @@
   }
   function markLocalTrialUsed(type){try{localStorage.setItem(trialStorageKey+':'+type,'1')}catch(err){}}
   function generationLabel(type){return type==='3d'?'3D model':type==='video'?'video':'image'}
-  function detectType(prompt){
+  function detectImageSize(q){
+    if(/\b(4k|4096|uhd)\b/.test(q))return'4K';
+    if(/\b(2k|2048|quad\s?hd|qhd)\b/.test(q))return'2K';
+    if(/\b(1k|1024|standard)\b/.test(q))return'1K';
+    return'';
+  }
+  function detectAspectRatio(q){
+    const ratio=q.match(/\b(21:9|16:9|9:16|4:3|3:4|1:1)\b/);
+    if(ratio)return ratio[1];
+    if(/\b(square|avatar|profile)\b/.test(q))return'1:1';
+    if(/\b(vertical|portrait|story|shorts|tiktok|reel)\b/.test(q))return'9:16';
+    if(/\b(landscape|wide|cinematic|youtube|banner)\b/.test(q))return'16:9';
+    return'';
+  }
+  function detectDuration(q){
+    const match=q.match(/\b(\d{1,2})\s*(?:s|sec|secs|second|seconds)\b/);
+    return match?Math.max(1,Math.min(30,parseInt(match[1],10))):null;
+  }
+  function detectProvider(q,type){
+    if(type==='image'){
+      if(/\b(nano\s?banana|nanobanana|piapi)\b/.test(q))return'nano_banana';
+      if(/\b(google\s+nano|gemini\s+nano)\b/.test(q))return'google_nano';
+      if(/\b(gemini|google)\b/.test(q))return'google';
+      if(/\b(openai|gpt[-\s]?image|gpt|dall[-\s]?e|dalle)\b/.test(q))return'openai';
+      if(/\b(flux|bfl)\b/.test(q))return'flux_pro';
+      if(/\b(ideogram)\b/.test(q))return'ideogram_v3';
+      if(/\b(recraft|svg|vector)\b/.test(q))return'recraft_v4';
+    }
+    if(type==='video'){
+      if(/\b(veo|vertex|google\s+video|google\s+veo)\b/.test(q))return'vertex';
+      if(/\b(fal\s+seedance|seedance\s*1\.?5|fal)\b/.test(q))return'fal_seedance';
+      if(/\b(seedance|seedance\s*2|seedance\s*2\.?5)\b/.test(q))return'seedance';
+    }
+    return'';
+  }
+  function detectSeedanceTier(q){
+    if(/\b(seedance\s*2\.?5|2\.5|v25|unlimited)\b/.test(q))return'v25';
+    if(/\b(quality|pro|best|cinematic)\b/.test(q))return'quality';
+    if(/\b(mini|cheap|cheapest|draft)\b/.test(q))return'mini';
+    if(/\b(fast|quick)\b/.test(q))return'fast';
+    return'';
+  }
+  function parseGenerationIntent(prompt){
     const q=String(prompt||'').toLowerCase();
-    if(/\b(3d|three[-\s]?d|model|stl|obj|glb|3mf|print|printable|figurine|miniature|keychain|collectible|toy|mesh)\b/.test(q))return'3d';
-    if(/\b(video|animate|animation|cinematic|clip|short|reel|movie|motion)\b/.test(q))return'video';
-    return'image';
+    const explicitImage=/\b(image|picture|photo|photograph|poster|render|visual|mockup|logo|illustration|artwork|wallpaper|cover|thumbnail|campaign\s+visual|product\s+visual)\b/.test(q);
+    const explicitVideo=/\b(video|animate|animation|cinematic|clip|short|reel|movie|motion|text[-\s]?to[-\s]?video|veo|seedance)\b/.test(q);
+    const directVideo=/\b(video|animate|animation|clip|reel|movie|text[-\s]?to[-\s]?video|image[-\s]?to[-\s]?video|veo|seedance)\b/.test(q);
+    const explicit3d=/\b(3d\s+model|three[-\s]?d\s+model|text[-\s]?to[-\s]?3d|stl|obj|glb|3mf|printable|print[-\s]?ready|mesh|remesh|low[-\s]?poly|figurine|miniature|turntable\s+model)\b/.test(q);
+    const objectHints=/\b(keychain|collectible|toy|product|shoe|bottle|chair|robot)\b/.test(q);
+    let type='image';
+    if(directVideo)type='video';
+    else if(explicitImage)type='image';
+    else if(explicitVideo)type='video';
+    else if(explicit3d)type='3d';
+    else if(objectHints&&/\b(print|stl|mesh|model|3d)\b/.test(q))type='3d';
+    const provider=detectProvider(q,type);
+    const aspect=detectAspectRatio(q);
+    const intent={requested_type:type};
+    if(provider)intent.provider=provider;
+    if(aspect)intent.aspect_ratio=aspect;
+    if(type==='image'){
+      const imageSize=detectImageSize(q);
+      if(imageSize)intent.image_size=imageSize;
+    }
+    if(type==='video'){
+      const duration=detectDuration(q);
+      const resolution=detectImageSize(q);
+      const tier=detectSeedanceTier(q);
+      if(duration)intent.duration_seconds=duration;
+      if(resolution)intent.resolution=resolution.toLowerCase();
+      if(tier)intent.seedance_tier=tier;
+    }
+    return intent;
+  }
+  function detectType(prompt){
+    return parseGenerationIntent(prompt).requested_type;
+  }
+  function intentSearchParams(intent){
+    const params=new URLSearchParams();
+    Object.entries(intent||{}).forEach(([key,value])=>{if(value!==undefined&&value!==null&&value!=='')params.set(key,value)});
+    return params.toString();
+  }
+  function providerLabel(provider){
+    return {
+      nano_banana:'Nano Banana',
+      google_nano:'Google Nano',
+      google:'Gemini',
+      openai:'GPT Image',
+      flux_pro:'FLUX',
+      ideogram_v3:'Ideogram',
+      recraft_v4:'Recraft',
+      vertex:'Veo',
+      seedance:'Seedance',
+      fal_seedance:'Seedance 1.5',
+      meshy:'Meshy'
+    }[provider]||provider||'';
+  }
+  function describeIntent(intent){
+    const type=intent.requested_type||'image';
+    const bits=[];
+    if(intent.provider)bits.push(providerLabel(intent.provider));
+    if(type==='image'&&intent.image_size)bits.push(intent.image_size);
+    if(type==='video'&&intent.resolution)bits.push(intent.resolution.toUpperCase());
+    if(type==='video'&&intent.duration_seconds)bits.push(intent.duration_seconds+'s');
+    if(intent.aspect_ratio)bits.push(intent.aspect_ratio);
+    return bits.length?bits.join(' ')+' '+generationLabel(type):generationLabel(type);
   }
   function requiresUpload(prompt){
     return /\b(image to 3d|photo to 3d|picture to 3d|turn an image into 3d|upload image|from an image)\b/i.test(String(prompt||''));
@@ -295,15 +396,22 @@
     const heading=node('h2','',title);
     heading.id='generationModalTitle';
     shell.appendChild(heading);
+    const meta=resultMeta(data,type);
+    if(meta.childElementCount)shell.appendChild(meta);
     if(type==='video'){
       const video=safeUrl(pickFirst(data,['video_url','output_url','url','download_url']),{allowBlob:true});
       shell.appendChild(node('p','',data.prompt||'Generated from your homepage prompt.'));
       if(video){
+        const stage=node('div','generation-preview-stage');
         const preview=node('video','generation-video');
         preview.src=video;
         preview.controls=true;
+        preview.autoplay=true;
+        preview.muted=true;
+        preview.loop=true;
         preview.playsInline=true;
-        shell.appendChild(preview);
+        stage.appendChild(preview);
+        shell.appendChild(stage);
       }else{
         shell.appendChild(node('div','generation-empty','Video is ready in your workspace.'));
       }
@@ -319,18 +427,27 @@
       if(glb)maybeLoadModelViewer();
       shell.appendChild(node('p','','Preview, download, or continue refining in the workspace.'));
       if(glb){
+        const stage=node('div','generation-preview-stage generation-preview-stage-model');
         const viewer=node('model-viewer','generation-model');
         viewer.setAttribute('src',glb);
         viewer.setAttribute('camera-controls','');
         viewer.setAttribute('auto-rotate','');
+        viewer.setAttribute('interaction-prompt','none');
+        viewer.setAttribute('camera-orbit','20deg 70deg auto');
+        viewer.setAttribute('field-of-view','30deg');
         viewer.setAttribute('exposure','1');
         viewer.setAttribute('shadow-intensity','.65');
-        shell.appendChild(viewer);
+        if(thumb)viewer.setAttribute('poster',thumb);
+        stage.appendChild(viewer);
+        stage.appendChild(node('span','generation-viewer-hint','Drag to orbit'));
+        shell.appendChild(stage);
       }else if(thumb){
+        const stage=node('div','generation-preview-stage');
         const img=node('img','generation-image');
         img.src=thumb;
         img.alt='Generated 3D model preview';
-        shell.appendChild(img);
+        stage.appendChild(img);
+        shell.appendChild(stage);
       }else{
         shell.appendChild(node('div','generation-empty','3D model is ready in your workspace.'));
       }
@@ -343,16 +460,37 @@
     const image=safeUrl(pickFirst(data,['image_url','thumbnail_url','url','download_url'])||pickFirst({image_urls:data.image_urls},['image_urls']),{allowBlob:true});
     shell.appendChild(node('p','','Download it or open the workspace to keep creating.'));
     if(image){
+      const stage=node('div','generation-preview-stage');
       const img=node('img','generation-image');
       img.src=image;
       img.alt='Generated TimrX image';
-      shell.appendChild(img);
+      stage.appendChild(img);
+      shell.appendChild(stage);
     }else{
       shell.appendChild(node('div','generation-empty','Image is ready in your workspace.'));
     }
     shell.appendChild(downloadLinks([image],'image'));
     shell.appendChild(resultActions('/3dprint','Open Workspace'));
     openModal(shell);
+  }
+  function resultMeta(data,type){
+    const meta=node('div','generation-meta');
+    const settings=data.settings||{};
+    const provider=data.provider||settings.provider;
+    const size=data.image_size||settings.image_size;
+    const resolution=data.resolution||settings.resolution;
+    const aspect=data.aspect_ratio||settings.aspect_ratio;
+    const duration=data.duration_seconds||settings.duration_seconds;
+    const tier=data.seedance_tier||settings.seedance_tier;
+    [
+      provider&&providerLabel(provider),
+      type==='image'&&size,
+      type==='video'&&resolution&&String(resolution).toUpperCase(),
+      type==='video'&&duration&&(duration+'s'),
+      type==='video'&&tier&&('Tier '+tier),
+      aspect
+    ].filter(Boolean).forEach(value=>meta.appendChild(node('span','',value)));
+    return meta;
   }
   function resultActions(primaryHref,primaryText){
     const actions=node('div','generation-actions');
@@ -410,14 +548,15 @@
     if(!clean)return;
     if(requiresUpload(clean)){guideUploadFlow(clean);return}
     input.value=clean;
-    const requestedType=detectType(clean);
+    const intent=parseGenerationIntent(clean);
+    const requestedType=intent.requested_type;
     const requestKey=requestKeys.get(clean)||((window.crypto&&crypto.randomUUID)?crypto.randomUUID():'hp-'+Date.now()+'-'+Math.random().toString(16).slice(2));
     requestKeys.set(clean,requestKey);
-    track('homepage_prompt_started',{prompt_length:clean.length,generation_type:requestedType});
+    track('homepage_prompt_started',{prompt_length:clean.length,generation_type:requestedType,provider:intent.provider||''});
     track('homepage_generation_type',{generation_type:requestedType});
-    setAnswer('thinking','Preparing generation',`Choosing the cheapest suitable ${generationLabel(requestedType)} route.`);
+    setAnswer('thinking','Preparing generation',`Preparing ${describeIntent(intent)}.`);
     try{
-      const preflight=await apiJson('/api/_mod/homepage/preflight?type='+encodeURIComponent(requestedType));
+      const preflight=await apiJson('/api/_mod/homepage/preflight?'+intentSearchParams(intent));
       if(!preflight.ok||preflight.mode==='blocked'){
         setAnswer('blocked','Credits required',preflight.message||`Your free ${generationLabel(requestedType)} has been used and your balance is too low.`,blockMarkup());
         track('homepage_generation_blocked',{generation_type:requestedType,reason:preflight.error||'no_entitlement_or_credits'});
@@ -429,7 +568,7 @@
         turnstileToken=await getTurnstileToken();
       }
       setAnswer('thinking','Preparing generation',preflight.mode==='free'?`Claiming your free ${preflight.free_offer||generationLabel(requestedType)}.`:`Reserving ${preflight.required_credits} credits.`);
-      const data=await apiJson('/api/_mod/homepage/generate',{method:'POST',headers:{'Idempotency-Key':requestKey},body:{prompt:clean,requested_type:requestedType,source:'homepage_command',idempotency_key:requestKey,turnstile_token:turnstileToken}});
+      const data=await apiJson('/api/_mod/homepage/generate',{method:'POST',headers:{'Idempotency-Key':requestKey},body:{prompt:clean,...intent,source:'homepage_command',idempotency_key:requestKey,turnstile_token:turnstileToken}});
       resetTurnstile();
       if(data.ok&&data.job_id){
         const type=data.generation_type||requestedType;

@@ -456,3 +456,108 @@ body.hero-command-docked .hero-promptbar{
     animation:none!important;
   }
 }
+
+/* === v17: smarter result viewer === */
+.generation-modal-panel{
+  width:min(1120px,100%);
+}
+.generation-meta{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin:4px 0 16px;
+}
+.generation-meta span{
+  display:inline-flex;
+  align-items:center;
+  min-height:28px;
+  padding:0 10px;
+  border-radius:999px;
+  background:rgba(244,241,234,.065);
+  color:#d8cfc0;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.04em;
+  box-shadow:inset 0 0 0 1px rgba(244,241,234,.1);
+}
+.generation-preview-stage{
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(244,241,234,.12);
+  border-radius:20px;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(139,231,246,.1),transparent 28%),
+    radial-gradient(circle at 74% 64%,rgba(167,139,250,.08),transparent 30%),
+    #070707;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 24px 80px rgba(0,0,0,.34);
+}
+.generation-preview-stage::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  z-index:0;
+  background-image:
+    linear-gradient(rgba(244,241,234,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(244,241,234,.035) 1px,transparent 1px);
+  background-size:46px 46px;
+  mask-image:linear-gradient(180deg,rgba(0,0,0,.8),transparent 92%);
+  pointer-events:none;
+}
+.generation-image,
+.generation-video,
+.generation-model{
+  position:relative;
+  z-index:1;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  outline:0;
+}
+.generation-image{
+  margin-inline:auto;
+}
+.generation-video{
+  width:100%;
+}
+.generation-model{
+  height:min(62dvh,620px);
+}
+.generation-model:focus,
+.generation-model:focus-visible,
+.generation-video:focus,
+.generation-video:focus-visible,
+.generation-image:focus,
+.generation-image:focus-visible{
+  outline:0!important;
+}
+.generation-viewer-hint{
+  position:absolute;
+  right:14px;
+  bottom:14px;
+  z-index:2;
+  padding:7px 10px;
+  border-radius:999px;
+  background:rgba(8,8,8,.62);
+  color:#cfc7ba;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.03em;
+  box-shadow:inset 0 0 0 1px rgba(244,241,234,.12);
+  pointer-events:none;
+}
+@media(max-width:760px){
+  .generation-modal-panel{
+    width:100%;
+  }
+  .generation-meta{
+    margin-bottom:12px;
+  }
+  .generation-model{
+    height:42dvh;
+    min-height:250px;
+  }
+  .generation-viewer-hint{
+    display:none;
+  }
+}
