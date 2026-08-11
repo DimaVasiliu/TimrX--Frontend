@@ -858,7 +858,11 @@
             <div class="field-row">
               <span class="field-label-inline">AI Model <span class="info-dot" title="Select the AI model version">ⓘ</span></span>
               <select id="modelAIModel" class="field-select-inline">
-                <option value="latest" selected>Meshy 6</option>
+                <option value="latest" selected>Latest</option>
+                <option value="meshy-7">Meshy 7</option>
+                <option value="meshy-t2">Smart Topology T2</option>
+                <option value="meshy-t1">Smart Topology T1</option>
+                <option value="meshy-6">Meshy 6</option>
                 <option value="meshy-5">Meshy 5</option>
               </select>
             </div>
@@ -907,6 +911,7 @@
               <select id="modelModelType" class="field-select-inline">
                 <option value="" selected>Default</option>
                 <option value="standard">Standard</option>
+                <option value="smart-topology">Smart Topology</option>
                 <option value="lowpoly">Low Poly</option>
               </select>
             </div>
@@ -936,6 +941,41 @@
                   <span class="field-label-inline">Auto Size</span>
                   <label class="toggle-switch">
                     <input type="checkbox" id="modelAutoSize">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <span class="field-label-inline">Ultra Geometry</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="modelUltraMode">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="field-row">
+                  <span class="field-label-inline">Transparent Thumbnail</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="modelAlphaThumbnail">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <div class="field-row-grid">
+                <div class="field-row">
+                  <span class="field-label-inline">Texture Resolution</span>
+                  <select id="modelTextureResolution" class="field-select-inline">
+                    <option value="2k" selected>2K</option>
+                    <option value="4k">4K</option>
+                    <option value="8k">8K</option>
+                  </select>
+                </div>
+
+                <div class="field-row">
+                  <span class="field-label-inline">Multi-view Thumbnails</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="modelMultiViewThumbnails">
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
@@ -1148,11 +1188,11 @@
           <div class="gen-meta">
             <span class="gen-time">2 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 6</span>
+            <span class="gen-credits" id="remeshCreditsDisplay"><i class="fa-solid fa-coins"></i> 5</span>
           </div>
-          <button type="button" id="applyRemeshBtn" class="gen-btn" title="6 credits">
+          <button type="button" id="applyRemeshBtn" class="gen-btn" title="5 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
-            Remesh <span class="btn-cost-badge">6 cr</span>
+            Remesh <span class="btn-cost-badge">5 cr</span>
           </button>
         </div>
       `,
@@ -1246,9 +1286,18 @@
             <div class="inline-field">
               <label for="textureAiModel">Meshy Model</label>
               <select id="textureAiModel">
-                <option value="latest" selected>Latest (Meshy 6)</option>
+                <option value="latest" selected>Latest (Meshy 7)</option>
+                <option value="meshy-7">Meshy 7</option>
                 <option value="meshy-6">Meshy 6</option>
                 <option value="meshy-5">Meshy 5</option>
+              </select>
+            </div>
+            <div class="inline-field">
+              <label for="textureResolution">Texture Resolution</label>
+              <select id="textureResolution">
+                <option value="2k" selected>2K</option>
+                <option value="4k">4K</option>
+                <option value="8k">8K</option>
               </select>
             </div>
             <div class="field-row">
@@ -2523,6 +2572,87 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       // Tabs for model → (Text to 3D / Image to 3D)
       const tabButtons  = leftStack.querySelectorAll('.tab-btn');
       const tabContents = leftStack.querySelectorAll('.tab-content');
+      const getActiveModelTab = () => leftStack.querySelector('.tab-content.active')?.id || 'text3d';
+      const getModelGenerationCost = () => {
+        const activeTab = getActiveModelTab();
+        const isImageFlow = activeTab === 'image3d' || activeTab === 'multiimage3d';
+        if (!isImageFlow) return 20;
+        let cost = 30;
+        if ((leftStack.querySelector('#modelTextureResolution')?.value || '2k').toLowerCase() === '8k') {
+          cost += 5;
+        }
+        if (activeTab === 'image3d' && leftStack.querySelector('#modelUltraMode')?.checked) {
+          cost += 5;
+        }
+        return cost;
+      };
+      const syncModelGenerationControls = () => {
+        const activeTab = getActiveModelTab();
+        const isTextFlow = activeTab === 'text3d';
+        const isSingleImageFlow = activeTab === 'image3d';
+        const isImageFlow = activeTab === 'image3d' || activeTab === 'multiimage3d';
+        const aiModel = leftStack.querySelector('#modelAIModel');
+        const modelType = leftStack.querySelector('#modelModelType');
+        const textureResolution = leftStack.querySelector('#modelTextureResolution');
+        const ultraMode = leftStack.querySelector('#modelUltraMode');
+        const multiViewThumbnails = leftStack.querySelector('#modelMultiViewThumbnails');
+        const alphaThumbnail = leftStack.querySelector('#modelAlphaThumbnail');
+        const modelCredits = leftStack.querySelector('#modelCreditsDisplay');
+        const generateBtn = leftStack.querySelector('#generateModelBtn');
+        const smartTopology = isSingleImageFlow && (modelType?.value || '').toLowerCase() === 'smart-topology';
+
+        if (modelType && !isSingleImageFlow && modelType.value === 'smart-topology') {
+          modelType.value = 'standard';
+        }
+
+        if (aiModel) {
+          const smartOptions = new Set(['meshy-t1', 'meshy-t2']);
+          aiModel.querySelectorAll('option').forEach((option) => {
+            if (option.value === 'meshy-7') option.disabled = isTextFlow;
+            if (smartOptions.has(option.value)) option.disabled = !smartTopology;
+            if (!smartOptions.has(option.value) && smartTopology) option.disabled = true;
+          });
+          if (smartTopology && !smartOptions.has(aiModel.value)) aiModel.value = 'meshy-t2';
+          if (!smartTopology && smartOptions.has(aiModel.value)) aiModel.value = 'latest';
+          if (isTextFlow && aiModel.value === 'meshy-7') aiModel.value = 'latest';
+        }
+
+        const modelValue = aiModel?.value || 'latest';
+        const isMeshy5 = modelValue === 'meshy-5';
+        if (textureResolution) {
+          textureResolution.querySelectorAll('option').forEach((option) => {
+            option.disabled = isMeshy5 && (option.value === '4k' || option.value === '8k');
+          });
+          if (isMeshy5 && (textureResolution.value === '4k' || textureResolution.value === '8k')) {
+            textureResolution.value = '2k';
+          }
+          textureResolution.disabled = isTextFlow;
+        }
+
+        const supportsUltra = isSingleImageFlow && !smartTopology && ['latest', 'meshy-7'].includes(modelValue);
+        if (ultraMode) {
+          ultraMode.disabled = !supportsUltra;
+          if (!supportsUltra) ultraMode.checked = false;
+        }
+        if (multiViewThumbnails) {
+          multiViewThumbnails.disabled = !isImageFlow;
+          if (!isImageFlow) multiViewThumbnails.checked = false;
+        }
+        if (alphaThumbnail) alphaThumbnail.disabled = false;
+
+        const cost = getModelGenerationCost();
+        if (modelCredits) modelCredits.innerHTML = `<i class="fa-solid fa-coins"></i> ${cost}`;
+        if (generateBtn) {
+          generateBtn.title = `${cost} credits`;
+          const costBadge = generateBtn.querySelector('.btn-cost-badge');
+          if (costBadge) costBadge.textContent = `${cost} cr`;
+          generateBtn.dataset.currentAction = isImageFlow ? 'image-to-3d' : 'text-to-3d';
+        }
+
+        if (window.WorkspaceCredits?.updateButtonCosts) {
+          window.WorkspaceCredits.updateButtonCosts();
+        }
+      };
 
       tabButtons.forEach((btn) => {
         btn.addEventListener('click', function () {
@@ -2543,31 +2673,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             content.classList.toggle('active',  isTarget);
           });
 
-          // Update credits display based on selected tab
-          const modelCredits = leftStack.querySelector('#modelCreditsDisplay');
-          const generateBtn = leftStack.querySelector('#generateModelBtn');
-          const isImage3d = (targetTab === 'image3d');
-          const isMultiImage = (targetTab === 'multiimage3d');
-          const cost = (isImage3d || isMultiImage) ? 30 : 20;
-
-          if (modelCredits) {
-            modelCredits.innerHTML = `<i class="fa-solid fa-coins"></i> ${cost}`;
-          }
-
-          if (generateBtn) {
-            generateBtn.title = `${cost} credits`;
-            let costBadge = generateBtn.querySelector('.btn-cost-badge');
-            if (costBadge) {
-              costBadge.textContent = `${cost} cr`;
-            }
-            // Multi-image uses same cost as image-to-3d (30c); tab detection in onGenerateClick routes to the correct endpoint
-            generateBtn.dataset.currentAction = (isMultiImage || isImage3d) ? 'image-to-3d' : 'text-to-3d';
-          }
-
-          // Trigger workspace credits update if available
-          if (window.WorkspaceCredits?.updateButtonCosts) {
-            window.WorkspaceCredits.updateButtonCosts();
-          }
+          syncModelGenerationControls();
         });
       });
 
@@ -5907,6 +6013,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const textureStyleImagePreview = leftStack.querySelector('#textureStyleImagePreview');
       const textureStyleImageUrl = leftStack.querySelector('#textureStyleImageUrl');
       const textureAiModel = leftStack.querySelector('#textureAiModel');
+      const textureResolution = leftStack.querySelector('#textureResolution');
       const textureRemoveLighting = leftStack.querySelector('#textureRemoveLighting');
       const textureRemoveLightingNote = leftStack.querySelector('#textureRemoveLightingNote');
 
@@ -5958,19 +6065,31 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       }
 
       const syncTextureLightingSupport = () => {
-        if (!textureAiModel || !textureRemoveLighting) return;
-        const supported = textureAiModel.value !== 'meshy-5';
-        textureRemoveLighting.disabled = !supported;
-        if (!supported) textureRemoveLighting.checked = false;
+        if (!textureAiModel) return;
+        const isMeshy5 = textureAiModel.value === 'meshy-5';
+        const supportsRemoveLighting = textureAiModel.value === 'meshy-6';
+        if (textureRemoveLighting) {
+          textureRemoveLighting.disabled = !supportsRemoveLighting;
+          if (!supportsRemoveLighting) textureRemoveLighting.checked = false;
+        }
+        if (textureResolution) {
+          textureResolution.querySelectorAll('option').forEach((option) => {
+            option.disabled = isMeshy5 && (option.value === '4k' || option.value === '8k');
+          });
+          if (isMeshy5 && (textureResolution.value === '4k' || textureResolution.value === '8k')) {
+            textureResolution.value = '2k';
+          }
+        }
         if (textureRemoveLightingNote) {
-          textureRemoveLightingNote.textContent = supported
-            ? 'Cleaner base color textures for custom lighting setups. Only available on Meshy 6 / latest.'
-            : 'Remove Lighting is unavailable on Meshy 5 and will stay off until you switch back to Meshy 6 / latest.';
+          textureRemoveLightingNote.textContent = supportsRemoveLighting
+            ? 'Cleaner base color textures for custom lighting setups. Only available on Meshy 6.'
+            : 'Remove Lighting is only available on Meshy 6 and will stay off for this model.';
         }
       };
 
-      if (textureAiModel && textureRemoveLighting) {
+      if (textureAiModel) {
         textureAiModel.addEventListener('change', syncTextureLightingSupport);
+        textureResolution?.addEventListener('change', syncTextureLightingSupport);
         syncTextureLightingSupport();
       }
 
@@ -6170,6 +6289,19 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           if (!el) return;
           el.disabled = convertOnly;
         });
+        const cost = convertOnly ? 1 : 5;
+        const actionLabel = convertOnly ? 'Convert' : 'Remesh';
+        const remeshCredits = leftStack.querySelector('#remeshCreditsDisplay');
+        const applyRemeshBtn = leftStack.querySelector('#applyRemeshBtn');
+        if (remeshCredits) remeshCredits.innerHTML = `<i class="fa-solid fa-coins"></i> ${cost}`;
+        if (applyRemeshBtn) {
+          applyRemeshBtn.title = `${cost} credits`;
+          const costBadge = applyRemeshBtn.querySelector('.btn-cost-badge');
+          if (costBadge) costBadge.textContent = `${cost} cr`;
+          const textNode = Array.from(applyRemeshBtn.childNodes)
+            .find((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
+          if (textNode) textNode.textContent = `\n            ${actionLabel} `;
+        }
       };
 
       if (remeshPresetsWrap) {
@@ -6332,20 +6464,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         });
       });
 
-      // AI Model change → update credits display
       const aiModelSelect = leftStack.querySelector('#modelAIModel');
-      const modelCreditsDisplay = leftStack.querySelector('#modelCreditsDisplay');
-      if (aiModelSelect && modelCreditsDisplay) {
-        aiModelSelect.addEventListener('change', function () {
-          const value = this.value;
-          if (value === 'meshy-5') {
-            modelCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 10';
-          } else {
-            modelCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 20';
-          }
-        });
-      }
-
       const modelTypeSelect = leftStack.querySelector('#modelModelType');
       const modelShouldRemesh = leftStack.querySelector('#modelShouldRemesh');
       const modelRemeshSettings = leftStack.querySelector('#modelRemeshSettings');
@@ -6354,6 +6473,10 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const modelAutoSizeSettings = leftStack.querySelector('#modelAutoSizeSettings');
       const modelOriginAt = leftStack.querySelector('#modelOriginAt');
       const modelPreviewAdvancedNote = leftStack.querySelector('#modelPreviewAdvancedNote');
+      const modelTextureResolution = leftStack.querySelector('#modelTextureResolution');
+      const modelUltraMode = leftStack.querySelector('#modelUltraMode');
+      const modelAlphaThumbnail = leftStack.querySelector('#modelAlphaThumbnail');
+      const modelMultiViewThumbnails = leftStack.querySelector('#modelMultiViewThumbnails');
 
       const syncPreviewAdvancedControls = () => {
         const isLowPoly = (modelTypeSelect?.value || '').toLowerCase() === 'lowpoly';
@@ -6392,11 +6515,21 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         }
       };
 
-      modelTypeSelect?.addEventListener('change', syncPreviewAdvancedControls);
-      modelShouldRemesh?.addEventListener('change', syncPreviewAdvancedControls);
-      modelAutoSize?.addEventListener('change', syncPreviewAdvancedControls);
-      modelModeration?.addEventListener('change', syncPreviewAdvancedControls);
+      const syncAllModelControls = () => {
+        syncPreviewAdvancedControls();
+        syncModelGenerationControls();
+      };
+      aiModelSelect?.addEventListener('change', syncAllModelControls);
+      modelTypeSelect?.addEventListener('change', syncAllModelControls);
+      modelShouldRemesh?.addEventListener('change', syncAllModelControls);
+      modelAutoSize?.addEventListener('change', syncAllModelControls);
+      modelModeration?.addEventListener('change', syncAllModelControls);
+      modelTextureResolution?.addEventListener('change', syncAllModelControls);
+      modelUltraMode?.addEventListener('change', syncAllModelControls);
+      modelAlphaThumbnail?.addEventListener('change', syncAllModelControls);
+      modelMultiViewThumbnails?.addEventListener('change', syncAllModelControls);
       syncPreviewAdvancedControls();
+      syncModelGenerationControls();
 
       // ========================================
       // PROMPT ENHANCE: Bind enhance buttons

@@ -1674,7 +1674,7 @@ function showNextStepSuggestions(jobId, stage) {
     <div style="font-weight:600;margin-bottom:8px;color:#e0e0e0">Model generated! Next steps:</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px">
       <button class="next-step-btn" data-action="refine" style="padding:6px 12px;background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.3);border-radius:8px;color:#7dd3fc;font-size:12px;cursor:pointer">Refine <span class="btn-cost-badge">10 cr</span></button>
-      <button class="next-step-btn" data-action="remesh" style="padding:6px 12px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);border-radius:8px;color:#c4b5fd;font-size:12px;cursor:pointer">Remesh <span class="btn-cost-badge">6 cr</span></button>
+      <button class="next-step-btn" data-action="remesh" style="padding:6px 12px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);border-radius:8px;color:#c4b5fd;font-size:12px;cursor:pointer">Remesh <span class="btn-cost-badge">5 cr</span></button>
       <button class="next-step-btn" data-action="rig" style="padding:6px 12px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:8px;color:#6ee7b7;font-size:12px;cursor:pointer">Rig <span class="btn-cost-badge">5 cr</span></button>
       <button class="next-step-btn" data-action="export-stl" style="padding:6px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#aaa;font-size:12px;cursor:pointer">Export STL</button>
     </div>
@@ -2160,6 +2160,7 @@ function getPreviewFormValues() {
   const should_remesh = isLowPoly ? false : !!byId('modelShouldRemesh')?.checked;
   const moderation = !!byId('modelModeration')?.checked;
   const auto_size = !!byId('modelAutoSize')?.checked;
+  const alpha_thumbnail = !!byId('modelAlphaThumbnail')?.checked;
   const topologyValue = (byId('modelTopology')?.value || 'triangle').trim().toLowerCase();
   const targetPolyInput = parseInt(byId('modelTargetPolycount')?.value || '30000', 10);
   const originAt = (byId('modelOriginAt')?.value || 'bottom').trim().toLowerCase();
@@ -2176,6 +2177,7 @@ function getPreviewFormValues() {
     model_type: modelType || 'standard',
     should_remesh,
     moderation,
+    alpha_thumbnail,
     auto_size,
     target_formats
   };
@@ -2194,6 +2196,38 @@ function getPreviewFormValues() {
   return values;
 }
 
+function getImageTo3DFormValues({ multiImage = false } = {}) {
+  const values = getPreviewFormValues();
+  let modelType = (values.model_type || 'standard').toLowerCase();
+  let model = (byId('modelAIModel')?.value || 'latest').trim() || 'latest';
+  const textureResolution = (byId('modelTextureResolution')?.value || '2k').trim().toLowerCase();
+  const ultraMode = !!byId('modelUltraMode')?.checked;
+  const multiViewThumbnails = !!byId('modelMultiViewThumbnails')?.checked;
+  const targetPolyInput = parseInt(byId('modelTargetPolycount')?.value || '15000', 10);
+
+  if (multiImage && modelType === 'smart-topology') {
+    modelType = 'standard';
+    values.model_type = 'standard';
+  }
+
+  if (modelType === 'smart-topology') {
+    if (model !== 'meshy-t1' && model !== 'meshy-t2') model = 'meshy-t2';
+    values.should_remesh = false;
+    delete values.topology;
+    values.target_polycount = Number.isFinite(targetPolyInput)
+      ? Math.max(100, Math.min(15000, targetPolyInput))
+      : 15000;
+  } else if (model === 'meshy-t1' || model === 'meshy-t2') {
+    model = 'latest';
+  }
+
+  values.model = model;
+  values.texture_resolution = ['2k', '4k', '8k'].includes(textureResolution) ? textureResolution : '2k';
+  values.ultra_mode = !multiImage && modelType === 'standard' && (model === 'latest' || model === 'meshy-7') && ultraMode;
+  values.multi_view_thumbnails = multiViewThumbnails;
+  return values;
+}
+
 /**
  * Get texture form values from the UI
  */
@@ -2202,6 +2236,7 @@ async function getTextureFormValues() {
   const negativePrompt = getNegativePromptValue('textureNegativePrompt');
   const textureType = (byId('textureType')?.value || 'pbr-all').toLowerCase();
   const aiModel = (byId('textureAiModel')?.value || 'latest').trim() || 'latest';
+  const textureResolution = (byId('textureResolution')?.value || '2k').trim().toLowerCase();
   const seamlessInput = byId('seamless');
   const removeLightingInput = byId('textureRemoveLighting');
   const styleImageInput = byId('textureStyleImageUpload');
@@ -2239,8 +2274,9 @@ async function getTextureFormValues() {
     image_style_url,
     enable_pbr,
     enable_original_uv,
-    remove_lighting: removeLightingInput ? !!removeLightingInput.checked : aiModel !== 'meshy-5',
-    ai_model: aiModel
+    remove_lighting: aiModel === 'meshy-6' && removeLightingInput ? !!removeLightingInput.checked : false,
+    ai_model: aiModel,
+    texture_resolution: ['2k', '4k', '8k'].includes(textureResolution) ? textureResolution : '2k'
   };
   if (target_formats?.length) {
     values.target_formats = Array.from(new Set(target_formats));
@@ -2324,14 +2360,15 @@ async function openRefineSettingsModal(item = {}) {
               </label>
             </div>
             <p class="field-hint texture-setting-note" id="refineRemoveLightingNote">Cleaner base textures for custom lighting setups. Only available on Meshy 6 / latest.</p>
-            <div class="field-row">
-              <span class="field-label-inline">HD Texture</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="refineHdTexture">
-                <span class="toggle-slider"></span>
-              </label>
+            <div class="inline-field">
+              <label for="refineTextureResolution">Texture Resolution</label>
+              <select id="refineTextureResolution">
+                <option value="2k" selected>2K</option>
+                <option value="4k">4K</option>
+                <option value="8k">8K</option>
+              </select>
             </div>
-            <p class="field-hint texture-setting-note" id="refineHdTextureNote">Generate a 4K base color texture. Only available on Meshy 6 / latest.</p>
+            <p class="field-hint texture-setting-note" id="refineTextureResolutionNote">2K and 4K use the base refine cost. 8K uses the higher Meshy texture tier. Meshy 5 supports 2K only.</p>
           </div>
         </div>
 
@@ -2339,11 +2376,11 @@ async function openRefineSettingsModal(item = {}) {
           <div class="gen-meta">
             <span class="gen-time">~2 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 6</span>
+            <span class="gen-credits" id="refineCreditsDisplay"><i class="fa-solid fa-coins"></i> 10</span>
           </div>
           <div class="workspace-modal__actions">
             <button type="button" class="gen-btn gen-btn--rail workspace-modal__ghost" id="refineSettingsCancel">Cancel</button>
-            <button type="button" class="gen-btn" id="refineSettingsApply">Start Refine <span class="btn-cost-badge">6 cr</span></button>
+            <button type="button" class="gen-btn" id="refineSettingsApply">Start Refine <span class="btn-cost-badge">10 cr</span></button>
           </div>
         </div>
       </div>
@@ -2380,8 +2417,9 @@ async function openRefineSettingsModal(item = {}) {
     const aiModel = overlay.querySelector('#refineAiModel');
     const removeLighting = overlay.querySelector('#refineRemoveLighting');
     const removeLightingNote = overlay.querySelector('#refineRemoveLightingNote');
-    const hdTexture = overlay.querySelector('#refineHdTexture');
-    const hdTextureNote = overlay.querySelector('#refineHdTextureNote');
+    const textureResolution = overlay.querySelector('#refineTextureResolution');
+    const textureResolutionNote = overlay.querySelector('#refineTextureResolutionNote');
+    const refineCreditsDisplay = overlay.querySelector('#refineCreditsDisplay');
 
     const closeModal = () => {
       cleanup(null);
@@ -2418,23 +2456,35 @@ async function openRefineSettingsModal(item = {}) {
     };
 
     const syncLightingSupport = () => {
-      if (!aiModel || !removeLighting) return;
+      if (!aiModel) return;
       const supported = aiModel.value !== 'meshy-5';
-      removeLighting.disabled = !supported;
-      if (!supported) removeLighting.checked = false;
+      if (removeLighting) {
+        removeLighting.disabled = !supported;
+        if (!supported) removeLighting.checked = false;
+      }
       if (removeLightingNote) {
         removeLightingNote.textContent = supported
           ? 'Cleaner base textures for custom lighting setups. Only available on Meshy 6 / latest.'
           : 'Remove Lighting is unavailable on Meshy 5 and stays off until you switch back to Meshy 6 / latest.';
       }
-      if (hdTexture) {
-        hdTexture.disabled = !supported;
-        if (!supported) hdTexture.checked = false;
+      if (textureResolution) {
+        textureResolution.querySelectorAll('option').forEach((option) => {
+          option.disabled = !supported && (option.value === '4k' || option.value === '8k');
+        });
+        if (!supported && (textureResolution.value === '4k' || textureResolution.value === '8k')) {
+          textureResolution.value = '2k';
+        }
       }
-      if (hdTextureNote) {
-        hdTextureNote.textContent = supported
-          ? 'Generate a 4K base color texture. Only available on Meshy 6 / latest.'
-          : 'HD Texture is unavailable on Meshy 5 and stays off until you switch back to Meshy 6 / latest.';
+      const cost = textureResolution?.value === '8k' ? 15 : 10;
+      if (refineCreditsDisplay) refineCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${cost}`;
+      if (applyBtn) {
+        const badge = applyBtn.querySelector('.btn-cost-badge');
+        if (badge) badge.textContent = `${cost} cr`;
+      }
+      if (textureResolutionNote) {
+        textureResolutionNote.textContent = supported
+          ? '2K and 4K use the base refine cost. 8K uses the higher Meshy texture tier.'
+          : 'Meshy 5 supports 2K texture output only.';
       }
     };
 
@@ -2449,6 +2499,7 @@ async function openRefineSettingsModal(item = {}) {
       syncStylePreview();
     });
     aiModel?.addEventListener('change', syncLightingSupport);
+    textureResolution?.addEventListener('change', syncLightingSupport);
     syncLightingSupport();
 
     applyBtn?.addEventListener('click', async () => {
@@ -2477,7 +2528,7 @@ async function openRefineSettingsModal(item = {}) {
           texture_image_url,
           enable_pbr: !!overlay.querySelector('#refineEnablePbr')?.checked,
           remove_lighting: !!removeLighting?.checked,
-          hd_texture: !!hdTexture?.checked,
+          texture_resolution: (textureResolution?.value || '2k').trim() || '2k',
           ai_model: (aiModel?.value || 'latest').trim() || 'latest'
         });
       } catch (err) {
@@ -3479,6 +3530,7 @@ export async function onGenerateClick() {
         topology: previewValues.topology,
         target_polycount: previewValues.target_polycount,
         moderation: previewValues.moderation,
+        alpha_thumbnail: previewValues.alpha_thumbnail,
         target_formats: previewValues.target_formats,
         auto_size: previewValues.auto_size,
         origin_at: previewValues.origin_at || '',
@@ -3502,6 +3554,7 @@ export async function onGenerateClick() {
         model_type: previewValues.model_type,
         should_remesh: previewValues.should_remesh,
         moderation: previewValues.moderation,
+        alpha_thumbnail: previewValues.alpha_thumbnail,
         auto_size: previewValues.auto_size,
         target_formats: previewValues.target_formats,
         batch_count: batchCount,
@@ -3567,6 +3620,7 @@ export async function onGenerateClick() {
         topology: previewValues.topology,
         target_polycount: previewValues.target_polycount,
         moderation: previewValues.moderation,
+        alpha_thumbnail: previewValues.alpha_thumbnail,
         target_formats: previewValues.target_formats,
         auto_size: previewValues.auto_size,
         origin_at: previewValues.origin_at || '',
@@ -6040,13 +6094,15 @@ async function startImageTo3DFromUpload() {
   const nameInput = byId('imageModelName');
   const prompt = (nameInput?.value || '').trim() || 'Image to 3D';
   const negativePrompt = getNegativePromptValue('image3dNegativePrompt');
-  const model = byId('modelAIModel')?.value || 'latest';
+  const imageOptions = getImageTo3DFormValues();
+  const model = imageOptions.model || 'latest';
 
   const meta = {
     prompt: `(image2-3d) ${prompt}`,
     root_prompt: prompt,
     negative_prompt: negativePrompt,
     model,
+    ...imageOptions,
     stage: 'image3d',
     thumbnail_url: imageData.startsWith('http') ? imageData : ''
   };
@@ -6074,7 +6130,7 @@ async function startImageTo3DFromUpload() {
     // Include idempotency key in header for duplicate prevention
     const result = await apiFetch('/api/_mod/image-to-3d/start', {
       method: 'POST',
-      body: { image_url: imageData, prompt, negative_prompt: negativePrompt, model },
+      body: { image_url: imageData, prompt, negative_prompt: negativePrompt, ...imageOptions },
       headers: { 'Idempotency-Key': idempotencyKey }
     });
 
@@ -6156,11 +6212,13 @@ export async function startImageTo3DFromHistory(item) {
 
   const prompt = item.prompt || item.title || 'Image to 3D';
   const negativePrompt = getNegativePromptValue('image3dNegativePrompt');
+  const imageOptions = getImageTo3DFormValues();
   const meta = {
     prompt: `(image2-3d) ${prompt}`,
     root_prompt: prompt,
     negative_prompt: negativePrompt,
-    model: 'latest',
+    model: imageOptions.model || 'latest',
+    ...imageOptions,
     stage: 'image3d',
     thumbnail_url: item.thumbnail_url || item.image_url || '',
     lineage_origin_id: item.lineage_origin_id || item.lineage_root_id || item.id || null,
@@ -6188,7 +6246,7 @@ export async function startImageTo3DFromHistory(item) {
     // Include idempotency key in header for duplicate prevention
     const result = await apiFetch('/api/_mod/image-to-3d/start', {
       method: 'POST',
-      body: { image_url: item.image_url, prompt, negative_prompt: negativePrompt, source_image_history_id: item.id },
+      body: { image_url: item.image_url, prompt, negative_prompt: negativePrompt, source_image_history_id: item.id, ...imageOptions },
       headers: { 'Idempotency-Key': idempotencyKey }
     });
 
@@ -6330,6 +6388,7 @@ export async function startRefineFromHistory(item, origin = 'history') {
       thumbnail_url: item.thumbnail_url || '',
       enable_pbr: refineValues.enable_pbr,
       remove_lighting: refineValues.remove_lighting,
+      texture_resolution: refineValues.texture_resolution || '2k',
       ai_model: refineValues.ai_model || 'latest',
       negative_prompt: refineValues.negative_prompt || '',
       texture_negative_prompt: refineValues.texture_negative_prompt || '',
@@ -6354,7 +6413,7 @@ export async function startRefineFromHistory(item, origin = 'history') {
       enable_pbr: refineValues.enable_pbr,
       ai_model: refineValues.ai_model || 'latest',
       remove_lighting: refineValues.remove_lighting,
-      hd_texture: refineValues.hd_texture,
+      texture_resolution: refineValues.texture_resolution || '2k',
       target_formats: ['glb']
     };
     if (refineValues.negative_prompt) body.negative_prompt = refineValues.negative_prompt;
@@ -6538,6 +6597,7 @@ export async function startTextureFromPanel() {
     enable_pbr: texValues.enable_pbr,
     enable_original_uv: texValues.enable_original_uv,
     remove_lighting: texValues.remove_lighting,
+    texture_resolution: texValues.texture_resolution || '2k',
     target_formats: texValues.target_formats || [],
     ai_model: texValues.ai_model || 'latest',
     negative_prompt: texValues.negative_prompt || '',
@@ -6593,13 +6653,15 @@ async function startMultiImageTo3D() {
   const nameInput = byId('multiImageModelName');
   const prompt = (nameInput?.value || '').trim() || 'Multi-Image to 3D';
   const negativePrompt = getNegativePromptValue('multiImageNegativePrompt');
-  const model = byId('modelAIModel')?.value || 'latest';
+  const imageOptions = getImageTo3DFormValues({ multiImage: true });
+  const model = imageOptions.model || 'latest';
 
   const meta = {
     prompt: `(multi-image) ${prompt}`,
     root_prompt: prompt,
     negative_prompt: negativePrompt,
     model,
+    ...imageOptions,
     stage: 'image3d',
     thumbnail_url: ''
   };
@@ -6624,7 +6686,7 @@ async function startMultiImageTo3D() {
   try {
     const result = await apiFetch('/api/_mod/multi-image-to-3d/start', {
       method: 'POST',
-      body: { image_urls: imageUrls, prompt, negative_prompt: negativePrompt, model },
+      body: { image_urls: imageUrls, prompt, negative_prompt: negativePrompt, ...imageOptions },
       headers: { 'Idempotency-Key': idempotencyKey }
     });
 
