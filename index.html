@@ -58,7 +58,7 @@
   <link rel="stylesheet" href="landing.css?v=14">
   <link rel="stylesheet" href="hero-assistant.css?v=20">
   <link rel="stylesheet" href="landing-widgets.css?v=7">
-  <link rel="stylesheet" href="homepage-responsive.css?v=10">
+  <link rel="stylesheet" href="homepage-responsive.css?v=12">
   <link rel="stylesheet" href="tx-menu.css?v=1">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer"></noscript>
@@ -172,34 +172,37 @@
               <p>Campaign visuals, product concepts, covers, and reference art.</p>
             </a>
             <a class="hero-cap-card hero-cap-card--print" href="/print-check" data-track="hero_capability_print">
-              <span class="hero-card-media hero-workflow hero-workflow--print" aria-hidden="true">
-                <span class="wf-printer"><i></i><b></b></span>
-                <span class="wf-scan"></span>
-                <span class="wf-checks"><i></i><i></i><i></i></span>
+              <span class="hero-card-media hero-scene" data-scene="printprep" aria-hidden="true">
+                <canvas class="fxc-stage"></canvas>
+                <span class="fxc-hud">
+                  <span class="hud-chip" data-hud="layer">Layer <b>000</b></span>
+                  <span class="hud-chip" data-hud="state">Slicing</span>
+                  <span class="hud-chip" data-hud="score">Score <b>—</b></span>
+                </span>
               </span>
               <span class="hero-cap-icon" aria-hidden="true">3MF</span>
               <strong>Print prep</strong>
               <p>Check, repair, and prepare STL or 3MF files for real-world output.</p>
             </a>
             <a class="hero-cap-card hero-cap-card--refine" href="/3dprint?panel=remesh" data-track="hero_capability_refine">
-              <span class="hero-card-media hero-workflow hero-workflow--refine" aria-hidden="true">
-                <span class="wf-mesh wf-mesh--rough"></span>
-                <span class="wf-flow"></span>
-                <span class="wf-mesh wf-mesh--clean"></span>
-                <span class="wf-texture"></span>
+              <span class="hero-card-media hero-scene" data-scene="remesh" aria-hidden="true">
+                <canvas class="fxc-stage"></canvas>
+                <span class="fxc-hud">
+                  <span class="hud-chip" data-hud="mode">Raw scan</span>
+                  <span class="hud-chip" data-hud="polys"><b>212k</b> tris</span>
+                </span>
               </span>
               <span class="hero-cap-icon" aria-hidden="true">FX</span>
               <strong>Remesh and texture</strong>
               <p>Clean topology, retouch surfaces, rig, animate, and keep iterating.</p>
             </a>
             <a class="hero-cap-card hero-cap-card--export" href="/converter" data-track="hero_capability_export">
-              <span class="hero-card-media hero-workflow hero-workflow--export" aria-hidden="true">
-                <span class="wf-format wf-format--one">STL</span>
-                <span class="wf-format wf-format--two">OBJ</span>
-                <span class="wf-format wf-format--three">GLB</span>
-                <span class="wf-format wf-format--four">3MF</span>
-                <span class="wf-export-arrow"></span>
-                <span class="wf-package"></span>
+              <span class="hero-card-media hero-scene" data-scene="export" aria-hidden="true">
+                <canvas class="fxc-stage"></canvas>
+                <span class="fxc-hud">
+                  <span class="hud-chip" data-hud="job">Converting</span>
+                  <span class="hud-chip" data-hud="out">→ <b>GLB</b></span>
+                </span>
               </span>
               <span class="hero-cap-icon" aria-hidden="true">GLB</span>
               <strong>Export and convert</strong>
@@ -674,8 +677,9 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
     window.TIMRX_CHAT_WIDGET = {kicker:'Platform assistant',title:'Ask TimrX',subtitle:'Product guidance for images, video, 3D, exports and credits.',spotlightTitle:'Find the right workflow',spotlightCopy:'Ask what to create, which tool to open, what formats are supported, or how credits work.',welcomeTitle:'What do you want to create?',welcomeCopy:'I can point you to the right TimrX tool and explain the workflow before you open the workspace.',placeholder:'Ask about tools, exports, credits or workflows…',prompts:[{label:'Which tool should I use?',prompt:'Which TimrX tool should I use for my idea?'},{label:'Can I export STL?',prompt:'Can I export models for 3D printing as STL or 3MF?'},{label:'How do credits work?',prompt:'How do credits work on TimrX?'},{label:'Start creating',prompt:'Where should I start if I want to create an asset now?'}]};
   </script>
   <script src="app.js?v=5" defer></script>
-  <script src="hero-assistant.js?v=12" defer></script>
+  <script src="hero-assistant.js?v=13" defer></script>
   <script src="js/hero-card-media.js?v=1" defer></script>
+  <script src="js/hero-feature-scenes.js?v=1" defer></script>
   <script src="landing-widgets.js?v=3" defer></script>
   <script src="js/shared/tx-menu.js?v=1" defer></script>
   <script src="landing.js?v=8" defer></script>
