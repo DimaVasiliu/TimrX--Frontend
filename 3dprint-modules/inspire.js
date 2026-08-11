@@ -927,7 +927,8 @@
   function workspaceSettled() {
     return new Promise(resolve => {
       let veilGone = document.body.classList.contains('ws-revealed');
-      let brainDone = window.timrxNeuralBrainIntroComplete === true;
+      // Brain background removed 2026-08-11: undefined now means 'no brain, don't wait'.
+      let brainDone = window.timrxNeuralBrainIntroComplete !== false;
       let settled = false;
 
       const check = () => {

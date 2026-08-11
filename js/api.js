@@ -348,7 +348,7 @@ function _meshyInjectStyles() {
   s.textContent = `
     .mxy-toast{position:fixed;right:24px;bottom:24px;z-index:9000;max-width:360px;
       padding:16px 18px;border-radius:12px;background:rgba(15,23,42,.96);
-      border:1px solid rgba(125,211,252,.25);box-shadow:0 18px 48px rgba(0,0,0,.5);
+      border:1px solid rgba(var(--accent-blue-soft-rgb, 165, 222, 217),.25);box-shadow:0 18px 48px rgba(0,0,0,.5);
       color:#f8fafc;font-family:Inter,system-ui,sans-serif;font-size:13px;
       line-height:1.45;animation:mxy-toast-in .22s ease both}
     @keyframes mxy-toast-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
@@ -359,7 +359,7 @@ function _meshyInjectStyles() {
       color:#f8fafc;padding:7px 12px;border-radius:8px;font-size:12px;font-weight:600;
       cursor:pointer;transition:background .15s,border-color .15s}
     .mxy-btn:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.28)}
-    .mxy-btn-primary{background:linear-gradient(90deg,#0ea5e9,#7dd3fc);color:#0b1220;border-color:transparent}
+    .mxy-btn-primary{background:linear-gradient(90deg,var(--accent-blue, #7fc8c2),var(--accent-blue-soft, #a5ded9));color:#0b1220;border-color:transparent}
     .mxy-btn-primary:hover{filter:brightness(1.08)}
     .mxy-btn-ghost{color:rgba(248,250,252,.55);border-color:transparent}
   `;
@@ -599,10 +599,10 @@ function confirmCostBeforeAction(action, count = 1) {
       .cost-confirm-card .cc-icon {
         width: 44px; height: 44px;
         border-radius: 12px;
-        background: linear-gradient(135deg, rgba(14,165,233,.15), rgba(139,92,246,.10));
-        border: 1px solid rgba(14,165,233,.20);
+        background: linear-gradient(135deg, rgba(var(--accent-blue-rgb, 127, 200, 194),.15), rgba(var(--accent-purple-rgb, 184, 167, 122),.10));
+        border: 1px solid rgba(var(--accent-blue-rgb, 127, 200, 194),.20);
         display: flex; align-items: center; justify-content: center;
-        font-size: 20px; color: #7dd3fc;
+        font-size: 20px; color: var(--accent-blue-soft, #a5ded9);
         margin: 0 auto 14px;
       }
       .cost-confirm-card .cc-action {
@@ -645,14 +645,14 @@ function confirmCostBeforeAction(action, count = 1) {
         text-transform: uppercase;
       }
       .cost-confirm-card .cc-yes {
-        background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+        background: linear-gradient(135deg, var(--accent-blue, #7fc8c2), var(--accent-purple, #b8a77a));
         border: none;
         color: #fff;
         flex: 1;
       }
       .cost-confirm-card .cc-yes:hover {
         filter: brightness(1.1);
-        box-shadow: 0 4px 16px rgba(14,165,233,.3);
+        box-shadow: 0 4px 16px rgba(var(--accent-blue-rgb, 127, 200, 194),.3);
       }
       .cost-confirm-card .cc-no {
         background: transparent;
@@ -1369,7 +1369,7 @@ function showDailyQuotaModal(data) {
         You can still use other video models that haven't reached their limit.
       </p>
       <div style="display:flex;gap:10px;justify-content:center;">
-        <button data-close style="flex:1;padding:12px 20px;border-radius:10px;border:none;background:linear-gradient(135deg,#8b5cf6,#6366f1);color:#fff;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;">
+        <button data-close style="flex:1;padding:12px 20px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent-purple, #b8a77a),var(--accent-2, #8f8261));color:#fff;font-weight:600;font-size:14px;cursor:pointer;font-family:inherit;">
           Got it
         </button>
       </div>
@@ -1673,8 +1673,8 @@ function showNextStepSuggestions(jobId, stage) {
   panel.innerHTML = `
     <div style="font-weight:600;margin-bottom:8px;color:#e0e0e0">Model generated! Next steps:</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px">
-      <button class="next-step-btn" data-action="refine" style="padding:6px 12px;background:rgba(14,165,233,0.15);border:1px solid rgba(14,165,233,0.3);border-radius:8px;color:#7dd3fc;font-size:12px;cursor:pointer">Refine <span class="btn-cost-badge">10 cr</span></button>
-      <button class="next-step-btn" data-action="remesh" style="padding:6px 12px;background:rgba(139,92,246,0.12);border:1px solid rgba(139,92,246,0.25);border-radius:8px;color:#c4b5fd;font-size:12px;cursor:pointer">Remesh <span class="btn-cost-badge">5 cr</span></button>
+      <button class="next-step-btn" data-action="refine" style="padding:6px 12px;background:rgba(var(--accent-blue-rgb, 127, 200, 194),0.15);border:1px solid rgba(var(--accent-blue-rgb, 127, 200, 194),0.3);border-radius:8px;color:var(--accent-blue-soft, #a5ded9);font-size:12px;cursor:pointer">Refine <span class="btn-cost-badge">10 cr</span></button>
+      <button class="next-step-btn" data-action="remesh" style="padding:6px 12px;background:rgba(var(--accent-purple-rgb, 184, 167, 122),0.12);border:1px solid rgba(var(--accent-purple-rgb, 184, 167, 122),0.25);border-radius:8px;color:#c4b5fd;font-size:12px;cursor:pointer">Remesh <span class="btn-cost-badge">5 cr</span></button>
       <button class="next-step-btn" data-action="rig" style="padding:6px 12px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:8px;color:#6ee7b7;font-size:12px;cursor:pointer">Rig <span class="btn-cost-badge">5 cr</span></button>
       <button class="next-step-btn" data-action="export-stl" style="padding:6px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#aaa;font-size:12px;cursor:pointer">Export STL</button>
     </div>
@@ -1713,7 +1713,7 @@ function showTimeoutRecoveryBanner(action) {
 
   const banner = document.createElement('div');
   banner.className = 'timeout-recovery-banner';
-  banner.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 16px;margin:8px 0;background:rgba(14,165,233,0.12);border:1px solid rgba(14,165,233,0.25);border-radius:10px;color:#e0e0e0;font-size:13px;animation:fadeIn .2s ease';
+  banner.style.cssText = 'display:flex;align-items:center;gap:10px;padding:12px 16px;margin:8px 0;background:rgba(var(--accent-blue-rgb, 127, 200, 194),0.12);border:1px solid rgba(var(--accent-blue-rgb, 127, 200, 194),0.25);border-radius:10px;color:#e0e0e0;font-size:13px;animation:fadeIn .2s ease';
   banner.innerHTML = `
     <span style="font-size:18px;animation:spin 1.5s linear infinite">&#9203;</span>
     <span>Your ${action.replace(/-/g, ' ')} is still generating on our servers. This typically takes 1-3 minutes. We'll update you when it's ready.</span>
@@ -5936,7 +5936,7 @@ async function watchVideoJob(jobId, reservationId, meta, { isRecovery = false } 
           if (bal !== null && bal < 100) {
             setTimeout(() => {
               UI.toast(
-                `You have ${bal} credits remaining. <a href="/hub#pricing" style="color:#7dd3fc;text-decoration:underline">Buy more</a>`,
+                `You have ${bal} credits remaining. <a href="/hub#pricing" style="color:var(--accent-blue-soft, #a5ded9);text-decoration:underline">Buy more</a>`,
                 'info', 8000
               );
             }, 2000);
@@ -8521,24 +8521,24 @@ export function updateJobsIndicator() {
         style.textContent = `
           #jobs-indicator {
             animation: jobs-pulse 2s ease-in-out infinite;
-            border: 1px solid rgba(56, 189, 248, 0.4) !important;
-            background: rgba(56, 189, 248, 0.08) !important;
+            border: 1px solid rgba(var(--accent-blue-rgb, 127, 200, 194), 0.4) !important;
+            background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.08) !important;
           }
           #jobs-indicator:hover {
-            background: rgba(56, 189, 248, 0.15) !important;
-            border-color: rgba(56, 189, 248, 0.6) !important;
+            background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.15) !important;
+            border-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.6) !important;
           }
           @keyframes jobs-pulse {
             0%, 100% {
-              box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.4);
+              box-shadow: 0 0 0 0 rgba(var(--accent-blue-rgb, 127, 200, 194), 0.4);
             }
             50% {
-              box-shadow: 0 0 8px 2px rgba(56, 189, 248, 0.3);
+              box-shadow: 0 0 8px 2px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.3);
             }
           }
           #jobs-indicator .jobs-indicator__spinner {
             animation: jobs-spin 1s linear infinite;
-            stroke: #38bdf8;
+            stroke: var(--accent-blue, #7fc8c2);
           }
           @keyframes jobs-spin {
             from { transform: rotate(0deg); }
@@ -8546,7 +8546,7 @@ export function updateJobsIndicator() {
           }
           #jobs-indicator .jobs-indicator__count {
             font-weight: 600;
-            color: #38bdf8;
+            color: var(--accent-blue, #7fc8c2);
           }
         `;
         document.head.appendChild(style);
@@ -8616,7 +8616,7 @@ export function showJobsPanel() {
   modal.innerHTML = `
     <div class="modal-panel" style="max-width: 480px;">
       <h3 style="margin-bottom: 16px; display: flex; align-items: center; gap: 10px;">
-        <div style="width: 10px; height: 10px; background: #8b5cf6; border-radius: 50%; animation: jobs-pulse 1.5s ease-in-out infinite;"></div>
+        <div style="width: 10px; height: 10px; background: var(--accent-purple, #b8a77a); border-radius: 50%; animation: jobs-pulse 1.5s ease-in-out infinite;"></div>
         Jobs in Progress
       </h3>
       <p class="modal-desc" style="margin-bottom: 16px; color: #94a3b8;">
@@ -8669,12 +8669,12 @@ export function showJobsPanel() {
       }
       .jobs-panel__progress-fill {
         height: 100%;
-        background: #8b5cf6;
+        background: var(--accent-purple, #b8a77a);
         transition: width 0.3s ease;
       }
       .jobs-panel__progress-text {
         font-size: 12px;
-        color: #8b5cf6;
+        color: var(--accent-purple, #b8a77a);
         min-width: 35px;
         text-align: right;
       }

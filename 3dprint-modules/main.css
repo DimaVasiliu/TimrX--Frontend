@@ -12,29 +12,28 @@
    3. components.css  — Buttons, forms, tabs, chips (lines 618-1304)
    4. workspace.css   — Workspace grid, rail, cards (lines 1305-2234)
    5. viewer.css      — 3D viewer controls (lines 2235-2507)
-   6. history.css     — History panel, thumbnails (lines 2508-5557)
-   7. tutorials.css   — Tutorials expanded view
-   8. community.css   — Community expanded view
-   9. docs.css        — Documentation expanded view
-   10. inspire.css    — Discovery overlay
-   11. notifications.css — Notification center
+   6. history.css     — History panel, thumbnails
+   7. inspire.css     — Discovery overlay
+   8. notifications.css — Notification center
+   (tutorials/community/docs styles were removed with the dead in-page
+    expanded views on 2026-08-11 — the standalone pages load their own)
    ─────────────────────────────────────────────────────────────────────────
    ========================================================================== */
 
 /* 1. Root Variables & Body Styles */
-@import url('css/variables.css?v=20260811o');
+@import url('css/variables.css?v=20260811p');
 @import url('media/variables-media.css?v=20260802f');
 
 /* 2. Navigation & Brand */
-@import url('css/layout.css?v=20260802g');
+@import url('css/layout.css?v=20260811p');
 @import url('media/layout-media.css?v=20260802f');
 
 /* 3. Buttons, Forms, Tabs, Chips */
-@import url('css/components.css?v=20260802f');
+@import url('css/components.css?v=20260811p');
 @import url('media/components-media.css?v=20260802f');
 
 /* 4. Workspace Grid & Cards */
-@import url('css/workspace.css?v=20260802i');
+@import url('css/workspace.css?v=20260811p');
 @import url('media/workspace-media.css?v=20260802g');
 
 /* 5. 3D Viewer Controls */
@@ -42,27 +41,15 @@
 @import url('media/viewer-media.css?v=20260802f');
 
 /* 6. History Panel */
-@import url('css/history.css?v=20260811o');
+@import url('css/history.css?v=20260811p');
 @import url('media/history-media.css?v=20260810d');
 
-/* 7. Tutorials Styles */
-@import url('css/tutorials.css?v=20260802f');
-@import url('media/tutorials-media.css?v=20260802f');
-
-/* 8. Community Styles */
-@import url('css/community.css?v=20260802f');
-@import url('media/community-media.css?v=20260802f');
-
-/* 9. Docs Styles */
-@import url('css/docs.css?v=20260802f');
-@import url('media/docs-media.css?v=20260802f');
-
 /* 10. Inspire Section */
-@import url('css/inspire.css?v=20260810a');
+@import url('css/inspire.css?v=20260811p');
 @import url('media/inspire-media.css?v=20260810a');
 
 /* 11. Notification Center */
-@import url('css/notifications.css?v=20260802f');
+@import url('css/notifications.css?v=20260811p');
 @import url('media/notifications-media.css?v=20260802f');
 
 /* 12. Multi-Color 3D Print Modal */
@@ -74,10 +61,11 @@
 /* 14. Control sheet — the tool panel */
 @import url('css/panel.css?v=20260811o');
 
-/* 15. Neural intelligence background */
-@import url('css/neural-brain-background.css?v=20260810b');
-@import url('css/workspace-model-showcase.css?v=20260810b');
-@import url('css/workspace-thoughts.css?v=20260810c');
+/* 15. (neural background / showcase / thoughts removed 2026-08-11) */
+
+/* 15b. Bottom prompt dock — the redesigned primary creation surface.
+   Imported before the responsive layer so stage-media.css can adjust it. */
+@import url('css/dock.css?v=20260811y');
 
 /* 16. Responsive layer for the stage + bottom chrome — imported LAST on
    purpose: it corrects nav.css launcher geometry and stage safe areas

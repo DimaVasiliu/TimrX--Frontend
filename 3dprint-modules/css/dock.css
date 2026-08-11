@@ -1,0 +1,514 @@
+/* ==========================================================================
+   DOCK.CSS — Bottom prompt dock (workspace redesign, 2026-08-11)
+   --------------------------------------------------------------------------
+   One centered prompt bar with inline setting chips + popovers, in the
+   spirit of the approved prototype. It is an ADAPTER UI: every control
+   proxies an existing panel control (see js/workspace-dock.js), so the
+   generation pipeline (api.js / state.js / credits) is untouched.
+
+   Activation: js/workspace-dock.js adds body.ws-dock-on only after it has
+   verified the full element contract. Without that class this file does
+   nothing, and the legacy command bar + trays remain visible — a built-in
+   fallback if the contract ever breaks.
+   ========================================================================== */
+
+/* ---- retire the legacy bottom chrome while the dock is active ---------- */
+body.ws-dock-on .ws-cmd-trigger,
+body.ws-dock-on .ws-tray,
+body.ws-dock-on .ws-video-tray {
+  display: none !important;
+}
+
+/* Keep the ⌘K palette itself — it is still reachable via keyboard. */
+
+/* body.print3d-page > * demotes positioned body children to position:relative
+   (see the stacking-context note in variables.css:170+). These two restores
+   follow the documented pattern — explicit, high-specificity, no :not(). */
+html body.print3d-page > .ws-dock { position: fixed; z-index: 60; }
+html body.print3d-page > .ws-dock-pop { position: fixed; z-index: 200400; }
+
+.ws-dock {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  z-index: 60; /* same band the command trigger occupied */
+  /* Wide enough that video mode's five setting chips + Advanced sit on one
+     row (the longest chip set); chips still wrap gracefully below ~1080px. */
+  width: min(1020px, calc(100vw - 32px));
+  display: none;
+}
+body.ws-dock-on .ws-dock { display: block; }
+
+/* The dock participates in the sheet's click-away allow-list via a bare
+   [data-panel] attribute on this root — see KEEPS_SHEET_OPEN in
+   3dprint-app.js. Do not remove that attribute from the markup. */
+
+.ws-dock__card {
+  border-radius: 22px;
+  background: rgba(13, 16, 18, 0.86);
+  border: 1px solid var(--border-strong, rgba(255, 255, 255, 0.14));
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  padding: 10px 12px;
+}
+
+.ws-dock__row {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.ws-dock__prompt {
+  flex: 1;
+  min-width: 0;
+  background: none;
+  border: none;
+  outline: none;
+  resize: none;
+  color: var(--text, #f2f5f3);
+  font: 500 15px/1.45 var(--font-ui, 'Inter', sans-serif);
+  padding: 10px 2px 8px;
+  /* beat the global textarea sizing from components.css */
+  min-height: 0 !important;
+  height: 44px;
+  max-height: 120px;
+  box-shadow: none;
+}
+.ws-dock__prompt::placeholder { color: var(--text-dim, #6d7779); }
+
+.ws-dock__generate {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 44px;
+  padding: 0 20px;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  font: 600 14px/1 var(--font-ui, 'Inter', sans-serif);
+  background: linear-gradient(180deg, #ffffff, #e2e6e6);
+  color: #0b0f0f;
+  box-shadow: 0 10px 26px rgba(255, 255, 255, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
+}
+.ws-dock__generate:hover { transform: translateY(-1px); box-shadow: 0 14px 32px rgba(255, 255, 255, 0.18); }
+.ws-dock__generate:disabled { opacity: 0.55; transform: none; cursor: default; }
+.ws-dock__generate .ws-dock__cost {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(11, 15, 15, 0.12);
+  color: #20302e;
+}
+.ws-dock__generate.is-working {
+  background: linear-gradient(180deg, var(--surface-3, #182024), var(--surface-2, #121719));
+  color: var(--text-soft, #c8d0d0);
+  box-shadow: none;
+}
+
+.ws-dock__chips {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.ws-dock__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  cursor: pointer;
+  font: 500 12.5px/1 var(--font-ui, 'Inter', sans-serif);
+  color: var(--text-soft, #c8d0d0);
+  transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+  white-space: nowrap;
+}
+.ws-dock__chip:hover { border-color: rgba(var(--accent-blue-rgb), 0.45); color: var(--text, #f2f5f3); }
+.ws-dock__chip.is-open {
+  border-color: var(--accent-blue);
+  color: var(--text, #f2f5f3);
+  background: rgba(var(--accent-blue-rgb), 0.08);
+}
+.ws-dock__chip--mode {
+  background: rgba(var(--accent-blue-rgb), 0.1);
+  border-color: rgba(var(--accent-blue-rgb), 0.35);
+  color: var(--text, #f2f5f3);
+}
+.ws-dock__chip--adv { margin-left: auto; }
+.ws-dock__chip .c-ico { font-size: 12px; color: var(--accent-blue); width: 14px; text-align: center; }
+.ws-dock__chip .c-val { color: var(--text, #f2f5f3); font-weight: 600; }
+.ws-dock__chip .c-caret { font-size: 9px; color: var(--text-dim, #6d7779); margin-left: 1px; }
+
+/* ---- popover ----------------------------------------------------------- */
+.ws-dock-pop {
+  position: fixed;
+  z-index: 200400; /* below .ws-cmd (200500), above everything else */
+  min-width: 210px;
+  max-width: 340px;
+  max-height: min(440px, 56vh);
+  overflow-y: auto;
+  background: rgba(16, 21, 23, 0.96);
+  border: 1px solid var(--border-strong, rgba(255, 255, 255, 0.14));
+  border-radius: 16px;
+  backdrop-filter: blur(18px) saturate(1.15);
+  -webkit-backdrop-filter: blur(18px) saturate(1.15);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.4);
+  padding: 8px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(6px) scale(0.98);
+  transition: opacity 0.18s cubic-bezier(0.32, 0.72, 0.24, 1), transform 0.18s cubic-bezier(0.32, 0.72, 0.24, 1);
+}
+.ws-dock-pop.is-on { opacity: 1; pointer-events: auto; transform: none; }
+
+.ws-dock-pop__title {
+  font: 600 11px/1 var(--font-ui, 'Inter', sans-serif);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim, #6d7779);
+  padding: 6px 10px 8px;
+}
+.ws-dock-pop__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  cursor: pointer;
+  font: 500 12.5px/1.3 var(--font-ui, 'Inter', sans-serif);
+  color: var(--text-soft, #c8d0d0);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.ws-dock-pop__item:hover { background: rgba(255, 255, 255, 0.06); color: var(--text, #f2f5f3); }
+.ws-dock-pop__item.is-sel { color: var(--text, #f2f5f3); }
+.ws-dock-pop__item.is-sel::after { content: '✓'; margin-left: auto; color: var(--accent-blue); font-size: 12px; }
+.ws-dock-pop__item .pi-sub {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--text-dim, #6d7779);
+}
+.ws-dock-pop__item.is-sel .pi-sub { margin-left: 8px; }
+
+@media (max-width: 768px) {
+  /* Mobile keeps the existing tab UX for now — dock is desktop/tablet. */
+  body.ws-dock-on .ws-dock { display: none; }
+  body.ws-dock-on .ws-cmd-trigger,
+  body.ws-dock-on .ws-tray,
+  body.ws-dock-on .ws-video-tray { display: revert !important; }
+}
+
+/* ==========================================================================
+   REDESIGN PHASE 2 (2026-08-11): stage background, empty-state hero,
+   header assets button, right filmstrip, chrome retirement.
+   ========================================================================== */
+
+/* ---- clean gradient background (replaces neural brain + carousel) ------ */
+body.ws-dock-on.print3d-page {
+  background-image:
+    radial-gradient(1200px 700px at 70% -10%, rgba(var(--accent-blue-rgb), 0.07), transparent 60%),
+    radial-gradient(900px 600px at 10% 110%, rgba(var(--accent-purple-rgb), 0.05), transparent 60%);
+  background-color: var(--surface-0, #07090a);
+}
+body.ws-dock-on .ws-stage,
+body.ws-dock-on .sim-viewer-bg { background: none; }
+
+/* The stage container's layout rules used to live in
+   neural-brain-background.css (deleted). Redefine them here: a fixed,
+   non-interactive layer under the workspace; only the hero's own controls
+   re-enable pointer events. */
+.ws-stage {
+  grid-area: 1 / 1 / -1 / -1;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  min-height: 0;
+  pointer-events: none;
+}
+.ws-stage__inner { position: absolute; inset: 0; pointer-events: none; }
+
+/* ---- retire the center mode rail + corner launchers (dock owns these) -- */
+@media (min-width: 769px) {
+  body.ws-dock-on .ws-modes-switch,
+  body.ws-dock-on .ws-corner-launcher { display: none !important; }
+}
+
+/* ---- empty-state hero -------------------------------------------------- */
+.ws-hero {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 0 24px;
+  /* the stage layer is pointer-events:none; the hero re-enables events for
+     its own content only (it is the sole interactive thing on the stage) */
+  pointer-events: auto;
+}
+.ws-hero__title {
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  font-size: clamp(28px, 4.4vw, 46px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  color: var(--text, #f2f5f3);
+  margin: 0;
+}
+.ws-hero__title em { font-style: normal; color: var(--accent-blue); }
+.ws-hero__sub {
+  margin: 12px auto 0;
+  max-width: 620px;
+  color: var(--muted, #a7b0b2);
+  font-size: 15px;
+  line-height: 1.5;
+}
+.ws-hero__hints { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
+.ws-hero__hint {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  background: rgba(13, 16, 18, 0.5);
+  font-size: 12.5px;
+  color: var(--text-soft, #c8d0d0);
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease;
+}
+.ws-hero__hint:hover { border-color: rgba(var(--accent-blue-rgb), 0.5); color: var(--text, #f2f5f3); }
+/* the hero is one grid cell with the inner content centered */
+.ws-hero { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+body.ws-viewer-open .ws-hero,
+body.history-expanded .ws-hero,
+body.assets-modal-open .ws-hero { display: none; }
+
+/* ---- header assets button ---------------------------------------------- */
+.ws-header-assets-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(13, 16, 18, 0.75);
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  backdrop-filter: blur(18px) saturate(1.15);
+  font: 500 12.5px/1 var(--font-ui, 'Inter', sans-serif);
+  color: var(--text-soft, #c8d0d0);
+  cursor: pointer;
+  transition: border-color 0.18s ease, color 0.18s ease;
+}
+.ws-header-assets-btn:hover { border-color: rgba(var(--accent-blue-rgb), 0.5); color: var(--text, #f2f5f3); }
+.ws-header-assets-btn span { color: var(--accent-blue); font-size: 12px; }
+
+/* ---- right filmstrip (recent assets) ----------------------------------- */
+html body.print3d-page > .ws-filmstrip { position: fixed; }
+.ws-filmstrip {
+  position: fixed;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  border-radius: 16px;
+  background: rgba(13, 16, 18, 0.6);
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  backdrop-filter: blur(18px) saturate(1.15);
+}
+body.ws-dock-on .ws-filmstrip.has-items { display: flex; }
+body.ws-viewer-open .ws-filmstrip,
+body.assets-modal-open .ws-filmstrip,
+body.history-expanded .ws-filmstrip,
+body.ws-panel-open .ws-filmstrip { display: none !important; }
+.ws-filmstrip__item {
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  background: var(--surface-2, #121719);
+  padding: 0;
+  cursor: pointer;
+  transition: border-color 0.18s ease, transform 0.18s ease;
+}
+.ws-filmstrip__item:hover { border-color: rgba(var(--accent-blue-rgb), 0.6); transform: scale(1.06); }
+.ws-filmstrip__item img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.ws-filmstrip__tipo {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  font-size: 8px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(7, 9, 10, 0.75);
+  color: var(--text-soft, #c8d0d0);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.ws-filmstrip__more {
+  width: 52px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px dashed var(--border-strong, rgba(255, 255, 255, 0.14));
+  background: none;
+  font: 500 11px/1 var(--font-ui, 'Inter', sans-serif);
+  color: var(--muted, #a7b0b2);
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease;
+}
+.ws-filmstrip__more:hover { color: var(--accent-blue); border-color: rgba(var(--accent-blue-rgb), 0.5); }
+
+@media (max-width: 900px) { .ws-filmstrip { display: none !important; } }
+
+/* ==========================================================================
+   PHASE 3 (2026-08-11): the control sheet becomes a right-side drawer.
+   panel.css still owns the sheet's internals; these overrides only move the
+   shell from centered-floating to a full-height slide-over, matching the
+   approved prototype. Scoped to ws-dock-on desktop so mobile and the legacy
+   fallback keep the original centered sheet.
+   ========================================================================== */
+@media (min-width: 769px) {
+  body.ws-dock-on .timrx-3dprint .ws-left {
+    left: auto;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: min(400px, 94vw);
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+    border-left: 1px solid var(--border-strong, rgba(255, 255, 255, 0.14));
+    box-shadow: -30px 0 80px rgba(0, 0, 0, 0.45);
+    z-index: 62; /* above the dock so the drawer reads as the top layer */
+    opacity: 1;
+    transform: translateX(103%);
+    transition:
+      transform 0.38s var(--p-ease, cubic-bezier(0.22, 1, 0.36, 1)),
+      visibility 0s linear 0.38s;
+  }
+  body.ws-dock-on.ws-panel-open .timrx-3dprint .ws-left {
+    transform: none;
+    visibility: visible;
+    transition-delay: 0s, 0s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    body.ws-dock-on .timrx-3dprint .ws-left { transition-duration: 0.01ms; }
+    body.ws-dock-on.ws-panel-open .timrx-3dprint .ws-left { transform: none; }
+  }
+}
+
+/* The dock does NOT move when the drawer opens — the drawer overlays its
+   right end, matching the prototype. The sheet lives inside section.timrx-3dprint,
+   whose stacking context traps its z-index below the body-level dock — so the
+   section itself is raised above the dock while the panel is open. */
+body.ws-dock-on.ws-panel-open .timrx-3dprint {
+  position: relative;
+  z-index: 62;
+}
+
+/* ---- drawer-fit: the sheet's head/footer were sized for a 940px sheet.
+   At 400px, drop the redundant in-sheet mode pills (the dock's mode chip
+   owns mode switching), tighten the head, and let the pager compress. ---- */
+@media (min-width: 769px) {
+  body.ws-dock-on .timrx-3dprint .ws-left .ws-sheet__head {
+    gap: 10px;
+    padding: 12px 14px 10px;
+    flex-wrap: wrap;
+  }
+  body.ws-dock-on .timrx-3dprint .ws-left .ws-sheet__modes { display: none; }
+  body.ws-dock-on .timrx-3dprint .ws-left .ws-sheet__sub {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  body.ws-dock-on .timrx-3dprint .ws-left .ws-pager {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  body.ws-dock-on .timrx-3dprint .ws-left .ws-pager__btn {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  /* Back button: icon only, like the sheet's own <560px breakpoint */
+  body.ws-dock-on .timrx-3dprint .ws-left .ws-pager__btn--back span { display: none; }
+  body.ws-dock-on .timrx-3dprint .ws-left .ws-pager__dots {
+    gap: 2px;
+    min-width: 0;
+  }
+  body.ws-dock-on .timrx-3dprint .ws-left .ws-pager__dot {
+    padding: 6px 7px;
+    font-size: 10.5px;
+    letter-spacing: 0;
+  }
+  body.ws-dock-on .timrx-3dprint .ws-left .ws-pager__btn--next {
+    padding: 8px 12px;
+  }
+  body.ws-dock-on .timrx-3dprint .ws-left .ws-pager {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+  }
+}
+
+/* ---- prompt guide moves to the bottom-left (its old anchor was computed
+   off the retired command bar's width). Popover opens left-aligned. ------- */
+/* stage-media.css positions this launcher with html>body>child !important
+   rules at several breakpoints — these selectors out-specify all of them. */
+html body.print3d-page.ws-dock-on > .ws-prompt-guide-launcher {
+  /* hugs the dock's left edge: dock is min(1020px, 100vw-32px) centered,
+     so its left edge is at max(16px, (100vw-1020px)/2); sit 16px inside that
+     gap, clamped so narrow viewports never overlap the dock itself. */
+  left: max(16px, calc((100vw - 1020px) / 2 - 148px)) !important;
+  right: auto !important;
+  bottom: 30px !important;
+}
+body.ws-dock-on .ws-prompt-guide {
+  right: auto;
+  left: 0;
+  transform-origin: 8% 100%;
+}
+
+/* ---- header edge alignment: layout.css uses grid-template 1fr auto 1fr with
+   the mode rail in the middle. With the rail retired, the credits cluster
+   was auto-flowing into the CENTER column. Pin brand and cluster to the
+   edges and tighten the header padding. ---------------------------------- */
+@media (min-width: 769px) {
+  body.ws-dock-on .ws-header {
+    grid-template-columns: auto 1fr auto;
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+  body.ws-dock-on .ws-header > .ws-header-left {
+    grid-column: 1;
+    justify-self: start;
+  }
+  body.ws-dock-on .ws-header > .ws-credits {
+    grid-column: 3;
+    justify-self: end;
+  }
+}
+
+/* ---- the drawer overlaps the header's right cluster on narrower viewports:
+   fade the cluster out while the sheet/drawer is open. ------------------- */
+body.ws-dock-on .ws-header > .ws-credits {
+  transition: opacity 0.22s ease;
+}
+body.ws-dock-on.ws-panel-open .ws-header > .ws-credits {
+  opacity: 0;
+  pointer-events: none;
+}

@@ -12,7 +12,7 @@
     bg: '#0b0b0b',
     text: '#f5f5f5',
     muted: '#a9a9a9',
-    accentGradient: 'linear-gradient(90deg, #0ea5e9, #7dd3fc)',
+    accentGradient: 'linear-gradient(90deg, var(--accent-blue, #7fc8c2), var(--accent-blue-soft, #a5ded9))',
     cardBg: '#141414',
     border: '#1d1d1d',
     borderRadius: '12px',
@@ -207,7 +207,7 @@
         align-items: center;
         gap: 12px;
         padding: 16px;
-        background: linear-gradient(135deg, rgba(14, 165, 233, 0.1), rgba(125, 211, 252, 0.1));
+        background: linear-gradient(135deg, rgba(var(--accent-blue-rgb, 127, 200, 194), 0.1), rgba(var(--accent-blue-soft-rgb, 165, 222, 217), 0.1));
         border-bottom: 1px solid ${THEME.border};
       }
 
@@ -215,7 +215,7 @@
         width: 24px;
         height: 24px;
         flex-shrink: 0;
-        color: #0ea5e9;
+        color: var(--accent-blue, #7fc8c2);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -255,8 +255,8 @@
       .timrx-tooltip-link {
         display: inline-block;
         padding: 8px 12px;
-        background: rgba(14, 165, 233, 0.1);
-        color: #0ea5e9;
+        background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.1);
+        color: var(--accent-blue, #7fc8c2);
         text-decoration: none;
         border-radius: 6px;
         font-size: 12px;
@@ -266,7 +266,7 @@
       }
 
       .timrx-tooltip-link:hover {
-        background: rgba(14, 165, 233, 0.2);
+        background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.2);
         text-decoration: underline;
       }
 
@@ -304,7 +304,7 @@
       }
 
       .timrx-progress-dot.active {
-        background: #0ea5e9;
+        background: var(--accent-blue, #7fc8c2);
         width: 12px;
         border-radius: 3px;
       }

@@ -9,7 +9,7 @@
 
      milestones   document interactive .......... 24%
                   fonts ready ................... 44%
-                  neural core first frame ....... 68%   ('timrx:brain-ready')
+                  (brain milestone removed 2026-08-11) . 68%   (immediate)
                   window load (assets) .......... 100%
      display      eased toward the live target with a gentle trickle, so the
                   bar keeps breathing between milestones and never lies at 94.
@@ -35,8 +35,7 @@
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   var HARD_CAP_MS = 8000;          /* nothing holds the page hostage */
-  var BRAIN_TIMEOUT_MS = 4000;     /* WebGL may be unavailable — move on */
-  var MIN_SHOWTIME_MS = reduceMotion ? 0 : 1600;  /* let the mark finish building */
+  var MIN_SHOWTIME_MS = reduceMotion ? 0 : 2800;  /* let the mark + stages breathe */
 
   var started = performance.now();
   var target = 6;
@@ -48,11 +47,13 @@
   window.__wsLoaderDebug = debug;
 
   var STAGES = [
-    { at: 0,  label: 'Initializing' },
-    { at: 24, label: 'Typefaces' },
-    { at: 44, label: 'Neural core' },
-    { at: 68, label: 'Workspace assets' },
-    { at: 100, label: 'Ready' }
+    { at: 0,   label: 'Waking the workspace' },
+    { at: 16,  label: 'Loading engines' },
+    { at: 36,  label: 'Calibrating 3D viewer' },
+    { at: 56,  label: 'Syncing your assets' },
+    { at: 76,  label: 'Sharpening pixels' },
+    { at: 92,  label: 'Final polish' },
+    { at: 100, label: 'Ready — create something' }
   ];
   var stageIndex = -1;
 
@@ -91,13 +92,17 @@
   function frame() {
     if (exited) return;
     debug.target = target; debug.shown = shown; debug.frames++;
+    var prev = shown;
     var gap = target - shown;
-    shown += gap * 0.085;                       /* ease toward the milestone */
+    shown += gap * 0.05;                        /* ease toward the milestone */
     if (gap < 6 && target < 100) {
       shown += 0.014;                           /* trickle: alive, honest-ish */
       shown = Math.min(shown, target + 4, 99);  /* never claim what we lack */
     }
-    if (target >= 100) shown = Math.min(100, shown + 1.6);
+    if (target >= 100) shown = Math.min(100, shown + 0.9);
+    /* speed limit: even on an instant boot the bar crosses the stages at a
+       readable pace instead of teleporting past the narration */
+    if (shown - prev > 1.05) shown = prev + 1.05;
     paint(shown);
     if (shown >= 100 && target >= 100) { exit(); return; }
     requestAnimationFrame(frame);
@@ -123,9 +128,7 @@
     /* 2. wake the neural background — its birth ramp runs while the veil
           opens, so the reveal and the scene are one movement */
     try {
-      if (window.timrxNeuralBrainBackground && window.timrxNeuralBrainBackground.wake) {
-        window.timrxNeuralBrainBackground.wake();
-      }
+      /* neural background removed 2026-08-11 — nothing to wake */
     } catch (err) { /* decorative — never fatal */ }
 
     /* 3. open the veil */
@@ -160,12 +163,8 @@
     reach(44);
   }
 
-  var brainSeen = false;
-  document.addEventListener('timrx:brain-ready', function () {
-    brainSeen = true;
-    reach(68);
-  }, { once: true });
-  window.setTimeout(function () { if (!brainSeen) reach(68); }, BRAIN_TIMEOUT_MS);
+  /* brain milestone removed with the neural background — reach it directly */
+  reach(68);
 
   if (document.readyState === 'complete') { debug.loadFired = true; reach(100); }
   else window.addEventListener('load', function () { debug.loadFired = true; reach(100); }, { once: true });

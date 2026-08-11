@@ -332,8 +332,8 @@ function showQuotaExceededPopup() {
       line-height: 1.6;
     }
     .quota-popup-timer {
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.08), rgba(139, 92, 246, 0.08));
-      border: 1px solid rgba(14, 165, 233, 0.15);
+      background: linear-gradient(135deg, rgba(var(--accent-blue-rgb, 127, 200, 194), 0.08), rgba(var(--accent-purple-rgb, 184, 167, 122), 0.08));
+      border: 1px solid rgba(var(--accent-blue-rgb, 127, 200, 194), 0.15);
       border-radius: 10px;
       padding: 16px;
       margin-bottom: 20px;
@@ -351,7 +351,7 @@ function showQuotaExceededPopup() {
       display: block;
       font-size: 2rem;
       font-weight: 800;
-      background: linear-gradient(135deg, #0ea5e9, #8b5cf6);
+      background: linear-gradient(135deg, var(--accent-blue, #7fc8c2), var(--accent-purple, #b8a77a));
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -376,8 +376,8 @@ function showQuotaExceededPopup() {
       font-size: 14px;
       font-weight: 600;
       font-family: inherit;
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(139, 92, 246, 0.15));
-      border: 1px solid rgba(14, 165, 233, 0.25);
+      background: linear-gradient(135deg, rgba(var(--accent-blue-rgb, 127, 200, 194), 0.15), rgba(var(--accent-purple-rgb, 184, 167, 122), 0.15));
+      border: 1px solid rgba(var(--accent-blue-rgb, 127, 200, 194), 0.25);
       border-radius: 999px;
       color: #fff;
       cursor: pointer;
@@ -385,10 +385,10 @@ function showQuotaExceededPopup() {
       letter-spacing: 0.02em;
     }
     .quota-popup-close:hover {
-      background: linear-gradient(135deg, rgba(14, 165, 233, 0.25), rgba(139, 92, 246, 0.25));
-      border-color: rgba(14, 165, 233, 0.5);
+      background: linear-gradient(135deg, rgba(var(--accent-blue-rgb, 127, 200, 194), 0.25), rgba(var(--accent-purple-rgb, 184, 167, 122), 0.25));
+      border-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.5);
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(14, 165, 233, 0.2);
+      box-shadow: 0 8px 24px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.2);
     }
     .quota-popup-close:active {
       transform: translateY(0);
@@ -833,7 +833,7 @@ function initViewerToolbar() {
       const stageLabels = {
         preview:     { label: 'Preview',     color: '#f59e0b', bg: 'rgba(245,158,11,.12)', border: 'rgba(245,158,11,.25)' },
         refined:     { label: 'Refined',     color: '#3b82f6', bg: 'rgba(59,130,246,.12)', border: 'rgba(59,130,246,.25)' },
-        retextured:  { label: 'Retextured',  color: '#8b5cf6', bg: 'rgba(139,92,246,.12)', border: 'rgba(139,92,246,.25)' },
+        retextured:  { label: 'Retextured',  color: 'var(--accent-purple, #b8a77a)', bg: 'rgba(var(--accent-purple-rgb, 184, 167, 122),.12)', border: 'rgba(var(--accent-purple-rgb, 184, 167, 122),.25)' },
         remeshed:    { label: 'Remeshed',    color: '#22c55e', bg: 'rgba(34,197,94,.12)',  border: 'rgba(34,197,94,.25)' },
         image3d:     { label: 'Image-to-3D', color: '#06b6d4', bg: 'rgba(6,182,212,.12)',  border: 'rgba(6,182,212,.25)' },
         unknown:     { label: 'Unknown',     color: '#888',    bg: 'rgba(255,255,255,.04)', border: 'rgba(255,255,255,.08)' },
@@ -1315,6 +1315,34 @@ function initViewerToolbar() {
     const action = btn.dataset.action;
     const activeItem = API.getActiveHistoryItem();
 
+    // A locally-uploaded model is not a backend asset: getActiveHistoryItem()
+    // would still point at the PREVIOUS history item, so server-side tools
+    // would silently operate on the wrong model. Paint (client-side) is the
+    // one tool that works on local files today.
+    if (window._timrxViewerUploadSource &&
+        ['download', 'texture', 'refine', 'remesh', 'evolve', 'retry', 'print', 'rig', 'animate'].includes(action)) {
+      if (window.showToast) {
+        window.showToast('Uploaded files support Multi-Color Paint only. Generate the model in TimrX to unlock Refine, Remesh, Texture, Rig and printing.', 'info');
+      }
+      return;
+    }
+
+    // Rig / Animate: open their tool panel with the source already set to
+    // "Current model" (the panels default to it), so the pipeline runs on
+    // the asset that is in the viewer right now.
+    if ((action === 'rig' || action === 'animate')) {
+      if (!activeItem) {
+        if (window.showToast) window.showToast('Load or generate a model first.', 'info');
+        return;
+      }
+      const rail = document.querySelector('.rail-btn[data-panel="model"]');
+      if (rail && !rail.classList.contains('is-active')) rail.click();
+      const featureBtn = document.querySelector('.model-feature-btn[data-model-panel="' + action + '"]');
+      if (featureBtn) featureBtn.click();
+      if (window.TimrXSheet && typeof window.TimrXSheet.open === 'function') window.TimrXSheet.open();
+      return;
+    }
+
     if (action === 'download' && activeItem?.glb_url) {
       if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
         Credits.showDownloadAccessRequiredMessage('model');
@@ -1531,7 +1559,7 @@ function initViewerActionBar() {
     actionBtns.forEach(btn => {
       const act = btn.dataset.action;
       // download, share, print, remesh, texture, evolve, retry all need a model
-      if (['download', 'remesh', 'texture', 'evolve', 'retry', 'print'].includes(act)) {
+      if (['download', 'remesh', 'texture', 'evolve', 'retry', 'print', 'rig', 'animate'].includes(act)) {
         btn.disabled = !hasModel;
       } else if (act === 'refine') {
         btn.disabled = !canRefine;

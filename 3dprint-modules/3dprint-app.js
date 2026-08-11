@@ -1113,7 +1113,7 @@
             </button>
           </div>
 
-          <div class="remesh-guidance" style="margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(139,92,246,.06);border:1px solid rgba(139,92,246,.12);font-size:11px;line-height:1.55;color:rgba(255,255,255,.55)">
+          <div class="remesh-guidance" style="margin-top:10px;padding:10px 12px;border-radius:8px;background:rgba(var(--accent-purple-rgb, 184, 167, 122),.06);border:1px solid rgba(var(--accent-purple-rgb, 184, 167, 122),.12);font-size:11px;line-height:1.55;color:rgba(255,255,255,.55)">
             <strong style="color:rgba(255,255,255,.75);display:block;margin-bottom:4px">Recommended workflow for printing:</strong>
             1. Generate your model (Text or Image to 3D)<br>
             2. Refine it (adds high-quality textures + improves geometry)<br>
@@ -7590,11 +7590,11 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
       };
 
-      const targetBtn = document.querySelector('.timrx-3dprint .rail-btn[data-panel="' + targetPanel + '"]');
+      const targetBtn = document.querySelector('.rail-btn[data-panel="' + targetPanel + '"]');
       if (targetBtn && !targetBtn.classList.contains('is-active')) {
         targetBtn.click();
       } else if (isModelPanel(targetPanel) && targetPanel !== 'model') {
-        const modelFeatureBtn = document.querySelector('.timrx-3dprint .model-feature-btn[data-model-panel="' + targetPanel + '"]');
+        const modelFeatureBtn = document.querySelector('.model-feature-btn[data-model-panel="' + targetPanel + '"]');
         if (modelFeatureBtn) modelFeatureBtn.click();
       }
 
@@ -7611,19 +7611,37 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const urlPanel = new URLSearchParams(window.location.search).get('panel');
       let targetBtn;
       if (urlPanel) {
-        targetBtn = document.querySelector('.timrx-3dprint .rail-btn[data-panel="' + urlPanel + '"]');
+        targetBtn = document.querySelector('.rail-btn[data-panel="' + urlPanel + '"]');
         if (!targetBtn && isModelPanel(urlPanel)) {
-          targetBtn = document.querySelector('.timrx-3dprint .rail-btn[data-panel="model"]');
+          targetBtn = document.querySelector('.rail-btn[data-panel="model"]');
         }
       }
       if (!targetBtn) {
-        targetBtn = document.querySelector('.timrx-3dprint .rail-btn.is-active');
+        targetBtn = document.querySelector('.rail-btn.is-active');
       }
       if (!targetBtn) return;
 
       var initialPanel = urlPanel && isModelPanel(urlPanel) ? urlPanel : targetBtn.getAttribute('data-panel');
-      activateWorkspacePanel(initialPanel, targetBtn);
-      applyPendingCommunityRemix();
+
+      // The image/video panel init paths call window.GenerationState (assigned
+      // by the js/main.js module graph, which loads after this classic script).
+      // On a ?panel= deep link we can get here first — wait for the state
+      // module instead of crashing initPanelInteractions. The default model
+      // panel has no such dependency and activates immediately as before.
+      var needsState = initialPanel !== 'model' && !isModelPanel(initialPanel);
+      var activate = function () {
+        activateWorkspacePanel(initialPanel, targetBtn);
+        applyPendingCommunityRemix();
+      };
+      if (needsState && !window.GenerationState) {
+        var tries = 0;
+        (function waitForState() {
+          if (window.GenerationState || tries++ > 40) { activate(); return; }
+          setTimeout(waitForState, 150);
+        })();
+      } else {
+        activate();
+      }
     }
 
     function initFieldHelpTooltips() { /* handled by standalone IIFE at end of file */ }
@@ -7797,7 +7815,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       if (modelDrop) modelDrop.classList.add('is-selected');
       if (modelFileHint) {
         modelFileHint.textContent = `Selected: ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-        modelFileHint.style.color = '#7dd3fc';
+        modelFileHint.style.color = 'var(--accent-blue-soft, #a5ded9)';
       }
       if (modelNameInput && !modelNameInput.value) {
         modelNameInput.value = file.name.replace(/\.[^.]+$/, '');

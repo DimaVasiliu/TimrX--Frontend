@@ -929,7 +929,7 @@ export function showInsufficientVideoCreditsMessage(required, available = null) 
         <button class="btn btn-secondary" id="video-credits-modal-cancel" style="padding:10px 20px;border-radius:8px;border:1px solid var(--border-default, #3a3a4a);background:transparent;color:var(--text-primary, #fff);cursor:pointer;">
           Cancel
         </button>
-        <button class="btn btn-primary" id="video-credits-modal-buy" style="padding:10px 20px;border-radius:8px;border:none;background:linear-gradient(135deg, #8b5cf6, #6366f1);color:#fff;cursor:pointer;font-weight:600;">
+        <button class="btn btn-primary" id="video-credits-modal-buy" style="padding:10px 20px;border-radius:8px;border:none;background:linear-gradient(135deg, var(--accent-purple, #b8a77a), var(--accent-2, #8f8261));color:#fff;cursor:pointer;font-weight:600;">
           <i class="fa-solid fa-coins" style="margin-right:6px;"></i>
           Buy Video Credits
         </button>

@@ -56,9 +56,9 @@
   <link rel="preload" href="/fonts/inter-subset.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="landing.css?v=14">
-  <link rel="stylesheet" href="hero-assistant.css?v=16">
+  <link rel="stylesheet" href="hero-assistant.css?v=18">
   <link rel="stylesheet" href="landing-widgets.css?v=7">
-  <link rel="stylesheet" href="homepage-responsive.css?v=5">
+  <link rel="stylesheet" href="homepage-responsive.css?v=9">
   <link rel="stylesheet" href="tx-menu.css?v=1">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer"></noscript>
@@ -132,6 +132,83 @@
           <p data-hero-subcopy>Generate images, videos and printable 3D models from prompts or uploads. Refine, convert, export or print from one guided workspace.</p>
         </div>
 
+        <div class="hero-card-deck reveal" data-hero-card-deck>
+          <button class="hero-card-arrow hero-card-arrow--prev" type="button" aria-label="Show previous generation cards" data-hero-card-prev>←</button>
+          <div class="hero-product-surface" aria-label="TimrX generation possibilities" tabindex="0">
+            <a class="hero-cap-card hero-cap-card--feature hero-cap-card--video" href="/ai-video-generator" data-track="hero_capability_video">
+              <span class="hero-card-media hero-video-stage" aria-hidden="true" data-hero-media="video">
+                <video muted autoplay loop playsinline preload="metadata" poster="img/video-posters/hero-2.jpg">
+                  <source src="vid/hero-2.mp4" type="video/mp4">
+                </video>
+                <span class="hero-media-dots"><i></i><i></i><i></i></span>
+              </span>
+              <span class="hero-cap-kicker"><i></i> Video studio</span>
+              <strong>Seedance and Veo scenes</strong>
+              <p>Generate short cinematic clips from prompts, reference images, or product shots.</p>
+            </a>
+            <a class="hero-cap-card hero-cap-card--feature hero-cap-card--model" href="/text-to-3d" data-track="hero_capability_3d">
+              <span class="hero-card-media hero-model-stage" aria-hidden="true" data-hero-media="model">
+                <img class="hero-model-poster" src="img/model-posters/mod5.png" alt="" loading="lazy" decoding="async">
+                <model-viewer src="vid/models/mod5.glb" poster="img/model-posters/mod5.png" auto-rotate auto-rotate-delay="0" rotation-per-second="20deg" disable-zoom disable-pan interaction-prompt="none" environment-image="neutral" exposure="1.05" shadow-intensity=".55" loading="lazy" reveal="auto"></model-viewer>
+                <span class="hero-model-hologram hero-model-hologram--one"></span>
+                <span class="hero-model-hologram hero-model-hologram--two"></span>
+                <span class="hero-model-hologram hero-model-hologram--three"></span>
+                <span class="hero-model-grid"></span>
+                <span class="hero-media-chip">Live orbit</span>
+              </span>
+              <span class="hero-cap-kicker"><i></i> 3D models</span>
+              <strong>Prompt to printable mesh</strong>
+              <p>Build textured 3D assets, inspect geometry, then export for games or printing.</p>
+            </a>
+            <a class="hero-cap-card hero-cap-card--image" href="/ai-image-generator" data-track="hero_capability_image">
+              <span class="hero-card-media hero-image-stage" aria-hidden="true" data-hero-media="image">
+                <img class="is-active" src="img/AI-img-gen-1.png" alt="" loading="lazy" decoding="async">
+                <img src="img/AI-img-gen-2.png" alt="" loading="lazy" decoding="async">
+                <img src="img/AI-img-gen-3.png" alt="" loading="lazy" decoding="async">
+                <span class="hero-image-frame"></span>
+              </span>
+              <span class="hero-cap-icon" aria-hidden="true">IMG</span>
+              <strong>Image generation</strong>
+              <p>Campaign visuals, product concepts, covers, and reference art.</p>
+            </a>
+            <a class="hero-cap-card hero-cap-card--print" href="/print-check" data-track="hero_capability_print">
+              <span class="hero-card-media hero-workflow hero-workflow--print" aria-hidden="true">
+                <span class="wf-printer"><i></i><b></b></span>
+                <span class="wf-scan"></span>
+                <span class="wf-checks"><i></i><i></i><i></i></span>
+              </span>
+              <span class="hero-cap-icon" aria-hidden="true">3MF</span>
+              <strong>Print prep</strong>
+              <p>Check, repair, and prepare STL or 3MF files for real-world output.</p>
+            </a>
+            <a class="hero-cap-card hero-cap-card--refine" href="/3dprint?panel=remesh" data-track="hero_capability_refine">
+              <span class="hero-card-media hero-workflow hero-workflow--refine" aria-hidden="true">
+                <span class="wf-mesh wf-mesh--rough"></span>
+                <span class="wf-flow"></span>
+                <span class="wf-mesh wf-mesh--clean"></span>
+                <span class="wf-texture"></span>
+              </span>
+              <span class="hero-cap-icon" aria-hidden="true">FX</span>
+              <strong>Remesh and texture</strong>
+              <p>Clean topology, retouch surfaces, rig, animate, and keep iterating.</p>
+            </a>
+            <a class="hero-cap-card hero-cap-card--export" href="/converter" data-track="hero_capability_export">
+              <span class="hero-card-media hero-workflow hero-workflow--export" aria-hidden="true">
+                <span class="wf-format wf-format--one">STL</span>
+                <span class="wf-format wf-format--two">OBJ</span>
+                <span class="wf-format wf-format--three">GLB</span>
+                <span class="wf-format wf-format--four">3MF</span>
+                <span class="wf-export-arrow"></span>
+                <span class="wf-package"></span>
+              </span>
+              <span class="hero-cap-icon" aria-hidden="true">GLB</span>
+              <strong>Export and convert</strong>
+              <p>Move between STL, OBJ, GLB, GLTF, USDZ, and 3MF formats.</p>
+            </a>
+          </div>
+          <button class="hero-card-arrow hero-card-arrow--next" type="button" aria-label="Show next generation cards" data-hero-card-next>→</button>
+        </div>
+
         <div class="hero-command-wrap reveal" data-hero-command-wrap>
           <div class="hero-command" id="heroCommand">
             <form class="hero-promptbar" id="heroAssistantForm">
@@ -146,58 +223,12 @@
               <a class="assistant-route" href="/3dprint" data-hero-route>Open Workspace <span>→</span></a>
             </div>
           </div>
-          <div class="hero-qcarousel" aria-label="Example questions the assistant can answer">
-            <div class="qcar-track">
-              <button class="qcar-item" type="button" data-hero-question="What can I create with TimrX?">What can I create with TimrX?</button>
-              <button class="qcar-item" type="button" data-hero-question="How do credits work?">How do credits work?</button>
-              <button class="qcar-item" type="button" data-hero-question="Which file formats can I export?">Which file formats can I export?</button>
-              <button class="qcar-item" type="button" data-hero-question="Can I export models for 3D printing?">Can I export models for 3D printing?</button>
-              <button class="qcar-item" type="button" data-hero-question="Do I need Blender or 3D skills?">Do I need Blender or 3D skills?</button>
-              <button class="qcar-item" type="button" data-hero-question="How do I turn an image into a 3D model?">How do I turn an image into a 3D model?</button>
-              <button class="qcar-item" type="button" data-hero-question="What is the difference between the tools?">What is the difference between the tools?</button>
-              <button class="qcar-item" type="button" data-hero-question="Can I generate Seedance videos?">Can I generate Seedance videos?</button>
-              <button class="qcar-item" type="button" data-hero-question="How do I get started for free?">How do I get started for free?</button>
-              <button class="qcar-item" type="button" data-hero-question="What can I create with TimrX?" aria-hidden="true" tabindex="-1">What can I create with TimrX?</button>
-              <button class="qcar-item" type="button" data-hero-question="How do credits work?" aria-hidden="true" tabindex="-1">How do credits work?</button>
-              <button class="qcar-item" type="button" data-hero-question="Which file formats can I export?" aria-hidden="true" tabindex="-1">Which file formats can I export?</button>
-              <button class="qcar-item" type="button" data-hero-question="Can I export models for 3D printing?" aria-hidden="true" tabindex="-1">Can I export models for 3D printing?</button>
-              <button class="qcar-item" type="button" data-hero-question="Do I need Blender or 3D skills?" aria-hidden="true" tabindex="-1">Do I need Blender or 3D skills?</button>
-              <button class="qcar-item" type="button" data-hero-question="How do I turn an image into a 3D model?" aria-hidden="true" tabindex="-1">How do I turn an image into a 3D model?</button>
-              <button class="qcar-item" type="button" data-hero-question="What is the difference between the tools?" aria-hidden="true" tabindex="-1">What is the difference between the tools?</button>
-              <button class="qcar-item" type="button" data-hero-question="Can I generate Seedance videos?" aria-hidden="true" tabindex="-1">Can I generate Seedance videos?</button>
-              <button class="qcar-item" type="button" data-hero-question="How do I get started for free?" aria-hidden="true" tabindex="-1">How do I get started for free?</button>
-            </div>
-          </div>
           <ul class="hero-trust-line" aria-label="Highlights">
             <li>No installs</li>
             <li>Runs in your browser</li>
             <li>STL · OBJ · GLB · 3MF export</li>
             <li>Credit-based generation</li>
           </ul>
-        </div>
-        <div class="hero-showcase reveal" aria-label="Examples of what you can create in TimrX">
-          <div class="show-stage">
-          <div class="show-track" data-feed-source="/api/_mod/inspire/feed" data-fallback="repo-assets">
-            <figure class="show-card"><img src="img/AI-img-gen-3.png" alt="AI-generated image example" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
-            <figure class="show-card show-card--video"><video class="show-video" autoplay muted loop playsinline preload="none" poster="img/video-posters/hero-1.jpg"><source src="vid/hero-1.mp4" type="video/mp4"></video><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
-            <figure class="show-card show-card--model"><img src="img/model-posters/mod1.png" alt="3D model preview" loading="lazy" decoding="async"><span class="show-badge" aria-hidden="true">3D</span><figcaption>3D model</figcaption></figure>
-            <figure class="show-card"><img src="img/AI-img-gen-4.png" alt="AI-generated image example" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
-            <figure class="show-card show-card--video"><video class="show-video" autoplay muted loop playsinline preload="none" poster="img/video-posters/hero-2.jpg"><source src="vid/hero-2.mp4" type="video/mp4"></video><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
-            <figure class="show-card show-card--model"><img src="img/model-posters/mod2.png" alt="3D model preview" loading="lazy" decoding="async"><span class="show-badge" aria-hidden="true">3D</span><figcaption>3D model</figcaption></figure>
-            <figure class="show-card show-card--video"><video class="show-video" autoplay muted loop playsinline preload="none" poster="img/video-posters/hero-3.jpg"><source src="vid/hero-3.mp4" type="video/mp4"></video><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
-            <figure class="show-card"><img src="img/AI-img-gen-5.png" alt="AI-generated image example" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
-            <figure class="show-card show-card--export"><div class="export-formats"><span>STL</span><span>OBJ</span><span>GLB</span><span>3MF</span></div><figcaption>Export</figcaption></figure>
-            <figure class="show-card show-card--dup" aria-hidden="true"><img src="img/AI-img-gen-3.png" alt="" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
-            <figure class="show-card show-card--video show-card--dup" aria-hidden="true"><img src="img/video-posters/hero-1.jpg" alt="" loading="lazy" decoding="async"><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
-            <figure class="show-card show-card--model show-card--dup" aria-hidden="true"><img src="img/model-posters/mod1.png" alt="" loading="lazy" decoding="async"><span class="show-badge" aria-hidden="true">3D</span><figcaption>3D model</figcaption></figure>
-            <figure class="show-card show-card--dup" aria-hidden="true"><img src="img/AI-img-gen-4.png" alt="" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
-            <figure class="show-card show-card--video show-card--dup" aria-hidden="true"><img src="img/video-posters/hero-2.jpg" alt="" loading="lazy" decoding="async"><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
-            <figure class="show-card show-card--model show-card--dup" aria-hidden="true"><img src="img/model-posters/mod2.png" alt="" loading="lazy" decoding="async"><span class="show-badge" aria-hidden="true">3D</span><figcaption>3D model</figcaption></figure>
-            <figure class="show-card show-card--video show-card--dup" aria-hidden="true"><img src="img/video-posters/hero-3.jpg" alt="" loading="lazy" decoding="async"><span class="show-badge show-badge--play" aria-hidden="true">▶</span><figcaption>Video</figcaption></figure>
-            <figure class="show-card show-card--dup" aria-hidden="true"><img src="img/AI-img-gen-5.png" alt="" loading="lazy" decoding="async"><figcaption>Image</figcaption></figure>
-            <figure class="show-card show-card--export show-card--dup" aria-hidden="true"><div class="export-formats"><span>STL</span><span>OBJ</span><span>GLB</span><span>3MF</span></div><figcaption>Export</figcaption></figure>
-          </div>
-          </div>
         </div>
       </div>
     </section>
@@ -644,83 +675,41 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
   </script>
   <script src="app.js?v=5" defer></script>
   <script src="hero-assistant.js?v=9" defer></script>
+  <script src="js/hero-card-media.js?v=1" defer></script>
   <script src="landing-widgets.js?v=3" defer></script>
   <script src="js/shared/tx-menu.js?v=1" defer></script>
   <script src="landing.js?v=8" defer></script>
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js"></script>
+  <script type="module" src="js/model-viewer-3.5.0.module.min.js"></script>
   <script src="js/cookie-consent.js" defer></script>
   <script>
-  /* DB-backed hero showcase: uses the Inspire feed first, with repo assets as instant fallback. */
+  /* Hero card deck controls */
   (function(){
-    var track=document.querySelector('.hero-showcase .show-track');
-    if(!track)return;
-    var BACKEND=(window.TIMRX_3D_API_BASE||(window.TIMRX_ENV&&window.TIMRX_ENV.threedApiBase)||'https://3d.timrx.live').replace(/\/+$/,'');
-    var mq=function(q){return window.matchMedia&&window.matchMedia(q).matches;};
-    var conn=navigator.connection||{};
-    var lite=mq('(prefers-reduced-motion:reduce)')||conn.saveData===true||/(^|\b)(slow-2g|2g)\b/.test(conn.effectiveType||'');
-    var videoBudget=lite?0:(mq('(max-width:760px)')?2:5);
-    var PAT=[[-10,34],[8,-8],[-14,16],[6,-12],[-8,26],[12,0],[-12,20],[4,-6],[-6,12]];
-    function esc(s){return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
-    function thumb(c){return c.thumb_preview||c.thumb_refined||c.thumb_url||c.thumbnail||c.thumbnail_url||c.image_url||c.url||'';}
-    function kind(c){var t=String(c.type||'').toLowerCase();if(c.video_url||t.indexOf('video')>=0)return'video';if(/3d|model|stl|glb|obj|mesh/.test(t))return'3d';return'image';}
-    function fig(c,j,dup,autoplay){
-      var th=thumb(c);if(!th&&!c.video_url)return'';
-      var k=kind(c),p=PAT[j%9];
-      var cls='show-card'+(k==='3d'?' show-card--model':(k==='video'?' show-card--video':''))+(dup?' show-card--dup':'');
-      var label=k==='video'?'Video':(k==='3d'?'3D model':'Image');
-      var badge=k==='video'?'<span class="show-badge show-badge--play" aria-hidden="true">▶</span>':(k==='3d'?'<span class="show-badge" aria-hidden="true">3D</span>':'');
-      var alt=dup?'':esc(c.prompt||(label+' generated with TimrX'));
-      var media;
-      if(k==='video'&&c.video_url&&autoplay){media='<video class="show-video" autoplay muted loop playsinline preload="metadata"'+(th?' poster="'+esc(th)+'"':'')+'><source src="'+esc(c.video_url)+'" type="video/mp4"></video>';}
-      else{media='<img src="'+esc(th)+'" alt="'+alt+'" loading="lazy" decoding="async">';}
-      return '<figure class="'+cls+'"'+(dup?' aria-hidden="true"':'')+' style="--ty:'+p[0]+'px;--tz:'+p[1]+'px">'+media+badge+'<figcaption>'+label+'</figcaption></figure>';
+    var deck=document.querySelector('[data-hero-card-deck]');
+    if(!deck)return;
+    var rail=deck.querySelector('.hero-product-surface');
+    var prev=deck.querySelector('[data-hero-card-prev]');
+    var next=deck.querySelector('[data-hero-card-next]');
+    if(!rail||!prev||!next)return;
+    function update(){
+      var max=Math.max(0,rail.scrollWidth-rail.clientWidth-1);
+      var hasOverflow=max>2;
+      deck.classList.toggle('has-overflow',hasOverflow);
+      prev.disabled=!hasOverflow||rail.scrollLeft<=260;
+      next.disabled=!hasOverflow||rail.scrollLeft>=max;
     }
-    function exp(j,dup){var p=PAT[j%9];return '<figure class="show-card show-card--export'+(dup?' show-card--dup':'')+'"'+(dup?' aria-hidden="true"':'')+' style="--ty:'+p[0]+'px;--tz:'+p[1]+'px"><div class="export-formats"><span>STL</span><span>OBJ</span><span>GLB</span><span>3MF</span></div><figcaption>Export</figcaption></figure>';}
-    var io;
-    function observeVideos(){
-      if(!('IntersectionObserver'in window))return;
-      if(io)io.disconnect();
-      io=new IntersectionObserver(function(es){es.forEach(function(e){var v=e.target;if(e.isIntersecting){var pr=v.play&&v.play();if(pr&&pr.catch)pr.catch(function(){});}else if(v.pause){v.pause();}});},{rootMargin:'140px',threshold:.01});
-      track.querySelectorAll('video.show-video').forEach(function(v){io.observe(v);});
+    function step(direction){
+      var card=rail.querySelector('.hero-cap-card');
+      var gap=parseFloat(getComputedStyle(rail).columnGap||getComputedStyle(rail).gap)||16;
+      var amount=card?card.getBoundingClientRect().width+gap:rail.clientWidth*.8;
+      rail.scrollBy({left:amount*direction,behavior:'smooth'});
     }
-    function mediaKey(c){return String(thumb(c)||c.video_url||c.glb_url||c.id||'').split('?')[0].split('#')[0].replace(/\/+$/,'').toLowerCase();}
-    function render(cards){
-      var seen={},pick=[];
-      cards.forEach(function(c){var key=mediaKey(c);if(!key||seen[key])return;seen[key]=1;pick.push(c);});
-      if(pick.length<4)return;
-      pick=pick.slice(0,20);
-      var u1=0,g='';pick.forEach(function(c,i){var ap=kind(c)==='video'&&u1<videoBudget;if(ap)u1++;g+=fig(c,i,false,ap);});g+=exp(pick.length,false);
-      var u2=0,d='';pick.forEach(function(c,i){var ap=kind(c)==='video'&&u2<videoBudget;if(ap)u2++;d+=fig(c,i,true,ap);});d+=exp(pick.length,true);
-      var html=g+d;if(!html)return;
-      track.innerHTML=html;
-      observeVideos();
-    }
-    function run(){
-      var ctrl=('AbortController'in window)?new AbortController():null,to=setTimeout(function(){ctrl&&ctrl.abort();},8000);
-      fetch(BACKEND+'/api/_mod/inspire/feed?surface=homepage&type=all&mix=balanced&shuffle=true&limit=48',{mode:'cors',cache:'no-store',signal:ctrl?ctrl.signal:undefined})
-        .then(function(r){return r.ok?r.json():null;})
-        .then(function(d){clearTimeout(to);if(!d||d.ok===false)return;var cards=d.cards||(d.data&&d.data.cards)||d.items||[];if(cards&&cards.length)render(cards);})
-        .catch(function(){clearTimeout(to);});
-    }
-    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
-  })();
-  </script>
-  <script>
-  (function(){
-    var hs=document.querySelector('.hero-showcase'),stage=hs&&hs.querySelector('.show-stage');
-    if(!hs||!stage)return;
-    if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
-    var raf=0;
-    hs.addEventListener('pointermove',function(e){
-      if(e.pointerType==='touch')return;
-      var r=hs.getBoundingClientRect(),px=(e.clientX-r.left)/r.width-0.5,py=(e.clientY-r.top)/r.height-0.5;
-      if(raf)cancelAnimationFrame(raf);
-      raf=requestAnimationFrame(function(){
-        stage.style.setProperty('--ry',(px*9).toFixed(2)+'deg');
-        stage.style.setProperty('--rx',(5-py*7).toFixed(2)+'deg');
-      });
-    },{passive:true});
-    hs.addEventListener('pointerleave',function(){stage.style.setProperty('--ry','0deg');stage.style.setProperty('--rx','5deg');});
+    prev.addEventListener('click',function(){step(-1);});
+    next.addEventListener('click',function(){step(1);});
+    rail.addEventListener('scroll',function(){window.requestAnimationFrame(update);},{passive:true});
+    window.addEventListener('resize',update,{passive:true});
+    if(document.fonts&&document.fonts.ready)document.fonts.ready.then(update);
+    rail.scrollLeft=0;
+    update();
   })();
   </script>
   <script>

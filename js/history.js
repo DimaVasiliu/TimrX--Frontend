@@ -1688,7 +1688,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                 <span class="card-menu__icon">&#9881;</span>
                 <span>Meshy Auto 3MF</span>
               </span>
-              <span class="card-menu__badge" style="background:rgba(14,165,233,.18);color:#7dd3fc;font-size:9px;">10 cr</span>
+              <span class="card-menu__badge" style="background:rgba(var(--accent-blue-rgb, 127, 200, 194),.18);color:var(--accent-blue-soft, #a5ded9);font-size:9px;">10 cr</span>
             </button>
             <div class="card-menu__divider"></div>
             <button class="card-menu__item" type="button" data-submenu-open="share-${displayModel.id}" aria-expanded="false">

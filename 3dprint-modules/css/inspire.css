@@ -612,10 +612,10 @@ body.inspire-open .ws-right {
   letter-spacing: 0.02em;
 }
 
-.inspire-card__tag.community { background: rgba(139, 92, 246, 0.2); color: #a78bfa; }
-.inspire-card__tag.trending { background: rgba(236, 72, 153, 0.2); color: #f472b6; }
-.inspire-card__tag.staff-pick { background: rgba(14, 165, 233, 0.2); color: #38bdf8; }
-.inspire-card__tag.new { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
+.inspire-card__tag.community { background: rgba(var(--accent-purple-rgb), 0.2); color: #a78bfa; }
+.inspire-card__tag.trending { background: rgba(var(--accent-pink-rgb), 0.2); color: #f472b6; }
+.inspire-card__tag.staff-pick { background: rgba(var(--accent-blue-rgb), 0.2); color: var(--accent-blue); }
+.inspire-card__tag.new { background: rgba(var(--ok-rgb), 0.2); color: #4ade80; }
 
 /* ===== CARD ACTIONS ===== */
 .inspire-card__actions {
@@ -685,9 +685,9 @@ body.inspire-open .ws-right {
   height: 10px;
 }
 
-.inspire-card__type-badge.model { color: #fbbf24; }
+.inspire-card__type-badge.model { color: var(--warn); }
 .inspire-card__type-badge.image { color: #c084fc; }
-.inspire-card__type-badge.video { color: #f87171; }
+.inspire-card__type-badge.video { color: var(--danger-soft); }
 
 /* ===== VIDEO BADGE ===== */
 .inspire-card__video-badge {

@@ -342,9 +342,9 @@ body.print3d-page > .ws-header {
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(14, 165, 233, 0.3) 20%,
-    rgba(139, 92, 246, 0.3) 50%,
-    rgba(236, 72, 153, 0.3) 80%,
+    rgba(var(--accent-blue-rgb), 0.3) 20%,
+    rgba(var(--accent-purple-rgb), 0.3) 50%,
+    rgba(var(--accent-pink-rgb), 0.3) 80%,
     transparent
   );
   opacity: 0;
@@ -401,8 +401,8 @@ body.print3d-page > .ws-header {
   inset: -4px;
   background: linear-gradient(
     135deg,
-    rgba(14, 165, 233, 0.08),
-    rgba(139, 92, 246, 0.08)
+    rgba(var(--accent-blue-rgb), 0.08),
+    rgba(var(--accent-purple-rgb), 0.08)
   );
   border-radius: 8px;
   opacity: 0;
@@ -443,13 +443,13 @@ body.print3d-page > .ws-header {
 }
 
 .nav-hub-btn:hover {
-  background: rgba(14, 165, 233, 0.1);
-  border-color: rgba(14, 165, 233, 0.25);
+  background: rgba(var(--accent-blue-rgb), 0.1);
+  border-color: rgba(var(--accent-blue-rgb), 0.25);
 }
 
 .nav-hub-btn.is-active {
-  background: linear-gradient(135deg, rgba(14, 165, 233, 0.15), rgba(139, 92, 246, 0.15));
-  border-color: rgba(14, 165, 233, 0.3);
+  background: linear-gradient(135deg, rgba(var(--accent-blue-rgb), 0.15), rgba(var(--accent-purple-rgb), 0.15));
+  border-color: rgba(var(--accent-blue-rgb), 0.3);
   color: #fff;
 }
 
@@ -470,8 +470,8 @@ body.print3d-page > .ws-header {
   color: #ffffff;
   background: linear-gradient(
     135deg,
-    rgba(14, 165, 233, 0.1),
-    rgba(139, 92, 246, 0.1)
+    rgba(var(--accent-blue-rgb), 0.1),
+    rgba(var(--accent-purple-rgb), 0.1)
   );
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
   overflow: hidden;
@@ -484,8 +484,8 @@ body.print3d-page > .ws-header {
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(14, 165, 233, 0.22),
-    rgba(139, 92, 246, 0.22)
+    rgba(var(--accent-blue-rgb), 0.22),
+    rgba(var(--accent-purple-rgb), 0.22)
   );
   opacity: 0;
   transition: opacity 0.25s ease;
@@ -545,8 +545,8 @@ body.print3d-page > .ws-header {
   inset: -4px;
   border-radius: 8px;
   background: linear-gradient(135deg,
-    rgba(14, 165, 233, 0.08),
-    rgba(139, 92, 246, 0.08)
+    rgba(var(--accent-blue-rgb), 0.08),
+    rgba(var(--accent-purple-rgb), 0.08)
   );
   opacity: 0;
   z-index: -1;
@@ -654,7 +654,7 @@ body.print3d-page > .ws-header {
 }
 
 .nav-dropdown-item:hover .nav-dropdown-item-title {
-  color: var(--accent-blue, #0ea5e9);
+  color: var(--accent-blue);
 }
 
 .nav-dropdown-item:hover .nav-dropdown-item-desc {
@@ -675,7 +675,7 @@ body.print3d-page > .ws-header {
 
 .nav-dropdown-item:not(:last-child):hover::after {
   width: 100px;
-  background: linear-gradient(90deg, var(--accent-blue, #0ea5e9), transparent);
+  background: linear-gradient(90deg, var(--accent-blue), transparent);
 }
 
 /* Title on top - left aligned */
@@ -757,11 +757,11 @@ body.print3d-page > .ws-header {
 
 .b-x {
   margin-left: 2px;
-  background: linear-gradient(90deg, var(--accent-blue), #7dd3fc);
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-blue-soft));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 0 18px rgba(14, 165, 233, 0.35);
+  text-shadow: 0 0 18px rgba(var(--accent-blue-rgb), 0.35);
   font-weight: 900;
   letter-spacing: 0.02em;
   transition: transform 0.25s ease, filter 0.25s ease;
@@ -848,7 +848,7 @@ body.print3d-page > .ws-header {
 }
 
 .account-pill__add:hover {
-  background: rgba(139, 92, 246, 0.4);
+  background: rgba(var(--accent-purple-rgb), 0.4);
   transform: scale(1.05);
 }
 
@@ -887,7 +887,7 @@ body.print3d-page > .ws-header {
   min-width: 16px;
   height: 16px;
   padding: 0 4px;
-  background: #ef4444;
+  background: var(--danger);
   border-radius: 8px;
   font-size: 10px;
   font-weight: 700;
@@ -895,7 +895,7 @@ body.print3d-page > .ws-header {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.4);
+  box-shadow: 0 2px 6px rgba(var(--danger-rgb), 0.4);
 }
 
 .account-icon--notif .notif-badge:empty,
@@ -914,7 +914,7 @@ body.print3d-page > .ws-header {
   justify-content: center;
   width: 34px;
   height: 34px;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: linear-gradient(135deg, #6366f1, var(--accent-purple));
   border: 2px solid rgba(255, 255, 255, 0.15);
   border-radius: 50%;
   color: #fff;
@@ -932,7 +932,7 @@ body.print3d-page > .ws-header {
 }
 
 .account-avatar[aria-expanded="true"] {
-  border-color: #8b5cf6;
+  border-color: var(--accent-purple);
 }
 
 /* Not signed in state */
@@ -1018,11 +1018,11 @@ body.print3d-page > .ws-header {
 }
 
 .account-dropdown__item--logout {
-  color: #f87171;
+  color: var(--danger-soft);
 }
 
 .account-dropdown__item--logout:hover {
-  background: rgba(248, 113, 113, 0.1);
+  background: rgba(var(--danger-soft-rgb), 0.1);
   color: #fca5a5;
 }
 
@@ -1043,21 +1043,21 @@ body.print3d-page > .ws-header {
   gap: 8px;
   padding: 8px 14px;
   border-radius: 999px;
-  border: 1px solid rgba(125,211,252,.35);
+  border: 1px solid rgba(var(--accent-blue-soft-rgb),.35);
   color: #eaf6ff;
   font-weight: 700;
   font-size: 13px;
   letter-spacing: .03em;
-  background: rgba(125,211,252,.08);
+  background: rgba(var(--accent-blue-soft-rgb),.08);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
   cursor: pointer;
   transition: all .2s ease;
 }
 
 .credits-pill i {
-  color: #7dd3fc;
+  color: var(--accent-blue-soft);
   font-size: 12px;
-  filter: drop-shadow(0 0 4px rgba(125,211,252,.5));
+  filter: drop-shadow(0 0 4px rgba(var(--accent-blue-soft-rgb),.5));
 }
 
 .credits-pill .credits-value {
@@ -1066,29 +1066,29 @@ body.print3d-page > .ws-header {
 }
 
 .credits-pill:hover {
-  border-color: rgba(125,211,252,.55);
-  background: rgba(125,211,252,.12);
+  border-color: rgba(var(--accent-blue-soft-rgb),.55);
+  background: rgba(var(--accent-blue-soft-rgb),.12);
   transform: translateY(-1px);
 }
 
 /* Low credits warning */
 .credits-pill.low {
-  border-color: rgba(251, 191, 36, .5);
-  background: rgba(251, 191, 36, .1);
+  border-color: rgba(var(--warn-rgb), .5);
+  background: rgba(var(--warn-rgb), .1);
 }
 .credits-pill.low i {
-  color: #fbbf24;
-  filter: drop-shadow(0 0 4px rgba(251,191,36,.5));
+  color: var(--warn);
+  filter: drop-shadow(0 0 4px rgba(var(--warn-rgb),.5));
 }
 
 /* Empty credits */
 .credits-pill.empty {
-  border-color: rgba(239, 68, 68, .45);
-  background: rgba(239, 68, 68, .1);
+  border-color: rgba(var(--danger-rgb), .45);
+  background: rgba(var(--danger-rgb), .1);
 }
 .credits-pill.empty i {
-  color: #ef4444;
-  filter: drop-shadow(0 0 4px rgba(239,68,68,.5));
+  color: var(--danger);
+  filter: drop-shadow(0 0 4px rgba(var(--danger-rgb),.5));
 }
 
 /* Syncing state - subtle pulse animation */
@@ -1109,16 +1109,16 @@ body.print3d-page > .ws-header {
 }
 @keyframes creditsSyncFlash {
   0% {
-    box-shadow: 0 0 0 0 rgba(125, 211, 252, 0.6);
-    border-color: rgba(125, 211, 252, 0.6);
+    box-shadow: 0 0 0 0 rgba(var(--accent-blue-soft-rgb), 0.6);
+    border-color: rgba(var(--accent-blue-soft-rgb), 0.6);
   }
   50% {
-    box-shadow: 0 0 8px 2px rgba(125, 211, 252, 0.4);
-    border-color: rgba(125, 211, 252, 0.5);
+    box-shadow: 0 0 8px 2px rgba(var(--accent-blue-soft-rgb), 0.4);
+    border-color: rgba(var(--accent-blue-soft-rgb), 0.5);
   }
   100% {
     box-shadow: none;
-    border-color: rgba(125, 211, 252, 0.35);
+    border-color: rgba(var(--accent-blue-soft-rgb), 0.35);
   }
 }
 
@@ -1182,12 +1182,12 @@ body.print3d-page > .ws-header {
 
 /* State colors — set by JS via data-status attribute */
 .account-shield-ws[data-status="anonymous"] i {
-  color: #f87171;
-  filter: drop-shadow(0 0 3px rgba(248,113,113,.4));
+  color: var(--danger-soft);
+  filter: drop-shadow(0 0 3px rgba(var(--danger-soft-rgb),.4));
 }
 .account-shield-ws[data-status="unverified"] i {
-  color: #fbbf24;
-  filter: drop-shadow(0 0 3px rgba(251,191,36,.4));
+  color: var(--warn);
+  filter: drop-shadow(0 0 3px rgba(var(--warn-rgb),.4));
 }
 .account-shield-ws[data-status="verified"] i {
   color: #34d399;

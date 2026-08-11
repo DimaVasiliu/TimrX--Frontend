@@ -1,363 +1,173 @@
 /* ==========================================================================
-   WORKSPACE LOADER — the TimrX intro
+   WORKSPACE-LOADER.CSS — boot veil (redesigned 2026-08-11)
    --------------------------------------------------------------------------
-   One continuous scene, not an overlay swap. The loader owns three moments:
+   Matches the redesigned workspace: near-black field with the same teal/sand
+   radial wash as the stage, a horizontal TimrX wordmark that rises letter by
+   letter, and a thin teal progress line with percent + status beneath.
 
-     1. ARRIVAL   black field, the vertical metallic mark builds letter by
-                  letter, a faint amber halo breathes behind it — the same
-                  palette the neural background wakes up in.
-     2. PROGRESS  a single hairline bar + tabular percent + status word,
-                  driven by real boot milestones (see workspace-loader.js).
-     3. HANDOFF   at 100% the veil opens from the centre while the neural
-                  brain performs its birth ramp underneath, and the workspace
-                  chrome — whose arrival animations are HELD until this moment
-                  (see the gate at the bottom) — plays its staggered entrance.
+   JS contract (js/workspace-loader.js — unchanged):
+     .workspace-loader           overlay root, [hidden] once done
+     [data-loader-bar]           width driven inline as N%
+     --loader-progress           set on the root as N%
+     [data-loader-percent]       "07%" text
+     [data-loader-status]        status line; .is-swapping during text swap
+     .is-exiting                 added ~200ms before the veil opens
+     body.has-ws-loader / body.ws-intro-go   chrome gating (rules at bottom)
 
-   The old version double-reported progress (2px bar + 32px percent), sliced
-   the wordmark with black strips, floated four unrelated wireframe shapes,
-   and faded out over a scene that had already been running at full
-   brightness for seconds. All of that is gone.
+   Exit budget: JS hides the node 1300ms after .is-exiting (320ms reduced
+   motion) — every exit transition here stays comfortably inside that.
    ========================================================================== */
 
-@property --loader-open {
-  syntax: '<percentage>';
-  inherits: true;
-  initial-value: -30%;
-}
+/* body.print3d-page > * demotes positioned direct body children to
+   position:relative (variables.css stacking note) — restore explicitly. */
+html body.print3d-page > .workspace-loader { position: fixed; z-index: 2147480000; }
 
 .workspace-loader {
-  --loader-progress: 0%;
-  /* Negative start keeps the mask fully opaque at rest (the transparent stop
-     plus its 30% feather stay below 0%); the exit transition sweeps it past
-     the far corner. */
-  --loader-open: -30%;
-  --loader-amber: 255, 179, 71;
   position: fixed;
   inset: 0;
-  z-index: 2147483000;
+  z-index: 2147480000;
   display: grid;
   place-items: center;
-  overflow: hidden;
-  background: transparent;
-  color: #d7d2ca;
+  background-color: #07090a;
+  background-image:
+    radial-gradient(1100px 640px at 70% -8%, rgba(var(--accent-blue-rgb, 127, 200, 194), 0.10), transparent 62%),
+    radial-gradient(820px 560px at 12% 108%, rgba(var(--accent-purple-rgb, 184, 167, 122), 0.07), transparent 60%);
   opacity: 1;
-  visibility: visible;
-  /* The veil (void/shadow layers) carries the black; the container itself
-     only orchestrates. Mask opens from the brain's centre on exit. */
-  -webkit-mask-image: radial-gradient(circle at 50% 46%,
-      transparent var(--loader-open),
-      #000 calc(var(--loader-open) + 30%));
-  mask-image: radial-gradient(circle at 50% 46%,
-      transparent var(--loader-open),
-      #000 calc(var(--loader-open) + 30%));
-  transition:
-    --loader-open 980ms cubic-bezier(0.55, 0, 0.28, 1),
-    opacity 900ms ease 120ms,
-    visibility 0s linear 1040ms;
+  transition: opacity 0.9s cubic-bezier(0.22, 1, 0.36, 1);
 }
-
-html body.print3d-page > .workspace-loader {
-  position: fixed;
-  inset: 0;
-  z-index: 2147483000;
-}
-
-.workspace-loader.is-exiting {
-  --loader-open: 150%;
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
+.workspace-loader.is-exiting { opacity: 0; pointer-events: none; }
 .workspace-loader[hidden] { display: none; }
 
-/* --- the black field ---------------------------------------------------- */
-
+/* legacy atmosphere layers from the previous design — retired, markup kept */
 .workspace-loader__void,
-.workspace-loader__shadow,
-.workspace-loader__grain {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
+.workspace-loader__grain,
+.workspace-loader__shadow { display: none; }
 
-.workspace-loader__void {
-  background:
-    radial-gradient(circle at 50% 43%, rgba(118, 108, 94, 0.14), transparent 24%),
-    radial-gradient(circle at 50% 74%, rgba(var(--loader-amber), 0.05), transparent 34%),
-    #000;
-}
-
-.workspace-loader__shadow {
-  background:
-    linear-gradient(180deg, #000 0%, transparent 18%, transparent 76%, #000 100%),
-    radial-gradient(ellipse at 50% 50%, transparent 0 38%, rgba(0, 0, 0, 0.7) 76%, #000 100%);
-}
-
-.workspace-loader__grain {
-  opacity: 0.12;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.22) 0 1px, transparent 1.5px);
-  background-size: 142px 142px;
-  mask-image: radial-gradient(ellipse at 50% 50%, #000 0 48%, transparent 86%);
-  animation: loaderGrain 4.6s ease-in-out infinite;
-}
-
-/* --- the halo: the brain announcing itself ------------------------------ */
-/* Sits behind the mark at the exact centre the exit mask opens from and the
-   same amber the neural background draws with — the loader literally
-   forecasts what it is about to reveal. */
-
+/* one soft breathing halo behind the mark, in the brand teal */
 .workspace-loader__halo {
   position: absolute;
-  left: 50%;
-  top: 46%;
-  width: min(74vmin, 720px);
-  aspect-ratio: 1;
-  transform: translate(-50%, -50%);
+  width: 90vmin;
+  height: 90vmin;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    rgba(var(--accent-blue-rgb, 127, 200, 194), 0.07),
+    transparent 58%);
+  filter: blur(6px);
+  animation: wsLoaderBreathe 5.2s ease-in-out infinite;
   pointer-events: none;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle,
-      rgba(var(--loader-amber), 0.10) 0 12%,
-      rgba(var(--loader-amber), 0.05) 30%,
-      rgba(var(--loader-amber), 0.018) 52%,
-      transparent 70%);
-  opacity: calc(0.35 + var(--loader-progress) / 160%);
-  filter: blur(2px);
-  animation: loaderHaloBreath 5.2s ease-in-out infinite;
 }
-
-.workspace-loader__halo::before,
-.workspace-loader__halo::after {
-  content: "";
-  position: absolute;
-  inset: 12%;
-  border-radius: 50%;
-  border: 1px solid rgba(var(--loader-amber), 0.09);
-  mask-image: conic-gradient(#000 0 26%, transparent 34% 70%, #000 78%);
-  animation: loaderHaloSpin 26s linear infinite;
+@keyframes wsLoaderBreathe {
+  0%, 100% { transform: scale(0.96); opacity: 0.75; }
+  50%      { transform: scale(1.05); opacity: 1; }
 }
-
-.workspace-loader__halo::after {
-  inset: 24%;
-  border-color: rgba(var(--loader-amber), 0.13);
-  mask-image: conic-gradient(transparent 0 12%, #000 22% 46%, transparent 56%);
-  animation-duration: 18s;
-  animation-direction: reverse;
-}
-
-/* --- the mark ------------------------------------------------------------ */
 
 .workspace-loader__scene {
   position: relative;
-  width: 100vw;
-  height: 100vh;
   display: grid;
-  place-items: center;
-  transform-style: preserve-3d;
-  perspective: 1100px;
+  justify-items: center;
+  gap: clamp(30px, 5vh, 48px);
+  padding: 0 24px;
 }
 
 .workspace-loader__mark {
-  position: relative;
-  z-index: 3;
   display: grid;
   justify-items: center;
-  gap: clamp(22px, 3.6vh, 40px);
-  transform: translateY(-1.5vh);
-  transition: transform 760ms cubic-bezier(0.55, 0, 0.28, 1),
-              opacity 560ms ease,
-              filter 700ms ease;
+  gap: clamp(30px, 5vh, 48px);
 }
 
-.workspace-loader.is-exiting .workspace-loader__mark {
-  opacity: 0;
-  transform: translateY(-3.4vh) scale(0.955);
-  filter: blur(9px);
-}
-
+/* ---- wordmark: horizontal, rises letter by letter ---------------------- */
 .workspace-loader__brand {
-  position: relative;
-  display: grid;
-  grid-auto-flow: row;
-  justify-items: center;
   margin: 0;
-  font-family: "Arial Black", "Inter", system-ui, sans-serif;
-  font-size: clamp(70px, 10vw, 148px);
-  font-weight: 900;
-  line-height: 0.74;
-  letter-spacing: 0;
-  text-transform: uppercase;
-  transform: skewY(-2deg);
+  display: flex;
+  align-items: baseline;
+  gap: 0.04em;
+  font-family: 'Space Grotesk', 'Bebas Neue', 'Inter', system-ui, sans-serif;
+  font-size: clamp(56px, 9vw, 108px);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+  color: var(--text, #f2f5f3);
 }
-
 .workspace-loader__brand span {
-  display: block;
-  min-width: 0.78em;
+  display: inline-block;
   opacity: 0;
-  color: transparent;
-  background: linear-gradient(180deg, #f0efeb 0%, #a9a59d 38%, #56534f 74%, #d7d2ca 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  text-shadow:
-    0 0 1px rgba(255, 255, 255, 0.3),
-    0 16px 38px rgba(0, 0, 0, 0.72);
-  transform: translateZ(0);
-  animation-duration: 980ms, 4s;
-  animation-fill-mode: both, none;
-  animation-iteration-count: 1, infinite;
-  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1), ease-in-out;
+  transform: translateY(0.35em);
+  animation: wsLoaderRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  animation-delay: calc(120ms + var(--i, 0) * 90ms);
+}
+/* the X carries the brand accent */
+.workspace-loader__brand span:last-child {
+  color: var(--accent-blue, #7fc8c2);
+  text-shadow: 0 0 34px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.35);
+}
+@keyframes wsLoaderRise {
+  to { opacity: 1; transform: translateY(0); }
 }
 
-.workspace-loader__brand span:nth-child(1) { animation-name: loaderLetterRise, loaderMetalBreath; animation-delay: 120ms, 1450ms; }
-.workspace-loader__brand span:nth-child(2) { animation-name: loaderLetterRise, loaderMetalBreath; animation-delay: 340ms, 1640ms; }
-.workspace-loader__brand span:nth-child(3) { animation-name: loaderLetterRise, loaderMetalBreath; animation-delay: 560ms, 1830ms; }
-.workspace-loader__brand span:nth-child(4) { animation-name: loaderLetterRise, loaderMetalBreath; animation-delay: 780ms, 2020ms; }
-
-.workspace-loader__brand span:nth-child(5) {
-  background: linear-gradient(180deg, #b9d4c5 0%, #7ca692 44%, #3f5f55 76%, #d4d0c8 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  text-shadow:
-    0 0 2px rgba(185, 212, 197, 0.28),
-    0 18px 40px rgba(0, 0, 0, 0.76);
-  animation-name: loaderLetterRise, loaderXBreath;
-  animation-delay: 1020ms, 2260ms;
-}
-
-/* --- progress: one instrument, three readings ---------------------------- */
-
+/* ---- meter -------------------------------------------------------------- */
 .workspace-loader__meter {
   display: grid;
   justify-items: center;
-  gap: 12px;
-  min-width: min(300px, 58vw);
-  transition: opacity 360ms ease, transform 500ms ease;
-}
-
-.workspace-loader.is-exiting .workspace-loader__meter {
+  gap: 14px;
+  width: min(340px, 72vw);
   opacity: 0;
-  transform: translateY(8px);
+  animation: wsLoaderRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 620ms forwards;
 }
 
 .workspace-loader__progress {
   position: relative;
   width: 100%;
-  height: 1px;
-  background: rgba(215, 210, 202, 0.14);
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
 }
-
 .workspace-loader__bar {
-  position: absolute;
-  inset: 0 auto 0 0;
   display: block;
-  width: var(--loader-progress);
   height: 100%;
+  width: 0%;
+  border-radius: 999px;
   background: linear-gradient(90deg,
-    rgba(var(--loader-amber), 0.25),
-    rgba(var(--loader-amber), 0.85) 60%,
-    #ffd280);
-  box-shadow: 0 0 12px rgba(var(--loader-amber), 0.35);
-  transition: width 340ms cubic-bezier(0.3, 0.6, 0.25, 1);
-}
-
-.workspace-loader__bar::after {
-  content: "";
-  position: absolute;
-  right: -1px;
-  top: -2px;
-  width: 3px;
-  height: 5px;
-  border-radius: 2px;
-  background: #ffd9a0;
-  box-shadow: 0 0 8px 1px rgba(var(--loader-amber), 0.7);
+    var(--accent-blue, #7fc8c2),
+    var(--accent-blue-soft, #a5ded9));
+  box-shadow: 0 0 14px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.45);
+  transition: width 0.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .workspace-loader__readout {
   display: flex;
   align-items: baseline;
   gap: 14px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
 }
-
 .workspace-loader__percent {
   margin: 0;
-  color: rgba(231, 228, 222, 0.9);
   font-size: 13px;
-  font-weight: 550;
+  font-weight: 650;
+  letter-spacing: 0.14em;
+  color: var(--text-soft, #c8d0d0);
   font-variant-numeric: tabular-nums;
-  letter-spacing: 0.18em;
 }
-
 .workspace-loader__status {
   margin: 0;
-  color: rgba(215, 210, 202, 0.44);
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  letter-spacing: 0.32em;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
-  white-space: nowrap;
-  transition: opacity 240ms ease;
+  color: var(--text-dim, #6d7779);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+.workspace-loader__status.is-swapping {
+  opacity: 0;
+  transform: translateY(3px);
 }
 
-.workspace-loader__status.is-swapping { opacity: 0; }
-
-/* --- keyframes ----------------------------------------------------------- */
-
-@keyframes loaderGrain {
-  0%, 100% { opacity: 0.08; transform: scale(1); }
-  50%      { opacity: 0.15; transform: scale(1.03); }
-}
-
-@keyframes loaderHaloBreath {
-  0%, 100% { transform: translate(-50%, -50%) scale(0.985); }
-  50%      { transform: translate(-50%, -50%) scale(1.03); }
-}
-
-@keyframes loaderHaloSpin {
-  to { transform: rotate(360deg); }
-}
-
-@keyframes loaderLetterRise {
-  0% {
-    opacity: 0;
-    filter: blur(9px) brightness(0.5);
-    transform: translate3d(0, 42px, -180px) rotateX(38deg) scaleY(1.12);
-  }
-  60% {
-    opacity: 1;
-    filter: blur(0) brightness(1.16);
-    transform: translate3d(0, -4px, 26px) rotateX(-5deg) scaleY(0.985);
-  }
-  100% {
-    opacity: 1;
-    filter: blur(0) brightness(0.92);
-    transform: translate3d(0, 0, 0) rotateX(0) scaleY(1);
-  }
-}
-
-@keyframes loaderMetalBreath {
-  0%, 100% { filter: brightness(0.84); transform: translateY(0); }
-  50%      { filter: brightness(1.06); transform: translateY(-2px); }
-}
-
-@keyframes loaderXBreath {
-  0%, 100% { filter: brightness(0.88) saturate(0.86); transform: translateY(0); }
-  50%      { filter: brightness(1.1) saturate(1); transform: translateY(-2px); }
-}
-
-/* --- CHROME GATE ---------------------------------------------------------
-   nav.css gives the header brand, credits cluster, command bar and corner
-   launchers a staggered arrival (wsChromeArrive / wsBrandArrive / wsBarArrive
-   / wsCornerLauncherArrive, all `backwards`-filled). Without this gate they
-   play at CSS-parse time — behind the loader, seen by nobody. Hold them at
-   their first keyframe while the loader owns the screen and release them the
-   moment the veil opens, so the workspace assembles itself in front of the
-   user, in the order the delays were designed for.
-
-   `has-ws-loader` is set by workspace-loader.js at boot (so pages without
-   the loader, or with JS disabled, are never gated); `ws-intro-go` is set at
-   handoff. -------------------------------------------------------------- */
+/* ==========================================================================
+   CHROME GATING — unchanged behavior from the previous loader.
+   `has-ws-loader` is set by workspace-loader.js at boot (pages without the
+   loader, or with JS disabled, are never gated); `ws-intro-go` at handoff:
+   the workspace chrome holds its entrance animations until the veil opens.
+   ========================================================================== */
 
 body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-header-left,
 body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-credits > *,
@@ -367,34 +177,34 @@ html body.print3d-page.has-ws-loader:not(.ws-intro-go) > .ws-prompt-guide-launch
   animation-play-state: paused;
 }
 
-/* --- small screens ------------------------------------------------------- */
+/* the redesigned chrome waits too: dock, filmstrip, hero */
+body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-dock,
+body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-filmstrip,
+body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-hero {
+  opacity: 0;
+}
+body.print3d-page.ws-intro-go .ws-dock,
+body.print3d-page.ws-intro-go .ws-filmstrip,
+body.print3d-page.ws-intro-go .ws-hero {
+  opacity: 1;
+  transition: opacity 0.6s ease 0.15s;
+}
 
+/* --- small screens ------------------------------------------------------- */
 @media (max-width: 720px) {
-  .workspace-loader__brand { font-size: clamp(62px, 19vw, 104px); }
-  .workspace-loader__halo { width: 118vmin; }
-  .workspace-loader__status { letter-spacing: 0.24em; }
+  .workspace-loader__brand { font-size: clamp(44px, 15vw, 72px); }
+  .workspace-loader__halo { width: 120vmin; height: 120vmin; }
+  .workspace-loader__status { letter-spacing: 0.2em; }
 }
 
 /* --- reduced motion ------------------------------------------------------ */
-
 @media (prefers-reduced-motion: reduce) {
-  .workspace-loader__grain,
-  .workspace-loader__halo,
-  .workspace-loader__halo::before,
-  .workspace-loader__halo::after,
-  .workspace-loader__brand span {
-    animation-duration: 1ms !important;
-    animation-iteration-count: 1 !important;
+  .workspace-loader { transition-duration: 0.2s; }
+  .workspace-loader__halo { animation: none; }
+  .workspace-loader__brand span,
+  .workspace-loader__meter {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
   }
-  .workspace-loader__brand span { opacity: 1; }
-  .workspace-loader {
-    -webkit-mask-image: none;
-    mask-image: none;
-    transition: opacity 220ms ease, visibility 0s linear 240ms;
-  }
-  .workspace-loader.is-exiting .workspace-loader__mark {
-    transition-duration: 180ms;
-    filter: none;
-    transform: none;
-  }
+  .workspace-loader__bar { transition: none; }
 }
