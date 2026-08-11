@@ -167,6 +167,29 @@ body.ws-dock-on .ws-dock { display: block; }
   transform: translateY(-1px);
 }
 
+/* ---- focus: no browser ring on click; quiet teal ring for keyboard ---- */
+.ws-dock__chip:focus,
+.ws-dock__agent:focus,
+.ws-dock__generate:focus,
+.ws-dock-pop__item:focus,
+.ws-hero__hint:focus,
+.ws-header-assets-btn:focus,
+.ws-filmstrip__item:focus,
+.ws-filmstrip__more:focus {
+  outline: none;
+}
+.ws-dock__chip:focus-visible,
+.ws-dock__agent:focus-visible,
+.ws-dock__generate:focus-visible,
+.ws-dock-pop__item:focus-visible,
+.ws-hero__hint:focus-visible,
+.ws-header-assets-btn:focus-visible,
+.ws-filmstrip__item:focus-visible,
+.ws-filmstrip__more:focus-visible {
+  outline: 2px solid rgba(var(--accent-blue-rgb), 0.55);
+  outline-offset: 2px;
+}
+
 /* ---- popover ----------------------------------------------------------- */
 .ws-dock-pop {
   position: fixed;
@@ -221,12 +244,73 @@ body.ws-dock-on .ws-dock { display: block; }
 }
 .ws-dock-pop__item.is-sel .pi-sub { margin-left: 8px; }
 
+/* ==========================================================================
+   MOBILE / TABLET ≤768px (2026-08-11): the dock IS the mobile UI now.
+   The legacy mobile chrome — CONTROLS/Assets tab bar, command trigger,
+   corner launchers, prompt guide — is retired; the sheet still opens
+   full-screen via the Advanced chip, assets via the header button.
+   ========================================================================== */
 @media (max-width: 768px) {
-  /* Mobile keeps the existing tab UX for now — dock is desktop/tablet. */
-  body.ws-dock-on .ws-dock { display: none; }
+  .ws-dock {
+    width: calc(100vw - 16px);
+    bottom: max(10px, env(safe-area-inset-bottom, 0px));
+  }
+  .ws-dock__card { padding: 8px 10px; border-radius: 18px; }
+  .ws-dock__prompt { font-size: 14px; height: 40px; padding: 8px 2px 6px; }
+  .ws-dock__agent { width: 36px; height: 40px; font-size: 14px; border-radius: 12px; }
+  .ws-dock__generate { height: 40px; padding: 0 14px; font-size: 13px; gap: 7px; }
+  .ws-dock__generate .ws-dock__cost { font-size: 10px; padding: 2px 6px; }
+  /* chips: one horizontally-scrollable row */
+  .ws-dock__chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 2px;
+  }
+  .ws-dock__chips::-webkit-scrollbar { display: none; }
+  .ws-dock__chip { flex: none; padding: 6px 10px; font-size: 12px; }
+  .ws-dock__chip--adv { margin-left: 0; }
+
+  /* retire the legacy mobile chrome */
+  body.ws-dock-on .ws-mobile-tabs,
   body.ws-dock-on .ws-cmd-trigger,
   body.ws-dock-on .ws-tray,
-  body.ws-dock-on .ws-video-tray { display: revert !important; }
+  body.ws-dock-on .ws-video-tray { display: none !important; }
+  html body.print3d-page.ws-dock-on > .ws-corner-launcher,
+  html body.print3d-page.ws-dock-on > .ws-prompt-guide-launcher { display: none !important; }
+
+  /* header: same edge pinning as desktop, tighter; the 3D Viewer button
+     yields its space (viewer opens from generations / assets on mobile) */
+  body.ws-dock-on .ws-header {
+    grid-template-columns: auto 1fr auto;
+    padding: 8px 10px;
+  }
+  body.ws-dock-on .ws-header > .ws-header-left {
+    grid-column: 1;
+    justify-self: start;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  body.ws-dock-on .ws-header > .ws-credits { grid-column: 3; justify-self: end; gap: 6px; }
+  /* the dock's mode chip owns creation modes on every width */
+  body.ws-dock-on .ws-modes-switch { display: none !important; }
+  body.ws-dock-on #wsHeaderViewerBtn { display: none; }
+  body.ws-dock-on .ws-header-assets-btn { padding: 7px 11px; font-size: 12px; }
+
+  /* the control sheet gets real height on phones and sits above the dock */
+  body.ws-dock-on .timrx-3dprint .ws-left {
+    width: calc(100vw - 16px) !important;
+    height: min(76vh, calc(100vh - 190px)) !important;
+    max-height: none !important;  /* panel.css caps at min(58vh,520px) ≤820px */
+    bottom: 118px !important;
+  }
+
+  /* hero fits small screens */
+  .ws-hero__title { font-size: clamp(26px, 8vw, 36px); }
+  .ws-hero__sub { font-size: 13.5px; }
+  .ws-hero__hint { font-size: 12px; padding: 6px 11px; }
 }
 
 /* ==========================================================================
