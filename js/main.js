@@ -9,6 +9,11 @@ import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, tr
 import * as State from './state.js?v=20260407e';
 import * as Viewer from './viewer.js?v=20260806a';
 import * as UI from './ui-utils.js';
+
+// 20+ call sites across api.js / 3dprint-app.js / multi-color-print.js guard on
+// window.showToast — it was never assigned anywhere, so every toast silently
+// no-opped (audit 2026-08-11). ui-utils.toast is the intended implementation.
+window.showToast = UI.toast;
 import {
   renderHistory,
   shortTitle,
@@ -1488,19 +1493,24 @@ function initViewerToolbar() {
       closeViewerPopovers();
       const prompt = activeItem.prompt || activeItem.root_prompt || '';
       if (!prompt) { alert('No prompt available to retry.'); return; }
+      // The rail's data-panel values are model|image|video — 'image3d'/'text3d'
+      // never existed, so retry was a no-op (audit 2026-08-11). Route to the
+      // model rail, then the image-to-3d feature tab for image-sourced items.
       const isImage = activeItem.stage === 'image-to-3d' || activeItem.stage === 'image_to_3d';
+      const railBtn = document.querySelector('.rail-btn[data-panel="model"]');
+      if (railBtn && !railBtn.classList.contains('is-active')) railBtn.click();
       if (isImage) {
-        const railBtn = document.querySelector('[data-panel="image3d"]');
-        if (railBtn) railBtn.click();
+        document.querySelector('.model-feature-btn[data-model-panel="model"]')?.click();
+        const tabBtn = document.querySelector('.tab-btn[data-tab="image3d"]');
+        if (tabBtn) tabBtn.click();
       } else {
-        const railBtn = document.querySelector('[data-panel="text3d"]');
-        if (railBtn) railBtn.click();
         const promptInput = byId('modelPrompt');
         if (promptInput) {
           promptInput.value = prompt;
           promptInput.dispatchEvent(new Event('input', { bubbles: true }));
         }
       }
+      if (window.TimrXSheet && typeof window.TimrXSheet.open === 'function') window.TimrXSheet.open();
     }
 
     if (action === 'evolve' && activeItem) {

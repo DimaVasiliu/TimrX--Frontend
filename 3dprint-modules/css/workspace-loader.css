@@ -171,8 +171,6 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
 
 body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-header-left,
 body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-credits > *,
-body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-cmd-trigger,
-html body.print3d-page.has-ws-loader:not(.ws-intro-go) > .ws-corner-launcher,
 html body.print3d-page.has-ws-loader:not(.ws-intro-go) > .ws-prompt-guide-launcher {
   animation-play-state: paused;
 }

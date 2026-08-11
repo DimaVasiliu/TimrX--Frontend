@@ -226,15 +226,9 @@ html body.print3d-page > .cc-banner {
   z-index: 2147483647;
 }
 
-html body.print3d-page > .ws-cmd-trigger {
-  position: fixed;
-  z-index: 60;
-}
 
-html body.print3d-page > .ws-tray {
-  position: fixed;
-  z-index: 59;
-}
+
+
 
 /* generation-tracker.js appends .gen-track to <body>, so the (0,2,1) rule above
    demoted it to `position:relative` — on this page the tracker never was fixed.

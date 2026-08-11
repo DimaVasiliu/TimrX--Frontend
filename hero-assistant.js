@@ -235,7 +235,7 @@
     else if(objectHints&&/\b(print|stl|mesh|model|3d)\b/.test(q))type='3d';
     const provider=detectProvider(q,type);
     const aspect=detectAspectRatio(q);
-    const intent={requested_type:type};
+    const intent={requested_type:type,type};
     if(provider)intent.provider=provider;
     if(aspect)intent.aspect_ratio=aspect;
     if(type==='image'){

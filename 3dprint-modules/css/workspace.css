@@ -1500,9 +1500,7 @@ html body.print3d-page > .sim-viewer-bg {
    ========================================================================== */
 
 /* Tab bar — hidden on desktop */
-.ws-mobile-tabs {
-  display: none;
-}
+
 
 /* ====================================================== */
 /* Mobile notice popup                                     */

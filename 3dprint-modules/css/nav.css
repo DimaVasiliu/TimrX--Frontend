@@ -32,73 +32,17 @@
      Rows are `width:100%` plus 20px of horizontal padding, so every row rendered
      14px wider than its scroll container and the right-hand meta label was cut
      off ("Page" → "Pag"). Scope the reset to this subtree instead. */
-  .ws-cmd-trigger,
-  .ws-cmd-trigger *,
+  
   .ws-cmd,
-  .ws-cmd *,
-  .ws-tray,
-  .ws-tray * {
+  .ws-cmd *{
     box-sizing: border-box;
   }
   
-  .ws-cmd-trigger {
-    position: fixed;
-    left: 50%;
-    bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px));
-    transform: translateX(-50%);
-    z-index: 60;
   
-    display: inline-flex;
-    align-items: center;
-    gap: 16px;
-    width: min(var(--ws-cmdbar-w), calc(100vw - 40px));
-    min-height: var(--ws-cmdbar-h);
-    padding: 12px 14px 12px 24px;
   
-    font: inherit;
-    font-size: 18px;
-    color: rgba(226, 236, 237, 0.76);
-    text-align: left;
   
-    background:
-      radial-gradient(circle at 22% 0%, rgba(var(--accent-blue-rgb), 0.075), transparent 30%),
-      radial-gradient(circle at 88% 100%, rgba(var(--accent-purple-rgb), 0.06), transparent 34%),
-      linear-gradient(180deg, rgba(24, 32, 36, 0.9), rgba(12, 16, 18, 0.88));
-    -webkit-backdrop-filter: blur(22px) saturate(1.12);
-    backdrop-filter: blur(22px) saturate(1.12);
-    border: 1px solid var(--border-strong);
-    border-radius: 999px;
-    box-shadow:
-      0 24px 62px rgba(0, 0, 0, 0.38),
-      inset 0 1px 0 rgba(242, 245, 243, 0.065),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.24);
-    cursor: text;
-    isolation: isolate;
   
-    transition:
-      color 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-      transform 0.24s cubic-bezier(0.22, 1, 0.36, 1),
-      opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1);
-  }
   
-  .ws-cmd-trigger:hover,
-  .ws-cmd-trigger:focus-visible {
-    color: rgba(242, 245, 243, 0.96);
-    border-color: rgba(127, 200, 194, 0.28);
-    background:
-      radial-gradient(circle at 22% 0%, rgba(var(--accent-blue-rgb), 0.11), transparent 32%),
-      radial-gradient(circle at 88% 100%, rgba(var(--accent-purple-rgb), 0.08), transparent 36%),
-      linear-gradient(180deg, rgba(29, 39, 43, 0.94), rgba(13, 18, 20, 0.9));
-    transform: translateX(-50%) translateY(-2px);
-    box-shadow:
-      0 28px 70px rgba(0, 0, 0, 0.42),
-      inset 0 1px 0 rgba(242, 245, 243, 0.09);
-  }
-  
-  .ws-cmd-trigger:focus-visible {
-    outline: 2px solid rgba(127, 200, 194, 0.58);
-    outline-offset: 3px;
-  }
   
   .ws-cmd-trigger__icon {
     width: 24px;
@@ -151,11 +95,7 @@
   }
   
   /* Hidden while an expanded view is scrolled (tutorials / docs / community). */
-  .ws-cmd-trigger.nav-hidden {
-    opacity: 0;
-    transform: translateX(-50%) translateY(24px);
-    pointer-events: none;
-  }
+  
   
   /* --------------------------------------------------------------------------
      Clearance for the bar
@@ -204,18 +144,9 @@
   
   /* The bar becomes the palette's field, so it must not sit behind the backdrop
      as a second copy of itself. */
-  body.ws-cmd-open .ws-cmd-trigger {
-    opacity: 0;
-    pointer-events: none;
-    transition-duration: 0.1s;
-  }
   
-  body.assets-modal-open .ws-cmd-trigger {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-    animation: none !important;
-  }
+  
+  
   
   .ws-cmd[hidden] { display: none; }
   
@@ -466,11 +397,7 @@
       --ws-cmdbar-gap: 12px;
     }
   
-    .ws-cmd-trigger {
-      width: calc(100vw - 20px);
-      padding: 10px 12px 10px 18px;
-      font-size: 15px;
-    }
+    
   
     .ws-cmd-trigger__chips {
       display: none;
@@ -567,7 +494,7 @@
     :root { --ws-cmdbar-h: 58px; --ws-cmdbar-gap: 18px; --ws-cmdbar-w: 600px; }
   
     .ws-cmd-trigger__kbd { display: none; }
-    .ws-cmd-trigger { font-size: 15px; padding-right: 22px; }
+    
   
     .ws-cmd__panel { max-height: 68vh; }
     .ws-cmd__foot { display: none; }
@@ -577,12 +504,7 @@
   @media (max-width: 560px) {
     :root { --ws-cmdbar-h: 54px; --ws-cmdbar-gap: 12px; }
   
-    .ws-cmd-trigger {
-      width: calc(100vw - 20px);
-      gap: 12px;
-      padding: 10px 20px;
-      font-size: 15px;
-    }
+    
     .ws-cmd-trigger__icon { width: 18px; height: 18px; }
   
     .ws-cmd { padding: 6vh 10px max(12px, env(safe-area-inset-bottom, 0px)); }
@@ -595,7 +517,7 @@
   /* Very short viewports (landscape phone): the bar must not eat the workspace. */
   @media (max-height: 560px) {
     :root { --ws-cmdbar-h: 48px; --ws-cmdbar-gap: 10px; }
-    .ws-cmd-trigger { font-size: 14.5px; }
+    
     .ws-cmd__panel { max-height: 82vh; }
     .ws-cmd__foot { display: none; }
   }
@@ -607,8 +529,7 @@
      -------------------------------------------------------------------------- */
   @media (prefers-reduced-motion: reduce) {
     .ws-cmd__backdrop,
-    .ws-cmd__panel,
-    .ws-cmd-trigger {
+    .ws-cmd__panel{
       transition-duration: 0.01ms;
     }
     .ws-cmd__panel { transform: none; }
@@ -677,26 +598,7 @@
   /* The bar answers from below and behind, arriving last — it closes the
      circuit the header opened. translateX(-50%) leads so it composes with the
      element's own centring transform. */
-  @keyframes wsBarArrive {
-    0% {
-      opacity: 0;
-      transform: translateX(-50%) perspective(1300px) translate3d(0, 96px, -820px)
-                 rotateX(34deg) scale(0.82);
-      filter: blur(12px);
-    }
-    55% { opacity: 1; }
-    68% { filter: blur(0); }
-    80% {
-      transform: translateX(-50%) perspective(1300px) translate3d(0, -7px, 46px)
-                 rotateX(-3deg) scale(1.025);
-    }
-    100% {
-      opacity: 1;
-      transform: translateX(-50%) perspective(1300px) translate3d(0, 0, 0)
-                 rotateX(0) scale(1);
-      filter: blur(0);
-    }
-  }
+  
   
   @keyframes wsCornerLauncherArrive {
     0% {
@@ -735,14 +637,9 @@
   .ws-credits-pill    { animation-delay: 530ms; }
   .ws-credits-buy     { animation-delay: 620ms; }
   
-  .ws-cmd-trigger {
-    animation: wsBarArrive var(--ws-arrive-dur) var(--ws-arrive-ease) 760ms backwards;
-  }
   
-  html body.print3d-page > .ws-corner-launcher {
-    animation: wsCornerLauncherArrive var(--ws-arrive-dur) var(--ws-arrive-ease) 760ms backwards;
-    transform-origin: 50% 50%;
-  }
+  
+  
   
   /* --------------------------------------------------------------------------
      Enhanced header actions — light, not outlines
@@ -792,9 +689,7 @@
   body.ws-cmd-hot #accountBeacon     { transition-delay: 180ms; }
   
   /* …and the reverse: touching the header warms the bar. */
-  body.ws-chrome-hot .ws-cmd-trigger {
-    box-shadow: none;
-  }
+  
   
   /* Opening the palette pushes the header back in depth so the two surfaces
      never compete for the same plane. */
@@ -823,13 +718,11 @@
   @media (prefers-reduced-motion: reduce) {
     @keyframes wsChromeArrive { from { opacity: 0; } to { opacity: 1; } }
     @keyframes wsBrandArrive  { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes wsBarArrive    { from { opacity: 0; } to { opacity: 1; } }
+    
     @keyframes wsCornerLauncherArrive { from { opacity: 0; } to { opacity: 1; } }
   
     .ws-header-left,
-    .ws-credits > *,
-    .ws-cmd-trigger,
-    html body.print3d-page > .ws-corner-launcher { animation-duration: 320ms; filter: none; }
+    .ws-credits > *{ animation-duration: 320ms; filter: none; }
   
     #accountBeacon:hover,
     #notificationBell:hover,
@@ -861,332 +754,90 @@
     --ws-cmdbar-zone: calc(var(--ws-cmdbar-h) + var(--ws-cmdbar-gap) * 2 + var(--ws-tray-h));
   }
   
-  body.print3d-page.ws-model-mode.ws-panel-open { --ws-tray-h: 60px; }
-  body.print3d-page.ws-video-mode.ws-panel-open { --ws-tray-h: 112px; }
+  /* tray clearance removed 2026-08-11 — the trays are retired */
+  /* tray clearance removed 2026-08-11 — the trays are retired */
   
-  .ws-tray {
-    position: fixed;
-    left: 50%;
-    bottom: calc(max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px))
-                 + var(--ws-cmdbar-h) + 14px);
-    transform: translateX(-50%);
-    z-index: 59;
   
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 8px;
-    width: min(var(--ws-cmdbar-w), calc(100vw - 40px));
-    padding: 0 6px;
-  
-    /* Hidden state must also leave the a11y tree and the tab order, but not
-       before the exit transition has played. */
-    visibility: hidden;
-    transition: visibility 0s linear 380ms;
-  }
   
   /* .ws-intro-done is added by command-palette.js when the command bar's own
      arrival animation ends. Without it the tray was fully revealed at ~780ms
      while the bar had not even started appearing (~915ms) and did not land
      until ~2085ms — the tools showed up before the thing they belong to. */
-  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray {
-    visibility: visible;
-    transition-delay: 0s;
-  }
+  
   
   /* Never covers the palette. */
-  body.ws-cmd-open .ws-tray {
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.16s cubic-bezier(0.22, 1, 0.36, 1);
-  }
   
-  body.assets-modal-open .ws-tray {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-  }
   
-  .ws-video-tray,
-  .ws-video-tray *,
-  .ws-video-provider,
-  .ws-video-provider * {
-    box-sizing: border-box;
-  }
   
-  .ws-video-tray {
-    position: fixed;
-    left: 50%;
-    bottom: calc(max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px))
-                 + var(--ws-cmdbar-h) + 14px);
-    transform: translateX(-50%) translateY(22px) scale(0.96);
-    z-index: 59;
   
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    width: min(760px, calc(100vw - 40px));
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-    filter: blur(8px);
-    transition:
-      opacity 0.28s var(--ws-arrive-ease),
-      transform 0.38s var(--ws-arrive-ease),
-      filter 0.28s var(--ws-arrive-ease),
-      visibility 0s linear 360ms;
-  }
   
-  html body.print3d-page > .ws-video-tray {
-    position: fixed;
-    z-index: 59;
-  }
   
-  body.ws-video-mode.ws-intro-done.ws-panel-open .ws-video-tray {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-    filter: blur(0);
-    transform: translateX(-50%) translateY(0) scale(1);
-    transition-delay: 0s;
-  }
   
-  body.ws-cmd-open .ws-video-tray,
-  body.assets-modal-open .ws-video-tray {
-    opacity: 0 !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
-  }
   
-  .ws-video-tray__row {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    background: transparent;
-  }
   
-  .ws-video-tray__row--providers {
-    width: min(560px, 100%);
-  }
   
-  .ws-video-tray__btn,
-  .ws-video-provider {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 0;
-    font: inherit;
-    cursor: pointer;
-    white-space: nowrap;
-  }
   
-  .ws-video-tray__btn {
-    gap: 9px;
-    min-width: 132px;
-    padding: 11px 18px;
-    border-radius: 999px;
-    color: var(--text-soft);
-    background:
-      linear-gradient(180deg, rgba(24, 32, 36, 0.82), rgba(11, 14, 16, 0.82));
-    -webkit-backdrop-filter: blur(22px) saturate(1.2);
-    backdrop-filter: blur(22px) saturate(1.2);
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(242, 245, 243, 0.045);
-    font-size: 13.5px;
-    font-weight: 650;
-    transition:
-      color 0.2s ease,
-      background 0.2s ease,
-      box-shadow 0.2s ease,
-      transform 0.2s ease;
-  }
   
-  .ws-video-tray__btn.hidden {
-    display: none !important;
-  }
   
-  .ws-video-tray__icon {
-    width: 16px;
-    height: 16px;
-    flex: none;
-    opacity: 0.68;
-  }
   
-  .ws-video-tray__btn:hover,
-  .ws-video-provider:hover {
-    color: var(--text);
-    transform: translateY(-2px);
-  }
   
-  .ws-video-tray__btn.is-active {
-    color: #071011;
-    background: linear-gradient(180deg, var(--accent-blue), rgba(127, 200, 194, 0.82));
-    box-shadow: 0 16px 40px rgba(var(--accent-blue-rgb), 0.16), 0 6px 16px rgba(0, 0, 0, 0.42);
-  }
   
-  .ws-video-provider {
-    flex: 1 1 0;
-    min-width: 0;
-    flex-direction: column;
-    gap: 2px;
-    padding: 8px 12px;
-    border-radius: 999px;
-    color: var(--text-dim);
-    background: rgba(18, 24, 26, 0.66);
-    -webkit-backdrop-filter: blur(18px) saturate(1.12);
-    backdrop-filter: blur(18px) saturate(1.12);
-    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(242, 245, 243, 0.035);
-    transition:
-      color 0.2s ease,
-      background 0.2s ease,
-      transform 0.2s ease;
-  }
   
-  .ws-video-provider .vpb-name {
-    overflow: hidden;
-    max-width: 100%;
-    text-overflow: ellipsis;
-    font-size: 12px;
-    font-weight: 750;
-    line-height: 1.1;
-  }
   
-  .ws-video-provider .vpb-tag {
-    overflow: hidden;
-    max-width: 100%;
-    text-overflow: ellipsis;
-    font-size: 10px;
-    font-weight: 650;
-    color: rgba(167, 176, 178, 0.48);
-  }
   
-  .ws-video-provider.is-active {
-    color: var(--text);
-    background: rgba(var(--accent-purple-rgb), 0.15);
-    border: 0;
-  }
   
-  .ws-video-provider.is-unavailable,
-  .ws-video-provider:disabled {
-    opacity: 0.52;
-    cursor: not-allowed;
-    transform: none;
-    filter: grayscale(0.35);
-  }
   
-  .ws-video-provider.is-unavailable .vpb-tag::after,
-  .ws-video-provider:disabled .vpb-tag::after {
-    content: " off";
-    color: rgba(167, 176, 178, 0.62);
-    text-transform: uppercase;
-  }
   
-  .ws-video-provider.is-unavailable:hover,
-  .ws-video-provider:disabled:hover {
-    color: var(--text-dim);
-    transform: none;
-  }
   
-  .ws-tray__btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 9px;
-    padding: 11px 18px;
-    font: inherit;
-    font-size: 13.5px;
-    font-weight: 600;
-    letter-spacing: -0.005em;
-    color: var(--text-soft);
-    white-space: nowrap;
   
-    background:
-      linear-gradient(180deg, rgba(24, 32, 36, 0.84), rgba(11, 14, 16, 0.82));
-    -webkit-backdrop-filter: blur(22px) saturate(1.2);
-    backdrop-filter: blur(22px) saturate(1.2);
-    border: 0;
-    border-radius: 999px;
-    box-shadow: 0 14px 34px rgba(0, 0, 0, 0.36), inset 0 1px 0 rgba(242, 245, 243, 0.045);
-    cursor: pointer;
   
-    /* Rest state: tucked behind the bar, small and out of focus. */
-    opacity: 0;
-    transform: translateY(26px) scale(0.86);
-    filter: blur(7px);
-    pointer-events: none;
   
-    transition:
-      opacity 0.42s var(--ws-arrive-ease),
-      transform 0.52s var(--ws-arrive-ease),
-      filter 0.42s var(--ws-arrive-ease),
-      color 0.2s ease,
-      background 0.2s ease,
-      box-shadow 0.2s ease;
-  }
   
-  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-    pointer-events: auto;
-  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   /* Rise one after another, left to right. Leaving is deliberately un-staggered
      and quicker — a slow exit reads as lag, a slow entrance reads as craft. */
-  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(1) { transition-delay: 40ms; }
-  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(2) { transition-delay: 95ms; }
-  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(3) { transition-delay: 150ms; }
-  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(4) { transition-delay: 205ms; }
-  body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn:nth-child(5) { transition-delay: 260ms; }
   
-  .ws-tray__icon {
-    width: 16px;
-    height: 16px;
-    flex: none;
-    opacity: 0.6;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.7;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    transition: opacity 0.2s ease;
-  }
   
-  .ws-tray__btn:hover {
-    color: var(--text);
-    background: linear-gradient(180deg, rgba(30, 40, 44, 0.92), rgba(15, 19, 21, 0.88));
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 20px 44px rgba(0, 0, 0, 0.56);
-  }
   
-  .ws-tray__btn:hover .ws-tray__icon { opacity: 0.95; }
-  .ws-tray__btn:active { transform: translateY(-1px) scale(0.97); }
   
-  .ws-tray__btn:focus-visible {
-    outline: 2px solid rgba(var(--accent-blue-rgb), 0.5);
-    outline-offset: 3px;
-  }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   /* Active tool: brightest object in the group, with a non-colour cue. */
-  .ws-tray__btn.is-active {
-    color: #071011;
-    background: linear-gradient(180deg, var(--accent-blue), rgba(127, 200, 194, 0.82));
-    box-shadow: 0 16px 40px rgba(var(--accent-blue-rgb), 0.16), 0 6px 16px rgba(0, 0, 0, 0.42);
-  }
   
-  .ws-tray__btn.is-active .ws-tray__icon { opacity: 1; stroke-width: 2; }
-  .ws-tray__btn.is-active:hover {
-    color: #071011;
-    background: linear-gradient(180deg, #9bd8d3, var(--accent-blue));
-  }
   
-  @media (forced-colors: active) {
-    .ws-tray__btn.is-active { outline: 2px solid Highlight; outline-offset: 2px; }
-  }
+  
+  
+  
+  
   
   /* --------------------------------------------------------------------------
      Responsive
@@ -1194,119 +845,47 @@
   @media (max-width: 900px) {
     body.print3d-page.ws-model-mode.ws-panel-open { --ws-tray-h: 56px; }
     body.print3d-page.ws-video-mode.ws-panel-open { --ws-tray-h: 104px; }
-    .ws-tray { gap: 6px; }
-    .ws-tray__btn { padding: 10px 15px; font-size: 13px; }
-    .ws-video-tray {
-      width: min(680px, calc(100vw - 24px));
-      gap: 7px;
-    }
-    .ws-video-tray__btn {
-      min-width: 118px;
-      padding: 10px 15px;
-      font-size: 13px;
-    }
-    .ws-video-provider {
-      padding: 7px 10px;
-    }
+    
+    
+    
+    
+    
   }
   
   @media (max-width: 560px) {
     /* Two rows of chips would eat the viewport, so the tray scrolls sideways. */
     body.print3d-page.ws-model-mode { --ws-tray-h: 52px; }
     body.print3d-page.ws-video-mode { --ws-tray-h: 100px; }
-    .ws-tray {
-      width: 100vw;
-      flex-wrap: nowrap;
-      justify-content: flex-start;
-      overflow-x: auto;
-      scrollbar-width: none;
-      padding: 0 10px;
-      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
-      mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
-    }
-    .ws-tray::-webkit-scrollbar { display: none; }
-    .ws-tray__btn { padding: 10px 14px; font-size: 12.5px; }
-    .ws-tray__icon { width: 15px; height: 15px; }
+    
+    
+    
+    
   
-    .ws-video-tray {
-      width: 100vw;
-      padding: 0 10px;
-      align-items: stretch;
-      -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
-      mask-image: linear-gradient(90deg, transparent 0, #000 14px, #000 calc(100% - 14px), transparent 100%);
-    }
+    
   
-    .ws-video-tray__row {
-      justify-content: flex-start;
-      overflow-x: auto;
-      scrollbar-width: none;
-    }
+    
   
-    .ws-video-tray__row::-webkit-scrollbar { display: none; }
+    
   
-    .ws-video-tray__btn {
-      min-width: 112px;
-      padding: 10px 14px;
-      font-size: 12.5px;
-    }
+    
   
-    .ws-video-provider {
-      flex: 0 0 auto;
-      min-width: 126px;
-      padding: 7px 11px;
-    }
+    
   
-    .ws-video-tray__icon {
-      width: 15px;
-      height: 15px;
-    }
+    
   }
   
-  @media (prefers-reduced-motion: reduce) {
-    .ws-tray__btn {
-      transform: none;
-      filter: none;
-      transition: opacity 0.2s linear, color 0.2s linear, background 0.2s linear;
-    }
-    body.ws-model-mode.ws-intro-done.ws-panel-open .ws-tray__btn { transform: none; transition-delay: 0s; }
-    .ws-tray__btn:hover,
-    .ws-tray__btn:active { transform: none; }
   
-    .ws-video-tray {
-      transform: translateX(-50%);
-      filter: none;
-      transition: opacity 0.2s linear;
-    }
-  
-    body.ws-video-mode.ws-intro-done.ws-panel-open .ws-video-tray {
-      transform: translateX(-50%);
-    }
-  
-    .ws-video-tray__btn:hover,
-    .ws-video-provider:hover {
-      transform: none;
-    }
-  }
   
   /* ==========================================================================
      Bottom-right workspace launcher
      ========================================================================== */
-  .ws-corner-launcher,
-  .ws-corner-launcher *,
+  
   .ws-prompt-guide-launcher,
   .ws-prompt-guide-launcher * {
     box-sizing: border-box;
   }
   
-  html body.print3d-page > .ws-corner-launcher {
-    position: fixed !important;
-    inset: 0 !important;
-    z-index: 10000 !important;
-    display: block;
-    width: 100vw !important;
-    height: 100svh !important;
-    pointer-events: none;
-  }
+  
   
   .ws-prompt-guide-launcher {
     position: fixed !important;
@@ -1582,136 +1161,38 @@
     }
   }
   
-  .ws-corner-launcher__action,
-  .ws-corner-launcher .assets-side-launcher {
-    position: fixed !important;
-    top: clamp(260px, 52svh, calc(100svh - 190px)) !important;
-    z-index: 10002 !important;
-    display: inline-flex !important;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    min-width: 148px;
-    min-height: 54px;
-    padding: 0 18px;
-    border: 1px solid rgba(136, 236, 224, 0.24) !important;
-    border-radius: 999px;
-    color: rgba(231, 240, 238, 0.84) !important;
-    background:
-      linear-gradient(120deg, rgba(10, 16, 18, 0.08), rgba(146, 231, 218, 0.15) 48%, rgba(10, 16, 18, 0.08)),
-      linear-gradient(145deg, rgba(18, 25, 28, 0.7), rgba(6, 8, 10, 0.82)) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(1.1) !important;
-    backdrop-filter: blur(18px) saturate(1.1) !important;
-    box-shadow:
-      0 18px 42px rgba(0, 0, 0, 0.34),
-      0 0 0 1px rgba(255, 255, 255, 0.045) inset,
-      0 0 34px rgba(var(--accent-blue-rgb), 0.08) !important;
-    font: inherit;
-    font-size: 11px;
-    font-weight: 820;
-    letter-spacing: 0.11em;
-    text-transform: uppercase;
-    cursor: pointer;
-    pointer-events: auto;
-    isolation: isolate;
-    overflow: hidden;
-    transform: translate3d(0, -50%, 0);
-    transition:
-      color 0.2s ease,
-      border-color 0.2s ease,
-      box-shadow 0.24s ease,
-      transform 0.28s var(--ws-arrive-ease);
-  }
   
-  .ws-corner-launcher__action--assets {
-    left: clamp(20px, 4vw, 72px) !important;
-  }
   
-  .ws-corner-launcher__action--viewer {
-    right: clamp(20px, 4vw, 72px) !important;
-  }
   
-  body.ws-panel-open .ws-corner-launcher__action,
-  body.ws-panel-open .ws-corner-launcher .assets-side-launcher {
-    top: clamp(148px, 22svh, 260px) !important;
-    z-index: 10004 !important;
-  }
   
-  .ws-corner-launcher__action::before,
-  .ws-corner-launcher__action::after {
-    content: "";
-    position: absolute;
-    pointer-events: none;
-    z-index: -1;
-  }
   
-  .ws-corner-launcher__action::before {
-    inset: 7px;
-    border-radius: inherit;
-    border: 1px solid rgba(246, 224, 181, 0.12);
-  }
   
-  .ws-corner-launcher__action::after {
-    inset: -55% -18%;
-    background:
-      linear-gradient(100deg, transparent 18%, rgba(245, 226, 190, 0.28), transparent 52%);
-    opacity: 0.48;
-    transform: translateX(-72%) rotate(8deg);
-    animation: wsEdgeActionScan 4.8s ease-in-out infinite;
-  }
   
-  .ws-corner-launcher__beam {
-    position: absolute;
-    inset: auto 18px -12px;
-    height: 1px;
-    border-radius: 999px;
-    background: linear-gradient(90deg, transparent, rgba(var(--accent-blue-rgb), 0.58), transparent);
-    box-shadow: 0 0 18px rgba(var(--accent-blue-rgb), 0.25);
-    opacity: 0.78;
-  }
   
-  .ws-corner-launcher__action:hover,
-  .ws-corner-launcher__action:focus-visible {
-    color: var(--text) !important;
-    border-color: rgba(136, 236, 224, 0.44) !important;
-    box-shadow:
-      0 20px 46px rgba(0, 0, 0, 0.38),
-      0 0 0 1px rgba(255, 255, 255, 0.06) inset,
-      0 0 44px rgba(var(--accent-blue-rgb), 0.18) !important;
-    transform: translate3d(0, -50%, 0) scale(1.045);
-  }
   
-  .ws-corner-launcher__action:focus-visible {
-    outline: 2px solid rgba(var(--accent-blue-rgb), 0.48);
-    outline-offset: 5px;
-  }
   
-  .ws-corner-launcher__action svg {
-    width: 20px !important;
-    height: 20px !important;
-    flex: none;
-    color: var(--accent-blue);
-    filter: drop-shadow(0 0 10px rgba(var(--accent-blue-rgb), 0.2));
-  }
   
-  .ws-corner-launcher__action span:not(.ws-corner-launcher__beam) {
-    font-size: inherit !important;
-    font-weight: inherit !important;
-    letter-spacing: inherit !important;
-    text-transform: inherit !important;
-  }
   
-  body.assets-modal-open .ws-corner-launcher,
-  body.ws-cmd-open .ws-corner-launcher,
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   body.assets-modal-open .ws-prompt-guide-launcher,
   body.ws-cmd-open .ws-prompt-guide-launcher {
     opacity: 0;
     pointer-events: none;
   }
   
-  .ws-mobile-tab[data-open-assets] {
-    display: none !important;
-  }
+  
   
   body.ws-viewer-open .timrx-3dprint .ws-grid {
     display: grid !important;
@@ -1730,14 +1211,9 @@
   }
   
   body.ws-viewer-open .ws-header,
-  body.ws-viewer-open .ws-cmd-trigger,
-  body.ws-viewer-open .ws-tray,
-  body.ws-viewer-open .ws-video-tray,
   body.ws-viewer-open .timrx-3dprint .ws-rail,
   body.ws-viewer-open .timrx-3dprint .ws-left,
   body.ws-viewer-open .timrx-3dprint .ws-right,
-  body.ws-viewer-open .ws-mobile-tabs,
-  body.ws-viewer-open .ws-corner-launcher,
   body.ws-viewer-open .ws-prompt-guide-launcher,
   html body.print3d-page.ws-viewer-open > .cc-banner {
     opacity: 0 !important;
@@ -1745,21 +1221,7 @@
     pointer-events: none !important;
   }
   
-  @keyframes wsEdgeActionScan {
-    0%,
-    36% {
-      opacity: 0;
-      transform: translateX(-76%) rotate(8deg);
-    }
-    48% {
-      opacity: 0.5;
-    }
-    68%,
-    100% {
-      opacity: 0;
-      transform: translateX(76%) rotate(8deg);
-    }
-  }
+  
   
   body.ws-viewer-open .timrx-3dprint .ws-grid > :not(.ws-viewer) {
     display: none !important;
@@ -1895,53 +1357,18 @@
     }
   }
   
-  @keyframes cornerLauncherOrbit {
-    to { transform: rotate(360deg); }
-  }
   
-  @keyframes cornerLauncherPulse {
-    0%, 72%, 100% {
-      opacity: 0;
-      transform: scale(0.86);
-    }
-    82% {
-      opacity: 0.72;
-    }
-    96% {
-      opacity: 0;
-      transform: scale(1.38);
-    }
-  }
   
-  @keyframes cornerLauncherNudge {
-    0%, 70%, 100% { transform: translateY(0) rotate(0deg); }
-    76% { transform: translateY(-4px) rotate(-2deg); }
-    82% { transform: translateY(0) rotate(2deg); }
-    88% { transform: translateY(-2px) rotate(0deg); }
-  }
   
-  @keyframes cornerLauncherCubeFloat {
-    0%, 100% { transform: translateY(0) scale(1); }
-    46% { transform: translateY(-1.8px) scale(1.04); }
-  }
   
-  @keyframes cornerLauncherSpark {
-    0%, 100% {
-      opacity: 0.42;
-      transform: scale(0.75) rotate(0deg);
-    }
-    45% {
-      opacity: 1;
-      transform: scale(1.08) rotate(90deg);
-    }
-  }
+  
+  
+  
+  
+  
   
   @media (max-width: 560px) {
-    html body.print3d-page > .ws-corner-launcher {
-      inset: 0 !important;
-      width: 100vw !important;
-      height: 100svh !important;
-    }
+    
   
     html body.print3d-page > .ws-prompt-guide-launcher {
       left: auto !important;
@@ -1949,37 +1376,20 @@
       bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px)) !important;
     }
   
-    .ws-corner-launcher__action,
-    .ws-corner-launcher .assets-side-launcher {
-      top: clamp(360px, 67svh, calc(100svh - 245px)) !important;
-      min-width: 52px;
-      min-height: 52px;
-      width: 52px;
-      padding: 0;
-    }
+    
   
-    body.ws-panel-open .ws-corner-launcher__action,
-    body.ws-panel-open .ws-corner-launcher .assets-side-launcher {
-      top: clamp(132px, 24svh, 210px) !important;
-    }
+    
   
-    .ws-corner-launcher__action--assets {
-      left: max(12px, env(safe-area-inset-left, 0px)) !important;
-    }
+    
   
-    .ws-corner-launcher__action--viewer {
-      right: max(12px, env(safe-area-inset-right, 0px)) !important;
-    }
+    
   
-    .ws-corner-launcher__action span:not(.ws-corner-launcher__beam) {
-      display: none;
-    }
+    
   }
   
   @media (prefers-reduced-motion: reduce) {
-    .ws-corner-launcher__action::after,
-    .ws-prompt-guide-launcher,
-    .ws-corner-launcher__beam {
+    
+    .ws-prompt-guide-launcher{
       animation: none;
     }
   }
@@ -2000,18 +1410,7 @@
      independently — the cube's faces, the camera's lens, the photo's horizon.
      ========================================================================== */
   
-  .ws-modes-switch {
-    position: relative;
-    display: flex;
-    align-items: stretch;
-    gap: 2px;
-    padding: 4px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.035);
-    -webkit-backdrop-filter: blur(18px) saturate(1.1);
-    backdrop-filter: blur(18px) saturate(1.1);
-    isolation: isolate;
-  }
+  
   
   /* The travelling indicator. transform only — no width/left animation. */
   .ws-modes-switch__glow {
@@ -2027,151 +1426,66 @@
     transition: transform 0.46s cubic-bezier(0.34, 1.32, 0.64, 1);
   }
   
-  .ws-modes-switch[data-mode="model"] .ws-modes-switch__glow { transform: translateX(0); }
-  .ws-modes-switch[data-mode="video"] .ws-modes-switch__glow { transform: translateX(100%); }
-  .ws-modes-switch[data-mode="image"] .ws-modes-switch__glow { transform: translateX(200%); }
   
-  .timrx-3dprint .ws-modes-switch .ws-mode,
-  .ws-modes-switch .ws-mode {
-    flex: 1 1 0;
-    min-width: 0;
-    display: grid;
-    grid-template-columns: 20px minmax(0, 1fr);
-    grid-template-rows: auto auto;
-    align-items: center;
-    gap: 0 9px;
-    padding: 7px 16px 7px 12px;
-    background: none;
-    border: 0;
-    border-radius: 999px;
-    color: rgba(255, 255, 255, 0.5);
-    cursor: pointer;
-    text-align: left;
-    transition: color 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-  }
   
-  .ws-mode__label {
-    grid-column: 2;
-    font-size: 12.5px;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    line-height: 1.15;
-    white-space: nowrap;
-  }
   
-  .ws-mode__meta {
-    grid-column: 2;
-    font-size: 10px;
-    font-weight: 500;
-    letter-spacing: 0.01em;
-    line-height: 1.2;
-    color: rgba(255, 255, 255, 0.34);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    /* Only the active mode explains itself — the others stay quiet. */
-    max-height: 0;
-    opacity: 0;
-    transition: max-height 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-                opacity 0.22s cubic-bezier(0.22, 1, 0.36, 1);
-  }
   
-  .ws-mode:hover { color: rgba(255, 255, 255, 0.85); }
-  .ws-mode.is-active { color: #fff; }
-  .ws-mode.is-active .ws-mode__meta { max-height: 14px; opacity: 1; }
-  .ws-mode:focus-visible { outline: 2px solid var(--accent-blue, #7fc8c2); outline-offset: 2px; }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   /* --------------------------------------------------------------------------
      Icons — assembled from elements so their parts can move
      -------------------------------------------------------------------------- */
-  .mode-ico {
-    grid-column: 1;
-    grid-row: 1 / span 2;
-    position: relative;
-    width: 20px;
-    height: 20px;
-    display: block;
-    color: currentColor;
-  }
   
-  .mode-ico i { position: absolute; display: block; }
+  
+  
   
   /* Cube: three faces that separate slightly, then lock together when active. */
-  .mode-ico--cube i {
-    inset: 3px;
-    border: 1.6px solid currentColor;
-    border-radius: 2px;
-    transition: transform 0.5s cubic-bezier(0.34, 1.32, 0.64, 1), opacity 0.3s ease;
-  }
-  .mode-ico--cube i:nth-child(1) { transform: translate(-2.5px, -2.5px); opacity: 0.4; }
-  .mode-ico--cube i:nth-child(2) { transform: translate(0, 0); opacity: 0.7; }
-  .mode-ico--cube i:nth-child(3) { transform: translate(2.5px, 2.5px); opacity: 0.4; }
   
-  .ws-mode:hover .mode-ico--cube i:nth-child(1) { transform: translate(-3.5px, -3.5px) rotate(-6deg); }
-  .ws-mode:hover .mode-ico--cube i:nth-child(3) { transform: translate(3.5px, 3.5px) rotate(6deg); }
   
-  .ws-mode.is-active .mode-ico--cube i:nth-child(1) { transform: translate(-2px, -2px); opacity: 0.55; }
-  .ws-mode.is-active .mode-ico--cube i:nth-child(2) { opacity: 1; }
-  .ws-mode.is-active .mode-ico--cube i:nth-child(3) { transform: translate(2px, 2px); opacity: 0.55; }
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   /* Video: body plus a lens barrel that pushes out on hover. */
-  .mode-ico--video i:nth-child(1) {
-    left: 1px; top: 5px; width: 12px; height: 11px;
-    border: 1.6px solid currentColor; border-radius: 3px;
-  }
-  .mode-ico--video i:nth-child(2) {
-    right: 1px; top: 7.5px; width: 0; height: 0;
-    border-top: 3.2px solid transparent;
-    border-bottom: 3.2px solid transparent;
-    border-left: 5.5px solid currentColor;
-    transition: transform 0.4s cubic-bezier(0.34, 1.32, 0.64, 1);
-  }
-  .ws-mode:hover .mode-ico--video i:nth-child(2),
-  .ws-mode.is-active .mode-ico--video i:nth-child(2) { transform: translateX(1.5px); }
+  
+  
+  
   
   /* Image: frame, a sun that rises, and a horizon that lifts. */
-  .mode-ico--image i:nth-child(1) {
-    inset: 2px; border: 1.6px solid currentColor; border-radius: 3px;
-  }
-  .mode-ico--image i:nth-child(2) {
-    left: 5.5px; top: 5.5px; width: 3px; height: 3px;
-    border-radius: 50%; background: currentColor;
-    transition: transform 0.42s cubic-bezier(0.34, 1.32, 0.64, 1);
-  }
-  .mode-ico--image i:nth-child(3) {
-    left: 3.5px; right: 3.5px; bottom: 5px; height: 1.6px;
-    background: currentColor; border-radius: 2px;
-    transform-origin: left center;
-    transition: transform 0.42s cubic-bezier(0.34, 1.32, 0.64, 1);
-  }
-  .ws-mode:hover .mode-ico--image i:nth-child(2),
-  .ws-mode.is-active .mode-ico--image i:nth-child(2) { transform: translate(1px, -1.5px); }
-  .ws-mode:hover .mode-ico--image i:nth-child(3),
-  .ws-mode.is-active .mode-ico--image i:nth-child(3) { transform: rotate(-8deg) scaleX(0.9); }
+  
+  
+  
+  
+  
   
   /* --------------------------------------------------------------------------
      Header placement + responsive
      -------------------------------------------------------------------------- */
-  .ws-header > .ws-modes-switch { flex: 0 1 auto; }
   
-  @media (max-width: 1180px) {
-    .ws-mode__meta { display: none; }
-    .ws-modes-switch .ws-mode { padding: 8px 14px 8px 11px; }
-  }
   
-  @media (max-width: 900px) {
-    .ws-mode__label { display: none; }
-    .ws-modes-switch .ws-mode { grid-template-columns: 20px; padding: 9px 12px; justify-items: center; }
-  }
   
-  @media (max-width: 620px) {
-    .ws-header > .ws-modes-switch { display: none; }
-  }
+  
+  
+  
+  
   
   @media (prefers-reduced-motion: reduce) {
-    .ws-modes-switch__glow,
-    .mode-ico i,
-    .ws-mode__meta { transition-duration: 0.01ms; }
+    .ws-modes-switch__glow{ transition-duration: 0.01ms; }
   }
   
   /* ==========================================================================
@@ -2182,106 +1496,52 @@
      glyph assembles itself when its mode is live and rests apart when it is not.
      ========================================================================== */
   
-  .ws-header > .ws-modes-switch { justify-self: center; }
   
-  .ws-modes-switch {
-    background: none !important;
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
-    border: 0 !important;
-    border-radius: 0 !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    gap: 10px;
-  }
+  
+  
   
   .ws-modes-switch__glow { display: none !important; }
   
-  .timrx-3dprint .ws-modes-switch .ws-mode,
-  .ws-modes-switch .ws-mode {
-    flex: 0 0 auto;
-    background: none !important;
-    border: 0 !important;
-    box-shadow: none !important;
-    border-radius: 12px;
-    padding: 8px 18px;
-    gap: 0 11px;
-    color: rgba(255, 255, 255, 0.42);
-  }
   
-  .ws-mode:hover { color: rgba(255, 255, 255, 0.8); }
-  .ws-mode.is-active { color: #fff; }
   
-  .ws-mode__label {
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    transition: font-weight 0.2s ease, letter-spacing 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-  }
   
-  .ws-mode.is-active .ws-mode__label { font-weight: 750; letter-spacing: 0.015em; }
   
-  .ws-mode__meta {
-    font-size: 10px;
-    color: rgba(255, 255, 255, 0.38);
-    max-width: 0;
-    transition: max-height 0.34s cubic-bezier(0.22, 1, 0.36, 1),
-                max-width 0.34s cubic-bezier(0.22, 1, 0.36, 1),
-                opacity 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-  }
   
-  .ws-mode.is-active .ws-mode__meta { max-height: 14px; max-width: 200px; opacity: 1; }
   
-  .ws-mode:focus-visible {
-    outline: 2px solid var(--accent-blue, #7fc8c2);
-    outline-offset: 4px;
-    border-radius: 12px;
-  }
+  
+  
+  
+  
+  
+  
+  
+  
   
   /* --------------------------------------------------------------------------
      Icons — the active glyph is alive, the others are at rest
      -------------------------------------------------------------------------- */
-  .mode-ico { width: 22px; height: 22px; }
+  
   
   /* Cube: faces breathe apart and back while its mode is live. */
-  .ws-mode.is-active .mode-ico--cube i:nth-child(1) { animation: modeCubeA 3.6s ease-in-out infinite; }
-  .ws-mode.is-active .mode-ico--cube i:nth-child(3) { animation: modeCubeB 3.6s ease-in-out infinite; }
   
-  @keyframes modeCubeA {
-    0%, 100% { transform: translate(-2px, -2px); }
-    50%      { transform: translate(-3.4px, -3.4px) rotate(-4deg); }
-  }
-  @keyframes modeCubeB {
-    0%, 100% { transform: translate(2px, 2px); }
-    50%      { transform: translate(3.4px, 3.4px) rotate(4deg); }
-  }
+  
+  
+  
+  
   
   /* Video: the lens eases in and out, like a slow zoom. */
-  .ws-mode.is-active .mode-ico--video i:nth-child(2) { animation: modeLens 2.8s ease-in-out infinite; }
-  @keyframes modeLens {
-    0%, 100% { transform: translateX(0.5px); }
-    50%      { transform: translateX(2.4px); }
-  }
+  
+  
   
   /* Image: the sun tracks a slow arc above the horizon. */
-  .ws-mode.is-active .mode-ico--image i:nth-child(2) { animation: modeSun 4.2s ease-in-out infinite; }
-  @keyframes modeSun {
-    0%, 100% { transform: translate(0.5px, -1px); }
-    50%      { transform: translate(2px, -2.4px); }
-  }
   
-  @media (max-width: 1180px) {
-    .ws-modes-switch { gap: 6px; }
-    .ws-modes-switch .ws-mode { padding: 8px 14px; }
-  }
   
-  @media (max-width: 900px) {
-    .ws-modes-switch .ws-mode { padding: 8px 12px; }
-  }
   
-  @media (prefers-reduced-motion: reduce) {
-    .ws-mode.is-active .mode-ico i { animation: none !important; }
-  }
+  
+  
+  
+  
+  
   
   /* ==========================================================================
      GENERATION TRACKER
@@ -2472,81 +1732,45 @@
      to carry them, the type and the icons have to do that work themselves.
      ========================================================================== */
   
-  .ws-modes-switch{
-    gap:22px;                       /* was 10px — they were reading as one blob */
-  }
   
-  .timrx-3dprint .ws-modes-switch .ws-mode,
-  .ws-modes-switch .ws-mode{
-    padding:10px 20px;
-    gap:0 13px;
-    /* Inactive modes were nearly invisible at .42; they are navigation, not
-       decoration, and have to look clickable before you hover them. */
-    color:rgba(255,255,255,.58);
-  }
   
-  .ws-mode:hover{color:rgba(255,255,255,.92)}
-  .ws-mode.is-active{color:#fff}
   
-  .ws-mode__label{
-    font-size:15px;
-    font-weight:650;
-    letter-spacing:-.005em;
-  }
   
-  .ws-mode.is-active .ws-mode__label{
-    font-weight:750;
-    letter-spacing:0;
-  }
   
-  .ws-mode__meta{
-    font-size:11px;
-    color:rgba(255,255,255,.46);
-  }
   
-  .mode-ico{width:26px;height:26px}
+  
+  
+  
+  
+  
+  
+  
+  
   
   /* Glyph strokes scale with the icon, or a 26px icon drawn at 1.6px reads
      thinner than the 22px one it replaced. */
-  .mode-ico--cube i{inset:4px;border-width:1.9px}
-  .mode-ico--cube i:nth-child(1){transform:translate(-3px,-3px)}
-  .mode-ico--cube i:nth-child(3){transform:translate(3px,3px)}
-  .ws-mode:hover .mode-ico--cube i:nth-child(1){transform:translate(-4.2px,-4.2px) rotate(-6deg)}
-  .ws-mode:hover .mode-ico--cube i:nth-child(3){transform:translate(4.2px,4.2px) rotate(6deg)}
-  .ws-mode.is-active .mode-ico--cube i:nth-child(1){transform:translate(-2.4px,-2.4px)}
-  .ws-mode.is-active .mode-ico--cube i:nth-child(3){transform:translate(2.4px,2.4px)}
   
-  .mode-ico--video i:nth-child(1){left:1px;top:6px;width:15px;height:14px;border-width:1.9px}
-  .mode-ico--video i:nth-child(2){
-    right:1px;top:9.5px;
-    border-top-width:4px;border-bottom-width:4px;border-left-width:6.5px;
-  }
   
-  .mode-ico--image i:nth-child(1){inset:3px;border-width:1.9px}
-  .mode-ico--image i:nth-child(2){left:7px;top:7px;width:3.6px;height:3.6px}
-  .mode-ico--image i:nth-child(3){left:4.5px;right:4.5px;bottom:6.5px;height:1.9px}
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   /* Keep the active cube's breathing amplitude proportional to the new size. */
-  @keyframes modeCubeA{
-    0%,100%{transform:translate(-2.4px,-2.4px)}
-    50%    {transform:translate(-4px,-4px) rotate(-4deg)}
-  }
-  @keyframes modeCubeB{
-    0%,100%{transform:translate(2.4px,2.4px)}
-    50%    {transform:translate(4px,4px) rotate(4deg)}
-  }
   
-  @media (max-width:1180px){
-    .ws-modes-switch{gap:14px}
-    .ws-modes-switch .ws-mode{padding:9px 16px}
-    .ws-mode__label{font-size:14px}
-  }
   
-  @media (max-width:900px){
-    .ws-modes-switch{gap:10px}
-    .ws-modes-switch .ws-mode{padding:9px 13px}
-    .mode-ico{width:24px;height:24px}
-  }
+  
+  
+  
+  
   
   /* --- command AI confirmation ---------------------------------------------- */
   .cmdai{padding:16px 18px;display:grid;gap:11px}

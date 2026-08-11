@@ -36,17 +36,9 @@
    1. STAGE FIELD SAFE AREAS
    -------------------------------------------------------------------------- */
 
-@media (min-width: 1281px) {
-  .neural-brain-bg {
-    clip-path: none;
-  }
-}
 
-@media (max-width: 1280px) {
-  .neural-brain-bg {
-    clip-path: none;
-  }
-}
+
+
 
 @media (max-width: 1000px) {
   html {
@@ -74,9 +66,7 @@
     overflow:hidden;
   }
 
-  .neural-brain-bg {
-    clip-path: none;
-  }
+  
 
   .ws-stage {
     background:
@@ -96,53 +86,19 @@
      pinned under the header with no way to reach it. z-index 57 sits under the
      header (60) and under an open `.ws-left` (58), so an open panel covers it
      rather than fighting it. */
-  .timrx-3dprint .ws-mobile-tabs {
-    display:flex;
-    position:fixed;
-    top:calc(var(--ws-navH, 70px) + 8px);
-    left:50%;
-    translate:-50% 0;
-    z-index:57;
-    width:auto;
-    max-width:calc(100vw - 24px);
-    margin:0;
-    gap:6px;
-    padding:5px 6px;
-    background:rgba(7,13,15,.7);
-    border:1px solid rgba(176,222,221,.2);
-    border-radius:14px;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 12px 34px rgba(0,0,0,.28);
-    backdrop-filter:blur(14px);
-    -webkit-backdrop-filter:blur(14px);
-  }
+  
 
-  .timrx-3dprint .ws-mobile-tab {
-    flex:0 1 auto;
-    padding:9px 18px;
-    white-space:nowrap;
-  }
+  
 
   /* Whatever it opened now owns the screen — get the pill out of the way so it
      never floats over a sheet or the viewer. */
-  body.assets-modal-open .timrx-3dprint .ws-mobile-tabs,
-  body.ws-panel-open .timrx-3dprint .ws-mobile-tabs {
-    opacity:0;
-    pointer-events:none;
-  }
+  
 
 }
 
-@media (max-width: 600px) {
-  .neural-brain-bg {
-    clip-path: none;
-  }
-}
 
-@media (max-height: 560px) {
-  .neural-brain-bg {
-    clip-path: none;
-  }
-}
+
+
 
 /* --------------------------------------------------------------------------
    3. COMMAND BAR WIDTH — leave room for the prompt guide beside it
@@ -158,11 +114,7 @@
 /* Belt-and-braces clamp: whatever the bar width, the launchers can never
    leave the viewport again. */
 @media (min-width: 1001px) {
-  html body.print3d-page > .ws-corner-launcher {
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100svh !important;
-  }
+  
   html body.print3d-page > .ws-prompt-guide-launcher {
     left: min(
       calc(50% + (min(var(--ws-cmdbar-w), calc(100vw - 40px)) / 2) + var(--ws-cmdbar-h) + 36px),
@@ -184,31 +136,20 @@
     --ws-cmdbar-w: calc(100vw - 32px);
   }
 
-  .ws-cmd-trigger { padding-right: 18px; }
+  
   .ws-cmd-trigger__chips,
   .ws-cmd-trigger__kbd { display: none; }
 
-  html body.print3d-page > .ws-corner-launcher {
-    inset: 0 !important;
-    width: 100vw !important;
-    height: 100svh !important;
-  }
+  
   html body.print3d-page > .ws-prompt-guide-launcher {
     left: auto !important;
     right: max(12px, env(safe-area-inset-right, 0px)) !important;
     bottom: max(var(--ws-cmdbar-gap), env(safe-area-inset-bottom, 0px)) !important;
   }
 
-  .ws-corner-launcher__action,
-  .ws-corner-launcher .assets-side-launcher {
-    top: clamp(340px, 64svh, calc(100svh - 230px)) !important;
-  }
+  
 
-  body.ws-panel-open .ws-corner-launcher__action,
-  body.ws-panel-open .ws-corner-launcher .assets-side-launcher {
-    top: clamp(150px, 22svh, 230px) !important;
-    z-index: 10004 !important;
-  }
+  
 
   .ws-corner-launcher__guide {
     width: var(--ws-cmdbar-h);
@@ -229,9 +170,7 @@
    With the old cube dock removed, the command trigger can reclaim its right
    padding while preserving ellipsis behavior for narrow labels. */
 @media (max-width: 560px) {
-  .ws-cmd-trigger {
-    padding-right: 14px;
-  }
+  
   .ws-cmd-trigger__label {
     overflow: hidden;
     text-overflow: ellipsis;

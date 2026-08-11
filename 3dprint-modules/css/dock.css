@@ -15,8 +15,21 @@
 /* ---- retire the legacy bottom chrome while the dock is active ---------- */
 body.ws-dock-on .ws-cmd-trigger,
 body.ws-dock-on .ws-tray,
-body.ws-dock-on .ws-video-tray {
+body.ws-dock-on .ws-video-tray,
+body.ws-dock-on .ws-mobile-tabs {
   display: none !important;
+}
+
+/* The dock yields to full-surface states (the legacy chrome had the same
+   rule in nav.css:1732 — the dock was missing from it, audit 2026-08-11). */
+body.print3d-page.ws-viewer-open .ws-dock,
+body.print3d-page.history-expanded .ws-dock,
+body.print3d-page.assets-modal-open .ws-dock,
+body.print3d-page.ws-cmd-open .ws-dock,
+body.print3d-page.print-panel-open .ws-dock {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
 }
 
 /* Keep the ⌘K palette itself — it is still reachable via keyboard. */
@@ -143,7 +156,21 @@ body.ws-dock-on .ws-dock { display: block; }
   border-color: rgba(var(--accent-blue-rgb), 0.35);
   color: var(--text, #f2f5f3);
 }
-.ws-dock__chip--adv { margin-left: auto; }
+.ws-dock__chip--adv {
+  margin-left: auto;
+  /* Advanced is the gateway to every remaining setting — give it presence */
+  background: rgba(var(--accent-blue-rgb), 0.12);
+  border-color: rgba(var(--accent-blue-rgb), 0.45);
+  color: var(--text, #f2f5f3);
+  font-weight: 600;
+  box-shadow: 0 0 0 0 rgba(var(--accent-blue-rgb), 0.0), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.ws-dock__chip--adv:hover {
+  background: rgba(var(--accent-blue-rgb), 0.2);
+  border-color: rgba(var(--accent-blue-rgb), 0.75);
+  box-shadow: 0 4px 16px rgba(var(--accent-blue-rgb), 0.25);
+}
+.ws-dock__chip--adv .c-ico { color: var(--accent-blue); }
 .ws-dock__chip .c-ico { font-size: 12px; color: var(--accent-blue); width: 14px; text-align: center; }
 .ws-dock__chip .c-val { color: var(--text, #f2f5f3); font-weight: 600; }
 .ws-dock__chip .c-caret { font-size: 9px; color: var(--text-dim, #6d7779); margin-left: 1px; }
@@ -353,12 +380,14 @@ body.ws-dock-on .sim-viewer-bg { background: none; }
 .ws-hero {
   position: absolute;
   inset: 0;
-  display: grid;
-  place-items: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   text-align: center;
   padding: 0 24px;
   /* the stage layer is pointer-events:none; the hero re-enables events for
-     its own content only (it is the sole interactive thing on the stage) */
+     its own content (it is the sole interactive thing on the stage) */
   pointer-events: auto;
 }
 .ws-hero__title {
@@ -390,8 +419,7 @@ body.ws-dock-on .sim-viewer-bg { background: none; }
   transition: border-color 0.18s ease, color 0.18s ease;
 }
 .ws-hero__hint:hover { border-color: rgba(var(--accent-blue-rgb), 0.5); color: var(--text, #f2f5f3); }
-/* the hero is one grid cell with the inner content centered */
-.ws-hero { display: flex; flex-direction: column; justify-content: center; align-items: center; }
+
 body.ws-viewer-open .ws-hero,
 body.history-expanded .ws-hero,
 body.assets-modal-open .ws-hero { display: none; }
@@ -608,10 +636,15 @@ body.ws-dock-on .ws-prompt-guide {
 
 /* ---- the drawer overlaps the header's right cluster on narrower viewports:
    fade the cluster out while the sheet/drawer is open. ------------------- */
-body.ws-dock-on .ws-header > .ws-credits {
-  transition: opacity 0.22s ease;
-}
-body.ws-dock-on.ws-panel-open .ws-header > .ws-credits {
-  opacity: 0;
-  pointer-events: none;
+/* Desktop only: the right-side drawer overlaps the cluster. On mobile the
+   sheet is a bottom sheet and the burger (inside .ws-credits) is the only
+   route to credits/Inspire/sign-in — never disable it there. */
+@media (min-width: 769px) {
+  body.ws-dock-on .ws-header > .ws-credits {
+    transition: opacity 0.22s ease;
+  }
+  body.ws-dock-on.ws-panel-open .ws-header > .ws-credits {
+    opacity: 0;
+    pointer-events: none;
+  }
 }

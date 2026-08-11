@@ -51,7 +51,7 @@
   /* --- Ordering: Rail(1) -> Viewer(2) -> Tabs(3) -> Left(4) -> Right(5) --- */
   .timrx-3dprint .ws-rail        { order: 1; }
   .timrx-3dprint .ws-viewer      { order: 2; }
-  .timrx-3dprint .ws-mobile-tabs { order: 3; }
+  
   .timrx-3dprint .ws-left        { order: 4; }
   .timrx-3dprint .ws-right       { order: 5; }
 
@@ -111,57 +111,12 @@
   }
 
   /* --- TAB BAR --- */
-  .ws-mobile-tabs {
-    display: flex;
-    gap: 6px;
-    padding: 5px 6px;
-    margin: 8px auto 10px;
-    width: min(100%, 860px);
-    background: rgba(0, 0, 0, 0.42);
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    border-radius: 14px;
-  }
-  .ws-mobile-tab {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex: 1 1 0;
-    gap: 7px;
-    padding: 12px 30px;
-    min-height: 44px;
-    border: 1px solid transparent;
-    border-radius: 10px;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.82);
-    font-family: Inter, system-ui, sans-serif;
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    -webkit-tap-highlight-color: transparent;
-    touch-action: manipulation;
-  }
-  .ws-mobile-tab svg {
-    width: 13px;
-    height: 13px;
-    flex-shrink: 0;
-    opacity: 0.6;
-  }
-  .ws-mobile-tab.is-active {
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.22);
-    padding: 11px 36px;
-  }
-  .ws-mobile-tab.is-active svg {
-    opacity: 1;
-  }
-  .ws-mobile-tab:hover:not(.is-active) {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.1);
-  }
+  
+  
+  
+  
+  
+  
 
   /* --- PANELS — constrain width so controls don't stretch full-screen --- */
   .timrx-3dprint .ws-left,
@@ -244,10 +199,7 @@
     margin-inline: auto;
   }
 
-  .timrx-3dprint .ws-mobile-tabs {
-    width: min(100%, 760px);
-    margin: 0 auto 10px;
-  }
+  
 
   .timrx-3dprint .ws-left,
   .timrx-3dprint .ws-right {
@@ -266,7 +218,7 @@
     max-width: 860px;
   }
 
-  .timrx-3dprint .ws-mobile-tabs,
+  
   .timrx-3dprint .ws-left,
   .timrx-3dprint .ws-right {
     max-width: 700px;
@@ -274,7 +226,7 @@
 }
 
 @media (max-width: 853px) {
-  .timrx-3dprint .ws-mobile-tabs,
+  
   .timrx-3dprint .ws-left,
   .timrx-3dprint .ws-right {
     max-width: 680px;
@@ -299,7 +251,7 @@
     padding: 0 8px 8px;
   }
 
-  .timrx-3dprint .ws-mobile-tabs,
+  
   .timrx-3dprint .ws-left,
   .timrx-3dprint .ws-right {
     max-width: 640px;
@@ -331,15 +283,12 @@
   }
 
   .timrx-3dprint .ws-viewer,
-  .timrx-3dprint .ws-mobile-tabs,
   .timrx-3dprint .ws-left,
   .timrx-3dprint .ws-right {
     max-width: 100%;
   }
 
-  .timrx-3dprint .ws-mobile-tabs {
-    margin-bottom: 8px;
-  }
+  
 
   .timrx-3dprint .pane-stack {
     padding-bottom: 14px;
@@ -587,15 +536,7 @@
     height: 14px;
   }
 
-  .timrx-3dprint .ws-mobile-tabs {
-    order: 2;
-    width: 100%;
-    margin: 0 0 8px;
-    padding: 4px;
-    gap: 4px;
-    justify-content: stretch;
-    border-radius: 16px;
-  }
+  
 
   .timrx-3dprint .ws-viewer {
     order: 3;
@@ -608,24 +549,11 @@
     padding: 0;
   }
 
-  .ws-mobile-tab {
-    flex: 1 1 0;
-    min-width: 0;
-    gap: 5px;
-    padding: 10px 9px;
-    min-height: 40px;
-    font-size: 9px;
-    letter-spacing: 0.035em;
-  }
+  
 
-  .ws-mobile-tab.is-active {
-    padding: 10px 9px;
-  }
+  
 
-  .ws-mobile-tab svg {
-    width: 11px;
-    height: 11px;
-  }
+  
 
   .timrx-3dprint .pane-stack {
     gap: 8px;
@@ -648,14 +576,9 @@
     padding-inline: 6px;
   }
 
-  .timrx-3dprint .ws-mobile-tabs {
-    margin-bottom: 6px;
-  }
+  
 
-  .ws-mobile-tab {
-    padding-inline: 7px;
-    letter-spacing: 0.025em;
-  }
+  
 
   .timrx-3dprint .card {
     padding: 11px;
@@ -778,30 +701,11 @@
     display: none;
   }
 
-  .ws-mobile-tab[data-open-assets] {
-    position: fixed;
-    right: 10px;
-    bottom: 164px;
-    z-index: 150;
-    display: inline-flex;
-    flex: 0 0 auto;
-    width: auto;
-    min-height: 44px;
-    padding: 10px 12px;
-    border: 0;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.84);
-    box-shadow: none;
-  }
+  
 
-  .ws-mobile-tab[data-open-assets] svg {
-    width: 18px;
-    height: 18px;
-  }
+  
 
-  .ws-mobile-tab[data-open-assets] {
-    font-size: 11px;
-  }
+  
 }
 
 .timrx-3dprint .ws-viewer {

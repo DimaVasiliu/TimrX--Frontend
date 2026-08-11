@@ -295,9 +295,7 @@
     display: flex !important;
   }
 
-  body.history-expanded .timrx-3dprint .ws-mobile-tabs {
-    display: none;
-  }
+  
 
   body.history-expanded .timrx-3dprint .ws-right {
     display: flex;
@@ -561,20 +559,9 @@
 }
 
 @media (max-width: 900px) {
-  body.print3d-page > .assets-side-launcher,
-  .timrx-3dprint .assets-side-launcher {
-    right: 12px !important;
-    bottom: 174px !important;
-    z-index: 140 !important;
-    transform: none !important;
-  }
+  
 
-  body.print3d-page > .assets-side-launcher:hover,
-  body.print3d-page > .assets-side-launcher:focus-visible,
-  .timrx-3dprint .assets-side-launcher:hover,
-  .timrx-3dprint .assets-side-launcher:focus-visible {
-    transform: translateY(-2px);
-  }
+  
 
   .timrx-3dprint .ws-right.assets-modal,
   .timrx-3dprint .ws-right.assets-modal:not(.mob-active) {
@@ -642,19 +629,9 @@
 }
 
 @media (max-width: 560px) {
-  body.print3d-page > .assets-side-launcher,
-  .timrx-3dprint .assets-side-launcher {
-    right: 10px !important;
-    bottom: 164px !important;
-    z-index: 140 !important;
-    min-height: 44px;
-    padding: 10px 12px;
-  }
+  
 
-  body.print3d-page > .assets-side-launcher span,
-  .timrx-3dprint .assets-side-launcher span {
-    display: none;
-  }
+  
 
   .timrx-3dprint .ws-right.assets-modal,
   .timrx-3dprint .ws-right.assets-modal:not(.mob-active) {

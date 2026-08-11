@@ -3271,15 +3271,6 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           seedanceAudio: seedanceAudio,
         };
 
-        console.log('[VIDEO DEBUG] getVideoSettingsFromUI:', {
-          provider,
-          durationRaw,
-          resolutionRaw,
-          durationSec: settings.durationSec,
-          resolution: settings.resolution,
-          videoDurationElement: videoDuration,
-          videoQualityElement: videoQuality
-        });
 
         return settings;
       }
@@ -3374,14 +3365,6 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         }
 
         // DEBUG: Log credit computation
-        console.log('[VIDEO DEBUG] computeVideoCredits:', {
-          resolution,
-          duration,
-          mode,
-          cost,
-          source,
-          fallbackRules: VIDEO_CREDIT_RULES_FALLBACK
-        });
 
         return cost;
       }
@@ -3447,12 +3430,6 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         const validDurations = VIDEO_VALID_DURATIONS[resolution] || [4, 6, 8];
         const qualityLabel = VIDEO_QUALITY_LABELS[resolution] || 'Standard (HD)';
 
-        console.log('[VIDEO DEBUG] updateDurationOptions:', {
-          resolution,
-          validDurations,
-          qualityLabel,
-          currentDuration: videoDuration.value
-        });
 
         const currentDuration = parseInt(videoDuration.value, 10);
 
@@ -3473,7 +3450,6 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         // If current selection is invalid, switch to 8s (or first valid)
         if (!validDurations.includes(currentDuration)) {
           const newDuration = validDurations.includes(8) ? '8' : String(validDurations[0]);
-          console.log('[VIDEO DEBUG] Forcing duration to:', newDuration);
           videoDuration.value = newDuration;
         }
       }
@@ -3511,7 +3487,6 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         const settings = getVideoSettingsFromUI();
         const totalCredits = computeVideoCredits(settings);
 
-        console.log('[VIDEO DEBUG] Updating UI with credits:', totalCredits);
 
         // Update credits display
         videoCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${totalCredits}`;
@@ -4246,7 +4221,6 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       [videoDuration, videoQuality, videoAspectRatio, videoLoop].forEach(el => {
         if (el) {
           el.addEventListener('change', () => {
-            console.log('[VIDEO DEBUG] Change event on:', el.id, '- value:', el.value);
             updateVideoFooter();
           });
         }
@@ -4255,7 +4229,6 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       // When resolution changes, update valid duration options
       if (videoQuality) {
         videoQuality.addEventListener('change', () => {
-          console.log('[VIDEO DEBUG] Quality changed to:', videoQuality.value);
           updateDurationOptions();
           updateVideoFooter();
         });
@@ -4264,7 +4237,6 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       // When duration changes, also update footer
       if (videoDuration) {
         videoDuration.addEventListener('change', () => {
-          console.log('[VIDEO DEBUG] Duration changed to:', videoDuration.value);
           updateVideoFooter();
         });
       }
@@ -6544,6 +6516,26 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
     const _enhanceUndoMap = {};  // mode → original prompt for undo
 
     function initPromptEnhanceButtons() {
+      /* Relocated 2026-08-11: these previously ran at IIFE parse time, before
+         bootstrapInitialPanel() injected any panel — both queries returned
+         null, so the enhance provider hint never updated and Re-roll was
+         permanently inert. Re-bound on every panel render. */
+    var _providerSelect = leftStack.querySelector('#videoAIProvider');
+    if (_providerSelect) {
+      _providerSelect.addEventListener('change', updateEnhanceProviderHint);
+      // Set initial hint
+      updateEnhanceProviderHint();
+    }
+    var _rerollBtn = leftStack.querySelector('#enhanceRerollBtn');
+    if (_rerollBtn) {
+      _rerollBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        // Find the video enhance button and trigger enhance again
+        var enhanceBtn = leftStack.querySelector('.enhance-btn[data-enhance-mode="video"]');
+        if (enhanceBtn) enhanceBtn.click();
+      });
+    }
+
       const enhanceBtns = leftStack.querySelectorAll('.enhance-btn[data-enhance-mode]');
       enhanceBtns.forEach(function(btn) {
         btn.addEventListener('click', function(e) {
@@ -6765,12 +6757,8 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
     }
 
     // Update hint when provider changes
-    var _providerSelect = leftStack.querySelector('#videoAIProvider');
-    if (_providerSelect) {
-      _providerSelect.addEventListener('change', updateEnhanceProviderHint);
-      // Set initial hint
-      updateEnhanceProviderHint();
-    }
+/* moved into initPromptEnhanceButtons() 2026-08-11 — bound at parse time this
+       queried an empty #leftStack and never fired */
 
     // Score bar: show prompt quality after enhancement
     function updateEnhanceScoreBar(scoreResult) {
@@ -6801,15 +6789,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
     }
 
     // Re-roll button: re-enhances with fresh randomization
-    var _rerollBtn = leftStack.querySelector('#enhanceRerollBtn');
-    if (_rerollBtn) {
-      _rerollBtn.addEventListener('click', function(e) {
-        e.preventDefault();
-        // Find the video enhance button and trigger enhance again
-        var enhanceBtn = leftStack.querySelector('.enhance-btn[data-enhance-mode="video"]');
-        if (enhanceBtn) enhanceBtn.click();
-      });
-    }
+/* moved into initPromptEnhanceButtons() 2026-08-11 */
 
     /* -----------------------------------------------------------------------
      * ANIMATE PANEL: persistent library + model card wiring
@@ -7453,12 +7433,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
          hit. */
       const KEEPS_SHEET_OPEN = [
         '#ws-left-panel',      // the sheet itself
-        '.ws-rail',            // creation modes, in the header
-        '.ws-tray',            // model tool tray (remesh / texture / rig / animate)
-        '.ws-video-tray',      // video input mode + provider tier rows
-        '.ws-cmd-trigger',     // command bar
         '.ws-cmd',             // command palette
-        '.ws-corner-launcher', // assets/viewer launchers
         '[data-open-assets]',
         '[data-open-3d-viewer]',
         '[data-sheet-panel]',

@@ -142,12 +142,12 @@
   <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260811z">
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260811r">
+  <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260811ah">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260811ah">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
   <link rel="stylesheet" href="tx-menu.css?v=1">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
-  <script defer src="3dprint-modules/3dprint-app.js?v=20260811n"></script>
+  <script defer src="3dprint-modules/3dprint-app.js?v=20260811ah"></script>
   <script defer src="3dprint-modules/inspire.js?v=20260811q"></script>
   <script defer src="js/workspace-loader.js?v=20260811ab"></script>
 
@@ -590,14 +590,7 @@
 </div>
 
 <div class="ws-corner-launcher" id="wsCornerLauncher">
-  <button type="button" class="ws-corner-launcher__action ws-corner-launcher__action--assets assets-side-launcher" id="assetsSideLauncher" data-open-assets aria-label="Open assets">
-    <span class="ws-corner-launcher__beam" aria-hidden="true"></span>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-      <path d="M3 7.5A2.5 2.5 0 015.5 5h4.2l1.8 2h7A2.5 2.5 0 0121 9.5v7A2.5 2.5 0 0118.5 19h-13A2.5 2.5 0 013 16.5v-9z"/>
-      <path d="M7 13h10M7 16h6"/>
-    </svg>
-    <span>Assets</span>
-  </button>
+  
   <button type="button" class="ws-corner-launcher__action ws-corner-launcher__action--viewer" id="open3dViewerBtn" data-open-3d-viewer aria-label="Open 3D viewer">
     <span class="ws-corner-launcher__beam" aria-hidden="true"></span>
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -1458,40 +1451,7 @@
       </div>
 
       <!-- Draft Selection Grid (for multi-model bundles) -->
-      <div class="viewer-wrap hidden" id="draftSelectionViewer">
-        <div class="draft-selection">
-          <div class="draft-selection__header">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 3l1.912 5.813a1 1 0 00.95.687h6.138l-4.97 3.613a1 1 0 00-.364 1.118L17.578 20l-4.97-3.613a1 1 0 00-1.216 0L6.422 20l1.912-5.769a1 1 0 00-.364-1.118L3 9.5h6.138a1 1 0 00.95-.687L12 3z"/>
-            </svg>
-            <span>Select your favorite draft to continue</span>
-          </div>
-          <div class="draft-selection__grid" id="draftGrid">
-            <!-- Draft items will be inserted here by JS -->
-          </div>
-          <div class="draft-selection__footer">
-            <button type="button" class="draft-selection__retry" id="draftRetry">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 4v6h6M23 20v-6h-6"/>
-                <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15"/>
-              </svg>
-              Free Retry
-            </button>
-            <button type="button" class="draft-selection__texture" id="draftTextureSelected">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M4 7h16M4 12h16M4 17h10" stroke-linecap="round"/>
-                <path d="M18 15l2 2-4 4-2-2z" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-              Texture Selected
-            </button>
-            <button type="button" class="draft-selection__download" id="draftDownloadAll">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
+      
 
       <!-- 2D Image Viewer -->
       <div class="viewer-wrap hidden" id="imageViewer">
@@ -1643,17 +1603,6 @@
       </div>
     </aside>
 
-    <!-- Mobile Tab Bar (visible only at 768px and below) -->
-    <div class="ws-mobile-tabs" role="tablist" aria-label="Workspace panels">
-      <button type="button" class="ws-mobile-tab is-active" data-tab="controls" role="tab" aria-selected="true" aria-controls="ws-left-panel">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"/></svg>
-        Controls
-      </button>
-      <button type="button" class="ws-mobile-tab" data-open-assets aria-label="Open My Assets">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 7.5A2.5 2.5 0 015.5 5h4.2l1.8 2h7A2.5 2.5 0 0121 9.5v7A2.5 2.5 0 0118.5 19h-13A2.5 2.5 0 013 16.5v-9z"/><path d="M7 13h10M7 16h6"/></svg>
-        Assets
-      </button>
-    </div>
 
   </div>
 </section>
@@ -1661,12 +1610,10 @@
   <!-- Mobile controls tab + unified Assets modal -->
   <script>
   (function(){
-    var tabBar = document.querySelector('.ws-mobile-tabs');
-    var tabs   = tabBar ? tabBar.querySelectorAll('.ws-mobile-tab[data-tab]') : [];
-    var wsLeft = document.getElementById('ws-left-panel');
+    /* Legacy mobile tab bar + command-trigger juggling removed 2026-08-11 —
+       this IIFE is the assets-modal controller (window.TimrXAssets). */
     var wsRight= document.getElementById('ws-right-panel');
     var assetsBackdrop = document.getElementById('assetsModalBackdrop');
-    var cmdTrigger = document.getElementById('wsCmdTrigger');
     var lastAssetsFocus = null;
 
     /* The modal's top edge is a function of the real header height — the bar
@@ -1685,29 +1632,11 @@
     window.addEventListener('resize', syncHeaderOffset);
     syncHeaderOffset();
 
-    function setTabState(target) {
-      tabs.forEach(function(t){
-        var isActive = t.dataset.tab === target;
-        t.classList.toggle('is-active', isActive);
-        t.setAttribute('aria-selected', isActive ? 'true' : 'false');
-      });
-
-      if (wsLeft) {
-        wsLeft.classList.remove('mob-hidden');
-      }
-      if (wsRight) wsRight.classList.remove('mob-active');
-    }
-
     function openAssetsModal(trigger) {
       if (!wsRight || !assetsBackdrop) return;
       lastAssetsFocus = trigger || document.activeElement;
       syncHeaderOffset();
       document.body.classList.add('assets-modal-open');
-      if (cmdTrigger) {
-        cmdTrigger.style.opacity = '0';
-        cmdTrigger.style.pointerEvents = 'none';
-        cmdTrigger.style.visibility = 'hidden';
-      }
       assetsBackdrop.hidden = false;
       wsRight.setAttribute('aria-hidden', 'false');
 
@@ -1730,11 +1659,6 @@
       wsRight.classList.remove('is-open');
       assetsBackdrop.classList.remove('is-open');
       document.body.classList.remove('assets-modal-open');
-      if (cmdTrigger) {
-        cmdTrigger.style.opacity = '';
-        cmdTrigger.style.pointerEvents = '';
-        cmdTrigger.style.visibility = '';
-      }
       wsRight.setAttribute('aria-hidden', 'true');
       setTimeout(function(){ assetsBackdrop.hidden = true; }, 180);
       window.dispatchEvent(new Event('timrx:assets-closed'));
@@ -1749,33 +1673,7 @@
     };
 
     if (window.location.hash === '#my-assets') {
-      setTimeout(function(){ openAssetsModal(document.getElementById('assetsSideLauncher')); }, 0);
-    }
-
-    if (tabBar) {
-      setTabState(tabBar.querySelector('.ws-mobile-tab.is-active')?.dataset.tab || 'controls');
-
-      tabBar.addEventListener('click', function(e){
-        var assetsBtn = e.target.closest('[data-open-assets]');
-        if (assetsBtn) {
-          e.preventDefault();
-          openAssetsModal(assetsBtn);
-          return;
-        }
-        var tab = e.target.closest('.ws-mobile-tab[data-tab]');
-        if (!tab) return;
-        setTabState(tab.dataset.tab);
-        /* setTabState only clears the legacy mob-hidden/mob-active classes from
-           the era when the panels were columns in a scrolling stack. They are
-           not any more: #ws-left-panel is position:fixed and is revealed by
-           body.ws-panel-open (css/panel.css), so without this the Controls tab
-           was a no-op — it highlighted itself and opened nothing. Kept out of
-           setTabState deliberately: that also runs on mount, and the sheet must
-           not open on load. */
-        if (tab.dataset.tab === 'controls' && window.TimrXSheet) {
-          window.TimrXSheet.open();
-        }
-      });
+      setTimeout(function(){ openAssetsModal(document.getElementById('wsHeaderAssetsBtn')); }, 0);
     }
 
     document.addEventListener('click', function(e){
@@ -2104,7 +2002,7 @@
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260811ac"></script>
+  <script type="module" src="./js/main.js?v=20260811ag"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
   <script src="js/command-palette.js?v=20260802f" defer></script>
@@ -2149,11 +2047,10 @@
     document.addEventListener('DOMContentLoaded', () => {
       // Nav hide on scroll — expansion views (all sizes) + mobile/tablet (all views)
       const wsHeader = document.querySelector('.ws-header');
-      const cmdTrigger = document.querySelector('.ws-cmd-trigger');
       const headerLeft = document.querySelector('.ws-header-left');
       const creditsGroup = document.querySelector('.ws-credits');
       const accountShield = document.querySelector('.account-shield-ws');
-      const hideableElements = [cmdTrigger, headerLeft, creditsGroup, accountShield].filter(Boolean);
+      const hideableElements = [headerLeft, creditsGroup, accountShield].filter(Boolean);
 
       if (wsHeader) {
         let ticking = false;
@@ -2165,9 +2062,12 @@
 
           const currentScrollY = window.scrollY;
 
-          // Mobile/tablet: hide the whole header in any view
+          // Mobile/tablet: only hide the header inside the expanded gallery.
+          // (It used to hide on ANY scroll — but with the tab bar retired the
+          // header is now the sole route to the burger/credits/Assets, audit
+          // 2026-08-11.)
           if (isMobileOrTablet) {
-            if (currentScrollY <= revealThreshold) {
+            if (!isExpandedView || currentScrollY <= revealThreshold) {
               wsHeader.classList.remove('nav-hidden');
             } else {
               wsHeader.classList.add('nav-hidden');
