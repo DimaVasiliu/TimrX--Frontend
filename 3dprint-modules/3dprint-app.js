@@ -3395,12 +3395,11 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
        * hardcoded 480p.
        */
 
-        // Seedance durations are tier-dependent. PiAPI's 2.5 product page claims
-        // 4-30s but the LIVE API 400s anything past 15s (verified 2026-08-12), so
-        // v25 stays at 15 for now. If PiAPI enables 30s: extend V25_DURATIONS here
-        // and set SEEDANCE_25_MAX_DURATION=30 on the backend — DB rows for
-        // 20/25/30s already exist (migration 082).
-        const V25_DURATIONS = [5, 10, 15];
+        // Seedance durations are tier-dependent: 2.0 tiers cap at 15s; 2.5 takes
+        // 4-30s — VERIFIED against the live API 2026-08-12 (the earlier "30s
+        // fails" was a prompt byte-length bug, fixed in seedance_service.py).
+        // DB rows for 20/25/30s: migration 082.
+        const V25_DURATIONS = [5, 10, 15, 20, 25, 30];
         function updateSeedanceDurationOptions() {
           const durationSelect = leftStack.querySelector('#videoDuration');
           const tierInput = leftStack.querySelector('#seedanceTier');
@@ -3705,7 +3704,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             tierWrap = document.createElement('div');
             tierWrap.id = 'seedanceTierWrap';
             tierWrap.className = 'vs-setting';
-            tierWrap.innerHTML = '<label for="seedanceTierSelect">Speed</label><select id="seedanceTierSelect"><option value="mini">Mini — cheapest, fastest (~30 s\u20132 min)</option><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option><option value="v25">Seedance 2.5 — newest model, premium (~7\u201330 min)</option></select>';
+            tierWrap.innerHTML = '<label for="seedanceTierSelect">Speed</label><select id="seedanceTierSelect"><option value="mini">Mini — cheapest, fastest (~30 s\u20132 min)</option><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option><option value="v25">Seedance 2.5 — newest model, up to 30s (~7\u201330 min)</option></select>';
             const durationSetting = videoDuration?.closest('.vs-setting');
             if (durationSetting) durationSetting.after(tierWrap);
           }
