@@ -27,8 +27,8 @@ import {
   getGroupedCardItems,
   resetGalleryInfiniteScroll,
   syncAssetsToolbarFilters
-} from './history.js?v=20260812b';
-import * as API from './api.js?v=20260812c';
+} from './history.js?v=20260812e';
+import * as API from './api.js?v=20260812e';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
