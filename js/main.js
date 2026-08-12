@@ -25,9 +25,10 @@ import {
   getActiveHistoryMenu,
   getActiveHistorySubmenu,
   getGroupedCardItems,
-  resetGalleryInfiniteScroll
-} from './history.js?v=20260803a';
-import * as API from './api.js?v=20260812b';
+  resetGalleryInfiniteScroll,
+  syncAssetsToolbarFilters
+} from './history.js?v=20260812b';
+import * as API from './api.js?v=20260812c';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
@@ -3148,6 +3149,7 @@ function wireGallery() {
   if (sortToggle) {
     sortToggle.addEventListener('click', () => {
       State.historyState.sort = State.historyState.sort === 'desc' ? 'asc' : 'desc';
+      State.historyState.page = 1;
       renderHistory();
     });
   }
@@ -3311,9 +3313,13 @@ function wireGallery() {
         });
         // Reset infinite scroll with the selected filter
         resetGalleryInfiniteScroll(filterType);
-        // Scroll to top of grid smoothly
-        const section = grid.querySelector('.expanded-section');
-        if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const modalGrid = document.querySelector('.ws-right.assets-modal .history-grid');
+        if (modalGrid) {
+          modalGrid.scrollTo({ top: 0, behavior: 'smooth' });
+        } else {
+          const section = grid.querySelector('.expanded-section');
+          if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
         return;
       }
 
@@ -4152,5 +4158,6 @@ window.addEventListener('DOMContentLoaded', () => {
 // EXPOSE GLOBALS (for backward compatibility)
 // ============================================================================
 window.renderHistory = renderHistory;
+window.syncAssetsToolbarFilters = syncAssetsToolbarFilters;
 window.switchHistoryFilter = switchHistoryFilter;
 window.showQuotaExceededPopup = showQuotaExceededPopup;

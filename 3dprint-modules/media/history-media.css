@@ -662,10 +662,14 @@
   }
 
   .timrx-3dprint .ws-right.assets-modal .history-head-right {
-    order: 1;
+    order: 3;
     flex: 0 0 auto;
     width: auto;
     justify-content: flex-start;
+  }
+
+  .timrx-3dprint .ws-right.assets-modal .assets-toolbar-filters {
+    order: 1;
   }
 
   .timrx-3dprint .ws-right.assets-modal .history-head-center {

@@ -4944,7 +4944,7 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
 
 .timrx-3dprint .ws-right.assets-modal .history-head-top{
   display:block;
-  width:min(100%, 1120px);
+  width:100%;
 }
 
 .timrx-3dprint .ws-right.assets-modal .history-head-row-top{
@@ -4956,14 +4956,26 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   min-width:0;
 }
 
+.timrx-3dprint .ws-right.assets-modal .assets-toolbar-filters{
+  order:1;
+  flex:0 1 390px;
+  min-width:0;
+  max-width:42%;
+  overflow-x:auto;
+  overflow-y:hidden;
+  scrollbar-width:none;
+}
+
+.timrx-3dprint .ws-right.assets-modal .assets-toolbar-filters::-webkit-scrollbar{display:none}
+
 .timrx-3dprint .ws-right.assets-modal .history-head-center{
   order:2;
-  flex:0 1 720px;
+  flex:1 1 420px;
   min-width:0;
 }
 .timrx-3dprint .ws-right.assets-modal .history-search-wrapper{
   width:100%;
-  max-width:720px;
+  max-width:none;
 }
 .timrx-3dprint .ws-right.assets-modal .history-search-wrapper input{
   height:36px;
@@ -4979,7 +4991,7 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   height:28px;
 }
 .timrx-3dprint .ws-right.assets-modal .history-head-right{
-  order:1;
+  order:3;
   flex:0 0 auto;
   min-width:0;
 }
@@ -5169,6 +5181,15 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
     display:none;
   }
   .timrx-3dprint .ws-right.assets-modal .history-head-row-top{flex-wrap:wrap}
+  .timrx-3dprint .ws-right.assets-modal .assets-toolbar-filters{
+    flex:1 1 100%;
+    width:100%;
+    overflow-x:auto;
+    padding-bottom:2px;
+    scrollbar-width:none;
+  }
+  .timrx-3dprint .ws-right.assets-modal .assets-toolbar-filters::-webkit-scrollbar{display:none}
+  .timrx-3dprint .ws-right.assets-modal .expanded-filter-bar__pills{width:max-content}
   .timrx-3dprint .ws-right.assets-modal .history-head-center{flex:1 1 160px}
   /* A titled cluster never spans more columns than the screen has. */
   .timrx-3dprint .ws-right.assets-modal .history-collection[data-thumb-count="3"]{grid-column:span 2}
@@ -5201,14 +5222,39 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
 /* Family pills stay — they are the only way to isolate Animated — but they sit
    flush with the grid and stick to the top of the scroll area. */
 .timrx-3dprint .ws-right.assets-modal .expanded-filter-bar {
-  padding: 0 0 12px;
+  padding: 0;
   /* The responsive rules bleed this bar out over the panel padding with
      `margin: 0 -20px`; the modal has no such padding to bleed into. */
-  margin: 0 0 12px;
+  margin: 0;
   background: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 0;
+}
+
+.timrx-3dprint .ws-right.assets-modal .expanded-filter-bar__pills {
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.timrx-3dprint .ws-right.assets-modal .expanded-filter-btn {
+  min-height: 36px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  transform: none;
+}
+
+.timrx-3dprint .ws-right.assets-modal .expanded-filter-btn:hover {
+  transform: none;
+}
+
+.timrx-3dprint .ws-right.assets-modal .expanded-filter-btn__count {
+  margin-left: 1px;
+  font-variant-numeric: tabular-nums;
 }
 
 .timrx-3dprint .ws-right.assets-modal .history-family-heading {
@@ -5223,6 +5269,18 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
 
 .timrx-3dprint .ws-right.assets-modal .history-family-heading[hidden] {
   display: none;
+}
+
+.timrx-3dprint .ws-right.assets-modal .expanded-thumbs-grid > .history-empty {
+  grid-column: 1 / -1 !important;
+  aspect-ratio: auto !important;
+  min-height: clamp(220px, 42vh, 420px);
+  max-width: none;
+  width: 100%;
+  border: 1px dashed rgba(255, 255, 255, 0.10);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(19, 27, 29, 0.74), rgba(11, 15, 16, 0.72));
 }
 
 .timrx-3dprint .ws-right.assets-modal .history-family-heading__title {

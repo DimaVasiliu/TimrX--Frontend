@@ -528,6 +528,21 @@ export function resetGalleryInfiniteScroll(filter) {
   }
 }
 
+export function syncAssetsToolbarFilters() {
+  const slot = document.getElementById('assetsToolbarFilters');
+  if (!slot) return;
+
+  const source = document.querySelector('#historyGrid .expanded-filter-bar');
+  if (source && source.parentElement !== slot) {
+    slot.replaceChildren(source);
+    return;
+  }
+
+  if (!source && slot.firstElementChild && !historyState.galleryExpanded) {
+    slot.replaceChildren();
+  }
+}
+
 function getHistoryMenuHost(node) {
   return node?.closest?.('.history-thumb, .expanded-thumb, .history-group-card') || null;
 }
@@ -1150,7 +1165,8 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   // Gallery cards still need their full action menus when they are rendered
   // inside the Assets modal. The old expanded gallery hid them because it was
   // a read-only page, but the modal is now the primary history workspace.
-  const showActions = !isExpanded || document.body?.classList.contains('assets-modal-open');
+  const showActions = !isExpanded || !!document.getElementById('assetsToolbarFilters') ||
+    document.body?.classList.contains('assets-modal-open');
   const activeModel = historyActiveModelId
     ? models.find((m) => m && m.id === historyActiveModelId)
     : null;
@@ -1922,8 +1938,6 @@ function _galleryIdsMatch(gridEl, cards) {
 }
 
 function buildExpandedHistoryGallery(cards = []) {
-  if (!cards.length) return '';
-
   // Count by type for badge stats
   const counts = { all: cards.length, model: 0, image: 0, animated: 0, video: 0 };
   cards.forEach(c => {
@@ -2416,6 +2430,28 @@ function _renderHistoryImpl() {
   const skeletonMarkup = shouldShowSkeleton ? buildHistorySkeleton(isGallery ? 1 : 2, isGallery ? 5 : 4) : '';
 
   if (!sortedLineages.length) {
+    if (isGallery) {
+      grid.innerHTML = (skeletonMarkup || '') + buildExpandedHistoryGallery([]);
+      syncAssetsToolbarFilters();
+      const builtGrid = grid.querySelector('.expanded-thumbs-grid');
+      if (builtGrid) {
+        builtGrid.innerHTML = `
+          <div class="history-empty" role="status" aria-live="polite">
+            <div class="history-empty__icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 7h18M6 11h12M10 15h4M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z" />
+              </svg>
+            </div>
+            <p>No assets yet</p>
+            <span>Run your first generation to fill this library.</span>
+          </div>
+        `;
+      }
+      if (pageLabel) pageLabel.textContent = skeletonMarkup ? 'Loading...' : 'Gallery - 0 assets';
+      [prevBtn, nextBtn].forEach(btn => btn?.setAttribute('disabled', ''));
+      return;
+    }
+
     grid.innerHTML = skeletonMarkup || `
       <div class="history-empty" role="status" aria-live="polite">
         <div class="history-empty__icon">
@@ -2563,15 +2599,16 @@ function _renderHistoryImpl() {
       });
     }
 
-    const newCardIds = new Set(galleryCards.map(c => c.id));
     const isFirstRender = !existingGrid;
     const hasNewCards = galleryCards.some(c => !existingIdSet.has(c.id));
+    const orderChanged = !!existingGrid && !_galleryIdsMatch(existingGrid, galleryCards);
 
-    if (isFirstRender) {
+    if (isFirstRender || orderChanged) {
       // First render: build shell + all cards
       _galleryAllCards = galleryCards;
-      _galleryActiveFilter = 'all';
+      if (isFirstRender) _galleryActiveFilter = 'all';
       grid.innerHTML = (skeletonMarkup || '') + buildExpandedHistoryGallery(galleryCards);
+      syncAssetsToolbarFilters();
       const builtGrid = grid.querySelector('.expanded-thumbs-grid');
       if (builtGrid) {
         // Render ALL current cards into the grid
