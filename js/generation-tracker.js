@@ -1,27 +1,38 @@
 /* =============================================================================
-   GENERATION TRACKER
+   GENERATION PROGRESS — floating reactor card + minimisable orb
    -----------------------------------------------------------------------------
    What happens between pressing Generate and the result arriving.
 
-   Before this, the only feedback was a small "N generating" pill that opened a
-   modal you had to ask for. A generation takes one to two minutes; for that
-   whole time the workspace said almost nothing, and the page had two aria-live
-   regions in total — a screen-reader user got no queued, no progress, no
-   complete, no failure.
+   Appears the moment a job starts: a glass card (bottom-right, above the dock)
+   with an animated "reactor" core — a teal progress ring around two
+   counter-rotating orbit arcs and a breathing center — plus stage narration,
+   elapsed time, and a cancel action per job. The minimise button collapses it
+   to a small orb showing aggregate progress; clicking the orb reopens the card.
+   A new generation always re-opens the card ("appear right away").
 
-   This reads the same source of truth everything else does:
-     State.getActiveJobs()   → live job ids          (localStorage)
-     State.getPendingMeta()  → prompt, stage, progress per id
+   Reads the same source of truth everything else does:
+     State.getActiveJobs()    → live job ids          (localStorage)
+     State.getPendingMeta()   → prompt, stage, progress per id
      State.onActiveJobsChange → subscription for add/remove
+   It owns no job state. If a job is removed elsewhere, the row leaves.
 
-   It owns no job state. If a job is removed elsewhere, the card leaves.
+   Cancel calls POST /api/jobs/:id/cancel (queued jobs; an in-flight job
+   completes or refunds on its own — the button says so via toast).
+   Styling: 3dprint-modules/css/gen-progress.css. Old .gen-track styles in
+   nav.css are no longer referenced by markup.
    ========================================================================== */
 (function () {
   'use strict';
 
-  var POLL_MS = 900;          // meta lives in localStorage; cheap to re-read
-  var host, listEl, live, pollId = null, lastSig = null, lastCount = -1;
-  var seen = Object.create(null);   // id -> last announced bucket
+  var POLL_MS = 900;
+  var RING_R = 19;                          // SVG ring radius
+  var RING_C = 2 * Math.PI * RING_R;        // circumference for dashoffset
+  var host, cardEl, listEl, headCoreEl, headCountEl, orbEl, orbRingEl, orbBadgeEl, live;
+  var pollId = null, lastSig = null;
+  var minimised = false;                    // per-session; a new job re-expands
+  var knownIds = Object.create(null);
+  var seen = Object.create(null);           // id -> last announced bucket
+  var cancelling = Object.create(null);     // id -> true while cancel in flight
   var baseTitle = document.title;
 
   var ICONS = {
@@ -34,8 +45,6 @@
     animate: 'M21 12a9 9 0 11-18 0 9 9 0 0118 0zM10 9l5 3-5 3z'
   };
 
-  /* The stages a job moves through, so the card can say where it actually is
-     rather than only showing a number. */
   var STAGE_LABEL = {
     queued:     'Queued',
     pending:    'Queued',
@@ -91,121 +100,223 @@
     return s < 60 ? s + 's' : Math.floor(s / 60) + 'm ' + (s % 60) + 's';
   }
 
-  function ensureHost() {
-    if (host) return;
-    host = document.createElement('div');
-    host.className = 'gen-track';
-    host.id = 'genTrack';
-    host.hidden = true;
-
-    listEl = document.createElement('div');
-    listEl.className = 'gen-track__list';
-    host.appendChild(listEl);
-
-    // Progress belongs in the a11y tree, not only on screen.
-    live = document.createElement('p');
-    live.className = 'visually-hidden';
-    live.setAttribute('aria-live', 'polite');
-    live.setAttribute('aria-atomic', 'true');
-    host.appendChild(live);
-
-    document.body.appendChild(host);
+  function kindIcon(kind) {
+    var d = ICONS[kind] || ICONS.model;
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" ' +
+           'stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="' + d + '"/></svg>';
   }
 
-  /* A figure that walks the bar as the job advances: limbs swing, the body
-     bobs, and it stands wherever the progress is. A bar that only fills says
-     "something is happening"; a walker says how far along the road it is, and
-     keeps moving even while a slow provider sits on the same percentage. */
-  var WALKER =
-    '<svg class="gen-walk" viewBox="0 0 20 23" fill="none" stroke="currentColor" ' +
-    'stroke-width="2.1" stroke-linecap="round" aria-hidden="true">' +
-      '<circle class="gen-walk__head" cx="10" cy="4.2" r="3.1" fill="currentColor" stroke="none"/>' +
-      '<path class="gen-walk__torso" d="M10 8v7.4"/>' +
-      '<path class="gen-walk__limb gen-walk__arm-a" d="M10 10.2 6.2 13.8"/>' +
-      '<path class="gen-walk__limb gen-walk__arm-b" d="M10 10.2 13.8 13.2"/>' +
-      '<path class="gen-walk__limb gen-walk__leg-a" d="M10 15.4 6.4 21.8"/>' +
-      '<path class="gen-walk__limb gen-walk__leg-b" d="M10 15.4 13.6 21.8"/>' +
-    '</svg>';
-
-  function cardHTML(j) {
-    var known = j.pct != null && j.pct > 0;
-    var icon = ICONS[j.kind] || ICONS.model;
-    // Keep the figure clear of both ends so it never hangs half off the track.
-    var walkAt = known ? Math.min(97, Math.max(3, j.pct)) : 3;
-    return '' +
-      '<article class="gen-card' + (known ? '' : ' is-indeterminate') + '" data-job="' + esc(j.id) + '">' +
-        '<span class="gen-card__ico" aria-hidden="true">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" ' +
-          'stroke-linecap="round" stroke-linejoin="round"><path d="' + icon + '"/></svg>' +
-        '</span>' +
-        '<span class="gen-card__body">' +
-          '<span class="gen-card__top">' +
-            '<span class="gen-card__stage">' + esc(j.label) + '</span>' +
-            '<span class="gen-card__pct">' + (known ? j.pct + '%' : esc(elapsed(j.started))) + '</span>' +
-          '</span>' +
-          '<span class="gen-card__prompt">' + esc(j.prompt) + '</span>' +
-          '<span class="gen-card__track">' +
-            '<span class="gen-card__walker" style="left:' + walkAt + '%">' + WALKER + '</span>' +
-            '<span class="gen-card__bar"><i style="width:' + (known ? j.pct : 100) + '%"></i></span>' +
-          '</span>' +
-        '</span>' +
-      '</article>';
+  /* The reactor core: progress ring + two counter-rotating orbit arcs + pulse.
+     Indeterminate (pct == null) hides the ring and lets the orbits carry it. */
+  function coreSVG(cls) {
+    return (
+      '<svg class="' + cls + '" viewBox="0 0 48 48" aria-hidden="true">' +
+      '  <circle class="gp-core__track" cx="24" cy="24" r="' + RING_R + '"/>' +
+      '  <circle class="gp-core__ring" cx="24" cy="24" r="' + RING_R + '" ' +
+      '          stroke-dasharray="' + RING_C.toFixed(1) + '" stroke-dashoffset="' + RING_C.toFixed(1) + '"/>' +
+      '  <g class="gp-core__orbit gp-core__orbit--a"><circle cx="24" cy="24" r="13"/></g>' +
+      '  <g class="gp-core__orbit gp-core__orbit--b"><circle cx="24" cy="24" r="8.5"/></g>' +
+      '  <circle class="gp-core__dot" cx="24" cy="24" r="2.6"/>' +
+      '</svg>'
+    );
   }
 
-  /* Announce on crossing a bucket, not on every tick — otherwise a polite
-     region queues dozens of messages and lags minutes behind the UI. */
+  function setRing(svg, pct) {
+    if (!svg) return;
+    var ring = svg.querySelector('.gp-core__ring');
+    if (!ring) return;
+    if (pct == null) {
+      svg.classList.add('is-indeterminate');
+      ring.style.strokeDashoffset = RING_C;
+    } else {
+      svg.classList.remove('is-indeterminate');
+      var clamped = Math.max(0, Math.min(100, pct));
+      ring.style.strokeDashoffset = (RING_C * (1 - clamped / 100)).toFixed(1);
+    }
+  }
+
+  function rowHTML(j) {
+    return (
+      '<div class="gp__row" data-job="' + esc(j.id) + '">' +
+      '  <span class="gp__row-icon">' + kindIcon(j.kind) + '</span>' +
+      '  <span class="gp__row-info">' +
+      '    <span class="gp__row-stage"><b data-role="stage">' + esc(j.label) + '</b>' +
+      '      <i class="gp__row-meta"><span data-role="pct">' + (j.pct != null ? Math.round(j.pct) + '%' : '') + '</span>' +
+      '      <span data-role="elapsed">' + esc(elapsed(j.started)) + '</span></i></span>' +
+      '    <span class="gp__row-prompt">' + esc(j.prompt) + '</span>' +
+      '    <span class="gp__row-bar"><span data-role="bar" style="width:' + (j.pct != null ? Math.max(2, Math.round(j.pct)) : 12) + '%"' +
+             (j.pct == null ? ' class="is-indeterminate"' : '') + '></span></span>' +
+      '  </span>' +
+      '  <button type="button" class="gp__cancel" data-cancel="' + esc(j.id) + '" title="Cancel this generation" aria-label="Cancel generation">' +
+      '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
+      '  </button>' +
+      '</div>'
+    );
+  }
+
+  function aggregatePct(jobs) {
+    var withPct = jobs.filter(function (j) { return j.pct != null; });
+    if (!withPct.length) return null;
+    return Math.round(withPct.reduce(function (a, j) { return a + j.pct; }, 0) / withPct.length);
+  }
+
   function announce(jobs) {
+    if (!live) return;
     var msgs = [];
     jobs.forEach(function (j) {
-      var bucket = j.pct == null ? j.label
-                 : j.label + ' ' + (Math.floor(j.pct / 25) * 25);
-      if (seen[j.id] !== bucket) {
-        seen[j.id] = bucket;
-        msgs.push(j.label + (j.pct != null ? ', ' + j.pct + ' percent' : '') +
-                  ': ' + j.prompt.slice(0, 60));
-      }
+      var bucket = j.pct == null ? j.stage : j.stage + ':' + Math.floor(j.pct / 25);
+      if (seen[j.id] === bucket) return;
+      seen[j.id] = bucket;
+      msgs.push(j.label + (j.pct != null ? ', ' + Math.round(j.pct) + ' percent' : '') + ': ' + j.prompt.slice(0, 60));
     });
     if (msgs.length) live.textContent = msgs.join('. ');
   }
 
   function syncTitle(jobs) {
     if (!jobs.length) { document.title = baseTitle; return; }
-    var withPct = jobs.filter(function (j) { return j.pct != null; });
-    var avg = withPct.length
-      ? Math.round(withPct.reduce(function (a, j) { return a + j.pct; }, 0) / withPct.length)
-      : null;
-    // Visible even when the tab is in the background, which is where people
-    // actually are during a two-minute wait.
-    document.title = (avg != null ? '(' + avg + '%) ' : '(' + jobs.length + ') ') + baseTitle;
+    var agg = aggregatePct(jobs);
+    document.title = (agg != null ? '(' + agg + '%) ' : '(…) ') + baseTitle;
+  }
+
+  function ensureHost() {
+    if (host) return;
+    host = document.createElement('div');
+    host.className = 'gp';
+    host.id = 'genProgress';
+    host.hidden = true;
+    host.innerHTML =
+      '<section class="gp__card" role="status" aria-label="Active generations">' +
+      '  <header class="gp__head">' +
+      '    <span class="gp__head-core">' + coreSVG('gp-core gp-core--head') + '<b class="gp__head-pct"></b></span>' +
+      '    <span class="gp__head-title">Generating<i class="gp__head-count"></i></span>' +
+      '    <button type="button" class="gp__minimise" title="Minimise" aria-label="Minimise progress panel">' +
+      '      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M5 12h14"/></svg>' +
+      '    </button>' +
+      '  </header>' +
+      '  <div class="gp__list"></div>' +
+      '</section>' +
+      '<button type="button" class="gp__orb" aria-label="Show generation progress" hidden>' +
+        coreSVG('gp-core gp-core--orb') +
+      '  <b class="gp__orb-badge" hidden></b>' +
+      '</button>';
+
+    live = document.createElement('p');
+    live.className = 'visually-hidden';
+    live.setAttribute('aria-live', 'polite');
+    live.setAttribute('aria-atomic', 'true');
+    host.appendChild(live);
+    document.body.appendChild(host);
+
+    cardEl = host.querySelector('.gp__card');
+    listEl = host.querySelector('.gp__list');
+    headCoreEl = host.querySelector('.gp-core--head');
+    headCountEl = host.querySelector('.gp__head-count');
+    orbEl = host.querySelector('.gp__orb');
+    orbRingEl = host.querySelector('.gp-core--orb');
+    orbBadgeEl = host.querySelector('.gp__orb-badge');
+
+    host.querySelector('.gp__minimise').addEventListener('click', function () {
+      minimised = true;
+      applyMinimised();
+    });
+    orbEl.addEventListener('click', function () {
+      minimised = false;
+      applyMinimised();
+    });
+    listEl.addEventListener('click', function (e) {
+      var btn = e.target.closest('[data-cancel]');
+      if (btn) cancelJob(btn.getAttribute('data-cancel'), btn);
+    });
+  }
+
+  function applyMinimised() {
+    if (!cardEl) return;
+    cardEl.hidden = minimised;
+    orbEl.hidden = !minimised;
+  }
+
+  function toast(msg) {
+    if (typeof window.showToast === 'function') window.showToast(msg);
+    else console.log('[GenProgress]', msg);
+  }
+
+  function cancelJob(id, btn) {
+    if (!id || cancelling[id]) return;
+    var api = window.TimrXApi;
+    if (!api || !api.apiPost) { toast('Cancel is unavailable right now.'); return; }
+    cancelling[id] = true;
+    if (btn) btn.classList.add('is-busy');
+    function done() {
+      delete cancelling[id];
+      if (btn) btn.classList.remove('is-busy');
+    }
+    api.apiPost('/api/jobs/' + encodeURIComponent(id) + '/cancel', { reason: 'user_cancelled' })
+      .then(function (res) {
+        done();
+        if (res && res.ok) {
+          toast('Generation cancelled — credits refunded.');
+          var S = window.TimrXState || window;
+          try { S.removeActiveJob && S.removeActiveJob(id); } catch (e) {}
+          lastSig = null; render();
+        } else {
+          var code = res && res.data && res.data.error && res.data.error.code;
+          if (code === 'NOT_CANCELLABLE') {
+            toast('Already processing — it will finish, or your credits refund automatically if it fails.');
+          } else {
+            toast('Could not cancel: ' + ((res && res.error) || 'unknown error'));
+          }
+        }
+      })
+      .catch(function () { done(); toast('Could not cancel — network error.'); });
   }
 
   function render() {
+    ensureHost();
     var jobs = readJobs();
     var sig = jobs.map(function (j) { return j.id + ':' + j.pct + ':' + j.stage; }).join('|');
 
-    if (jobs.length !== lastCount) {
-      host.hidden = jobs.length === 0;
-      document.body.classList.toggle('ws-generating', jobs.length > 0);
-      lastCount = jobs.length;
+    // New job? Always pop the card open — "appear right away when they hit generate."
+    var hasNew = false;
+    jobs.forEach(function (j) { if (!knownIds[j.id]) { knownIds[j.id] = true; hasNew = true; } });
+    Object.keys(knownIds).forEach(function (id) {
+      if (!jobs.some(function (j) { return j.id === id; })) delete knownIds[id];
+    });
+    if (hasNew) minimised = false;
+
+    var active = jobs.length > 0;
+    host.hidden = !active;
+    document.body.classList.toggle('ws-generating', active);
+    if (!active) {
+      lastSig = sig;
+      syncTitle(jobs);
+      return;
     }
+    applyMinimised();
+
+    // Aggregate ring + counters (cheap; every tick)
+    var agg = aggregatePct(jobs);
+    setRing(headCoreEl, agg);
+    setRing(orbRingEl, agg);
+    var headPct = host.querySelector('.gp__head-pct');
+    if (headPct) headPct.textContent = agg != null ? agg + '%' : '';
+    headCountEl.textContent = jobs.length > 1 ? ' ' + jobs.length : '';
+    orbBadgeEl.hidden = jobs.length < 2;
+    orbBadgeEl.textContent = jobs.length;
+
     if (sig === lastSig) {
-      // still refresh elapsed time on indeterminate cards
-      if (jobs.some(function (j) { return j.pct == null; })) {
-        jobs.forEach(function (j) {
-          if (j.pct != null) return;
-          var el = listEl.querySelector('[data-job="' + CSS.escape(j.id) + '"] .gen-card__pct');
-          if (el) el.textContent = elapsed(j.started);
-        });
-      }
+      // refresh elapsed labels without a full re-render
+      jobs.forEach(function (j) {
+        var el = listEl.querySelector('[data-job="' + CSS.escape(j.id) + '"] [data-role="elapsed"]');
+        if (el) el.textContent = elapsed(j.started);
+      });
       return;
     }
     lastSig = sig;
 
-    listEl.innerHTML = jobs.map(cardHTML).join('');
+    listEl.innerHTML = jobs.map(rowHTML).join('');
     announce(jobs);
     syncTitle(jobs);
 
-    // Clear announce memory for jobs that finished.
     Object.keys(seen).forEach(function (id) {
       if (!jobs.some(function (j) { return j.id === id; })) delete seen[id];
     });
@@ -220,7 +331,6 @@
   function boot() {
     ensureHost();
     start();
-    // React immediately to add/remove instead of waiting for the next tick.
     var S = window.TimrXState || window;
     if (S.onActiveJobsChange) {
       try { S.onActiveJobsChange(function () { lastSig = null; render(); }); } catch (e) {}
@@ -236,9 +346,5 @@
     boot();
   }
 
-  /* null, not '': an empty job list produces the signature '', so forcing the
-     cache to '' made the next render believe nothing had changed and skip the
-     teardown — the document title stayed at "(10%) …" after the last job
-     finished. null can never equal a computed signature. */
   window.TimrXGenerationTracker = { refresh: function () { lastSig = null; render(); } };
 })();

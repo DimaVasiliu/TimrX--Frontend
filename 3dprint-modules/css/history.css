@@ -4948,19 +4948,19 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
 }
 
 .timrx-3dprint .ws-right.assets-modal .history-head-row-top{
-  display:flex;
+  display:grid;
+  grid-template-columns:minmax(460px, max-content) minmax(320px, 1fr) 112px;
   align-items:center;
-  flex-wrap:nowrap;
-  justify-content:center;
+  justify-content:stretch;
   gap:12px;
   min-width:0;
 }
 
 .timrx-3dprint .ws-right.assets-modal .assets-toolbar-filters{
   order:1;
-  flex:0 1 390px;
+  flex:none;
   min-width:0;
-  max-width:42%;
+  max-width:none;
   overflow-x:auto;
   overflow-y:hidden;
   scrollbar-width:none;
@@ -4970,7 +4970,7 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
 
 .timrx-3dprint .ws-right.assets-modal .history-head-center{
   order:2;
-  flex:1 1 420px;
+  flex:none;
   min-width:0;
 }
 .timrx-3dprint .ws-right.assets-modal .history-search-wrapper{
@@ -4992,12 +4992,13 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
 }
 .timrx-3dprint .ws-right.assets-modal .history-head-right{
   order:3;
-  flex:0 0 auto;
+  flex:none;
   min-width:0;
 }
 .timrx-3dprint .ws-right.assets-modal .history-refresh-btn{display:none}
 .timrx-3dprint .ws-right.assets-modal .history-sort-btn{
-  min-width:112px;
+  width:112px;
+  min-width:0;
   height:36px;
   padding-inline:14px;
   justify-content:center;
@@ -5180,7 +5181,10 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   .timrx-3dprint .ws-right.assets-modal .assets-modal-titlebar p:not(.assets-modal-kicker){
     display:none;
   }
-  .timrx-3dprint .ws-right.assets-modal .history-head-row-top{flex-wrap:wrap}
+  .timrx-3dprint .ws-right.assets-modal .history-head-row-top{
+    display:flex;
+    flex-wrap:wrap;
+  }
   .timrx-3dprint .ws-right.assets-modal .assets-toolbar-filters{
     flex:1 1 100%;
     width:100%;
@@ -5236,14 +5240,14 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   display: inline-flex;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
 }
 
 .timrx-3dprint .ws-right.assets-modal .expanded-filter-btn {
   min-height: 36px;
-  padding: 0 12px;
+  padding: 0 10px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   transform: none;
 }

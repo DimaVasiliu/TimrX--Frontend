@@ -1,0 +1,317 @@
+/* ==========================================================================
+   GEN-PROGRESS.CSS — floating generation progress (reactor card + orb)
+   --------------------------------------------------------------------------
+   Markup is built by js/generation-tracker.js:
+
+     .gp                         fixed host, bottom-right above the dock
+       .gp__card                 expanded glass panel
+         .gp__head               aggregate core + title + minimise
+         .gp__list > .gp__row    one row per active job (icon/info/cancel)
+       .gp__orb                  minimised 52px orb (ring + count badge)
+
+   The "reactor" core (.gp-core) is shared by the header and the orb:
+   a progress ring (stroke-dashoffset driven from JS) around two
+   counter-rotating dashed orbits and a breathing center dot.
+   Superseded styles: the old .gen-track / .gen-card block in nav.css is no
+   longer referenced by any markup.
+   ========================================================================== */
+
+/* body.print3d-page > * demotes positioned body children (variables.css) —
+   restore explicitly, same pattern as the dock. */
+html body.print3d-page > .gp { position: fixed; z-index: 61; }
+
+.gp {
+  position: fixed;
+  right: 20px;
+  bottom: 104px; /* clears the dock card */
+  z-index: 61;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: none;
+}
+.gp[hidden] { display: none; }
+.gp > * { pointer-events: auto; }
+
+/* yield to full-surface states, same list as the dock */
+body.print3d-page.ws-cmd-open .gp,
+body.print3d-page.print-panel-open .gp {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+/* ---- expanded card ------------------------------------------------------ */
+.gp__card {
+  width: min(360px, calc(100vw - 32px));
+  border-radius: 18px;
+  background: rgba(13, 16, 18, 0.92);
+  border: 1px solid rgba(var(--accent-blue-rgb), 0.22);
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.5),
+    0 0 28px rgba(var(--accent-blue-rgb), 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  animation: gpCardIn 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes gpCardIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: none; }
+}
+
+.gp__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 10px 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.gp__head-core {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: grid;
+  place-items: center;
+}
+.gp__head-core .gp-core { width: 34px; height: 34px; }
+.gp__head-pct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 650 7.5px/1 var(--font-ui, 'Inter', sans-serif);
+  color: var(--text-soft, #c8d0d0);
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+.gp__head-title {
+  flex: 1;
+  font: 650 13px/1 var(--font-ui, 'Inter', sans-serif);
+  color: var(--text, #f2f5f3);
+  letter-spacing: 0.02em;
+}
+.gp__head-count { font-style: normal; color: var(--accent-blue, #7fc8c2); }
+
+.gp__minimise {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-dim, #6d7779);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.gp__minimise svg { width: 14px; height: 14px; }
+.gp__minimise:hover { color: var(--text, #f2f5f3); background: rgba(255, 255, 255, 0.1); }
+
+/* ---- rows --------------------------------------------------------------- */
+.gp__list { display: flex; flex-direction: column; }
+.gp__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.gp__row + .gp__row { border-top: 1px solid rgba(255, 255, 255, 0.05); }
+
+.gp__row-icon {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  color: var(--accent-blue, #7fc8c2);
+  background: rgba(var(--accent-blue-rgb), 0.1);
+  border: 1px solid rgba(var(--accent-blue-rgb), 0.2);
+}
+.gp__row-icon svg { width: 16px; height: 16px; }
+
+.gp__row-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.gp__row-stage {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font: 600 12px/1.2 var(--font-ui, 'Inter', sans-serif);
+  color: var(--text, #f2f5f3);
+}
+.gp__row-stage b { font-weight: 650; }
+.gp__row-meta {
+  font-style: normal;
+  font-size: 10.5px;
+  color: var(--text-dim, #6d7779);
+  display: inline-flex;
+  gap: 7px;
+  font-variant-numeric: tabular-nums;
+}
+.gp__row-meta [data-role="pct"] { color: var(--accent-blue, #7fc8c2); font-weight: 650; }
+.gp__row-prompt {
+  font: 400 11px/1.35 var(--font-ui, 'Inter', sans-serif);
+  color: var(--text-soft, #c8d0d0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gp__row-bar {
+  position: relative;
+  height: 2.5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+.gp__row-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-blue, #7fc8c2), var(--accent-blue-soft, #a5ded9));
+  box-shadow: 0 0 8px rgba(var(--accent-blue-rgb), 0.5);
+  transition: width 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+/* no percentage yet: a comet sweeps the track instead of a fake fill */
+.gp__row-bar > span.is-indeterminate {
+  width: 26% !important;
+  animation: gpComet 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@keyframes gpComet {
+  0%   { transform: translateX(-110%); }
+  100% { transform: translateX(420%); }
+}
+
+.gp__cancel {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-dim, #6d7779);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.gp__cancel svg { width: 12px; height: 12px; }
+.gp__cancel:hover { color: #d98a8a; background: rgba(217, 138, 138, 0.12); }
+.gp__cancel.is-busy { opacity: 0.4; pointer-events: none; }
+
+/* ---- minimised orb ------------------------------------------------------ */
+.gp__orb {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(var(--accent-blue-rgb), 0.3);
+  border-radius: 50%;
+  background: rgba(13, 16, 18, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.45),
+    0 0 22px rgba(var(--accent-blue-rgb), 0.16);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  animation: gpOrbIn 0.3s cubic-bezier(0.22, 1, 0.36, 1), gpOrbBreathe 3.4s ease-in-out 0.3s infinite;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.gp__orb[hidden] { display: none; }
+.gp__orb:hover {
+  transform: scale(1.06);
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.5),
+    0 0 30px rgba(var(--accent-blue-rgb), 0.3);
+}
+.gp__orb .gp-core { width: 40px; height: 40px; }
+@keyframes gpOrbIn {
+  from { opacity: 0; transform: scale(0.6); }
+  to   { opacity: 1; transform: none; }
+}
+@keyframes gpOrbBreathe {
+  0%, 100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 18px rgba(var(--accent-blue-rgb), 0.12); }
+  50%      { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 30px rgba(var(--accent-blue-rgb), 0.28); }
+}
+.gp__orb-badge {
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--accent-blue, #7fc8c2);
+  color: #0b0f0f;
+  font: 700 10px/17px var(--font-ui, 'Inter', sans-serif);
+  text-align: center;
+}
+
+/* ---- the reactor core (shared) ----------------------------------------- */
+.gp-core { display: block; }
+.gp-core circle { fill: none; }
+.gp-core__track {
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 2.5;
+}
+.gp-core__ring {
+  stroke: var(--accent-blue, #7fc8c2);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  transform: rotate(-90deg);
+  transform-origin: center;
+  transition: stroke-dashoffset 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  filter: drop-shadow(0 0 3px rgba(var(--accent-blue-rgb), 0.6));
+}
+.gp-core.is-indeterminate .gp-core__ring { opacity: 0; }
+.gp-core__orbit circle {
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+.gp-core__orbit--a circle {
+  stroke: rgba(var(--accent-blue-rgb), 0.55);
+  stroke-dasharray: 20 62;
+}
+.gp-core__orbit--b circle {
+  stroke: rgba(var(--accent-purple-rgb, 184, 167, 122), 0.5);
+  stroke-dasharray: 12 42;
+}
+.gp-core__orbit {
+  transform-origin: center;
+  animation: gpSpin 3.2s linear infinite;
+}
+.gp-core__orbit--b { animation: gpSpinRev 2.3s linear infinite; }
+@keyframes gpSpin    { to { transform: rotate(360deg); } }
+@keyframes gpSpinRev { to { transform: rotate(-360deg); } }
+.gp-core__dot {
+  fill: var(--accent-blue, #7fc8c2);
+  animation: gpDot 1.8s ease-in-out infinite;
+}
+@keyframes gpDot {
+  0%, 100% { opacity: 0.45; r: 2.2px; }
+  50%      { opacity: 1; r: 3px; }
+}
+
+/* ---- small screens ------------------------------------------------------ */
+@media (max-width: 768px) {
+  .gp { right: 12px; bottom: 130px; }
+  .gp__card { width: min(330px, calc(100vw - 24px)); }
+}
+
+/* ---- reduced motion ----------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .gp__card, .gp__orb { animation: none; }
+  .gp-core__orbit, .gp-core__orbit--b, .gp-core__dot { animation: none; }
+  .gp__row-bar > span.is-indeterminate { animation: none; transform: none; width: 100% !important; opacity: 0.25; }
+  .gp-core__ring { transition: none; }
+}

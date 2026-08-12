@@ -3194,6 +3194,18 @@ textarea {
   pointer-events: none;
 }
 
+body.ws-viewer-open .toast-container {
+  position: fixed !important;
+  top: max(18px, env(safe-area-inset-top, 0px));
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  transform: translateX(-50%);
+  z-index: 300020;
+  width: min(520px, calc(100vw - 32px));
+  align-items: stretch;
+}
+
 .toast {
   display: flex;
   align-items: center;
@@ -3212,6 +3224,20 @@ textarea {
   text-align: center;
 }
 
+body.ws-viewer-open .toast {
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: center;
+  border-color: rgba(226, 236, 237, 0.16);
+  background:
+    linear-gradient(145deg, rgba(20, 29, 31, 0.92), rgba(7, 10, 11, 0.9));
+  -webkit-backdrop-filter: blur(18px) saturate(1.08);
+  backdrop-filter: blur(18px) saturate(1.08);
+  box-shadow:
+    0 18px 52px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
 .toast.show {
   transform: translateY(0) scale(1);
   opacity: 1;
@@ -3225,6 +3251,12 @@ textarea {
 .toast-success {
   border-color: #22c55e;
   background: linear-gradient(135deg, rgba(34, 197, 94, 0.15), #1a1a1a);
+}
+
+body.ws-viewer-open .toast-success {
+  border-color: rgba(117, 213, 194, 0.45);
+  background:
+    linear-gradient(145deg, rgba(35, 80, 71, 0.34), rgba(7, 10, 11, 0.92));
 }
 
 .toast-error {

@@ -153,6 +153,7 @@ function dismissToast(toastEl) {
 // ============================================================================
 
 const QUALITY_LABELS = {
+  '480p': 'Preview (480p)',
   '720p': 'Standard (HD)',
   '1080p': 'Pro (Full HD)',
   '4k': 'Ultra (4K)'
@@ -185,11 +186,14 @@ export function showJobCompletedSettings(data) {
   const providerNames = {
     'vertex': 'Veo',
     'google': 'Veo',
-    'ai_studio': 'AI Studio'
+    'ai_studio': 'AI Studio',
+    'seedance': 'Seedance',
+    'fal_seedance': 'Seedance',
+    'piapi': 'Seedance'
   };
   const providerLabel = providerNames[provider.toLowerCase()] || provider;
 
-  const message = `Generated: ${qualityLabel} • ${providerLabel}`;
+  const message = `Video ready • ${qualityLabel} • ${providerLabel}`;
   toast(message, 'success', 5000);
 }
 

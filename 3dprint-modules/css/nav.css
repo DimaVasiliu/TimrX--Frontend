@@ -1251,6 +1251,11 @@
     border-color: var(--border-soft);
   }
   
+  body.ws-viewer-open .timrx-3dprint #imageViewer,
+  body.ws-viewer-open .timrx-3dprint #videoViewer {
+    isolation: isolate;
+  }
+
   body.ws-viewer-open .timrx-3dprint {
     height: 100vh;
     width: 100vw !important;
@@ -1285,6 +1290,60 @@
   
   body.ws-viewer-open .viewer-close-btn {
     display: inline-flex !important;
+  }
+
+  body.ws-viewer-open .timrx-3dprint #imageViewer > .viewer-fullscreen-btn,
+  body.ws-viewer-open .timrx-3dprint #videoViewer > .viewer-fullscreen-btn,
+  body.ws-viewer-open .timrx-3dprint #imageViewer > .af-viewer-close,
+  body.ws-viewer-open .timrx-3dprint #videoViewer > .af-viewer-close {
+    position: absolute;
+    top: clamp(12px, 1.7vh, 18px);
+    left: auto !important;
+    bottom: auto !important;
+    z-index: 90;
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    padding: 0;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid rgba(226, 236, 237, 0.16);
+    border-radius: 50%;
+    color: rgba(245, 248, 247, 0.9);
+    background:
+      linear-gradient(145deg, rgba(31, 43, 45, 0.88), rgba(8, 12, 13, 0.82));
+    box-shadow:
+      0 14px 34px rgba(0, 0, 0, 0.42),
+      inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    -webkit-backdrop-filter: blur(16px) saturate(1.08);
+    backdrop-filter: blur(16px) saturate(1.08);
+    pointer-events: auto;
+  }
+
+  body.ws-viewer-open .timrx-3dprint #imageViewer > .viewer-fullscreen-btn,
+  body.ws-viewer-open .timrx-3dprint #videoViewer > .viewer-fullscreen-btn {
+    right: calc(clamp(14px, 2vw, 24px) + 58px) !important;
+  }
+
+  body.ws-viewer-open .timrx-3dprint #imageViewer > .af-viewer-close,
+  body.ws-viewer-open .timrx-3dprint #videoViewer > .af-viewer-close {
+    right: clamp(14px, 2vw, 24px) !important;
+  }
+
+  body.ws-viewer-open .timrx-3dprint #imageViewer > .viewer-fullscreen-btn:hover,
+  body.ws-viewer-open .timrx-3dprint #imageViewer > .viewer-fullscreen-btn:focus-visible,
+  body.ws-viewer-open .timrx-3dprint #videoViewer > .viewer-fullscreen-btn:hover,
+  body.ws-viewer-open .timrx-3dprint #videoViewer > .viewer-fullscreen-btn:focus-visible,
+  body.ws-viewer-open .timrx-3dprint #imageViewer > .af-viewer-close:hover,
+  body.ws-viewer-open .timrx-3dprint #imageViewer > .af-viewer-close:focus-visible,
+  body.ws-viewer-open .timrx-3dprint #videoViewer > .af-viewer-close:hover,
+  body.ws-viewer-open .timrx-3dprint #videoViewer > .af-viewer-close:focus-visible {
+    color: #fff;
+    border-color: rgba(125, 211, 252, 0.45);
+    background:
+      linear-gradient(145deg, rgba(41, 56, 58, 0.94), rgba(10, 15, 16, 0.9));
+    transform: translateY(-1px);
   }
   
   body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .pane-head-actions {
@@ -1354,6 +1413,26 @@
   
     body.ws-viewer-open .timrx-3dprint .viewer-overlay-head .icon-btn span {
       display: none;
+    }
+
+    body.ws-viewer-open .timrx-3dprint #imageViewer > .viewer-fullscreen-btn,
+    body.ws-viewer-open .timrx-3dprint #videoViewer > .viewer-fullscreen-btn,
+    body.ws-viewer-open .timrx-3dprint #imageViewer > .af-viewer-close,
+    body.ws-viewer-open .timrx-3dprint #videoViewer > .af-viewer-close {
+      top: max(10px, env(safe-area-inset-top, 0px));
+      width: 42px;
+      height: 42px;
+      min-width: 42px;
+    }
+
+    body.ws-viewer-open .timrx-3dprint #imageViewer > .viewer-fullscreen-btn,
+    body.ws-viewer-open .timrx-3dprint #videoViewer > .viewer-fullscreen-btn {
+      right: calc(max(10px, env(safe-area-inset-right, 0px)) + 52px) !important;
+    }
+
+    body.ws-viewer-open .timrx-3dprint #imageViewer > .af-viewer-close,
+    body.ws-viewer-open .timrx-3dprint #videoViewer > .af-viewer-close {
+      right: max(10px, env(safe-area-inset-right, 0px)) !important;
     }
   }
   
@@ -1827,4 +1906,3 @@
       grid-column: -2 / -1;
     }
   }
-  

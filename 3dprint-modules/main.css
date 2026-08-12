@@ -29,7 +29,7 @@
 @import url('media/layout-media.css?v=20260811ah');
 
 /* 3. Buttons, Forms, Tabs, Chips */
-@import url('css/components.css?v=20260811ah');
+@import url('css/components.css?v=20260812toast');
 @import url('media/components-media.css?v=20260811ah');
 
 /* 4. Workspace Grid & Cards */
@@ -56,7 +56,7 @@
 @import url('css/multi-color-print.css?v=20260802f');
 
 /* 13. Workspace navigation — command trigger + command palette */
-@import url('css/nav.css?v=20260811ah');
+@import url('css/nav.css?v=20260812viewer');
 
 /* 14. Control sheet — the tool panel */
 @import url('css/panel.css?v=20260811ah');
@@ -66,6 +66,10 @@
 /* 15b. Bottom prompt dock — the redesigned primary creation surface.
    Imported before the responsive layer so stage-media.css can adjust it. */
 @import url('css/dock.css?v=20260811ai');
+
+/* 15c. Floating generation progress — reactor card + minimisable orb.
+   Replaces the old .gen-track cards (markup retired; see generation-tracker.js). */
+@import url('css/gen-progress.css?v=20260812a');
 
 /* 16. Responsive layer for the stage + bottom chrome — imported LAST on
    purpose: it corrects nav.css launcher geometry and stage safe areas
