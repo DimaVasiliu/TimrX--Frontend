@@ -281,6 +281,7 @@
               <label for="imageAIProvider">Provider</label>
               <select id="imageAIProvider">
                 <option value="nano_banana" selected>Nano Banana</option>
+                <option value="nano_banana_pro">Nano Banana Pro</option>
                 <option value="openai">OpenAI</option>
                 <option value="google">Google Imagen</option>
                 <option value="google_nano">Google Nano</option>
@@ -3003,11 +3004,11 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       // Must mirror backend pricing_service.SEEDANCE_CREDIT_COSTS and migrations 068/076.
       const SEEDANCE_COSTS = {
         // Seedance 2.5 (PiAPI `seedance-2.5`) — a newer model, not a 2.0 speed tier.
-        // $0.30/s 480p and $0.60/s 720p, priced at 120 credits per $/s (the same ratio
-        // migration 069 settled on for the 1080p tier). No 1080p on this model.
+        // PiAPI cut the list price ~50% at GA (Aug 2026): $0.15/s 480p, $0.35/s 720p.
+        // Same 120 credits-per-$/s ratio, so credits halved with it (migration 081).
         v25: {
-          '480p': { 5: 180, 10: 360, 15: 540 },
-          '720p': { 5: 360, 10: 720, 15: 1080 },
+          '480p': { 5: 90,  10: 180, 15: 270 },
+          '720p': { 5: 210, 10: 420, 15: 630 },
         },
         // PiAPI seedance-2-mini is 12.5% cheaper upstream than Fast at every
         // resolution, so Mini is priced at 87.5% of Fast. No 1080p on this tier.
@@ -3027,7 +3028,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         },
       };
       // Approximate CPS at 480p baseline — used only when no exact match (DB authoritative).
-      const SEEDANCE_CPS = { mini: 14, fast: 16, quality: 20, v25: 36 };
+      const SEEDANCE_CPS = { mini: 14, fast: 16, quality: 20, v25: 18 };
       // Per-tier allowed resolutions (UI must not present invalid combos like Fast 1080p).
       const SEEDANCE_RESOLUTIONS = {
         mini:    ['480p', '720p'],
@@ -3326,6 +3327,12 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
                 source = `seedance-${tier}-${seedanceRes}-backend`;
               }
             }
+          if ((cost === null || cost === undefined) && resCosts && resCosts[5] !== undefined) {
+              // Derive from the tier's own 5s row at THIS resolution — the flat
+              // CPS table is a 480p baseline and would underquote 720p by ~2x.
+              cost = Math.round((resCosts[5] / 5) * duration);
+              source = `seedance-${tier}-${seedanceRes}-derived`;
+            }
           if (cost === null || cost === undefined) {
               cost = (SEEDANCE_CPS[tier] || 16) * duration;
               source = `seedance-${tier}-cps`;
@@ -3387,6 +3394,26 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
        * back to the tier's own default (720p for Mini, 480p elsewhere) rather than a
        * hardcoded 480p.
        */
+
+        // Seedance durations are tier-dependent: 2.0 tiers top out at 15s, while
+        // Seedance 2.5 accepts 4-30s (PiAPI, Aug 2026). Rebuild the shared
+        // duration select so v25 exposes the longer clips and other tiers drop them.
+        function updateSeedanceDurationOptions() {
+          const durationSelect = leftStack.querySelector('#videoDuration');
+          const tierInput = leftStack.querySelector('#seedanceTier');
+          if (!durationSelect || !tierInput) return;
+          const provider = videoAIProvider?.value
+            || window.GenerationState?.getProvider?.('video') || '';
+          if (provider !== 'seedance') return;
+          const isV25 = tierInput.value === 'v25';
+          const values = isV25 ? [5, 10, 15, 20, 25, 30] : [5, 10, 15];
+          const current = parseInt(durationSelect.value, 10) || 5;
+          durationSelect.innerHTML = values.map(v =>
+            '<option value="' + v + '"' + (v === current ? ' selected' : '') + '>' + v + ' sec</option>'
+          ).join('');
+          if (!values.includes(current)) durationSelect.value = String(values[values.length - 1]);
+        }
+
       function updateSeedanceResolutionOptions() {
         const wrap = leftStack.querySelector('#seedanceResolutionWrap');
         if (!wrap || wrap.classList.contains('hidden')) return;
@@ -3675,7 +3702,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             tierWrap = document.createElement('div');
             tierWrap.id = 'seedanceTierWrap';
             tierWrap.className = 'vs-setting';
-            tierWrap.innerHTML = '<label for="seedanceTierSelect">Speed</label><select id="seedanceTierSelect"><option value="mini">Mini — cheapest, fastest (~30 s\u20132 min)</option><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option><option value="v25">Seedance 2.5 — newest model, premium (~7\u201330 min)</option></select>';
+            tierWrap.innerHTML = '<label for="seedanceTierSelect">Speed</label><select id="seedanceTierSelect"><option value="mini">Mini — cheapest, fastest (~30 s\u20132 min)</option><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option><option value="v25">Seedance 2.5 — newest model, up to 30s (~7\u201330 min)</option></select>';
             const durationSetting = videoDuration?.closest('.vs-setting');
             if (durationSetting) durationSetting.after(tierWrap);
           }
@@ -3687,8 +3714,10 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             tierSelect.addEventListener('change', () => {
               const seedanceTierInput = leftStack.querySelector('#seedanceTier');
               if (seedanceTierInput) seedanceTierInput.value = tierSelect.value;
-              // Tier change can invalidate the resolution (Mini/Fast have no 1080p) — re-render.
+              // Tier change can invalidate the resolution (Mini/Fast have no 1080p)
+              // and the duration (only 2.5 goes past 15s) — re-render both.
               updateSeedanceResolutionOptions();
+              updateSeedanceDurationOptions();
               updateVideoFooter();
             });
           }
@@ -3725,6 +3754,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           }
           seedanceResWrap.classList.remove('hidden');
           updateSeedanceResolutionOptions();
+          updateSeedanceDurationOptions();
         } else if (seedanceResWrap) {
           seedanceResWrap.classList.add('hidden');
         }
@@ -5162,6 +5192,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           google: 'Drop an image — Vertex AI Imagen will use it as your reference (image-to-image edit).',
           google_nano: 'Drop an image — Gemini 2.5 Flash Image will edit it natively. Describe the change in your prompt.',
           nano_banana: 'Drop a reference image — Nano Banana 2 will steer its 1K/2K/4K generation off it.',
+          nano_banana_pro: 'Drop up to 4 references — Nano Banana Pro keeps subjects consistent across them.',
           flux_pro: 'Shown for edit, remix, reframe, upscale, and utility modes.',
           ideogram_v3: 'Source image for remix / edit / reframe operations.',
           recraft_v4: 'Source image for image-to-image, inpaint, background ops, and vectorize.'
@@ -5171,6 +5202,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           google: (n) => `Up to ${n} references — primary becomes the base; extras act as subject guides.`,
           google_nano: (n) => `Up to ${n} references — Gemini will weave them into the result.`,
           nano_banana: () => 'Single reference image — Nano Banana 2 uses one reference at a time.',
+          nano_banana_pro: (n) => `Up to ${n} references — Pro holds character and product consistency across them.`,
           flux_pro: (n) => `Add up to ${n} references to guide composition, style, pose, or materials.`,
           ideogram_v3: () => 'Up to 8 style references.',
           recraft_v4: () => 'Reference image for image-to-image and related operations.'
@@ -5547,6 +5579,34 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           generateImageBtn.title = `${snapshot.credits} credits`;
           generateImageBtn.dataset.provider = snapshot.provider;
           generateImageBtn.dataset.baseCredits = snapshot.credits;
+        }
+
+        // Rebuild shape dropdown from provider capabilities — nano banana tiers
+        // expose PiAPI's extra ratios (21:9 wide, 3:2 classic, 4:5 tall) that the
+        // other providers don't support.
+        if (imageShape && Array.isArray(caps?.shapes) && caps.shapes.length) {
+          const SHAPE_OPTION_LABELS = {
+            square:    '1:1 Square',
+            portrait:  '9:16 Portrait',
+            landscape: '16:9 Landscape',
+            wide:      '21:9 Wide',
+            classic:   '3:2 Classic',
+            tall:      '4:5 Tall (Social)',
+          };
+          const currentShape = imageShape.value;
+          imageShape.innerHTML = '';
+          caps.shapes.forEach((shapeValue) => {
+            const opt = document.createElement('option');
+            opt.value = shapeValue;
+            opt.textContent = SHAPE_OPTION_LABELS[shapeValue] || shapeValue;
+            imageShape.appendChild(opt);
+          });
+          if (caps.shapes.includes(currentShape)) {
+            imageShape.value = currentShape;
+          } else {
+            imageShape.value = caps.defaultShape || caps.shapes[0];
+            window.GenerationState.setSetting('image', 'shape', imageShape.value);
+          }
         }
 
         // Rebuild quality dropdown fully from provider capabilities (no stale options)

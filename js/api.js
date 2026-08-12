@@ -15,7 +15,7 @@ import {
   getLoadableModelUrl,
   isTimrxS3Url
 } from './config.js';
-import * as State from './state.js?v=20260407e';
+import * as State from './state.js?v=20260812a';
 import * as Viewer from './viewer.js?v=20260806a';
 import * as UI from './ui-utils.js';
 import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260803a';
@@ -4200,11 +4200,15 @@ export async function startGeminiImageGeneration() {
   }
 }
 
-// Map shape to Nano Banana aspect ratio (same as Google format)
+// Map shape to Nano Banana aspect ratio (PiAPI expanded to ten ratios, Aug 2026 —
+// we expose the six that map onto workspace shapes; both NB2 and NB Pro accept them)
 const NANO_BANANA_SHAPE_MAP = {
   square: '1:1',
   portrait: '9:16',
   landscape: '16:9',
+  wide: '21:9',
+  classic: '3:2',
+  tall: '4:5',
 };
 
 // Map quality to Nano Banana resolution (4K is exclusive to Nano Banana)
@@ -4578,15 +4582,18 @@ async function startAsyncImageProvider({
  * Start Nano Banana (PiAPI) image generation
  * IMPORTANT: Provider must be 'nano_banana' in GenerationState before calling this.
  */
-export async function startNanoBananaImageGeneration() {
+export async function startNanoBananaImageGeneration(providerName = 'nano_banana') {
+  // providerName selects the tier: 'nano_banana' -> nano-banana-2 (Gemini 3.1
+  // Flash Image), 'nano_banana_pro' -> nano-banana-pro (Gemini 3 Pro Image).
+  const NB_MODEL = providerName === 'nano_banana_pro' ? 'nano-banana-pro' : 'nano-banana-2';
   // Verify provider is actually nano_banana (defensive check)
   const stateProvider = window.GenerationState?.getProvider?.('image');
-  if (stateProvider !== 'nano_banana') {
-    console.error(`[Nano Banana] BLOCKED: State provider is '${stateProvider}', not 'nano_banana'`);
+  if (stateProvider !== providerName) {
+    console.error(`[Nano Banana] BLOCKED: State provider is '${stateProvider}', not '${providerName}'`);
     return;
   }
 
-  console.log('[Image] Nano Banana generation started (provider=nano_banana, state=' + stateProvider + ')');
+  console.log('[Image] Nano Banana generation started (provider=' + providerName + ', state=' + stateProvider + ')');
 
   // Single generation guard: covers both submit lock and UI-level lock
   if (window.GenerationState?.isGenerating?.()) {
@@ -4597,7 +4604,7 @@ export async function startNanoBananaImageGeneration() {
   // Get settings from State first to determine credit cost
   const stateSettings = window.GenerationState?.getSettings?.('image') || {};
   const settings = {
-    provider: 'nano_banana',
+    provider: providerName,
     shape: stateSettings.shape || 'square',
     quality: stateSettings.quality || 'standard'
   };
@@ -4650,7 +4657,7 @@ export async function startNanoBananaImageGeneration() {
 
   // Lock UI with provider and settings snapshot
   if (window.ImageJobControl?.lock) {
-    window.ImageJobControl.lock('nano_banana', settingsSnapshot, tempId, reservation.reservationId);
+    window.ImageJobControl.lock(providerName, settingsSnapshot, tempId, reservation.reservationId);
   }
 
   addGeneratingPlaceholder(tempId, {
@@ -4658,8 +4665,8 @@ export async function startNanoBananaImageGeneration() {
     status_label: 'Generating image with Nano Banana...',
     prompt: promptRaw,
     stage: 'image',
-    provider: 'nano_banana',
-    provider_used: 'nano_banana',
+    provider: providerName,
+    provider_used: providerName,
     idempotency_key: idempotencyKey,
     image_url: '',
   });
@@ -4674,7 +4681,7 @@ export async function startNanoBananaImageGeneration() {
       || ((srcImg || refs.length) ? 'edit' : 'generate');
 
     const payload = {
-      provider: 'nano_banana',
+      provider: providerName,
       prompt: promptRaw,
       aspect_ratio: aspectRatio,
       image_size: imageSize,
@@ -4707,8 +4714,8 @@ export async function startNanoBananaImageGeneration() {
 
         watchImageJob(tempId, reservation.reservationId, {
           prompt: promptRaw,
-          provider: 'nano_banana',
-          provider_used: 'nano_banana',
+          provider: providerName,
+          provider_used: providerName,
           isTimeoutRecovery: true
         });
 
@@ -4741,9 +4748,9 @@ export async function startNanoBananaImageGeneration() {
           status_label: 'Generating image with Nano Banana...',
           prompt: promptRaw,
           stage: 'image',
-          provider: 'nano_banana',
-          provider_used: 'nano_banana',
-          model: 'nano-banana-2',
+          provider: providerName,
+          provider_used: providerName,
+          model: NB_MODEL,
           image_url: '',
         });
       }
@@ -4759,14 +4766,14 @@ export async function startNanoBananaImageGeneration() {
         prompt: promptRaw,
         stage: 'image',
         type: 'image',
-        provider: 'nano_banana'
+        provider: providerName
       });
 
       // Start polling
       watchImageJob(imageId, backendReservationId, {
         prompt: promptRaw,
-        provider: 'nano_banana',
-        provider_used: 'nano_banana'
+        provider: providerName,
+        provider_used: providerName
       });
 
       startLock = false;
@@ -4790,9 +4797,9 @@ export async function startNanoBananaImageGeneration() {
       image_url: imageUrl,
       thumbnail_url: imageUrl,
       stage: 'image',
-      provider: 'nano_banana',
-      provider_used: 'nano_banana',
-      model: 'nano-banana-2'
+      provider: providerName,
+      provider_used: providerName,
+      model: NB_MODEL
     };
 
     if (imageId && imageId !== tempId) {
@@ -5232,7 +5239,8 @@ export async function startImageGenerationByProvider() {
   renderHistory();
 
   const providerDispatch = {
-    nano_banana: startNanoBananaImageGeneration,
+    nano_banana: () => startNanoBananaImageGeneration('nano_banana'),
+    nano_banana_pro: () => startNanoBananaImageGeneration('nano_banana_pro'),
     openai: startOpenAIImageGeneration,
     google: startGeminiImageGeneration,
     google_nano: startGoogleNanoImageGeneration,
@@ -5284,10 +5292,11 @@ const VIDEO_IMAGE_CREDIT_COSTS = {
 
 // Seedance 2 GA credit costs. Keep in sync with pricing_service.py and migrations 068/069/076.
 const SEEDANCE_COSTS = {
-  // seedance-2.5: newer model, $0.30/s 480p and $0.60/s 720p at 120 credits per $/s.
+  // seedance-2.5: PiAPI cut list ~50% at GA (Aug 2026) — $0.15/s 480p, $0.35/s 720p
+  // at the same 120 credits per $/s (migration 081).
   v25: {
-    '480p': { 5: 180, 10: 360, 15: 540 },
-    '720p': { 5: 360, 10: 720, 15: 1080 },
+    '480p': { 5: 90,  10: 180, 15: 270 },
+    '720p': { 5: 210, 10: 420, 15: 630 },
   },
   // seedance-2-mini: 12.5% cheaper upstream than Fast, priced at 87.5% of it. No 1080p.
   mini: {
@@ -5304,7 +5313,7 @@ const SEEDANCE_COSTS = {
     '1080p': { 5: 300, 10: 600, 15: 900 },
   },
 };
-const SEEDANCE_CPS = { mini: 14, fast: 16, quality: 20, preview: 20, v25: 36 };
+const SEEDANCE_CPS = { mini: 14, fast: 16, quality: 20, preview: 20, v25: 18 };
 // PiAPI's per-tier default resolution — Mini defaults to 720p, not 480p.
 const SEEDANCE_DEFAULT_RESOLUTION = { mini: '720p', fast: '480p', quality: '480p', preview: '480p', v25: '720p' };
 // fal Seedance 1.5 Pro: BUDGET tier (8 cps)

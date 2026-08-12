@@ -335,6 +335,11 @@
       '    <button type="button" class="ws-dock__generate"><span class="ws-dock__label">Generate</span><span class="ws-dock__cost"></span></button>' +
       '  </div>' +
       '  <div class="ws-dock__chips" role="toolbar" aria-label="Generation settings"></div>' +
+      '</div>' +
+      '<div class="ws-dock__hint" role="status">' +
+      '  <span class="ws-dock__hint-ico" aria-hidden="true">✦</span>' +
+      '  <span class="ws-dock__hint-txt"><strong>Your AI agent.</strong> Describe an idea in plain words — it picks the mode and settings and stages the generation for you. <kbd>⌘K</kbd></span>' +
+      '  <button type="button" class="ws-dock__hint-x" aria-label="Dismiss hint">✕</button>' +
       '</div>';
     document.body.appendChild(dock);
 
@@ -366,9 +371,34 @@
       }
     });
 
+    /* agent hint bubble: explains the ✦ button once, then stays out of the
+       way (localStorage). Auto-hides; dismiss or first agent use remembers. */
+    var hint = dock.querySelector('.ws-dock__hint');
+    var HINT_KEY = 'txWsAgentHint1';
+    var hintTimer = 0;
+    function hideHint(remember) {
+      clearTimeout(hintTimer);
+      hint.classList.remove('is-on');
+      if (remember) { try { localStorage.setItem(HINT_KEY, '1'); } catch (e) {} }
+    }
+    (function maybeShowHint() {
+      var seen = false;
+      try { seen = !!localStorage.getItem(HINT_KEY); } catch (e) {}
+      if (seen) return;
+      /* after the loader veil has opened and the chrome has settled */
+      hintTimer = setTimeout(function () {
+        hint.classList.add('is-on');
+        hintTimer = setTimeout(function () { hideHint(false); }, 12000);
+      }, 4600);
+    })();
+    hint.querySelector('.ws-dock__hint-x').addEventListener('click', function () {
+      hideHint(true);
+    });
+
     /* agent button: opens the ⌘K palette (command-ai.js stages the plan
        from natural language). Carries the dock prompt over if one is typed. */
     dock.querySelector('.ws-dock__agent').addEventListener('click', function () {
+      hideHint(true);
       if (!window.TimrXCommand || !window.TimrXCommand.open) return;
       window.TimrXCommand.open();
       var text = promptEl.value.trim();

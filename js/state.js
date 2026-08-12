@@ -1076,9 +1076,9 @@ export const PROVIDER_CAPABILITIES = {
   image: {
     nano_banana: {
       name: 'Nano Banana',
-      operations: [{ value: 'generate', label: 'Generate', requiresSource: false, requiresMask: false }],
-      defaultOperation: 'generate',
-      shapes: ['square', 'portrait', 'landscape'],
+      // PiAPI expanded nano-banana-2 to ten aspect ratios (Aug 2026) — the three
+      // classics plus wide/classic/tall, which map to 21:9 / 3:2 / 4:5.
+      shapes: ['square', 'portrait', 'landscape', 'wide', 'classic', 'tall'],
       qualities: ['standard', 'high', '4k'],
       defaultShape: 'square',
       defaultQuality: 'standard',
@@ -1088,7 +1088,7 @@ export const PROVIDER_CAPABILITIES = {
       creditsByQuality: { standard: 7, high: 12, '4k': 18 },
       genTimeByQuality: { standard: '45 sec', high: '60 sec', '4k': '90 sec' },
       genTime: '45 sec',
-      shapeMap: { square: '1:1', portrait: '9:16', landscape: '16:9' },
+      shapeMap: { square: '1:1', portrait: '9:16', landscape: '16:9', wide: '21:9', classic: '3:2', tall: '4:5' },
       qualityMap: { standard: '1K', high: '2K', '4k': '4K' },
       actionKeyByQuality: { standard: 'piapi_image_generate', high: 'piapi_image_generate_2k', '4k': 'piapi_image_generate_4k' },
       supportsNegativePrompt: false,
@@ -1100,6 +1100,34 @@ export const PROVIDER_CAPABILITIES = {
       supportsSourceImage: true,
       maxReferenceImages: 1,
       hint: 'Premium provider with exclusive 4K output. Drop a reference image and Nano Banana 2 will steer the generation off it.'
+    },
+    nano_banana_pro: {
+      name: 'Nano Banana Pro',
+      // PiAPI gemini/nano-banana-pro (Gemini 3 Pro Image): sharpest text
+      // rendering, strongest subject consistency. 1K and 2K cost the same
+      // upstream ($0.105/img), 4K is $0.18/img.
+      shapes: ['square', 'portrait', 'landscape', 'wide', 'classic', 'tall'],
+      qualities: ['standard', 'high', '4k'],
+      defaultShape: 'square',
+      defaultQuality: 'high',
+      outputModes: ['raster'],
+      defaultOutputMode: 'raster',
+      credits: 16,
+      creditsByQuality: { standard: 16, high: 16, '4k': 27 },
+      genTimeByQuality: { standard: '30 sec', high: '45 sec', '4k': '90 sec' },
+      genTime: '45 sec',
+      shapeMap: { square: '1:1', portrait: '9:16', landscape: '16:9', wide: '21:9', classic: '3:2', tall: '4:5' },
+      qualityMap: { standard: '1K', high: '2K', '4k': '4K' },
+      actionKeyByQuality: { standard: 'piapi_pro_image_generate', high: 'piapi_pro_image_generate_2k', '4k': 'piapi_pro_image_generate_4k' },
+      supportsNegativePrompt: false,
+      operations: [
+        { value: 'generate', label: 'Generate',            requiresSource: false, requiresMask: false },
+        { value: 'edit',     label: 'Edit with reference', requiresSource: true,  requiresMask: false }
+      ],
+      defaultOperation: 'generate',
+      supportsSourceImage: true,
+      maxReferenceImages: 4,
+      hint: 'Top-tier image model — crisp in-image text, strong subject consistency across up to 4 references, and 4K output. 2K costs the same as 1K.'
     },
     openai: {
       name: 'OpenAI',

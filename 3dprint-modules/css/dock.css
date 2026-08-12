@@ -92,23 +92,57 @@ body.ws-dock-on .ws-dock { display: block; }
 .ws-dock__prompt::placeholder { color: var(--text-dim, #6d7779); }
 
 .ws-dock__generate {
+  position: relative;
+  overflow: hidden;
   flex: none;
   display: flex;
   align-items: center;
   gap: 10px;
   height: 44px;
-  padding: 0 20px;
+  padding: 0 22px;
   border: none;
   border-radius: 16px;
   cursor: pointer;
-  font: 600 14px/1 var(--font-ui, 'Inter', sans-serif);
-  background: linear-gradient(180deg, #ffffff, #e2e6e6);
+  font: 650 14px/1 var(--font-ui, 'Inter', sans-serif);
+  letter-spacing: 0.01em;
+  background: linear-gradient(180deg, #ffffff, #dcebe9);
   color: #0b0f0f;
-  box-shadow: 0 10px 26px rgba(255, 255, 255, 0.12);
+  box-shadow:
+    0 10px 26px rgba(255, 255, 255, 0.12),
+    0 2px 14px rgba(var(--accent-blue-rgb), 0.25);
   transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
 }
-.ws-dock__generate:hover { transform: translateY(-1px); box-shadow: 0 14px 32px rgba(255, 255, 255, 0.18); }
-.ws-dock__generate:disabled { opacity: 0.55; transform: none; cursor: default; }
+/* periodic sheen sweep — mostly at rest, one pass every ~5s */
+.ws-dock__generate::after {
+  content: "";
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: -55%;
+  width: 42%;
+  background: linear-gradient(105deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0) 100%);
+  transform: skewX(-18deg);
+  pointer-events: none;
+  animation: wsGenSheen 5s ease-in-out infinite;
+}
+@keyframes wsGenSheen {
+  0%, 72% { left: -55%; opacity: 0; }
+  76% { opacity: 1; }
+  92%, 100% { left: 115%; opacity: 0; }
+}
+.ws-dock__generate:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    0 14px 32px rgba(255, 255, 255, 0.18),
+    0 4px 22px rgba(var(--accent-blue-rgb), 0.4);
+}
+.ws-dock__generate:active { transform: translateY(0) scale(0.98); }
+.ws-dock__generate:disabled { opacity: 0.55; transform: none; cursor: default; box-shadow: none; }
+.ws-dock__generate:disabled::after,
+.ws-dock__generate.is-working::after { animation: none; opacity: 0; }
 .ws-dock__generate .ws-dock__cost {
   font-size: 11px;
   font-weight: 600;
@@ -157,20 +191,48 @@ body.ws-dock-on .ws-dock { display: block; }
   color: var(--text, #f2f5f3);
 }
 .ws-dock__chip--adv {
-  margin-left: auto;
+  /* sits right after the setting chips (extra breathing room, not pinned) */
+  margin-left: 10px;
+  position: relative;
   /* Advanced is the gateway to every remaining setting — give it presence */
   background: rgba(var(--accent-blue-rgb), 0.12);
   border-color: rgba(var(--accent-blue-rgb), 0.45);
   color: var(--text, #f2f5f3);
   font-weight: 600;
   box-shadow: 0 0 0 0 rgba(var(--accent-blue-rgb), 0.0), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  /* breathing glow ring so the gateway to the full settings sheet reads */
+  animation: wsAdvPulse 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes wsAdvPulse {
+  0%, 100% {
+    border-color: rgba(var(--accent-blue-rgb), 0.45);
+    box-shadow: 0 0 0 0 rgba(var(--accent-blue-rgb), 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+  50% {
+    border-color: rgba(var(--accent-blue-rgb), 0.9);
+    box-shadow: 0 0 0 5px rgba(var(--accent-blue-rgb), 0.0), 0 0 18px rgba(var(--accent-blue-rgb), 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
 }
 .ws-dock__chip--adv:hover {
+  animation: none;
   background: rgba(var(--accent-blue-rgb), 0.2);
   border-color: rgba(var(--accent-blue-rgb), 0.75);
   box-shadow: 0 4px 16px rgba(var(--accent-blue-rgb), 0.25);
 }
-.ws-dock__chip--adv .c-ico { color: var(--accent-blue); }
+/* rest once the sheet it opens is actually open */
+body.ws-panel-open .ws-dock__chip--adv { animation: none; }
+.ws-dock__chip--adv .c-ico {
+  display: inline-block;
+  color: var(--accent-blue);
+  animation: wsAdvGear 5.2s linear infinite;
+}
+@keyframes wsAdvGear {
+  0%, 74% { transform: rotate(0deg); }
+  86% { transform: rotate(180deg); }
+  100% { transform: rotate(180deg); }
+}
+body.ws-panel-open .ws-dock__chip--adv .c-ico,
+.ws-dock__chip--adv:hover .c-ico { animation: none; }
 .ws-dock__chip .c-ico { font-size: 12px; color: var(--accent-blue); width: 14px; text-align: center; }
 .ws-dock__chip .c-val { color: var(--text, #f2f5f3); font-weight: 600; }
 .ws-dock__chip .c-caret { font-size: 9px; color: var(--text-dim, #6d7779); margin-left: 1px; }
@@ -193,6 +255,92 @@ body.ws-dock-on .ws-dock { display: block; }
   background: rgba(var(--accent-blue-rgb), 0.14);
   transform: translateY(-1px);
 }
+
+/* ---- agent hint bubble: one-time explainer above the ✦ button ---------- */
+/* Shown by workspace-dock.js a moment after the intro, auto-hides, and is
+   remembered in localStorage once dismissed or once the agent is used. */
+.ws-dock__hint {
+  position: absolute;
+  left: 6px;
+  bottom: calc(100% + 14px);
+  z-index: 61;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  max-width: min(350px, calc(100vw - 48px));
+  padding: 11px 12px 12px;
+  border-radius: 14px;
+  background: rgba(16, 21, 23, 0.96);
+  border: 1px solid rgba(var(--accent-blue-rgb), 0.4);
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.5), 0 0 24px rgba(var(--accent-blue-rgb), 0.12);
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ws-dock__hint.is-on {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+/* tail pointing down at the ✦ button (border layer + fill layer) */
+.ws-dock__hint::before,
+.ws-dock__hint::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 18px;
+  border: 7px solid transparent;
+  border-top-color: rgba(var(--accent-blue-rgb), 0.4);
+  border-bottom: none;
+}
+.ws-dock__hint::after {
+  margin-top: -1.5px;
+  border-top-color: rgba(16, 21, 23, 0.98);
+}
+.ws-dock__hint-ico {
+  flex: none;
+  margin-top: 1px;
+  color: var(--accent-blue);
+  font-size: 14px;
+  text-shadow: 0 0 12px rgba(var(--accent-blue-rgb), 0.55);
+  animation: wsHintTwinkle 2.2s ease-in-out infinite;
+}
+@keyframes wsHintTwinkle {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+.ws-dock__hint-txt {
+  font: 400 12.5px/1.5 var(--font-ui, 'Inter', sans-serif);
+  color: var(--text-soft, #c8d0d0);
+}
+.ws-dock__hint-txt strong { color: var(--text, #f2f5f3); font-weight: 650; }
+.ws-dock__hint-txt kbd {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 5px;
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.14));
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-soft, #c8d0d0);
+  font: 600 10.5px/1.4 var(--font-ui, 'Inter', sans-serif);
+}
+.ws-dock__hint-x {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: -2px -2px 0 2px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-dim, #6d7779);
+  font-size: 11px;
+  line-height: 1;
+  cursor: pointer;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+.ws-dock__hint-x:hover { color: var(--text, #f2f5f3); background: rgba(255, 255, 255, 0.07); }
+.ws-dock__hint-x:focus { outline: none; }
+.ws-dock__hint-x:focus-visible { outline: 2px solid rgba(var(--accent-blue-rgb), 0.55); outline-offset: 1px; }
 
 /* ---- focus: no browser ring on click; quiet teal ring for keyboard ---- */
 .ws-dock__chip:focus,
@@ -647,4 +795,15 @@ body.ws-dock-on .ws-prompt-guide {
     opacity: 0;
     pointer-events: none;
   }
+}
+
+/* ---- reduced motion: quiet the new dock accents ------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .ws-dock__chip--adv,
+  .ws-dock__chip--adv .c-ico,
+  .ws-dock__generate::after,
+  .ws-dock__hint-ico {
+    animation: none;
+  }
+  .ws-dock__hint { transition: opacity 0.2s ease; transform: none; }
 }

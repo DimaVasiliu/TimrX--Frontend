@@ -6,7 +6,7 @@
 
 import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url, BACKEND } from './config.js';
 import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, triggerBrowserDownload } from './download-utils.js';
-import * as State from './state.js?v=20260407e';
+import * as State from './state.js?v=20260812a';
 import * as Viewer from './viewer.js?v=20260806a';
 import * as UI from './ui-utils.js';
 
@@ -27,7 +27,7 @@ import {
   getGroupedCardItems,
   resetGalleryInfiniteScroll
 } from './history.js?v=20260803a';
-import * as API from './api.js?v=20260811n';
+import * as API from './api.js?v=20260812a';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
