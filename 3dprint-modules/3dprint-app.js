@@ -3395,9 +3395,12 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
        * hardcoded 480p.
        */
 
-        // Seedance durations are tier-dependent: 2.0 tiers top out at 15s, while
-        // Seedance 2.5 accepts 4-30s (PiAPI, Aug 2026). Rebuild the shared
-        // duration select so v25 exposes the longer clips and other tiers drop them.
+        // Seedance durations are tier-dependent. PiAPI's 2.5 product page claims
+        // 4-30s but the LIVE API 400s anything past 15s (verified 2026-08-12), so
+        // v25 stays at 15 for now. If PiAPI enables 30s: extend V25_DURATIONS here
+        // and set SEEDANCE_25_MAX_DURATION=30 on the backend — DB rows for
+        // 20/25/30s already exist (migration 082).
+        const V25_DURATIONS = [5, 10, 15];
         function updateSeedanceDurationOptions() {
           const durationSelect = leftStack.querySelector('#videoDuration');
           const tierInput = leftStack.querySelector('#seedanceTier');
@@ -3406,7 +3409,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             || window.GenerationState?.getProvider?.('video') || '';
           if (provider !== 'seedance') return;
           const isV25 = tierInput.value === 'v25';
-          const values = isV25 ? [5, 10, 15, 20, 25, 30] : [5, 10, 15];
+          const values = isV25 ? V25_DURATIONS : [5, 10, 15];
           const current = parseInt(durationSelect.value, 10) || 5;
           durationSelect.innerHTML = values.map(v =>
             '<option value="' + v + '"' + (v === current ? ' selected' : '') + '>' + v + ' sec</option>'
@@ -3702,7 +3705,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             tierWrap = document.createElement('div');
             tierWrap.id = 'seedanceTierWrap';
             tierWrap.className = 'vs-setting';
-            tierWrap.innerHTML = '<label for="seedanceTierSelect">Speed</label><select id="seedanceTierSelect"><option value="mini">Mini — cheapest, fastest (~30 s\u20132 min)</option><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option><option value="v25">Seedance 2.5 — newest model, up to 30s (~7\u201330 min)</option></select>';
+            tierWrap.innerHTML = '<label for="seedanceTierSelect">Speed</label><select id="seedanceTierSelect"><option value="mini">Mini — cheapest, fastest (~30 s\u20132 min)</option><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option><option value="v25">Seedance 2.5 — newest model, premium (~7\u201330 min)</option></select>';
             const durationSetting = videoDuration?.closest('.vs-setting');
             if (durationSetting) durationSetting.after(tierWrap);
           }
