@@ -27,7 +27,7 @@ import {
   getGroupedCardItems,
   resetGalleryInfiniteScroll
 } from './history.js?v=20260803a';
-import * as API from './api.js?v=20260812a';
+import * as API from './api.js?v=20260812b';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';

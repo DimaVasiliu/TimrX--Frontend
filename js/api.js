@@ -1970,6 +1970,8 @@ function showExpiredModelError(operation = 'process') {
     refine: 'refine',
     remesh: 'remesh',
     texture: 'retexture',
+    image3d: 'convert',
+    multi_image3d: 'convert',
   };
   const opName = opNames[operation] || operation;
 
@@ -3005,24 +3007,38 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
 }
 
 /**
- * Watch a Meshy task (remesh, texture, rig, image3d)
+ * Watch a Meshy task (remesh, texture, rig, image3d, multi_image3d)
+ *
+ * Multi-Image-to-3D is a distinct Meshy task type with its own retrieve
+ * endpoint (GET /openapi/v1/multi-image-to-3d/:id), so it must poll the
+ * multi-image status route — the single-image route would 404 on Meshy.
  */
 export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } = {}) {
+  const isImageKind = kind === 'image3d' || kind === 'multi_image3d';
+
   const endpoint = kind === 'texture'
     ? '/api/_mod/mesh/retexture'
     : kind === 'image3d'
       ? '/api/_mod/image-to-3d/status'
-      : '/api/_mod/mesh/remesh';
+      : kind === 'multi_image3d'
+        ? '/api/_mod/multi-image-to-3d/status'
+        : '/api/_mod/mesh/remesh';
 
   const stageLabel = kind === 'texture'
     ? 'Texturing'
     : kind === 'image3d'
       ? 'Image to 3D'
-      : 'Remeshing';
+      : kind === 'multi_image3d'
+        ? 'Multi-Image to 3D'
+        : 'Remeshing';
 
-  // For image3d, simulate progress since Meshy API doesn't return real progress
+  // History/UI stage: multi-image results are ordinary image-to-3D models
+  // downstream (badges, stage ordering, next-step suggestions).
+  const historyStage = kind === 'multi_image3d' ? 'image3d' : kind;
+
+  // For image-to-3D kinds, simulate progress since Meshy API doesn't return real progress
   const startTime = Date.now();
-  const estimatedDuration = kind === 'image3d' ? 120000 : 60000;
+  const estimatedDuration = isImageKind ? 120000 : 60000;
   let simulatedPct = 0;
 
   createPoller({
@@ -3040,7 +3056,7 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
         const pct = Math.min(98, Math.max(0, st.pct));
         prog.jump(pct);
         updateThumbnailProgress(job_id, pct);
-      } else if (kind === 'image3d' && st.status !== 'done' && st.status !== 'failed') {
+      } else if (isImageKind && st.status !== 'done' && st.status !== 'failed') {
         const elapsedMs = Date.now() - startTime;
         simulatedPct = Math.min(95, Math.floor(95 * (1 - Math.exp(-elapsedMs / estimatedDuration))));
         prog.jump(simulatedPct);
@@ -3105,7 +3121,7 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
           batch_group_id: meta.batch_group_id || null,
           generation_group_id: meta.generation_group_id || null,
           progress_pct: 100,
-          stage: kind,
+          stage: historyStage,
           thumbnail_url: st.thumbnail_url || meta.thumbnail_url || '',
           glb_url: glbDirect,
           glb_proxy: glbProxy,
@@ -3315,20 +3331,27 @@ export function watchGeminiImageJob(jobId, reservationId, meta = {}) {
  * Begin a Meshy task (remesh, texture)
  */
 async function beginMeshyTask(kind, payload, meta = {}) {
+  // Format-only remesh is dispatched to Meshy Convert by the backend, which
+  // reserves MESHY_CONVERT (1 credit) instead of MESHY_REMESH (5) — the
+  // frontend preflight and reservation must use the same action key.
+  const creditAction = (kind === 'remesh' && payload?.convert_format_only) ? 'convert' : kind;
+
   // Check credits before proceeding
-  if (!checkCreditsFor(kind)) {
+  if (!checkCreditsFor(creditAction)) {
     return;
   }
 
   const endpoint = kind === 'texture'
     ? '/api/_mod/mesh/retexture'
     : '/api/_mod/mesh/remesh';
-  const statusLabel = kind === 'texture' ? 'Texturing...' : 'Remeshing...';
+  const statusLabel = kind === 'texture'
+    ? 'Texturing...'
+    : creditAction === 'convert' ? 'Converting...' : 'Remeshing...';
   const prog = UI.makeProgressDriver();
 
   // Reserve credits BEFORE API call
   prog.label('Reserving credits...');
-  const reservation = reserveCreditsForAction(kind, 1);
+  const reservation = reserveCreditsForAction(creditAction, 1);
   if (reservation.insufficient) {
     return; // Insufficient credits modal shown
   }
@@ -5295,8 +5318,8 @@ const SEEDANCE_COSTS = {
   // seedance-2.5: PiAPI cut list ~50% at GA (Aug 2026) — $0.15/s 480p, $0.35/s 720p
   // at the same 120 credits per $/s (migration 081).
   v25: {
-    '480p': { 5: 90,  10: 180, 15: 270 },
-    '720p': { 5: 210, 10: 420, 15: 630 },
+    '480p': { 5: 90,  10: 180, 15: 270, 20: 360, 25: 450, 30: 540 },
+    '720p': { 5: 210, 10: 420, 15: 630, 20: 840, 25: 1050, 30: 1260 },
   },
   // seedance-2-mini: 12.5% cheaper upstream than Fast, priced at 87.5% of it. No 1080p.
   mini: {
@@ -6676,7 +6699,10 @@ async function startMultiImageTo3D() {
     negative_prompt: negativePrompt,
     model,
     ...imageOptions,
+    // stage stays 'image3d' (history badges/ordering treat it as image-to-3D),
+    // but the resume strategy routes recovery to the multi-image status route.
     stage: 'image3d',
+    resume_strategy: 'meshy_multi_image_to_3d',
     thumbnail_url: ''
   };
 
@@ -6737,7 +6763,7 @@ async function startMultiImageTo3D() {
     State.addActiveJob(job_id);
     State.savePendingMeta(job_id, { ...meta, type: 'model' });
     addGeneratingPlaceholder(job_id, { ...meta, status_label: 'Generating from multiple images...', type: 'model' });
-    watchMeshyTask(job_id, 'image3d');
+    watchMeshyTask(job_id, 'multi_image3d');
 
     if (data.new_balance !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
       window.WorkspaceCredits.applyBackendBalance(data.new_balance, 'multi_image_to_3d_response');
@@ -8179,6 +8205,7 @@ const _STRATEGY_TO_CATEGORY = {
   meshy_retexture:   'mesh',
   meshy_remesh:      'mesh',
   meshy_image_to_3d: 'mesh',
+  meshy_multi_image_to_3d: 'mesh',
   meshy_text_to_3d:  'text',
   meshy_refine:      'text',
   meshy_multi_color_print: 'multiColor',
@@ -8193,6 +8220,8 @@ const _STRATEGY_TO_STAGE = {
   meshy_retexture:   'texture',
   meshy_remesh:      'remesh',
   meshy_image_to_3d: 'image3d',
+  // Multi-image shares the image3d stage for history/UI; only the poll route differs.
+  meshy_multi_image_to_3d: 'image3d',
   meshy_text_to_3d:  'preview',
   meshy_refine:      'refine',
   meshy_multi_color_print: 'multi_color_print',
@@ -8205,11 +8234,20 @@ const _STRATEGY_TO_STAGE = {
 /** Legacy: infer resume_strategy from a stage string */
 function _inferStrategyFromStage(stage) {
   const map = { texture: 'meshy_retexture', remesh: 'meshy_remesh', image3d: 'meshy_image_to_3d',
+    multi_image3d: 'meshy_multi_image_to_3d',
     preview: 'meshy_text_to_3d', refine: 'meshy_refine', rig: 'meshy_rig',
     animate: 'meshy_animation', animation: 'meshy_animation', video: 'video', image: 'image',
     multi_color_print: 'meshy_multi_color_print' };
   return map[stage] || 'meshy_text_to_3d';
 }
+
+/** Map resume_strategy → the watchMeshyTask() kind (which status route to poll) */
+const _STRATEGY_TO_MESH_KIND = {
+  meshy_retexture:   'texture',
+  meshy_remesh:      'remesh',
+  meshy_image_to_3d: 'image3d',
+  meshy_multi_image_to_3d: 'multi_image3d',
+};
 
 /**
  * Resume watching any jobs that were in progress.
@@ -8448,8 +8486,13 @@ async function _doResumePendingJobs(options = {}) {
   const soloMeshStage = soloMeshJobId ? (pendingMeta[soloMeshJobId]?.stage || 'remesh') : '';
   const soloMeshAutoLoad = soloMeshJobId && ['texture', 'image3d'].includes(soloMeshStage);
   for (const id of buckets.mesh) {
-    const stage = pendingMeta[id]?.stage || 'remesh';
-    watchMeshyTask(id, stage, { isRecovery: !(soloMeshAutoLoad && id === soloMeshJobId) });
+    const meta = pendingMeta[id] || {};
+    const stage = meta.stage || 'remesh';
+    // Prefer the resume strategy: multi-image jobs share the 'image3d' stage
+    // but must poll the multi-image status route.
+    const strategy = meta.resume_strategy || _inferStrategyFromStage(stage);
+    const kind = _STRATEGY_TO_MESH_KIND[strategy] || stage;
+    watchMeshyTask(id, kind, { isRecovery: !(soloMeshAutoLoad && id === soloMeshJobId) });
   }
   for (const id of buckets.text) {
     watchJob(id, { isRecovery: !soloPreview });

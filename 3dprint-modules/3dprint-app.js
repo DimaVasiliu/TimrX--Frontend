@@ -1346,11 +1346,11 @@
           <div class="gen-meta">
             <span class="gen-time">1.5 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 5</span>
+            <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
           </div>
-          <button type="button" id="generateTextureBtn" class="gen-btn" title="5 credits">
+          <button type="button" id="generateTextureBtn" class="gen-btn" title="10 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
-            Texture <span class="btn-cost-badge">5 cr</span>
+            Texture <span class="btn-cost-badge">10 cr</span>
           </button>
         </div>
       `,
@@ -3007,8 +3007,8 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         // PiAPI cut the list price ~50% at GA (Aug 2026): $0.15/s 480p, $0.35/s 720p.
         // Same 120 credits-per-$/s ratio, so credits halved with it (migration 081).
         v25: {
-          '480p': { 5: 90,  10: 180, 15: 270 },
-          '720p': { 5: 210, 10: 420, 15: 630 },
+          '480p': { 5: 90,  10: 180, 15: 270, 20: 360, 25: 450, 30: 540 },
+          '720p': { 5: 210, 10: 420, 15: 630, 20: 840, 25: 1050, 30: 1260 },
         },
         // PiAPI seedance-2-mini is 12.5% cheaper upstream than Fast at every
         // resolution, so Mini is priced at 87.5% of Fast. No 1080p on this tier.
@@ -6321,12 +6321,18 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           if (!el) return;
           el.disabled = convertOnly;
         });
-        const cost = convertOnly ? 1 : 5;
+        // Format Only routes to Meshy Convert (1 credit), not Remesh (5).
+        const action = convertOnly ? 'convert' : 'remesh';
+        const fallbackCost = convertOnly ? 1 : 5;
+        const cost = window.WorkspaceCredits?.getActionCost?.(action) || fallbackCost;
         const actionLabel = convertOnly ? 'Convert' : 'Remesh';
         const remeshCredits = leftStack.querySelector('#remeshCreditsDisplay');
         const applyRemeshBtn = leftStack.querySelector('#applyRemeshBtn');
         if (remeshCredits) remeshCredits.innerHTML = `<i class="fa-solid fa-coins"></i> ${cost}`;
         if (applyRemeshBtn) {
+          // Tells the credits module which action to price this button with,
+          // so a later cost refresh doesn't restore the remesh cost.
+          applyRemeshBtn.dataset.currentAction = action;
           applyRemeshBtn.title = `${cost} credits`;
           const costBadge = applyRemeshBtn.querySelector('.btn-cost-badge');
           if (costBadge) costBadge.textContent = `${cost} cr`;
@@ -6334,6 +6340,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             .find((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
           if (textNode) textNode.textContent = `\n            ${actionLabel} `;
         }
+        window.WorkspaceCredits?.updateButtonCosts?.();
       };
 
       if (remeshPresetsWrap) {

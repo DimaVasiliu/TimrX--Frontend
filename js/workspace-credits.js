@@ -351,7 +351,7 @@ async function _fetchRealWalletBalances() {
  */
 const _ACTION_COSTS_CACHE_KEY = 'timrx_action_costs';
 const _ACTION_COSTS_CACHE_TTL = 3600000; // 1 hour — costs are admin-configured, rarely change
-const _ACTION_COSTS_CACHE_VERSION = 1;   // Bump when pricing changes to invalidate stale caches
+const _ACTION_COSTS_CACHE_VERSION = 2;   // Bump when pricing changes to invalidate stale caches
 
 export async function fetchActionCosts() {
   // Fast path: use localStorage cache if fresh (avoids network call entirely on repeat loads)
@@ -477,8 +477,9 @@ export async function fetchActionCosts() {
  * - text_to_3d_generate  (20c) - Text to 3D preview generation
  * - image_to_3d_generate (30c) - Image to 3D conversion
  * - refine               (6c)  - Refine/upscale 3D model
- * - remesh               (6c)  - Remesh 3D model (same cost as refine)
- * - retexture            (5c)  - Apply new texture to 3D model
+ * - remesh               (5c)  - Remesh 3D model
+ * - retexture            (10c) - Apply new texture to 3D model
+ * - convert              (1c)  - Format-only conversion (Meshy Convert)
  * - video_generate       (96c) - Generic video generation (Vertex 8s 720p base)
  * - video_text_generate  (96c) - Text-to-video generation (base)
  * - video_image_animate  (96c) - Image-to-video (equalized with text-to-video)
@@ -506,8 +507,11 @@ function getDefaultActionCosts() {
     'text_to_3d_generate': 20,    // Text to 3D preview
     'image_to_3d_generate': 30,   // Image to 3D
     'refine': 6,                  // Refine 3D model
-    'remesh': 6,                  // Remesh 3D model
-    'retexture': 5,               // Retexture 3D model
+    'remesh': 5,                  // Remesh 3D model
+    'retexture': 10,              // Retexture 3D model
+    'convert': 1,                 // Meshy Convert (format-only remesh)
+    'resize': 1,                  // Meshy Resize
+    'uv_unwrap': 5,               // Meshy UV Unwrap
     'video_generate': 96,         // Video generation (Vertex 8s 720p base)
     'video_text_generate': 96,    // Text to video (base)
     'video_image_animate': 96,    // Image to video (equalized)
@@ -523,7 +527,7 @@ function getDefaultActionCosts() {
 
     // Old naming
     'preview': 20,                // -> text_to_3d_generate
-    'texture': 5,                 // -> retexture
+    'texture': 10,                // -> retexture
     'upscale': 6,                 // -> refine
     'video': 96,                  // -> video_generate (base)
     'image_studio_generate': 4,   // -> image_generate (OpenAI tier)
@@ -531,7 +535,11 @@ function getDefaultActionCosts() {
     // Backend DB action codes (for direct lookups)
     'MESHY_TEXT_TO_3D': 20,
     'MESHY_IMAGE_TO_3D': 30,
-    'MESHY_RETEXTURE': 5,
+    'MESHY_RETEXTURE': 10,
+    'MESHY_REMESH': 5,
+    'MESHY_CONVERT': 1,
+    'MESHY_RESIZE': 1,
+    'MESHY_UV_UNWRAP': 5,
     'MESHY_REFINE': 6,
     'MESHY_RIGGING': 5,
     'MESHY_ANIMATION': 3,
@@ -1536,8 +1544,8 @@ export function updateCreditsUI() {
  * - text_to_3d_generate  (20c) - Text to 3D preview
  * - image_to_3d_generate (30c) - Image to 3D
  * - refine               (6c)  - Refine 3D model
- * - remesh               (6c)  - Remesh 3D model
- * - retexture            (5c)  - Retexture 3D model
+ * - remesh               (5c)  - Remesh 3D model / convert (1c) when format-only
+ * - retexture            (10c) - Retexture 3D model
  * - multi_color_print   (10c) - Full-color 3MF print conversion
  * - video_generate       (48-156c) - Video generation (Vertex 12 c/s, varies by duration/resolution)
  * - video_text_generate  (48-156c) - Text to video (equalized with image-to-video)
