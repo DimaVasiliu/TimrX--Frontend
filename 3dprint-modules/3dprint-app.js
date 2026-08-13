@@ -809,12 +809,12 @@
               <label for="multiImageModelName" style="font-size:12px">Name</label>
               <input type="text" id="multiImageModelName" placeholder="My Multi-View Model" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:7px;color:#fff;font-size:12px" />
             </div>
-            <label class="video-section-label">Upload 1–4 Reference Images</label>
+            <label class="video-section-label">Upload 1–4 Reference Images <span class="info-dot" title="Meshy 7 / Latest treats the first image as the primary front view. The order of the other images does not matter.">i</span></label>
             <div id="multiImageGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;max-width:240px;margin-left:auto;margin-right:auto">
               <div class="multi-img-slot" data-slot="0">
                 <div class="video-drop-zone" id="multiImgDrop0" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  <span style="font-size:10px;color:#888;margin-top:3px">Image 1</span>
+                  <span style="font-size:10px;color:#c9b47a;margin-top:3px;font-weight:600">Image 1 · Front</span>
                   <input type="file" class="multi-img-input" accept="image/*" hidden />
                 </div>
                 <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
@@ -822,7 +822,7 @@
               <div class="multi-img-slot" data-slot="1">
                 <div class="video-drop-zone" id="multiImgDrop1" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  <span style="font-size:10px;color:#888;margin-top:3px">Image 2</span>
+                  <span style="font-size:10px;color:#888;margin-top:3px">Image 2 · optional</span>
                   <input type="file" class="multi-img-input" accept="image/*" hidden />
                 </div>
                 <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
@@ -830,7 +830,7 @@
               <div class="multi-img-slot" data-slot="2">
                 <div class="video-drop-zone" id="multiImgDrop2" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  <span style="font-size:10px;color:#888;margin-top:3px">Image 3</span>
+                  <span style="font-size:10px;color:#888;margin-top:3px">Image 3 · optional</span>
                   <input type="file" class="multi-img-input" accept="image/*" hidden />
                 </div>
                 <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
@@ -838,13 +838,13 @@
               <div class="multi-img-slot" data-slot="3">
                 <div class="video-drop-zone" id="multiImgDrop3" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
                   <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                  <span style="font-size:10px;color:#888;margin-top:3px">Image 4</span>
+                  <span style="font-size:10px;color:#888;margin-top:3px">Image 4 · optional</span>
                   <input type="file" class="multi-img-input" accept="image/*" hidden />
                 </div>
                 <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
               </div>
             </div>
-            <span class="field-hint">Upload 1–4 images of the same object from different angles for best results</span>
+            <span class="field-hint"><strong>Image 1 is the primary front view</strong> — Meshy 7 / Latest builds the model around it. Images 2–4 are optional extra angles of the same object, in any order.</span>
             <span class="field-hint" style="color:#b08a3e;font-size:10px;margin-top:2px">Images are sent as data URLs — keep each file under 5 MB for reliable uploads</span>
             <div id="multiImageCount" style="font-size:11px;color:#666;margin-top:4px">0 / 4 images selected</div>
             <div class="negative-prompt-field">
@@ -966,7 +966,7 @@
                 </div>
 
                 <div class="field-row">
-                  <span class="field-label-inline">Content Moderation</span>
+                  <span class="field-label-inline">Content Moderation <span class="info-dot" id="modelModerationInfo" title="Text-to-3D always runs Meshy content moderation. Image flows let you choose.">i</span></span>
                   <label class="toggle-switch">
                     <input type="checkbox" id="modelModeration">
                     <span class="toggle-slider"></span>
@@ -988,6 +988,16 @@
                   <select id="modelTopology">
                     <option value="triangle" selected>Triangle</option>
                     <option value="quad">Quad</option>
+                  </select>
+                </div>
+                <div class="inline-field">
+                  <label for="modelDecimationMode">Decimation <span class="info-dot" title="Adaptive decimation picks the polycount for you. When set, Meshy ignores Target Polycount.">i</span></label>
+                  <select id="modelDecimationMode">
+                    <option value="" selected>Off — use polycount</option>
+                    <option value="1">Adaptive — Ultra</option>
+                    <option value="2">Adaptive — High</option>
+                    <option value="3">Adaptive — Medium</option>
+                    <option value="4">Adaptive — Low</option>
                   </select>
                 </div>
                 <div class="inline-field">
@@ -2630,10 +2640,33 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           textureResolution.disabled = isTextFlow;
         }
 
-        const supportsUltra = isSingleImageFlow && !smartTopology && ['latest', 'meshy-7'].includes(modelValue);
+        // Meshy documents ultra_mode for Image-to-3D with ai_model meshy-7/latest
+        // and standard geometry only — low-poly and smart-topology do not take it.
+        const modelTypeValue = (modelType?.value || '').toLowerCase();
+        const isStandardGeometry = modelTypeValue === '' || modelTypeValue === 'standard';
+        const supportsUltra = isSingleImageFlow && isStandardGeometry && ['latest', 'meshy-7'].includes(modelValue);
         if (ultraMode) {
           ultraMode.disabled = !supportsUltra;
           if (!supportsUltra) ultraMode.checked = false;
+        }
+
+        // Text-to-3D always sends moderation: true, so the toggle must not
+        // pretend otherwise. Image flows still honour the user's choice, which
+        // is parked while the text tab forces the switch on.
+        const moderation = leftStack.querySelector('#modelModeration');
+        if (moderation) {
+          if (isTextFlow) {
+            if (!moderation.disabled) moderation.dataset.userChoice = moderation.checked ? '1' : '0';
+            moderation.checked = true;
+            moderation.disabled = true;
+            moderation.title = 'Always on for Text-to-3D';
+          } else {
+            if (moderation.disabled && moderation.dataset.userChoice !== undefined) {
+              moderation.checked = moderation.dataset.userChoice === '1';
+            }
+            moderation.disabled = false;
+            moderation.title = '';
+          }
         }
         if (multiViewThumbnails) {
           multiViewThumbnails.disabled = !isImageFlow;
@@ -6509,6 +6542,8 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const modelTypeSelect = leftStack.querySelector('#modelModelType');
       const modelShouldRemesh = leftStack.querySelector('#modelShouldRemesh');
       const modelRemeshSettings = leftStack.querySelector('#modelRemeshSettings');
+      const modelDecimationMode = leftStack.querySelector('#modelDecimationMode');
+      const modelTargetPolycount = leftStack.querySelector('#modelTargetPolycount');
       const modelModeration = leftStack.querySelector('#modelModeration');
       const modelAutoSize = leftStack.querySelector('#modelAutoSize');
       const modelAutoSizeSettings = leftStack.querySelector('#modelAutoSizeSettings');
@@ -6534,6 +6569,16 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           });
         }
 
+        // Adaptive decimation replaces the manual polycount — Meshy ignores
+        // target_polycount whenever decimation_mode is set.
+        const decimationActive = remeshEnabled && !!modelDecimationMode?.value;
+        if (modelTargetPolycount) {
+          modelTargetPolycount.disabled = !remeshEnabled || decimationActive;
+          modelTargetPolycount.title = decimationActive
+            ? 'Ignored while adaptive decimation is selected'
+            : '';
+        }
+
         const autoSizeEnabled = !!modelAutoSize?.checked;
         if (modelAutoSizeSettings) {
           modelAutoSizeSettings.style.display = autoSizeEnabled ? 'grid' : 'none';
@@ -6548,6 +6593,8 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         if (modelPreviewAdvancedNote) {
           if (isLowPoly) {
             modelPreviewAdvancedNote.textContent = 'Low Poly preview ignores Meshy remesh controls and returns simplified geometry directly.';
+          } else if (decimationActive) {
+            modelPreviewAdvancedNote.textContent = 'Adaptive decimation lets Meshy choose the polycount for this level, so Target Polycount is ignored.';
           } else if (remeshEnabled) {
             modelPreviewAdvancedNote.textContent = 'Auto-remesh lets preview honor topology and target polycount before the refine stage.';
           } else {
@@ -6563,6 +6610,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       aiModelSelect?.addEventListener('change', syncAllModelControls);
       modelTypeSelect?.addEventListener('change', syncAllModelControls);
       modelShouldRemesh?.addEventListener('change', syncAllModelControls);
+      modelDecimationMode?.addEventListener('change', syncAllModelControls);
       modelAutoSize?.addEventListener('change', syncAllModelControls);
       modelModeration?.addEventListener('change', syncAllModelControls);
       modelTextureResolution?.addEventListener('change', syncAllModelControls);

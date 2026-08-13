@@ -926,7 +926,7 @@
             <ul>
               <li><strong>Text to 3D</strong> — Generate 3D models from text descriptions.</li>
               <li><strong>Image to 3D</strong> — Convert reference images into 3D models.</li>
-              <li><strong>AI Image</strong> — Generate 2D images via OpenAI, Google Imagen, Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, or Nano Banana.</li>
+              <li><strong>AI Image</strong> — Generate 2D images via OpenAI, Google Imagen, Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, Nano Banana, or Nano Banana Pro.</li>
               <li><strong>AI Video</strong> — Generate videos via Veo 3.1, Seedance 2.0 (Mini / Fast / Quality), Seedance 2.5, or Seedance 1.5 Pro.</li>
               <li><strong>Refine</strong> — Turn a preview model into a higher-detail Meshy refine with optional style guidance.</li>
               <li><strong>Remesh</strong> — Optimize 3D model topology for printing or editing.</li>
@@ -937,13 +937,14 @@
               <li><strong>File Converter</strong> — Free client-side 3D format converter.</li>
             </ul>
             <h3>Workspace layout</h3>
-            <p>The workspace is split into three areas:</p>
+            <p>The redesigned workspace centers on a single prompt dock:</p>
             <ul>
-              <li><strong>Left rail</strong> — Tool selector. Switch between Image, Model, Remesh, Texture, Rig, Animate, and Video panels.</li>
-              <li><strong>Center</strong> — 3D viewer. Interact with your current model: orbit, zoom, pan. The toolbar below offers quick actions like Retry, Refine, Remesh, Texture, Download, and Share.</li>
-              <li><strong>Right panel</strong> — Generation history. Browse, search, and filter all your past creations. Expand to a full gallery view.</li>
+              <li><strong>Prompt dock</strong> (bottom) — Type your prompt, pick the mode (3D, Image, Video, Remesh, Texture, Rig, Animate) and key settings from the inline chips, then hit Generate. The <strong>Advanced</strong> chip opens a side drawer with every remaining setting, and the <strong>✦ agent</strong> button turns plain language into a fully staged generation (also on <kbd>⌘K</kbd>).</li>
+              <li><strong>Stage</strong> (center) — 3D viewer with orbit, zoom, and pan, plus a toolbar for Retry, Refine, Remesh, Texture, Download, and Share. Start-here hints appear when the stage is empty.</li>
+              <li><strong>Filmstrip &amp; Assets</strong> (right / header) — Recent generations line the right edge; the full searchable library lives behind the <strong>Assets</strong> button in the header.</li>
+              <li><strong>Progress card</strong> — The moment you generate, a floating card tracks every running job with live stage, percentage, and elapsed time. Minimise it to a small progress orb and keep working; it reopens on click or whenever a new generation starts, and failed jobs explain exactly why (with credits refunded automatically).</li>
             </ul>
-            <div class="docs-tip"><strong>Tip:</strong> Click any item in the history panel to load it into the 3D viewer instantly.</div>
+            <div class="docs-tip"><strong>Tip:</strong> Click any item in the filmstrip or Assets library to load it into the 3D viewer instantly.</div>
           </article>
 
           <!-- Text to 3D -->
@@ -1124,18 +1125,18 @@
             <div class="docs-option-grid">
               <dl class="docs-option-card">
                 <dt>Provider</dt>
-                <dd>OpenAI, Google (Imagen), Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, or Nano Banana</dd>
+                <dd>OpenAI, Google (Imagen), Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, Nano Banana, or Nano Banana Pro</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Shape</dt>
-                <dd>Square, Portrait, or Landscape</dd>
+                <dd>Square, Portrait, or Landscape on every provider. Nano Banana and Nano Banana Pro add Wide (21:9), Classic (3:2), and Tall (4:5).</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Quality</dt>
-                <dd>Provider-dependent. OpenAI and Imagen support Standard / 2K, Nano Banana adds 4K Ultra, and some providers are Standard-only. Recraft V4 also offers SVG vector output.</dd>
+                <dd>Provider-dependent. OpenAI and Imagen support Standard / 2K; Nano Banana and Nano Banana Pro add 4K Ultra (Pro charges the same for 1K and 2K); some providers are Standard-only. Recraft V4 also offers SVG vector output.</dd>
               </dl>
             </div>
-            <div class="docs-tip"><strong>Cost:</strong> 10–20 credits depending on resolution. Estimated time ~30 seconds.</div>
+            <div class="docs-tip"><strong>Cost:</strong> 4–27 credits depending on provider and resolution. Estimated time ~30 seconds.</div>
           </article>
 
           <!-- AI Video -->
@@ -1151,7 +1152,7 @@
               </dl>
               <dl class="docs-option-card">
                 <dt>Seedance 2.0</dt>
-                <dd>Mini, Fast, and Quality tiers, plus the newer Seedance 2.5 model. Supports 5s, 10s, and 15s durations in the workspace, with wider 4-15s provider support available for future controls. Mini is the cheapest and fastest; Quality unlocks 1080p. Aspect ratios 21:9, 16:9, 4:3, 1:1, 3:4, and 9:16. Clips include a generated soundtrack by default, which you can switch off.</dd>
+                <dd>Mini, Fast, and Quality tiers, plus the newer Seedance 2.5 model. The 2.0 tiers support 5s, 10s, and 15s clips; Seedance 2.5 goes further with 20s, 25s, and 30s options. Mini is the cheapest and fastest; Quality unlocks 1080p. Aspect ratios 21:9, 16:9, 4:3, 1:1, 3:4, and 9:16. Clips include a generated soundtrack by default, which you can switch off.</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Seedance 1.5 Pro</dt>
@@ -1291,16 +1292,16 @@
             <div class="docs-table-wrap">
               <table class="docs-table">
                 <thead>
-                  <tr><th>Resolution</th><th>Standard</th><th>Nano Banana (Premium)</th></tr>
+                  <tr><th>Resolution</th><th>Standard</th><th>Nano Banana (Premium)</th><th>Nano Banana Pro</th></tr>
                 </thead>
                 <tbody>
-                  <tr><td>Standard (1K)</td><td>4</td><td>7</td></tr>
-                  <tr><td>2K</td><td>8</td><td>12</td></tr>
-                  <tr><td>4K</td><td>—</td><td>18</td></tr>
+                  <tr><td>Standard (1K)</td><td>4</td><td>7</td><td>16</td></tr>
+                  <tr><td>2K</td><td>8</td><td>12</td><td>16</td></tr>
+                  <tr><td>4K</td><td>—</td><td>18</td><td>27</td></tr>
                 </tbody>
               </table>
             </div>
-            <p>Image providers now span standard raster, premium photoreal, text-focused, and vector-capable models. Nano Banana keeps exclusive 4K, while Recraft V4 adds SVG output for design workflows.</p>
+            <p>Image providers now span standard raster, premium photoreal, text-focused, and vector-capable models. Nano Banana and Nano Banana Pro carry exclusive 4K — Pro renders the sharpest in-image text, holds subjects consistent across up to 4 reference images, and charges the same for 1K and 2K. Recraft V4 adds SVG output for design workflows.</p>
 
             <h3>One-time credit packs</h3>
             <div class="docs-table-wrap">
@@ -1397,20 +1398,23 @@
               </table>
             </div>
 
-            <h3>Seedance 2.5 — newest model (premium)</h3>
+            <h3>Seedance 2.5 — newest model, up to 30 seconds</h3>
             <div class="docs-table-wrap">
               <table class="docs-table">
                 <thead>
                   <tr><th>Duration</th><th>480p</th><th>720p</th></tr>
                 </thead>
                 <tbody>
-                  <tr><td>5 seconds</td><td>180</td><td>360</td></tr>
-                  <tr><td>10 seconds</td><td>360</td><td>720</td></tr>
-                  <tr><td>15 seconds</td><td>540</td><td>1080</td></tr>
+                  <tr><td>5 seconds</td><td>90</td><td>210</td></tr>
+                  <tr><td>10 seconds</td><td>180</td><td>420</td></tr>
+                  <tr><td>15 seconds</td><td>270</td><td>630</td></tr>
+                  <tr><td>20 seconds</td><td>360</td><td>840</td></tr>
+                  <tr><td>25 seconds</td><td>450</td><td>1050</td></tr>
+                  <tr><td>30 seconds</td><td>540</td><td>1260</td></tr>
                 </tbody>
               </table>
             </div>
-            <p>Seedance 2.5 is a newer model rather than a faster tier of 2.0. It defaults to 720p, has no 1080p option, and accepts up to 12 references (9 images, 3 videos, 3 audio). It costs more per second than any other option here, so it suits final shots rather than iteration.</p>
+            <p>Seedance 2.5 is a newer model rather than a faster tier of 2.0, and its August 2026 price cut roughly halved every duration. It defaults to 720p, has no 1080p option, is the only model that generates clips up to 30 seconds in one shot, and accepts up to 15 references (9 images, 3 videos, 3 audio). It has the strongest motion and prompt adherence of the Seedance family, so it suits hero shots and long single takes.</p>
 
             <h3>Seedance 1.5 Pro — Budget tier (8 credits/sec)</h3>
             <div class="docs-table-wrap">
@@ -1611,7 +1615,7 @@ print(f"Status: {status['status']}")</code></pre>
             <p>Yes. The converter is completely free, requires no account, and processes everything client-side — your files never leave your device.</p>
 
             <h3>Which video provider should I use?</h3>
-            <p>Veo 3.1 offers the highest resolution (up to 4K) and style controls. Seedance 2.0 Mini is the most affordable and the fastest, so it suits rapid iteration. Seedance 2.0 Fast is the balanced default. Seedance 2.0 Quality offers higher quality at a premium and is the only tier with 1080p. Seedance 2.5 is a newer model with stronger motion and prompt adherence, at the highest per-second cost and a 720p ceiling. Seedance 1.5 Pro via fal.ai supports 12-second durations.</p>
+            <p>Veo 3.1 offers the highest resolution (up to 4K) and style controls. Seedance 2.0 Mini is the most affordable and the fastest, so it suits rapid iteration. Seedance 2.0 Fast is the balanced default. Seedance 2.0 Quality offers higher quality at a premium and is the only tier with 1080p. Seedance 2.5 is a newer model with the strongest motion and prompt adherence, the only 20–30 second single-shot clips, and — after its 2026 price cut — per-second pricing between Fast and Quality (720p ceiling). Seedance 1.5 Pro via fal.ai supports 12-second durations.</p>
 
             <h3>Do credits expire?</h3>
             <p>One-time purchased credits never expire. Subscription credits refresh each billing cycle — unused subscription credits do not roll over.</p>

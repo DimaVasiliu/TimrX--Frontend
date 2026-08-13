@@ -438,6 +438,7 @@ async function retryTextTo3DJob(jobId) {
     refine: false,
   };
   if (meta.topology) payload.topology = meta.topology;
+  if (meta.decimation_mode) payload.decimation_mode = meta.decimation_mode;
   if (meta.target_polycount) payload.target_polycount = meta.target_polycount;
   if (meta.origin_at) payload.origin_at = meta.origin_at;
 
@@ -2164,6 +2165,7 @@ function getPreviewFormValues() {
   const auto_size = !!byId('modelAutoSize')?.checked;
   const alpha_thumbnail = !!byId('modelAlphaThumbnail')?.checked;
   const topologyValue = (byId('modelTopology')?.value || 'triangle').trim().toLowerCase();
+  const decimationInput = parseInt(byId('modelDecimationMode')?.value || '', 10);
   const targetPolyInput = parseInt(byId('modelTargetPolycount')?.value || '30000', 10);
   const originAt = (byId('modelOriginAt')?.value || 'bottom').trim().toLowerCase();
   const targetFormatContainer = document.querySelector('#modelTargetFormats');
@@ -2186,9 +2188,15 @@ function getPreviewFormValues() {
 
   if (should_remesh) {
     values.topology = topologyValue === 'quad' ? 'quad' : 'triangle';
-    values.target_polycount = Number.isFinite(targetPolyInput)
-      ? Math.max(100, Math.min(300000, targetPolyInput))
-      : 30000;
+    // Meshy ignores target_polycount when decimation_mode is set, so send one
+    // or the other rather than a pair the provider will silently disagree on.
+    if ([1, 2, 3, 4].includes(decimationInput)) {
+      values.decimation_mode = decimationInput;
+    } else {
+      values.target_polycount = Number.isFinite(targetPolyInput)
+        ? Math.max(100, Math.min(300000, targetPolyInput))
+        : 30000;
+    }
   }
 
   if (auto_size && (originAt === 'bottom' || originAt === 'center')) {
@@ -2216,6 +2224,7 @@ function getImageTo3DFormValues({ multiImage = false } = {}) {
     if (model !== 'meshy-t1' && model !== 'meshy-t2') model = 'meshy-t2';
     values.should_remesh = false;
     delete values.topology;
+    delete values.decimation_mode;
     values.target_polycount = Number.isFinite(targetPolyInput)
       ? Math.max(100, Math.min(15000, targetPolyInput))
       : 15000;
@@ -2892,6 +2901,7 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
           model_type: meta.model_type || 'standard',
           should_remesh: !!meta.should_remesh,
           topology: meta.topology || '',
+          decimation_mode: meta.decimation_mode || null,
           target_polycount: meta.target_polycount || null,
           moderation: !!meta.moderation,
           target_formats: meta.target_formats || [],
@@ -3111,6 +3121,7 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
           model_type: meta.model_type || 'standard',
           should_remesh: !!meta.should_remesh,
           topology: meta.topology || '',
+          decimation_mode: meta.decimation_mode || null,
           target_polycount: meta.target_polycount || null,
           moderation: !!meta.moderation,
           target_formats: meta.target_formats || [],
@@ -3551,6 +3562,7 @@ export async function onGenerateClick() {
         model_type: previewValues.model_type,
         should_remesh: previewValues.should_remesh,
         topology: previewValues.topology,
+        decimation_mode: previewValues.decimation_mode,
         target_polycount: previewValues.target_polycount,
         moderation: previewValues.moderation,
         alpha_thumbnail: previewValues.alpha_thumbnail,
@@ -3587,6 +3599,7 @@ export async function onGenerateClick() {
       };
 
       if (previewValues.topology) payload.topology = previewValues.topology;
+      if (previewValues.decimation_mode) payload.decimation_mode = previewValues.decimation_mode;
       if (previewValues.target_polycount) payload.target_polycount = previewValues.target_polycount;
       if (previewValues.origin_at) payload.origin_at = previewValues.origin_at;
 
@@ -3641,6 +3654,7 @@ export async function onGenerateClick() {
         model_type: previewValues.model_type,
         should_remesh: previewValues.should_remesh,
         topology: previewValues.topology,
+        decimation_mode: previewValues.decimation_mode,
         target_polycount: previewValues.target_polycount,
         moderation: previewValues.moderation,
         alpha_thumbnail: previewValues.alpha_thumbnail,
@@ -3717,8 +3731,8 @@ function getImageActionKey(quality = 'standard') {
   return 'image_generate';
 }
 
-// Map shape to OpenAI gpt-image-1.5 resolution
-// gpt-image-1/1.5 supports: 1024x1024, 1024x1536, 1536x1024
+// Map shape to OpenAI gpt-image-2 resolution
+// gpt-image-2 supports these plus arbitrary sizes (edges multiple of 16, max 3840x2160)
 const OPENAI_SHAPE_MAP = {
   square: '1024x1024',      // 1:1
   portrait: '1024x1536',    // 2:3 (portrait)
@@ -3781,7 +3795,7 @@ export async function startOpenAIImageGeneration() {
   // Map shape to OpenAI resolution, quality to image_size tier (for pricing)
   const resolution = OPENAI_SHAPE_MAP[settings.shape] || '1024x1024';
   const imageSize = OPENAI_QUALITY_MAP[settings.quality] || '1K';
-  const model = 'gpt-image-1.5';
+  const model = 'gpt-image-2';
 
   // Snapshot settings for this job
   const settingsSnapshot = {
@@ -8014,6 +8028,7 @@ export async function evolveFromHistory(item, count = 2) {
   const modelType = (item.model_type || 'standard').trim() || 'standard';
   const shouldRemesh = modelType === 'lowpoly' ? false : !!item.should_remesh;
   const topology = (item.topology || '').trim().toLowerCase();
+  const decimationMode = parseInt(item.decimation_mode, 10);
   const targetPolycount = parseInt(item.target_polycount, 10);
   const moderation = !!item.moderation;
   const autoSize = !!item.auto_size;
@@ -8040,6 +8055,7 @@ export async function evolveFromHistory(item, count = 2) {
         model_type: modelType,
         should_remesh: shouldRemesh,
         topology,
+        decimation_mode: [1, 2, 3, 4].includes(decimationMode) ? decimationMode : null,
         target_polycount: Number.isFinite(targetPolycount) ? targetPolycount : null,
         moderation,
         target_formats: targetFormats,
@@ -8069,7 +8085,11 @@ export async function evolveFromHistory(item, count = 2) {
       };
 
       if (shouldRemesh && topology) payload.topology = topology;
-      if (shouldRemesh && Number.isFinite(targetPolycount)) payload.target_polycount = targetPolycount;
+      if (shouldRemesh && [1, 2, 3, 4].includes(decimationMode)) {
+        payload.decimation_mode = decimationMode;
+      } else if (shouldRemesh && Number.isFinite(targetPolycount)) {
+        payload.target_polycount = targetPolycount;
+      }
       if (autoSize && (originAt === 'bottom' || originAt === 'center')) payload.origin_at = originAt;
 
       const result = await apiFetch('/api/_mod/text-to-3d/start', {
@@ -8104,6 +8124,7 @@ export async function evolveFromHistory(item, count = 2) {
         model_type: modelType,
         should_remesh: shouldRemesh,
         topology,
+        decimation_mode: [1, 2, 3, 4].includes(decimationMode) ? decimationMode : null,
         target_polycount: Number.isFinite(targetPolycount) ? targetPolycount : null,
         moderation,
         target_formats: targetFormats,
@@ -8117,6 +8138,7 @@ export async function evolveFromHistory(item, count = 2) {
         model_type: modelType,
         should_remesh: shouldRemesh,
         topology,
+        decimation_mode: [1, 2, 3, 4].includes(decimationMode) ? decimationMode : null,
         target_polycount: Number.isFinite(targetPolycount) ? targetPolycount : null,
         moderation,
         target_formats: targetFormats,

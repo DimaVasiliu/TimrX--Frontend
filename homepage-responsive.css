@@ -629,9 +629,23 @@ body.hero-command-docked .hero-command{
 
 .chat-panel{
   z-index:calc(var(--z-chat) + 20);
-  width:100vw;
-  height:100dvh;
-  border-radius:0;
+  left:max(8px,env(safe-area-inset-left));
+  right:max(8px,env(safe-area-inset-right));
+  top:auto;
+  bottom:max(8px,env(safe-area-inset-bottom));
+  width:auto;
+  height:calc(100dvh - max(16px,env(safe-area-inset-top)) - max(16px,env(safe-area-inset-bottom)));
+  border-radius:22px;
+  transform:translateY(16px) scale(.98);
+}
+
+.chat-panel.is-open{
+  transform:translateY(0) scale(1);
+}
+
+.chat-panel.has-keyboard{
+  bottom:calc(var(--chat-keyboard-offset,0px) + max(8px,env(safe-area-inset-bottom)));
+  height:calc(100dvh - var(--chat-keyboard-offset,0px) - max(16px,env(safe-area-inset-top)) - max(16px,env(safe-area-inset-bottom)));
 }
 
 .chat-backdrop{
@@ -647,7 +661,10 @@ body.hero-command-docked .hero-command{
 }
 
 .chat-inputbar{
+  position:sticky;
+  bottom:0;
   padding:12px max(12px,env(safe-area-inset-right)) calc(12px + env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left));
+  background:#121110;
 }
 
 .chat-inputbar textarea{

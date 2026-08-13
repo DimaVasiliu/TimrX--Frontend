@@ -122,6 +122,7 @@
         sitekey:turnstileSiteKey,
         size:'flexible',
         theme:'dark',
+        appearance:action==='chat_assistant'?'interaction-only':'always',
         action,
         callback:token=>done(resolve,token),
         'error-callback':()=>done(reject,new Error('turnstile_error')),

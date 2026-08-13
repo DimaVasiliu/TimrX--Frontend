@@ -56,9 +56,9 @@
   <link rel="preload" href="/fonts/inter-subset.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="landing.css?v=14">
-  <link rel="stylesheet" href="hero-assistant.css?v=20">
-  <link rel="stylesheet" href="landing-widgets.css?v=7">
-  <link rel="stylesheet" href="homepage-responsive.css?v=12">
+  <link rel="stylesheet" href="hero-assistant.css?v=21">
+  <link rel="stylesheet" href="landing-widgets.css?v=8">
+  <link rel="stylesheet" href="homepage-responsive.css?v=13">
   <link rel="stylesheet" href="tx-menu.css?v=1">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer"></noscript>
@@ -669,6 +669,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
       {q:'What can I create with TimrX?',a:'You can create images, short videos, 3D models and print-ready assets from prompts, images or existing files. Start in /3dprint or browse /ai-tools.',keywords:['create','what can i make','images','video','3d','assets']},
       {q:'Where should I start?',a:'Open the workspace at /3dprint if you want to generate now. Use /ai-tools if you want to pick a specific tool first.',keywords:['start','begin','workspace','open workspace','first step']},
       {q:'Can I export for 3D printing?',a:'Yes. TimrX supports print-focused workflows and exports such as STL and 3MF, with OBJ and GLB available for broader 3D use.',keywords:['export','3d print','stl','3mf','obj','glb','formats']},
+      {q:'Can TimrX print and ship my model?',a:'Yes. FDM print ordering is live from the TimrX workspace for completed printable models. Open /3dprint, run Print Check, click Order Print, review the server quote and continue to checkout. Resin ordering is manual quote for now.',keywords:['order print','print and ship','shipping','deliver','physical print','quote','3d model order']},
       {q:'How do credits work?',a:'Credits are used for AI generation and selected refinement actions. Use /hub#pricing to compare packs before starting a larger workflow.',keywords:['credits','pricing','cost','billing','packs']},
       {q:'Do I need Blender?',a:'No. TimrX is browser-based, so you can generate, inspect, refine and export without installing Blender just to get started.',keywords:['blender','software','install','browser']},
       {q:'Which tool should I use?',a:'Use text-to-3D for prompt-based models, image-to-3D for reference images, the image generator for visuals, image-to-video for motion, and the converter for file format changes.',keywords:['which tool','text to 3d','image to 3d','converter','image generator','video']},
@@ -676,11 +677,11 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
     ];
     window.TIMRX_CHAT_WIDGET = {kicker:'Platform assistant',title:'Ask TimrX',subtitle:'Product guidance for images, video, 3D, exports and credits.',spotlightTitle:'Find the right workflow',spotlightCopy:'Ask what to create, which tool to open, what formats are supported, or how credits work.',welcomeTitle:'What do you want to create?',welcomeCopy:'I can point you to the right TimrX tool and explain the workflow before you open the workspace.',placeholder:'Ask about tools, exports, credits or workflows…',prompts:[{label:'Which tool should I use?',prompt:'Which TimrX tool should I use for my idea?'},{label:'Can I export STL?',prompt:'Can I export models for 3D printing as STL or 3MF?'},{label:'How do credits work?',prompt:'How do credits work on TimrX?'},{label:'Start creating',prompt:'Where should I start if I want to create an asset now?'}]};
   </script>
-  <script src="app.js?v=5" defer></script>
-  <script src="hero-assistant.js?v=13" defer></script>
+  <script src="app.js?v=6" defer></script>
+  <script src="hero-assistant.js?v=14" defer></script>
   <script src="js/hero-card-media.js?v=1" defer></script>
   <script src="js/hero-feature-scenes.js?v=1" defer></script>
-  <script src="landing-widgets.js?v=3" defer></script>
+  <script src="landing-widgets.js?v=4" defer></script>
   <script src="js/shared/tx-menu.js?v=1" defer></script>
   <script src="landing.js?v=8" defer></script>
   <script type="module" src="js/model-viewer-3.5.0.module.min.js"></script>

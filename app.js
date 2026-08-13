@@ -19,12 +19,12 @@ const TIMRX_FAQ_DEFAULT = [
   },
   {
     q: "What can TimrX do?",
-    a: "TimrX offers AI image generation, AI video generation, text-to-3D, image-to-3D, remesh/retopology, retexture, paint, print checks, file conversion, STL library browsing and print-on-demand ordering when the print service is live.",
+    a: "TimrX offers AI image generation, AI video generation, text-to-3D, image-to-3D, remesh/retopology, retexture, paint, print checks, file conversion, STL library browsing and live FDM print-on-demand ordering from completed workspace models.",
     keywords: ["features", "tools", "services", "workspace", "text to 3d", "image to 3d", "video", "image", "what services"]
   },
   {
     q: "What services does TimrX offer?",
-    a: "TimrX services include AI image generation, AI video generation, text-to-3D, image-to-3D, remesh/model cleanup, retexture and paint tools, print checks, file conversion, STL library access, exports to common 3D formats and planned print-on-demand ordering/shipping.",
+    a: "TimrX services include AI image generation, AI video generation, text-to-3D, image-to-3D, remesh/model cleanup, retexture and paint tools, print checks, file conversion, STL library access, exports to common 3D formats and live FDM print-on-demand ordering/shipping.",
     keywords: ["what services does timrx offer", "services timrx", "platform services", "all services", "what tools are available", "offer"]
   },
   {
@@ -79,27 +79,27 @@ const TIMRX_FAQ_DEFAULT = [
   },
   {
     q: "Can TimrX print and ship my model?",
-    a: "TimrX has a Print on Demand service page at /print-on-demand. The print/order/payment/shipping flow is listed as launching in summer 2026; generation, refinement, print check and 3MF export workflows are already available. Join the waitlist from /print-on-demand or email admin@timrx.live.",
+    a: "Yes. FDM print ordering is live from the TimrX workspace for completed printable models. Generate or upload a model, run Print Check, click Order Print, choose material/color/size/delivery, review the server quote and continue to checkout. Resin ordering is still manual quote for now.",
     keywords: ["print and ship", "shipping", "ship", "order", "order print", "print on demand", "deliver", "delivery", "fulfillment", "physical print", "buy print"]
   },
   {
     q: "How much will a physical 3D print cost?",
-    a: "Physical print pricing is separate from AI credits and depends on model volume, material, infill, finish and destination. The print page lists starting examples: FDM single-color from $6/small print, multi-color FDM from $12/small print, resin from $14/small print, and shipping from $4 worldwide. A 100mm character/figurine needs the order screen or manual quote because volume and material matter more than height alone.",
+    a: "Physical print pricing is separate from AI credits and depends on model dimensions, material, infill, finish, quantity, packaging, delivery speed and destination. Live FDM checkout starts from $19.95 / €17.95 before delivery, and the server recomputes the final quote before payment. A 100mm figurine still needs the order screen or manual quote because volume and material matter more than height alone.",
     keywords: ["physical print cost", "print cost", "shipping cost", "quote print", "100mm", "height", "material", "infill", "resin", "fdm", "pla", "petg", "batman", "figurine cost", "model cost"]
   },
   {
     q: "What materials can TimrX print?",
-    a: "The planned print service covers FDM materials such as PLA, PETG and PLA-CF, resin options such as standard/tough/clear resin, and multi-color FDM through AMS/MMU-style workflows. Availability is tied to the print-on-demand launch.",
+    a: "The live FDM catalog includes PLA, PLA+ tough, PETG, ABS, TPU flexible and PLA Silk, with a 17-color swatch catalog. Resin materials are on the roadmap but automated resin checkout is disabled for now.",
     keywords: ["materials", "pla", "petg", "resin", "clear resin", "pla cf", "multi color", "multicolor", "ams", "mmu", "filament"]
   },
   {
     q: "Where does TimrX ship?",
-    a: "The print-on-demand page describes worldwide tracked shipping when the print service launches. Typical estimates shown there are 3–7 business days for the UK/EU and 7–14 business days for the US/rest of world after printing is complete.",
+    a: "Print checkout supports US, Canada, Great Britain, EU, Australia, Japan and an Other destination bucket. Standard, express and priority delivery are priced from model size, packed weight and destination, with standard delivery included above the market threshold shown at checkout.",
     keywords: ["where ship", "worldwide", "uk", "eu", "usa", "us", "delivery time", "tracked", "shipping time"]
   },
   {
     q: "Can I order an externally-made STL or model?",
-    a: "The planned order flow is built around models generated or uploaded to TimrX so the print check can validate the file. If you already have an STL/GLB and want it printed manually, the print page says to contact admin@timrx.live for a quote.",
+    a: "The live order flow is built around models generated or uploaded to TimrX so Print Check and the order pipeline can validate the file. If you already have an STL/GLB and want it printed manually, contact admin@timrx.live for a quote.",
     keywords: ["external model", "own stl", "existing stl", "upload model", "upload stl", "manual quote", "my file", "print my model"]
   },
   {
@@ -129,7 +129,7 @@ const TIMRX_FAQ_DEFAULT = [
   },
   {
     q: "How do I get started?",
-    a: "For a guided overview, open /hub. To create immediately, open /3dprint. Use /ai-image-generator for images, /ai-video-generator for videos, /text-to-3d for prompts, /image-to-3d for reference images, /converter for file conversion and /print-on-demand for the print service/waitlist.",
+    a: "For a guided overview, open /hub. To create immediately, open /3dprint. Use /ai-image-generator for images, /ai-video-generator for videos, /text-to-3d for prompts, /image-to-3d for reference images, /converter for file conversion and /print-on-demand for live FDM print ordering.",
     keywords: ["start", "begin", "get started", "where do i start", "open workspace", "try timrx"]
   },
   {
@@ -165,16 +165,16 @@ const TIMRX_PLATFORM_CONTEXT = [
   "- Refinement: remesh/retopology, retexture, paint, auto-rig/animate, and a print check that prepares models for printing.",
   "- File Converter (/converter): convert between 3D and media formats.",
   "- STL Library (/stl-library): ready-made printable models.",
-  "- Print on Demand (/print-on-demand): planned physical print/order/shipping service. The page says generation, refinement, print check and 3MF export are live, while order/payment/fulfillment/shipping launch in summer 2026.",
+  "- Print on Demand (/print-on-demand): live FDM physical print/order/shipping service from completed printable workspace models. Resin ordering is manual quote / roadmap for now.",
   "",
   "FORMATS: export STL, OBJ, GLB, GLTF, USDZ and 3MF (which ones depend on the workflow).",
   "",
   "PRINTING, ORDERS & SHIPPING:",
-  "- TimrX can prepare print-ready files now: generate/upload → print check/remesh → export STL or 3MF.",
-  "- Physical print-on-demand is launching summer 2026. Do not say TimrX does not handle printing; say the service is in build and point to /print-on-demand or admin@timrx.live for the waitlist/manual quote.",
-  "- Planned print materials include FDM PLA/PETG/PLA-CF, resin standard/tough/clear, and multi-color FDM via AMS/MMU workflows.",
-  "- Print order pricing is separate from AI credits and depends on volume, material, infill, finish and destination. Starting examples on the site: FDM single-color from $6/small print, multi-color FDM from $12/small print, resin from $14/small print, shipping from $4 worldwide. For a specific 100mm figurine or character, explain that height alone is not enough; volume/material/finish/destination determine the quote.",
-  "- Planned shipping is worldwide tracked shipping, with example timings of 3–7 business days for UK/EU and 7–14 business days for US/rest of world after printing is complete.",
+  "- TimrX can prepare print-ready files now: generate/upload → print check/remesh → export STL or 3MF, or click Order Print on a completed printable model.",
+  "- Physical FDM print-on-demand is live inside the workspace. Do not describe the FDM order flow as upcoming.",
+  "- Live FDM materials include PLA, PLA+ tough, PETG, ABS, TPU flexible and PLA Silk. Resin standard/tough/clear is manual quote / roadmap and disabled in automated checkout for now.",
+  "- Print order pricing is separate from AI credits and depends on dimensions, material, infill, finish, quantity, packaging, delivery speed and destination. Live FDM checkout starts from $19.95 / €17.95 before delivery. For a specific 100mm figurine or character, explain that height alone is not enough; volume/material/finish/destination determine the quote.",
+  "- Print checkout supports US, Canada, Great Britain, EU, Australia, Japan and an Other destination bucket with standard, express and priority delivery tiers.",
   "",
   "CREDITS & GETTING STARTED:",
   "- AI generation and some refinement tools use credits. Start small and top up; pick a credit pack that fits your workflow. Current prices and packs are at /hub#pricing.",
@@ -252,13 +252,13 @@ function timrxDirectIntentAnswer(query) {
     && /\b(ship|shipping|deliver|delivery)\b/.test(normalized);
 
   if ((hasPrint || hasOrder) && hasCost) {
-    return "Physical print pricing is separate from AI credits and depends on model volume, material, infill, finish and destination. The print page lists starting examples: FDM single-color from $6/small print, multi-color FDM from $12/small print, resin from $14/small print, and shipping from $4 worldwide. For a 100mm character/figurine, height alone is not enough — the order screen or a manual quote needs volume, material, finish and destination.";
+    return "Physical print pricing is separate from AI credits and depends on model dimensions, material, infill, finish, quantity, packaging, delivery speed and destination. Live FDM checkout starts from $19.95 / €17.95 before delivery, and the server recomputes the final quote before payment. For a 100mm character or figurine, height alone is not enough — the order screen or a manual quote needs volume, material, finish and destination.";
   }
   if (hasWhereShip) {
-    return "The print-on-demand page describes worldwide tracked shipping when the print service launches. Typical estimates shown there are 3–7 business days for the UK/EU and 7–14 business days for the US/rest of world after printing is complete.";
+    return "Print checkout supports US, Canada, Great Britain, EU, Australia, Japan and an Other destination bucket. Standard, express and priority delivery are priced from model size, packed weight and destination, with standard delivery included above the market threshold shown at checkout.";
   }
   if (hasOrder || /\b(print on demand|print and ship|order print|shipping)\b/.test(normalized)) {
-    return "TimrX has a Print on Demand service page at /print-on-demand. The print/order/payment/shipping flow is listed as launching in summer 2026; generation, refinement, print check and 3MF export workflows are already available. Join the waitlist from /print-on-demand or email admin@timrx.live.";
+    return "Yes. FDM print ordering is live from the TimrX workspace for completed printable models. Open /3dprint, generate or upload a model, run Print Check, click Order Print, choose material/color/size/delivery, review the server quote and continue to checkout. Resin ordering is still manual quote for now.";
   }
   return '';
 }
@@ -279,10 +279,10 @@ function shouldUseLocalTimrxAnswer(query) {
 async function timrxAsk(messages, onStreamToken) {
   const systemPrompt = getTimrxSystemPrompt();
   const lastUserMessage = [...messages].reverse().find(m => m.role === 'user')?.content || '';
-  const directAnswer = !window.TIMRX_CHAT_CONTEXT ? timrxDirectIntentAnswer(lastUserMessage) : '';
+  const directAnswer = timrxDirectIntentAnswer(lastUserMessage);
   if (directAnswer) return directAnswer;
   const [localBest] = findTimrxFaqMatches(lastUserMessage, 1);
-  if (!window.TIMRX_CHAT_CONTEXT && localBest && shouldUseLocalTimrxAnswer(lastUserMessage) && scoreTimrxFaq(localBest, lastUserMessage) >= 35) {
+  if (localBest && shouldUseLocalTimrxAnswer(lastUserMessage) && scoreTimrxFaq(localBest, lastUserMessage) >= 35) {
     return localBest.a;
   }
   // The server owns its system prompt. Public callers may submit only the
@@ -293,7 +293,8 @@ async function timrxAsk(messages, onStreamToken) {
     try {
       turnstileToken = await window.TimrXHumanVerification.getToken('chat_assistant');
     } catch (_) {
-      return 'Human verification could not complete. Check content blockers or your connection, then try again.';
+      const fallback = timrxLocalRouter(lastUserMessage);
+      return `${fallback}\n\nI could not complete human verification for a live assistant response, so I answered from the built-in TimrX guide. You can keep asking, or check content blockers and try again.`;
     }
   }
   // (A) try streaming first

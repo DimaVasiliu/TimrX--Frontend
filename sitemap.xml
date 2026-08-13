@@ -3,7 +3,7 @@
   <!-- Static pages (homepage, hub, tools, legal, etc.) -->
   <sitemap>
     <loc>https://timrx.live/sitemap-pages.xml</loc>
-    <lastmod>2026-08-05</lastmod>
+    <lastmod>2026-08-12</lastmod>
   </sitemap>
 
   <!-- Programmatic SEO pages (/3d-models/:slug, /text-to-3d/:slug, /converters/:slug) -->

@@ -82,15 +82,17 @@
     panel.setAttribute('aria-label', config.title || 'TimrX assistant');
     panel.innerHTML = `<header class="chat-head"><div class="chat-title"><span class="chat-kicker">${esc(config.kicker || 'Assistant')}</span><strong>${esc(config.title || 'TimrX Chat')}</strong><span>${esc(config.subtitle || 'Ask a question and get a focused answer.')}</span></div><button class="chat-close" id="chatClose" type="button" aria-label="Close chat">×</button></header>
       <div class="chat-layout"><aside class="chat-aside"><div class="chat-spotlight"><h3>${esc(config.spotlightTitle || 'How I can help')}</h3><p>${esc(config.spotlightCopy || 'Ask about TimrX tools, workflows, pricing or next steps.')}</p></div><div class="chat-quick">${prompts.map(p => `<button type="button" data-chat-prompt="${esc(p.prompt || p)}">${esc(p.label || p)}</button>`).join('')}</div></aside>
-      <div class="chat-main"><div class="chat-body" id="chatBody"><div class="chat-welcome"><h3>${esc(config.welcomeTitle || 'Ask a focused question.')}</h3><p>${esc(config.welcomeCopy || 'Use the suggested prompts or type your own question.')}</p></div></div><form class="chat-inputbar" id="chatForm"><textarea id="chatInput" rows="2" placeholder="${esc(config.placeholder || 'Ask about TimrX…')}"></textarea><button class="chat-send" id="chatSend" type="submit"><span>Send</span> →</button></form></div></div>`;
+      <div class="chat-main"><div class="chat-body" id="chatBody"><div class="chat-welcome"><h3>${esc(config.welcomeTitle || 'Ask a focused question.')}</h3><p>${esc(config.welcomeCopy || 'Use the suggested prompts or type your own question.')}</p></div></div><div class="chat-suggestions" aria-label="Suggested questions">${prompts.map(p => `<button class="chat-suggestion" type="button" data-chat-prompt="${esc(p.prompt || p)}">${esc(p.label || p)}</button>`).join('')}</div><form class="chat-inputbar" id="chatForm"><textarea id="chatInput" rows="2" placeholder="${esc(config.placeholder || 'Ask about TimrX…')}" autocomplete="off" autocapitalize="sentences"></textarea><button class="chat-send" id="chatSend" type="submit" aria-label="Send message"><span>Send</span> →</button></form></div></div>`;
     document.body.append(button, backdrop, panel);
 
     const close = panel.querySelector('#chatClose');
     const input = panel.querySelector('#chatInput');
     const form = panel.querySelector('#chatForm');
     const body = panel.querySelector('#chatBody');
+    const sendButton = panel.querySelector('#chatSend');
     const history = [];
     let closingTimer = null;
+    let isSending = false;
 
     function setOpen(open){
       clearTimeout(closingTimer);
@@ -100,15 +102,29 @@
       if(open){
         panel.hidden = false; backdrop.hidden = false;
         requestAnimationFrame(()=>{panel.classList.add('is-open');backdrop.classList.add('is-open')});
-        setTimeout(()=>input.focus({preventScroll:true}), 80);
+        setTimeout(()=>{input.focus({preventScroll:true}); fitPanelToViewport();}, 80);
       }else{
         panel.classList.remove('is-open'); backdrop.classList.remove('is-open');
+        panel.classList.remove('has-keyboard');
         closingTimer = setTimeout(()=>{panel.hidden = true; backdrop.hidden = true}, 240);
       }
+    }
+    function fitPanelToViewport(){
+      const viewport = window.visualViewport;
+      if(!viewport){
+        panel.style.removeProperty('--chat-keyboard-offset');
+        panel.classList.remove('has-keyboard');
+        return;
+      }
+      const keyboardOffset = Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop));
+      const focused = document.activeElement === input;
+      panel.style.setProperty('--chat-keyboard-offset', `${Math.min(keyboardOffset, 360)}px`);
+      panel.classList.toggle('has-keyboard', focused && keyboardOffset > 80);
     }
     function scroll(){requestAnimationFrame(()=>{body.scrollTop = body.scrollHeight})}
     function formatChat(text){
       var safe = String(text == null ? '' : text).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; });
+      safe = safe.replace(/\b\/(3dprint|hub|ai-tools|ai-image-generator|ai-video-generator|text-to-3d|image-to-3d|converter|stl-library|print-on-demand|pricing|docs|dima-vasiliu)(#[a-z0-9_-]+)?\b/gi, '<a href="/$1$2">/$1$2</a>');
       safe = safe.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>');
       var lines = safe.split(/\n/), out = [], list = [];
       function flush(){ if(list.length){ out.push('<ul>' + list.map(function(li){ return '<li>' + li + '</li>'; }).join('') + '</ul>'); list = []; } }
@@ -136,12 +152,16 @@
       return node;
     }
     async function send(text){
+      if(isSending) return;
       const question = String(text || input.value || '').trim();
       if(!question) return;
+      isSending = true;
+      if(sendButton) sendButton.disabled = true;
       panel.classList.add('has-conversation');
       addMessage(question, true);
       history.push({role:'user', content:question});
       input.value = '';
+      input.style.height = '';
       const typing = addTyping();
       try{
         let answerNode = null;
@@ -164,6 +184,10 @@
         scroll();
       }catch(error){
         typing.replaceWith(addMessage('Something went wrong. Please try again or use the page links.', false));
+      }finally{
+        isSending = false;
+        if(sendButton) sendButton.disabled = false;
+        fitPanelToViewport();
       }
     }
     button.addEventListener('click',()=>setOpen(true));
@@ -176,6 +200,14 @@
     });
     form.addEventListener('submit', event => { event.preventDefault(); send(); });
     input.addEventListener('keydown', event => { if(event.key === 'Enter' && !event.shiftKey){ event.preventDefault(); send(); } });
+    input.addEventListener('input', () => {
+      input.style.height = 'auto';
+      input.style.height = `${Math.min(input.scrollHeight, 130)}px`;
+    });
+    input.addEventListener('focus', fitPanelToViewport);
+    input.addEventListener('blur', () => setTimeout(fitPanelToViewport, 80));
+    window.visualViewport?.addEventListener('resize', fitPanelToViewport);
+    window.visualViewport?.addEventListener('scroll', fitPanelToViewport);
   }
 
   document.addEventListener('DOMContentLoaded', () => {

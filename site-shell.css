@@ -28,6 +28,177 @@ body.site-menu-open {
   overflow: hidden;
 }
 
+body.tx-menu-open {
+  overflow: hidden;
+}
+
+/* Defensive mobile-menu baseline.
+   tx-menu.css owns the final visual treatment, but shell pages must not expose
+   the injected mobile-menu links as raw document content if that stylesheet is
+   delayed or missed by cache. */
+.site-shell-nav .tx-burger {
+  position: relative;
+  display: none;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--site-shell-text);
+  cursor: pointer;
+}
+
+.site-shell-nav .tx-burger span {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.site-shell-nav .tx-burger span:nth-child(1) { transform: translate(-10px, -10px); }
+.site-shell-nav .tx-burger span:nth-child(2) { transform: translate(5px, -10px); }
+.site-shell-nav .tx-burger span:nth-child(3) { transform: translate(5px, 5px); }
+.site-shell-nav .tx-burger span:nth-child(4) { transform: translate(-10px, 5px); }
+
+.tx-menu {
+  position: fixed;
+  inset: 0 0 0 auto;
+  z-index: 1100;
+  width: min(100%, 430px);
+  height: 100dvh;
+  overflow-y: auto;
+  background: #05070a;
+  color: var(--site-shell-text);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.tx-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1090;
+  background: rgba(3, 5, 8, 0.64);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.tx-menu-backdrop.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.tx-menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.tx-menu-panel {
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+  gap: 16px;
+  padding: calc(env(safe-area-inset-top, 0px) + 18px) 22px calc(env(safe-area-inset-bottom, 0px) + 22px);
+}
+
+.tx-menu-head,
+.tx-menu-links,
+.tx-menu-cta,
+.tx-menu-foot {
+  display: flex;
+}
+
+.tx-menu-head {
+  align-items: center;
+  min-height: 54px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tx-menu-close {
+  position: relative;
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  border: 1px solid rgba(244, 241, 234, 0.16);
+  border-radius: 50%;
+  background: transparent;
+  color: inherit;
+}
+
+.tx-menu-close span {
+  position: absolute;
+  width: 16px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+}
+
+.tx-menu-close span:first-child {
+  transform: rotate(45deg);
+}
+
+.tx-menu-close span:last-child {
+  transform: rotate(-45deg);
+}
+
+.tx-menu-links {
+  flex-direction: column;
+}
+
+.tx-menu-links a {
+  padding: 14px 0;
+}
+
+.tx-menu-links a span,
+.tx-menu-links a small {
+  display: block;
+}
+
+.tx-menu-links a span {
+  font-weight: 800;
+}
+
+.tx-menu-links a small {
+  margin-top: 3px;
+  color: var(--site-shell-muted);
+  font-size: 12px;
+}
+
+.tx-menu-links a,
+.tx-menu-cta {
+  color: inherit;
+  text-decoration: none;
+}
+
+@media (max-width: 1024px) {
+  .site-shell-nav .tx-burger {
+    display: inline-flex;
+  }
+
+  .site-shell-nav-right .site-shell-utility {
+    display: none;
+  }
+}
+
+@media (min-width: 1024.02px) {
+  .tx-menu {
+    display: none;
+  }
+}
+
 .site-shell-hidden {
   display: none !important;
 }
