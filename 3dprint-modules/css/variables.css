@@ -230,14 +230,8 @@ html body.print3d-page > .cc-banner {
 
 
 
-/* generation-tracker.js appends .gen-track to <body>, so the (0,2,1) rule above
-   demoted it to `position:relative` — on this page the tracker never was fixed.
-   Its `bottom` then offset it from wherever it landed in flow, which put the
-   progress bar underneath the command bar (z-index 60) and out of sight. */
-html body.print3d-page > .gen-track {
-  position: fixed;
-  z-index: 200200;
-}
+/* (The old .gen-track fixed-position restore lived here — retired 2026-08-12
+   with the reactor progress card; gen-progress.css carries its own restore.) */
 
 html body.print3d-page > .ws-cmd {
   position: fixed;

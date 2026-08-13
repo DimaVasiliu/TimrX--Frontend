@@ -21,7 +21,7 @@
    ========================================================================== */
 
 /* 1. Root Variables & Body Styles */
-@import url('css/variables.css?v=20260811ah');
+@import url('css/variables.css?v=20260812f');
 @import url('media/variables-media.css?v=20260811ah');
 
 /* 2. Navigation & Brand */
@@ -41,8 +41,8 @@
 @import url('media/viewer-media.css?v=20260811ah');
 
 /* 6. History Panel */
-@import url('css/history.css?v=20260812assets');
-@import url('media/history-media.css?v=20260811ah');
+@import url('css/history.css?v=20260812assettoolbar');
+@import url('media/history-media.css?v=20260812assettoolbar');
 
 /* 10. Inspire Section */
 @import url('css/inspire.css?v=20260811ah');
@@ -56,7 +56,7 @@
 @import url('css/multi-color-print.css?v=20260802f');
 
 /* 13. Workspace navigation — command trigger + command palette */
-@import url('css/nav.css?v=20260812viewer');
+@import url('css/nav.css?v=20260812f');
 
 /* 14. Control sheet — the tool panel */
 @import url('css/panel.css?v=20260811ah');

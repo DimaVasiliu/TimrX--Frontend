@@ -2746,6 +2746,10 @@ function _renderHistoryImpl() {
   disableNav(firstBtn, historyState.page <= 1 || isGallery);
   disableNav(lastBtn, historyState.page >= pages || isGallery);
 
+  if (isGallery) {
+    syncAssetsToolbarFilters();
+  }
+
   // Clean up any leftover load-more banners from previous renders
   const existingBanner = grid.querySelector('.history-load-more');
   if (existingBanner) existingBanner.remove();
