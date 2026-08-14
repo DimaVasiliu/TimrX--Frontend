@@ -37,3 +37,5 @@ img/duck.glb.orig-bak
 # stray `git add -A` here fails the Pages build rather than the commit.
 # Mirrors the mono repo's own rule for the same directory.
 3D Workspace Models/_source-originals/
+
+.claude/settings.local.json
