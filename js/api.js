@@ -18,7 +18,7 @@ import {
 import * as State from './state.js?v=20260812a';
 import * as Viewer from './viewer.js?v=20260806a';
 import * as UI from './ui-utils.js';
-import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260812e';
+import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260813p2b';
 
 // ============================================================================
 // LOCKS & STATE
@@ -2279,16 +2279,35 @@ async function getTextureFormValues() {
     ? ['glb', ...targetFormatInputs.map((input) => String(input.value || '').trim().toLowerCase()).filter(Boolean)]
     : null;
 
+  // Multiview style views (Meshy 7 / latest only). Slot order matters: the
+  // first view is the primary/front one. Meshy rejects mixing multiview with
+  // the text prompt or the single style image, so multiview wins outright.
+  const supportsMultiview = ['latest', 'meshy-7'].includes(aiModel);
+  const multiviewSlotUrls = supportsMultiview
+    ? Array.from(document.querySelectorAll('#textureMultiviewGrid .multi-img-preview'))
+        .filter((img) => img.style.display !== 'none' && img.src)
+        .map((img) => img.src)
+    : [];
+  const multiviewPastedUrls = supportsMultiview
+    ? (byId('textureMultiviewUrls')?.value || '')
+        .split(/[\s,]+/).map((value) => value.trim()).filter(Boolean)
+    : [];
+  const multiview_image_urls = Array.from(new Set([...multiviewSlotUrls, ...multiviewPastedUrls])).slice(0, 4);
+  const usesMultiview = multiview_image_urls.length > 0;
+
   const values = {
-    text_style_prompt: prompt,
+    text_style_prompt: usesMultiview ? '' : prompt,
     negative_prompt: negativePrompt,
-    image_style_url,
+    image_style_url: usesMultiview ? '' : image_style_url,
     enable_pbr,
     enable_original_uv,
     remove_lighting: aiModel === 'meshy-6' && removeLightingInput ? !!removeLightingInput.checked : false,
     ai_model: aiModel,
     texture_resolution: ['2k', '4k', '8k'].includes(textureResolution) ? textureResolution : '2k'
   };
+  if (usesMultiview) {
+    values.multiview_image_urls = multiview_image_urls;
+  }
   if (target_formats?.length) {
     values.target_formats = Array.from(new Set(target_formats));
   }
@@ -2380,6 +2399,55 @@ async function openRefineSettingsModal(item = {}) {
               </select>
             </div>
             <p class="field-hint texture-setting-note" id="refineTextureResolutionNote">2K and 4K use the base refine cost. 8K uses the higher Meshy texture tier. Meshy 5 supports 2K only.</p>
+            <div class="field-row">
+              <span class="field-label-inline">Transparent Thumbnail</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="refineAlphaThumbnail">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="field-row">
+              <span class="field-label-inline">Auto Size</span>
+              <label class="toggle-switch">
+                <input type="checkbox" id="refineAutoSize">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div id="refineAutoSizeSettings" class="model-preview-advanced-group" style="display:none">
+              <div class="inline-field">
+                <label for="refineOriginAt">Origin</label>
+                <select id="refineOriginAt">
+                  <option value="bottom" selected>Bottom</option>
+                  <option value="center">Center</option>
+                </select>
+              </div>
+            </div>
+            <div class="texture-format-group">
+              <span class="field-label-inline">Additional Export Formats</span>
+              <div class="texture-format-grid" id="refineTargetFormats">
+                <label class="texture-format-option">
+                  <input type="checkbox" value="obj">
+                  <span class="texture-format-chip">OBJ</span>
+                </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="fbx">
+                  <span class="texture-format-chip">FBX</span>
+                </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="stl">
+                  <span class="texture-format-chip">STL</span>
+                </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="usdz">
+                  <span class="texture-format-chip">USDZ</span>
+                </label>
+                <label class="texture-format-option">
+                  <input type="checkbox" value="3mf">
+                  <span class="texture-format-chip">3MF</span>
+                </label>
+              </div>
+              <p class="field-hint texture-setting-note">GLB is always included for in-app preview. STL for 3D printing, 3MF for color printing, OBJ/FBX for editing, USDZ for AR.</p>
+            </div>
           </div>
         </div>
 
@@ -2431,6 +2499,17 @@ async function openRefineSettingsModal(item = {}) {
     const textureResolution = overlay.querySelector('#refineTextureResolution');
     const textureResolutionNote = overlay.querySelector('#refineTextureResolutionNote');
     const refineCreditsDisplay = overlay.querySelector('#refineCreditsDisplay');
+    const alphaThumbnail = overlay.querySelector('#refineAlphaThumbnail');
+    const autoSize = overlay.querySelector('#refineAutoSize');
+    const autoSizeSettings = overlay.querySelector('#refineAutoSizeSettings');
+    const originAt = overlay.querySelector('#refineOriginAt');
+
+    // Origin only means something when Meshy is auto-sizing the mesh.
+    const syncAutoSize = () => {
+      const enabled = !!autoSize?.checked;
+      if (autoSizeSettings) autoSizeSettings.style.display = enabled ? 'grid' : 'none';
+      if (originAt) originAt.disabled = !enabled;
+    };
 
     const closeModal = () => {
       cleanup(null);
@@ -2511,7 +2590,9 @@ async function openRefineSettingsModal(item = {}) {
     });
     aiModel?.addEventListener('change', syncLightingSupport);
     textureResolution?.addEventListener('change', syncLightingSupport);
+    autoSize?.addEventListener('change', syncAutoSize);
     syncLightingSupport();
+    syncAutoSize();
 
     applyBtn?.addEventListener('click', async () => {
       applyBtn.disabled = true;
@@ -2531,6 +2612,13 @@ async function openRefineSettingsModal(item = {}) {
           texture_image_url = (styleUrl?.value || '').trim();
         }
 
+        // GLB always ships so the in-app viewer has something to load.
+        const selectedFormats = Array.from(
+          overlay.querySelectorAll('#refineTargetFormats input[type="checkbox"]:checked')
+        ).map((input) => String(input.value || '').trim().toLowerCase()).filter(Boolean);
+        const target_formats = Array.from(new Set(['glb', ...selectedFormats]));
+        const auto_size = !!autoSize?.checked;
+
         document.removeEventListener('keydown', onKeyDown);
         cleanup({
           texture_prompt: (overlay.querySelector('#refineTexturePrompt')?.value || '').trim(),
@@ -2540,7 +2628,11 @@ async function openRefineSettingsModal(item = {}) {
           enable_pbr: !!overlay.querySelector('#refineEnablePbr')?.checked,
           remove_lighting: !!removeLighting?.checked,
           texture_resolution: (textureResolution?.value || '2k').trim() || '2k',
-          ai_model: (aiModel?.value || 'latest').trim() || 'latest'
+          ai_model: (aiModel?.value || 'latest').trim() || 'latest',
+          alpha_thumbnail: !!alphaThumbnail?.checked,
+          auto_size,
+          origin_at: auto_size ? ((originAt?.value || 'bottom').trim().toLowerCase()) : '',
+          target_formats
         });
       } catch (err) {
         applyBtn.disabled = false;
@@ -6445,6 +6537,10 @@ export async function startRefineFromHistory(item, origin = 'history') {
       texture_negative_prompt: refineValues.texture_negative_prompt || '',
       texture_style_mode: styleMode,
       uses_image_style: styleMode === 'image',
+      alpha_thumbnail: !!refineValues.alpha_thumbnail,
+      auto_size: !!refineValues.auto_size,
+      origin_at: refineValues.origin_at || '',
+      target_formats: refineValues.target_formats || ['glb'],
       source_origin: origin
     };
 
@@ -6465,8 +6561,11 @@ export async function startRefineFromHistory(item, origin = 'history') {
       ai_model: refineValues.ai_model || 'latest',
       remove_lighting: refineValues.remove_lighting,
       texture_resolution: refineValues.texture_resolution || '2k',
-      target_formats: ['glb']
+      target_formats: refineValues.target_formats?.length ? refineValues.target_formats : ['glb'],
+      alpha_thumbnail: !!refineValues.alpha_thumbnail,
+      auto_size: !!refineValues.auto_size
     };
+    if (refineValues.auto_size && refineValues.origin_at) body.origin_at = refineValues.origin_at;
     if (refineValues.negative_prompt) body.negative_prompt = refineValues.negative_prompt;
     if (refineValues.texture_negative_prompt) body.texture_negative_prompt = refineValues.texture_negative_prompt;
     if (refineValues.texture_prompt) body.texture_prompt = refineValues.texture_prompt;
@@ -6629,13 +6728,16 @@ export async function startTextureFromPanel() {
     alert(err?.message || 'Unable to read texture settings.');
     return;
   }
-  if (!texValues.text_style_prompt && !texValues.image_style_url) {
-    alert('Please describe the texture you want or add a style image.');
+  const usesMultiviewStyle = Array.isArray(texValues.multiview_image_urls) && texValues.multiview_image_urls.length > 0;
+  if (!usesMultiviewStyle && !texValues.text_style_prompt && !texValues.image_style_url) {
+    alert('Please describe the texture you want, add a style image, or add multiview style images.');
     return;
   }
-  const textureStyleMode = texValues.image_style_url ? 'image' : 'text';
+  const textureStyleMode = usesMultiviewStyle ? 'multiview' : (texValues.image_style_url ? 'image' : 'text');
   const texturePromptLabel = texValues.text_style_prompt
-    || (baseItem ? `Image-guided texture for ${shortTitle(baseItem)}` : labelPrompt || 'Image-guided texture');
+    || (usesMultiviewStyle
+      ? `Multiview texture for ${baseItem ? shortTitle(baseItem) : labelPrompt || 'uploaded model'}`
+      : (baseItem ? `Image-guided texture for ${shortTitle(baseItem)}` : labelPrompt || 'Image-guided texture'));
 
   const meta = {
     prompt: texturePromptLabel,
@@ -6653,7 +6755,8 @@ export async function startTextureFromPanel() {
     ai_model: texValues.ai_model || 'latest',
     negative_prompt: texValues.negative_prompt || '',
     texture_style_mode: textureStyleMode,
-    uses_image_style: textureStyleMode === 'image'
+    uses_image_style: textureStyleMode === 'image',
+    uses_multiview_style: usesMultiviewStyle
   };
 
   try {
@@ -7965,7 +8068,8 @@ export async function startTextureFromHistory(item, origin = 'history') {
     alert(err?.message || 'Unable to read texture settings.');
     return;
   }
-  if (!texValues.text_style_prompt && !texValues.image_style_url) {
+  const usesMultiviewStyle = Array.isArray(texValues.multiview_image_urls) && texValues.multiview_image_urls.length > 0;
+  if (!usesMultiviewStyle && !texValues.text_style_prompt && !texValues.image_style_url) {
     // Fallback: derive a short texture-appropriate prompt from the model title.
     // Do NOT use item.prompt — that's the model generation prompt which can be
     // 600+ chars (enhanced) and describes geometry, not texture style.  Meshy's
@@ -7979,9 +8083,12 @@ export async function startTextureFromHistory(item, origin = 'history') {
   if (texValues.text_style_prompt.length > 600) {
     texValues.text_style_prompt = texValues.text_style_prompt.substring(0, 597) + '...';
   }
-  const textureStyleMode = texValues.image_style_url ? 'image' : 'text';
+  const textureStyleMode = usesMultiviewStyle ? 'multiview' : (texValues.image_style_url ? 'image' : 'text');
   const meta = {
-    prompt: texValues.text_style_prompt || `Image-guided texture for ${shortTitle(item)}`,
+    prompt: texValues.text_style_prompt
+      || (usesMultiviewStyle
+        ? `Multiview texture for ${shortTitle(item)}`
+        : `Image-guided texture for ${shortTitle(item)}`),
     root_prompt: item.root_prompt || item.prompt || texValues.text_style_prompt || '',
     model: item.model || 'latest',
     license: item.license || 'private',
@@ -7994,7 +8101,8 @@ export async function startTextureFromHistory(item, origin = 'history') {
     target_formats: texValues.target_formats || [],
     ai_model: texValues.ai_model || 'latest',
     texture_style_mode: textureStyleMode,
-    uses_image_style: textureStyleMode === 'image'
+    uses_image_style: textureStyleMode === 'image',
+    uses_multiview_style: usesMultiviewStyle
   };
   try {
     await beginMeshyTask('texture', {

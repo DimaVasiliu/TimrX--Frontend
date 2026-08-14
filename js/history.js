@@ -472,22 +472,14 @@ function _unbindGalleryScroll() {
  */
 function _updateGalleryHeaderStats(gridEl) {
   if (!gridEl) return;
-  const thumbs = gridEl.querySelectorAll('.expanded-thumb');
+  // Stack revisions are in the DOM but belong to their face card — counting
+  // them would make the chips disagree with what the grid shows.
+  const thumbs = gridEl.querySelectorAll('.expanded-thumb:not([data-stack-revision])');
   const counts = { all: thumbs.length, model: 0, image: 0, animated: 0, video: 0 };
   thumbs.forEach(t => {
     const type = t.getAttribute('data-asset-type') || '';
     if (counts[type] !== undefined) counts[type]++;
   });
-
-  // Update header stat pills
-  const header = document.querySelector('.expanded-gallery-header__stats');
-  if (header) {
-    const statEls = header.querySelectorAll('.expanded-gallery-header__stat strong');
-    if (statEls[0]) statEls[0].textContent = counts.model;
-    if (statEls[1]) statEls[1].textContent = counts.image;
-    if (statEls[2]) statEls[2].textContent = counts.video + counts.animated;
-    if (statEls[3]) statEls[3].textContent = counts.all;
-  }
 
   // Update filter pill counts
   document.querySelectorAll('.expanded-filter-btn').forEach(btn => {
@@ -519,7 +511,7 @@ export function resetGalleryInfiniteScroll(filter) {
     const hidden = filter !== 'all' && thumb.getAttribute('data-asset-type') !== filter;
     thumb.classList.toggle('is-gallery-hidden', hidden);
   });
-  syncGalleryFamilyHeadings(grid);
+  syncGalleryLiveHeading(grid);
 
   // If few visible cards remain, try fetching more
   const visible = grid.querySelectorAll('.expanded-thumb:not(.is-gallery-hidden)').length;
@@ -541,6 +533,45 @@ export function syncAssetsToolbarFilters() {
   if (!source && slot.firstElementChild && !historyState.galleryExpanded) {
     slot.replaceChildren();
   }
+}
+
+// ---------------------------------------------------------------------------
+// Version stacks: one card per lineage, older revisions folded behind it.
+// A single delegated listener survives every grid rebuild, so expansion state
+// is restored from the DOM rather than re-bound per card.
+// ---------------------------------------------------------------------------
+const _expandedStacks = new Set();
+
+function applyStackState(grid) {
+  if (!grid) return;
+  grid.querySelectorAll('.expanded-thumb[data-stack-face="1"]').forEach((face) => {
+    const key = face.getAttribute('data-stack-key') || '';
+    const open = _expandedStacks.has(key);
+    face.classList.toggle('is-stack-open', open);
+    const toggle = face.querySelector('[data-stack-toggle]');
+    if (toggle) toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+  grid.querySelectorAll('.expanded-thumb[data-stack-revision="1"]').forEach((rev) => {
+    const key = rev.getAttribute('data-stack-key') || '';
+    rev.classList.toggle('is-stack-hidden', !_expandedStacks.has(key));
+  });
+}
+
+function _onStackToggleClick(e) {
+  const btn = e.target?.closest?.('[data-stack-toggle]');
+  if (!btn) return;
+  // Must not fall through to the card's open-in-viewer handler.
+  e.preventDefault();
+  e.stopPropagation();
+  const key = btn.getAttribute('data-stack-toggle') || '';
+  if (_expandedStacks.has(key)) _expandedStacks.delete(key);
+  else _expandedStacks.add(key);
+  applyStackState(btn.closest('.expanded-thumbs-grid') || document);
+}
+
+if (typeof document !== 'undefined' && !document.__txStackToggleBound) {
+  document.__txStackToggleBound = true;
+  document.addEventListener('click', _onStackToggleClick, true);
 }
 
 function getHistoryMenuHost(node) {
@@ -611,6 +642,42 @@ function promptFingerprint(input = '') {
 function itemPromptFingerprint(item = {}) {
   if (!item || typeof item !== 'object') return '';
   return item.prompt_fingerprint || promptFingerprint(item.root_prompt || item.prompt || item.title || '');
+}
+
+/**
+ * Short, human provider label for the card caption ("Meshy", "Seedance",
+ * "Nano Banana"...). Falls back to the AI-model label so a card never shows a
+ * raw slug. Returns '' when we genuinely don't know — the caption then just
+ * omits the chip rather than printing "Unknown".
+ */
+const PROVIDER_LABELS = Object.freeze({
+  meshy: 'Meshy',
+  piapi: 'PiAPI',
+  seedance: 'Seedance',
+  fal: 'Fal',
+  fal_seedance: 'Seedance',
+  gemini: 'Gemini',
+  veo: 'Veo',
+  vertex: 'Veo',
+  openai: 'OpenAI',
+  flux_pro: 'Flux Pro',
+  ideogram_v3: 'Ideogram',
+  recraft_v4: 'Recraft',
+  nano_banana: 'Nano Banana',
+  google_nano: 'Nano Banana',
+  piapi_nano_banana: 'Nano Banana',
+  nano_banana_pro: 'Nano Banana Pro',
+});
+
+function providerLabelFor(item = {}) {
+  const raw = String(item.provider || item.provider_name || (item.payload || {}).provider || '').toLowerCase().trim();
+  if (raw && PROVIDER_LABELS[raw]) return PROVIDER_LABELS[raw];
+  if (raw) {
+    // Unknown slug: title-case it rather than dropping information.
+    return raw.replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+  if (item.glb_url || item.glb_proxy) return aiModelLabel(item.ai_model);
+  return '';
 }
 
 function aiModelLabel(value = '') {
@@ -1204,6 +1271,17 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   // Clean up prefixes like "(refine)", "(texture)", "(remesh)", "(rig)", "(image2-3d)" from model names
   modelName = modelName.replace(/^\s*\((refine|texture|remesh|image2?-?3d)\)\s*/i, '');
   const createdLabel = dateLabel(displayModel.created_at);
+  // Caption strip shared by every card type. The gallery used to show a bare
+  // badge with no date, prompt, or provider, so two visually identical cards
+  // (a duplicate, or preview vs textured of the same model) were impossible to
+  // tell apart. One definition here keeps all four card branches in sync.
+  const _captionProvider = providerLabelFor(displayModel);
+  const _captionPromptFull = displayModel.prompt || displayModel.title || '';
+  const _captionPrompt = shortTitle(displayModel, 10);
+  const statusBarInner = `
+        <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
+        ${_captionProvider ? `<span class="${thumbPrefix}__status-provider">${escapeAttr(_captionProvider)}</span>` : ''}
+        <span class="${thumbPrefix}__status-prompt" title="${escapeAttr(_captionPromptFull)}">${escapeAttr(_captionPrompt)}</span>`;
   const stageLC = (displayModel.stage || '').toLowerCase();
   const canRefine = status === 'finished' && !!(
     stageLC === 'preview' ||
@@ -1242,7 +1320,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
       return `
         <div class="${thumbPrefix} ${thumbPrefix}--image ${thumbPrefix}--failed ${isActive ? 'is-active' : ''}">
           <div class="${thumbPrefix}__status-bar">
-            <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
+            ${statusBarInner}
             <span class="${thumbPrefix}__image-badge ${thumbPrefix}__image-badge--failed">Failed</span>
           </div>
           <div class="${thumbPrefix}__error-card">
@@ -1278,7 +1356,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     return `
       <div class="${thumbPrefix} ${thumbPrefix}--image ${statusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}">
         <div class="${thumbPrefix}__status-bar">
-          <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
+          ${statusBarInner}
         </div>
         <div class="${thumbPrefix}__image-wrapper">
           <button class="${thumbPrefix}__image ${isProcessing ? 'is-loading' : ''}"
@@ -1428,7 +1506,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
       return `
         <div class="${thumbPrefix} ${thumbPrefix}--video ${thumbPrefix}--failed ${isStalled ? thumbPrefix + '--stalled' : ''} ${isActive ? 'is-active' : ''}">
           <div class="${thumbPrefix}__status-bar">
-            <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
+            ${statusBarInner}
             <span class="${thumbPrefix}__video-badge ${thumbPrefix}__video-badge--failed">${failBadge}</span>
           </div>
           <div class="${thumbPrefix}__error-card">
@@ -1469,6 +1547,9 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     // Normal/processing video card - Clean modern design with big click area
     return `
       <div class="${thumbPrefix} ${thumbPrefix}--video ${videoStatusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''}">
+        <div class="${thumbPrefix}__status-bar">
+          ${statusBarInner}
+        </div>
         <button class="${thumbPrefix}__video-click ${isProcessing ? 'is-loading' : ''}"
                 type="button"
                 data-act="open-video"
@@ -1655,7 +1736,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
   return `
     <div class="${thumbPrefix} ${statusClass} ${isActive ? 'is-active' : ''} ${isFreshThumb ? 'is-fresh' : ''} ${hasVariants ? `${thumbPrefix}--bundle` : `${thumbPrefix}--single`}">
       <div class="${thumbPrefix}__status-bar">
-        <span class="${thumbPrefix}__status-date">${createdLabel || '-'}</span>
+        ${statusBarInner}
       </div>
       ${previewMarkup}
       ${isProcessing ? `
@@ -1805,13 +1886,14 @@ function _getItemAssetType(item) {
   return 'model';
 }
 
-const GALLERY_FAMILY_ORDER = Object.freeze(['model', 'image', 'animated', 'video']);
-const GALLERY_FAMILY_META = Object.freeze({
-  model: { label: '3D models', description: 'Generations, refinements, and model versions' },
-  image: { label: 'Images', description: 'Generated and edited stills' },
-  animated: { label: 'Animated assets', description: 'Rigged and motion-ready outputs' },
-  video: { label: 'Videos', description: 'Motion and story generations' },
-});
+const GALLERY_LIVE_STATUSES = new Set([
+  'generating', 'refining', 'remeshing', 'texturing', 'rigging', 'animating',
+  'processing', 'queued', 'pending',
+]);
+
+function _isLiveItem(item) {
+  return GALLERY_LIVE_STATUSES.has(String(item?.status || '').toLowerCase());
+}
 
 /**
  * Build individual gallery card objects from lineages.
@@ -1847,6 +1929,7 @@ function _buildGalleryCards(lineages) {
         family: 'model',
         order: globalIndex,
         status: getGroupedCardState(group, sortedBatch).statusKey,
+        isLive: sortedBatch.some(_isLiveItem),
         html,
       });
       return;
@@ -1854,75 +1937,101 @@ function _buildGalleryCards(lineages) {
 
     const models = lineage.models.sort(compareHistoryModels);
     const bundles = buildLineageBundles(models);
+
+    // ── Version stack ──────────────────────────────────────────────────────
+    // Every revision of one lineage used to claim its own grid cell, so a
+    // model that went preview → textured showed up twice (and a duplicate
+    // dispatch showed up twice again). Collapse the lineage into a single
+    // card whose face is the most advanced revision; older ones live behind
+    // it and fan out on click.
+    const faceIndex = bundles.length - 1;
+    const stackDepth = bundles.length - 1;
+    // One grid slot per lineage: the face takes the slot, revisions inherit it
+    // with a fractional offset so they always sort directly behind their face.
+    const lineageOrder = ++globalIndex;
+    const delay = (lineageOrder - 1) * 0.03;
+
     bundles.forEach((b, bundleIndex) => {
-      const delay = globalIndex * 0.03;
-      globalIndex++;
+      const isFace = bundleIndex === faceIndex;
       const displayModel = b.models[0] || {};
       const assetType = _getItemAssetType(displayModel);
       const thumbHtml = buildHistoryThumb(b, true);
-      const isGroupStart = groupIndex > 0 && bundleIndex === 0;
-      const groupClass = isGroupStart ? ' expanded-thumb--group-start' : '';
+      const isGroupStart = groupIndex > 0 && isFace;
+      const stackKey = String(lineage.rootId || lineage.id || displayModel.id || '');
+      const classes = [
+        isGroupStart ? 'expanded-thumb--group-start' : '',
+        isFace && stackDepth > 0 ? 'expanded-thumb--stacked' : '',
+        isFace ? '' : 'expanded-thumb--revision is-stack-hidden',
+      ].filter(Boolean).join(' ');
       const html = thumbHtml.replace(
         /class="expanded-thumb/,
-        `style="animation-delay: ${delay}s" data-asset-type="${assetType}" data-gid="${displayModel.id || ''}" class="expanded-thumb${groupClass}`
+        `style="animation-delay: ${delay}s" data-asset-type="${assetType}" data-gid="${displayModel.id || ''}" data-stack-key="${escapeAttr(stackKey)}" ${isFace ? `data-stack-face="1" data-stack-depth="${stackDepth}"` : 'data-stack-revision="1"'} class="expanded-thumb ${classes}`
       );
+      const stackToggle = (isFace && stackDepth > 0)
+        ? `<button type="button" class="expanded-thumb__stack-toggle" data-stack-toggle="${escapeAttr(stackKey)}" aria-expanded="false" title="${stackDepth + 1} versions of this asset">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+             <span class="expanded-thumb__stack-count">${stackDepth + 1}</span>
+             <span class="sr-only">versions</span>
+           </button>`
+        : '';
+      const withToggle = stackToggle
+        ? html.replace(/<\/div>\s*$/, `${stackToggle}</div>`)
+        : html;
+
       cards.push({
         id: displayModel.id || '',
         family: assetType,
-        order: globalIndex,
+        // Revisions must render immediately after their face card, so they
+        // share the face's slot and break the tie on stage depth.
+        order: isFace ? lineageOrder : lineageOrder + (bundleIndex + 1) / 1000,
         status: displayModel.status || 'finished',
-        html,
+        stackKey,
+        isRevision: !isFace,
+        isLive: isFace && _isLiveItem(displayModel),
+        html: withToggle,
       });
     });
   });
 
-  // Keep the modal readable as the feed grows: each asset family occupies its
-  // own run of the grid instead of models, images, and videos interleaving by
-  // creation time.
+  // One flat, recency-ordered grid. Family runs used to split the feed into
+  // 3D-models-then-images-then-videos blocks, which duplicated what the filter
+  // chips already do and buried today's work below last month's models. The
+  // only thing that jumps the queue now is work that is still running.
   return cards.sort((a, b) => {
-    const familyA = GALLERY_FAMILY_ORDER.indexOf(a.family);
-    const familyB = GALLERY_FAMILY_ORDER.indexOf(b.family);
-    return (familyA - familyB) || (a.order - b.order);
+    const liveA = a.isLive ? 0 : 1;
+    const liveB = b.isLive ? 0 : 1;
+    return (liveA - liveB) || (a.order - b.order);
   });
 }
 
-function syncGalleryFamilyHeadings(grid) {
+function syncGalleryLiveHeading(grid) {
   if (!grid) return;
-  grid.querySelectorAll('[data-family-heading]').forEach((heading) => {
-    const family = heading.getAttribute('data-family-heading');
-    const familyCards = Array.from(grid.querySelectorAll(`.expanded-thumb[data-asset-type="${family}"]`));
-    const visibleCards = familyCards.filter((card) => !card.classList.contains('is-gallery-hidden'));
-    const count = heading.querySelector('.history-family-heading__count');
-    if (count) count.textContent = String(familyCards.length);
-    const hasVisibleCards = visibleCards.length > 0;
-    heading.hidden = !hasVisibleCards;
-  });
+  const heading = grid.querySelector('[data-live-heading]');
+  if (!heading) return;
+  // Also excludes .is-lib-hidden: the Phase 2 filter row can hide every live
+  // card, and a "Generating now" heading over an empty run reads as a bug.
+  const live = grid.querySelectorAll('.expanded-thumb[data-live="1"]:not(.is-gallery-hidden):not(.is-lib-hidden)');
+  const count = heading.querySelector('.history-live-heading__count');
+  if (count) count.textContent = String(live.length);
+  heading.hidden = live.length === 0;
 }
 
-function ensureGalleryFamilyHeadings(grid, cards = []) {
-  if (!grid || !Array.isArray(cards)) return;
-  const existing = new Set(Array.from(grid.querySelectorAll('[data-family-heading]'))
-    .map((heading) => heading.getAttribute('data-family-heading')));
-  cards.forEach((card) => {
-    const family = card?.family || 'model';
-    if (existing.has(family)) return;
-    const meta = GALLERY_FAMILY_META[family] || GALLERY_FAMILY_META.model;
-    const heading = document.createElement('div');
-    heading.className = 'history-family-heading';
-    heading.dataset.familyHeading = family;
+function ensureGalleryLiveHeading(grid, cards = []) {
+  if (!grid) return;
+  const hasLive = Array.isArray(cards) && cards.some((c) => c.isLive);
+  let heading = grid.querySelector('[data-live-heading]');
+  if (hasLive && !heading) {
+    heading = document.createElement('div');
+    heading.className = 'history-live-heading';
+    heading.setAttribute('data-live-heading', '');
     heading.innerHTML = `
-      <div class="history-family-heading__title">
-        <span class="history-family-heading__marker" data-family="${family}" aria-hidden="true"></span>
-        <span>${meta.label}</span>
-      </div>
-      <span class="history-family-heading__meta">${meta.description}</span>
-      <span class="history-family-heading__count">0</span>
+      <span class="history-live-heading__pulse" aria-hidden="true"></span>
+      <span>Generating now</span>
+      <span class="history-live-heading__count">0</span>
     `;
-    const firstFamilyCard = grid.querySelector(`.expanded-thumb[data-asset-type="${family}"]`);
-    grid.insertBefore(heading, firstFamilyCard || null);
-    existing.add(family);
-  });
-  syncGalleryFamilyHeadings(grid);
+    grid.insertBefore(heading, grid.firstChild);
+  }
+  syncGalleryLiveHeading(grid);
 }
 
 /**
@@ -1930,104 +2039,74 @@ function ensureGalleryFamilyHeadings(grid, cards = []) {
  * Used to decide whether we can patch in-place vs full rebuild.
  */
 function _galleryIdsMatch(gridEl, cards) {
-  if (gridEl.children.length !== cards.length) return false;
+  // Compare cards only. The grid also holds non-card children — the live
+  // heading and the library's empty-state note — and counting them made this
+  // return false forever, forcing a full innerHTML rebuild on every poll
+  // tick: thumbnails re-decoded, the enter animation replayed, and any open
+  // card menu was destroyed mid-interaction.
+  const cardEls = gridEl.querySelectorAll('.expanded-thumb');
+  if (cardEls.length !== cards.length) return false;
   for (let i = 0; i < cards.length; i++) {
-    if ((gridEl.children[i].dataset.gid || '') !== cards[i].id) return false;
+    if ((cardEls[i].dataset.gid || '') !== cards[i].id) return false;
   }
   return true;
 }
 
 function buildExpandedHistoryGallery(cards = []) {
-  // Count by type for badge stats
-  const counts = { all: cards.length, model: 0, image: 0, animated: 0, video: 0 };
-  cards.forEach(c => {
-    const el = document.createElement('div');
-    el.innerHTML = c.html;
-    const thumb = el.firstElementChild;
-    const type = thumb?.dataset?.assetType || '';
-    if (type === 'model') counts.model++;
-    else if (type === 'image') counts.image++;
-    else if (type === 'animated') counts.animated++;
-    else if (type === 'video') counts.video++;
+  // Revisions live behind their face card in a version stack — they must not
+  // inflate the chip counts, otherwise "Models 37" counts the same model once
+  // per refinement and never matches what the user can actually see.
+  const visible = cards.filter((c) => !c.isRevision);
+  const counts = { all: visible.length, model: 0, image: 0, animated: 0, video: 0 };
+  visible.forEach((c) => {
+    const family = c.family || 'model';
+    if (counts[family] !== undefined) counts[family]++;
   });
+  const liveCount = visible.filter((c) => c.isLive).length;
 
-  const galleryHeader = `
-    <div class="expanded-gallery-header">
-      <div class="expanded-gallery-header__content">
-        <h2 class="expanded-gallery-header__title">Your Creations</h2>
-        <div class="expanded-gallery-header__stats">
-          <span class="expanded-gallery-header__stat">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-            <strong>${counts.model}</strong> Models
-          </span>
-          <span class="expanded-gallery-header__stat">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-            <strong>${counts.image}</strong> Images
-          </span>
-          <span class="expanded-gallery-header__stat">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-            <strong>${counts.video + counts.animated}</strong> Videos
-          </span>
-          <span class="expanded-gallery-header__stat expanded-gallery-header__stat--total">
-            <strong>${counts.all}</strong> Total
-          </span>
-        </div>
-      </div>
-    </div>
-  `;
+  const chip = (key, label, icon) => {
+    // A chip for a category with nothing in it is noise (the old "Animated 0"),
+    // but "All" always renders so the grid is never chip-less.
+    if (key !== 'all' && !counts[key]) return '';
+    return `
+        <button type="button" class="expanded-filter-btn${key === 'all' ? ' active' : ''}" data-gallery-filter="${key}" aria-pressed="${key === 'all' ? 'true' : 'false'}">
+          ${icon}
+          ${label} <span class="expanded-filter-btn__count">${counts[key]}</span>
+        </button>`;
+  };
 
-  const familyCounts = cards.reduce((counts, card) => {
-    const family = card.family || 'model';
-    counts[family] = (counts[family] || 0) + 1;
-    return counts;
-  }, {});
-  const familyHeadings = GALLERY_FAMILY_ORDER
-    .filter((family) => familyCounts[family])
-    .map((family) => {
-      const meta = GALLERY_FAMILY_META[family];
-      return `
-        <div class="history-family-heading" data-family-heading="${family}">
-          <div class="history-family-heading__title">
-            <span class="history-family-heading__marker" data-family="${family}" aria-hidden="true"></span>
-            <span>${meta.label}</span>
-          </div>
-          <span class="history-family-heading__meta">${meta.description}</span>
-          <span class="history-family-heading__count">${familyCounts[family]}</span>
-        </div>
-      `;
-    }).join('');
+  const ICONS = {
+    model: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>',
+    image: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>',
+    animated: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+    video: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>',
+  };
 
   const filterBar = `
     <div class="expanded-filter-bar">
       <div class="expanded-filter-bar__pills">
-        <button type="button" class="expanded-filter-btn active" data-gallery-filter="all" aria-pressed="true">
-          All <span class="expanded-filter-btn__count">${counts.all}</span>
-        </button>
-        <button type="button" class="expanded-filter-btn" data-gallery-filter="model" aria-pressed="false">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-          Models <span class="expanded-filter-btn__count">${counts.model}</span>
-        </button>
-        <button type="button" class="expanded-filter-btn" data-gallery-filter="image" aria-pressed="false">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          Images <span class="expanded-filter-btn__count">${counts.image}</span>
-        </button>
-        <button type="button" class="expanded-filter-btn" data-gallery-filter="animated" aria-pressed="false">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          Animated <span class="expanded-filter-btn__count">${counts.animated}</span>
-        </button>
-        <button type="button" class="expanded-filter-btn" data-gallery-filter="video" aria-pressed="false">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-          Videos <span class="expanded-filter-btn__count">${counts.video}</span>
-        </button>
+        ${chip('all', 'All', '')}
+        ${chip('model', 'Models', ICONS.model)}
+        ${chip('image', 'Images', ICONS.image)}
+        ${chip('animated', 'Animated', ICONS.animated)}
+        ${chip('video', 'Videos', ICONS.video)}
       </div>
     </div>
   `;
 
+  // Live work is pinned to the top of the grid by _buildGalleryCards; this
+  // heading labels that run so a running job never looks like a broken card.
+  const liveHeading = liveCount ? `
+        <div class="history-live-heading" data-live-heading>
+          <span class="history-live-heading__pulse" aria-hidden="true"></span>
+          <span>Generating now</span>
+          <span class="history-live-heading__count">${liveCount}</span>
+        </div>` : '';
+
   return `
     <div class="expanded-section" data-lineage-root="gallery-view">
-      ${galleryHeader}
       ${filterBar}
-      <div class="expanded-thumbs-grid">${familyHeadings}</div>
+      <div class="expanded-thumbs-grid">${liveHeading}</div>
     </div>
   `;
 }
@@ -2619,6 +2698,7 @@ function _renderHistoryImpl() {
           const card = temp.firstElementChild;
           if (card) {
             card.dataset._gs = c.status;
+            if (c.isLive) card.dataset.live = '1';
             card.style.animationDelay = `${i * 0.03}s`;
             // Apply filter visibility
             if (_galleryActiveFilter !== 'all' && card.getAttribute('data-asset-type') !== _galleryActiveFilter) {
@@ -2629,7 +2709,12 @@ function _renderHistoryImpl() {
         });
         builtGrid.appendChild(fragment);
         bindGroupedCardEvents(builtGrid);
-        syncGalleryFamilyHeadings(builtGrid);
+        syncGalleryLiveHeading(builtGrid);
+        applyStackState(builtGrid);
+        // Phase 2 decoration (stars, tags, collections, filters) lives in the
+        // classic script js/library.js. Optional chain on purpose: if that file
+        // fails to load the library still renders, just without organisation.
+        window.TimrXLibrary?.decorate?.(builtGrid);
       }
       _bindGalleryScroll();
       // Show sentinel if DB has more pages
@@ -2637,7 +2722,7 @@ function _renderHistoryImpl() {
     } else if (hasNewCards && existingGrid) {
       // Append only the NEW cards (from loadMoreHistory) without disturbing existing ones
       _galleryAllCards = galleryCards;
-      ensureGalleryFamilyHeadings(existingGrid, galleryCards);
+      ensureGalleryLiveHeading(existingGrid, galleryCards);
       const fragment = document.createDocumentFragment();
       let appendCount = 0;
       galleryCards.forEach((c) => {
@@ -2647,6 +2732,7 @@ function _renderHistoryImpl() {
         const card = temp.firstElementChild;
         if (card) {
           card.dataset._gs = c.status;
+          if (c.isLive) card.dataset.live = '1';
           card.style.animationDelay = `${appendCount * 0.03}s`;
           if (_galleryActiveFilter !== 'all' && card.getAttribute('data-asset-type') !== _galleryActiveFilter) {
             card.classList.add('is-gallery-hidden');
@@ -2656,7 +2742,9 @@ function _renderHistoryImpl() {
         }
       });
       existingGrid.appendChild(fragment);
-      syncGalleryFamilyHeadings(existingGrid);
+      syncGalleryLiveHeading(existingGrid);
+      applyStackState(existingGrid);
+      window.TimrXLibrary?.decorate?.(existingGrid);
       // Update sentinel
       _updateGallerySentinel(historyHasMore(), existingGrid.children.length);
       // Update header stats count
@@ -2676,6 +2764,11 @@ function _renderHistoryImpl() {
         const replacement = temp.firstElementChild;
         if (replacement) {
           replacement.dataset._gs = card.status;
+          // data-live drives the live ring and the "Generating now" count.
+          // The rebuilt node starts without it, so a card that transitions
+          // into a running state would silently drop out of the live run.
+          if (card.isLive) replacement.dataset.live = '1';
+          else delete replacement.dataset.live;
           replacement.style.animationDelay = '0s';
           replacement.style.opacity = '1';
           if (_galleryActiveFilter !== 'all' && replacement.getAttribute('data-asset-type') !== _galleryActiveFilter) {
@@ -2684,6 +2777,11 @@ function _renderHistoryImpl() {
           existingGrid.replaceChild(replacement, child);
         }
       });
+      // A patched card may have entered or left the live run, and its stack
+      // state and library decoration live on the node we just replaced.
+      ensureGalleryLiveHeading(existingGrid, galleryCards);
+      applyStackState(existingGrid);
+      window.TimrXLibrary?.decorate?.(existingGrid);
     }
   } else {
     _unbindGalleryScroll();
@@ -2745,10 +2843,6 @@ function _renderHistoryImpl() {
   disableNav(nextBtn, nextDisabled || isGallery);
   disableNav(firstBtn, historyState.page <= 1 || isGallery);
   disableNav(lastBtn, historyState.page >= pages || isGallery);
-
-  if (isGallery) {
-    syncAssetsToolbarFilters();
-  }
 
   // Clean up any leftover load-more banners from previous renders
   const existingBanner = grid.querySelector('.history-load-more');

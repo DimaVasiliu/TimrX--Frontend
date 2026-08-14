@@ -1583,77 +1583,6 @@ body.history-expanded .timrx-3dprint .history-pager {
   display: none;
 }
 
-/* ╔════════════════════════════════════════════════════════════════════╗
-   ║  EXPANDED VIEW - Gallery Header with Stats                        ║
-   ╚════════════════════════════════════════════════════════════════════╝ */
-
-@keyframes expandedHeaderFade {
-  0% { opacity: 0; transform: translateY(-10px); }
-  100% { opacity: 1; transform: translateY(0); }
-}
-
-.expanded-gallery-header {
-  padding: 28px 0 16px;
-  animation: expandedHeaderFade 0.5s ease-out;
-}
-
-.expanded-gallery-header__content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.expanded-gallery-header__title {
-  font-size: 22px;
-  font-weight: 700;
-  color: #ffffff;
-  margin: 0;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.7) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-
-.expanded-gallery-header__stats {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.expanded-gallery-header__stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: rgba(255, 255, 255, 0.5);
-  padding: 6px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  border-radius: 999px;
-}
-
-.expanded-gallery-header__stat svg {
-  opacity: 0.7;
-}
-
-.expanded-gallery-header__stat strong {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-}
-
-.expanded-gallery-header__stat--total {
-  background: linear-gradient(135deg, rgba(var(--accent-blue-rgb), 0.12), rgba(var(--accent-blue-rgb), 0.06));
-  border-color: rgba(var(--accent-blue-rgb), 0.2);
-  color: rgba(var(--accent-blue-rgb), 0.8);
-}
-
-.expanded-gallery-header__stat--total strong {
-  color: var(--accent-blue);
-}
 
 /* Filter bar pills wrapper */
 .expanded-filter-bar__pills {
@@ -5252,13 +5181,6 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   padding: 0 0 6px;
 }
 
-/* The gallery ships its own "Your Creations" masthead with type counts, which
-   is the third title on a screen that already says LIBRARY / My Assets and
-   carries the same counts on the filter row. */
-.timrx-3dprint .ws-right.assets-modal .expanded-gallery-header {
-  display: none;
-}
-
 /* Family pills stay — they are the only way to isolate Animated — but they sit
    flush with the grid and stick to the top of the scroll area. */
 .timrx-3dprint .ws-right.assets-modal .expanded-filter-bar {
@@ -5297,20 +5219,6 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   font-variant-numeric: tabular-nums;
 }
 
-.timrx-3dprint .ws-right.assets-modal .history-family-heading {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  min-height: 30px;
-  padding: 12px 2px 6px;
-  border-bottom: 1px solid rgba(226, 236, 237, 0.08);
-}
-
-.timrx-3dprint .ws-right.assets-modal .history-family-heading[hidden] {
-  display: none;
-}
-
 .timrx-3dprint .ws-right.assets-modal .expanded-thumbs-grid > .history-empty {
   grid-column: 1 / -1 !important;
   aspect-ratio: auto !important;
@@ -5321,52 +5229,6 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   border-radius: 18px;
   background:
     linear-gradient(180deg, rgba(19, 27, 29, 0.74), rgba(11, 15, 16, 0.72));
-}
-
-.timrx-3dprint .ws-right.assets-modal .history-family-heading__title {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 750;
-  letter-spacing: 0.01em;
-}
-
-.timrx-3dprint .ws-right.assets-modal .history-family-heading__marker {
-  width: 7px;
-  height: 7px;
-  flex: none;
-  border-radius: 50%;
-  background: var(--accent-blue);
-  box-shadow: 0 0 0 4px rgba(var(--accent-blue-rgb), 0.09);
-}
-
-.timrx-3dprint .ws-right.assets-modal .history-family-heading__marker[data-family="image"] {
-  background: var(--accent-purple);
-  box-shadow: 0 0 0 4px rgba(var(--accent-purple-rgb), 0.09);
-}
-
-.timrx-3dprint .ws-right.assets-modal .history-family-heading__marker[data-family="animated"],
-.timrx-3dprint .ws-right.assets-modal .history-family-heading__marker[data-family="video"] {
-  background: var(--accent-pink);
-  box-shadow: 0 0 0 4px rgba(var(--accent-pink-rgb), 0.09);
-}
-
-.timrx-3dprint .ws-right.assets-modal .history-family-heading__meta {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--text-dim);
-  font-size: 11px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.timrx-3dprint .ws-right.assets-modal .history-family-heading__count {
-  margin-left: auto;
-  color: var(--text-dim);
-  font-size: 11px;
-  font-variant-numeric: tabular-nums;
 }
 
 /* Every family uses the same square footprint. Menus remain available in the
@@ -5491,12 +5353,508 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   .timrx-3dprint .ws-right.assets-modal .history-search-wrapper input {
     height: 34px;
   }
-  .timrx-3dprint .ws-right.assets-modal .history-family-heading {
-    gap: 8px;
-    padding-top: 10px;
-  }
+}
 
-  .timrx-3dprint .ws-right.assets-modal .history-family-heading__meta {
-    display: none;
-  }
+/* ==========================================================================
+   LIBRARY v2 — caption strips, version stacks, live row
+   --------------------------------------------------------------------------
+   Phase 1 of the unified My Assets library. Three problems this block fixes:
+
+     1. Cards carried a badge and nothing else, so a duplicate generation and
+        a preview-vs-textured pair of the same model were visually identical.
+        The status bar (date only, hover-only) becomes an always-on caption
+        with date, provider, and prompt.
+     2. Every revision of a lineage claimed its own grid cell. Revisions now
+        fold behind a single face card (`--stacked`) and fan out on click.
+     3. Running jobs had no home in the library. They pin to the top of the
+        grid under a live heading instead of appearing mid-feed.
+
+   Markup contract lives in js/history.js (buildHistoryThumb + _buildGalleryCards).
+   ========================================================================== */
+
+/* ---- always-on caption ---------------------------------------------------- */
+.timrx-3dprint .expanded-thumb__status-bar {
+  top: auto;
+  bottom: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  padding: 16px 8px 7px;
+  opacity: 1;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.86) 0%, rgba(0, 0, 0, 0.55) 55%, transparent 100%);
+}
+
+/* The stage pill shares the bottom-left corner with the caption — lift it to
+   the top-left so the two never overlap. */
+.timrx-3dprint .expanded-thumb__stage {
+  bottom: auto;
+  top: 8px;
+}
+
+.timrx-3dprint .expanded-thumb__status-date {
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  padding: 0;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  flex: none;
+}
+
+.timrx-3dprint .expanded-thumb__status-provider {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--accent-blue-rgb, 127, 200, 194), 0.32);
+  background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.14);
+  color: var(--accent-blue-soft, #a5ded9);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.timrx-3dprint .expanded-thumb__status-prompt {
+  flex: 1 1 100%;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ---- version stacks ------------------------------------------------------- */
+.timrx-3dprint .expanded-thumb.is-stack-hidden {
+  display: none;
+}
+
+/* Paper-stack depth.
+   The obvious implementation — a ::before offset outside the card — cannot
+   work here: .expanded-thumb already owns ::before (a hover-only top glow),
+   the card sets overflow: clip so any overhang is cut away, and a negative
+   z-index paints behind the card's opaque background. Use inset box-shadows
+   on the card itself instead: they render inside the clip, need no pseudo,
+   and stack cleanly with the existing shadow. */
+.timrx-3dprint .expanded-thumb--stacked {
+  box-shadow:
+    inset 0 2px 0 0 rgba(255, 255, 255, 0.13),
+    inset 0 5px 0 0 rgba(255, 255, 255, 0.06);
+  transition: box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.timrx-3dprint .expanded-thumb--stacked:hover {
+  box-shadow:
+    inset 0 3px 0 0 rgba(var(--accent-blue-rgb, 127, 200, 194), 0.5),
+    inset 0 7px 0 0 rgba(var(--accent-blue-rgb, 127, 200, 194), 0.2);
+}
+
+/* Open stacks show their revisions instead, so the depth cue is redundant. */
+.timrx-3dprint .expanded-thumb--stacked.is-stack-open { box-shadow: none; }
+
+.timrx-3dprint .expanded-thumb__stack-toggle {
+  position: absolute;
+  top: 8px;
+  right: 36px; /* clears the ⋯ menu button */
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.62);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.9);
+  font: 700 9px/1 var(--font-ui, 'Inter', sans-serif);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+.timrx-3dprint .expanded-thumb__stack-toggle:hover {
+  background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.24);
+  border-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.5);
+  transform: translateY(-1px);
+}
+
+/* Screen-reader-only text for the stack chip: the visible chip is icon + count
+   so it fits beside the stage pill on a 180px tile, but the control still
+   announces "3 versions" to assistive tech. No global .sr-only exists here. */
+.timrx-3dprint .expanded-thumb__stack-toggle .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.timrx-3dprint .expanded-thumb__stack-toggle svg {
+  width: 11px;
+  height: 11px;
+  color: var(--accent-blue-soft, #a5ded9);
+}
+
+.timrx-3dprint .expanded-thumb__stack-count {
+  color: var(--accent-blue-soft, #a5ded9);
+  font-size: 10px;
+}
+
+/* The caption already carries the prompt; the old floating name label on
+   gallery cards printed it a second time in the middle of the artwork. */
+.timrx-3dprint .expanded-thumb__name {
+  display: none;
+}
+
+.timrx-3dprint .expanded-thumb--stacked.is-stack-open .expanded-thumb__stack-toggle {
+  background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.28);
+  border-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.55);
+}
+
+/* A fanned-out revision is visually subordinate to its face card. */
+.timrx-3dprint .expanded-thumb--revision {
+  outline: 1px dashed rgba(var(--accent-blue-rgb, 127, 200, 194), 0.28);
+  outline-offset: -1px;
+}
+
+/* ---- live "Generating now" row -------------------------------------------- */
+.timrx-3dprint .history-live-heading {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 6px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(var(--accent-blue-rgb, 127, 200, 194), 0.16);
+  font: 650 11px/1 var(--font-ui, 'Inter', sans-serif);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-blue-soft, #a5ded9);
+}
+
+.timrx-3dprint .history-live-heading[hidden] { display: none; }
+
+.timrx-3dprint .history-live-heading__pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent-blue, #7fc8c2);
+  box-shadow: 0 0 0 0 rgba(var(--accent-blue-rgb, 127, 200, 194), 0.6);
+  animation: historyLivePulse 1.8s ease-out infinite;
+}
+
+@keyframes historyLivePulse {
+  0%   { box-shadow: 0 0 0 0 rgba(var(--accent-blue-rgb, 127, 200, 194), 0.55); }
+  70%  { box-shadow: 0 0 0 7px rgba(var(--accent-blue-rgb, 127, 200, 194), 0); }
+  100% { box-shadow: 0 0 0 0 rgba(var(--accent-blue-rgb, 127, 200, 194), 0); }
+}
+
+.timrx-3dprint .history-live-heading__count {
+  margin-left: auto;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.16);
+  font-variant-numeric: tabular-nums;
+}
+
+.timrx-3dprint .expanded-thumb[data-live="1"] {
+  box-shadow: 0 0 0 1px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.4),
+              0 0 22px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .timrx-3dprint .history-live-heading__pulse { animation: none; }
+  .timrx-3dprint .expanded-thumb--stacked::before { transition: none; }
+}
+
+/* ==========================================================================
+   LIBRARY v2 — Phase 2: stars, tags, collections, selection, filters
+   --------------------------------------------------------------------------
+   Markup is injected by js/library.js (a classic script, not a module).
+   Every selector here is additive — if library.js does not load, nothing
+   below has anything to style and the Phase 1 grid renders unchanged.
+   ========================================================================== */
+
+/* ---- favourite star ------------------------------------------------------ */
+.timrx-3dprint .lib-star {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  /* Above .expanded-thumb__processing (z-index 10), which covers the whole
+     tile while a job runs. Without this you cannot favourite a generation
+     until it finishes — exactly when you are most likely to want to. */
+  z-index: 12;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: rgba(255, 255, 255, 0.55);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.timrx-3dprint .lib-star svg { width: 13px; height: 13px; fill: currentColor; }
+.timrx-3dprint .expanded-thumb:hover .lib-star,
+.timrx-3dprint .expanded-thumb:focus-within .lib-star { opacity: 1; }
+/* A set star must stay visible without hover — it is the state, not a control. */
+.timrx-3dprint .lib-star.is-on {
+  opacity: 1;
+  color: #f0c674;
+  filter: drop-shadow(0 0 5px rgba(240, 198, 116, 0.45));
+}
+.timrx-3dprint .lib-star:hover { transform: scale(1.12); color: #f0c674; }
+
+/* The star occupies the caption's bottom-left corner, so the caption text has
+   to start clear of it. A sibling combinator cannot express this — the star is
+   appended last, the caption is first — so reserve the space unconditionally.
+   The tag chip claims the opposite corner on the same row. */
+.timrx-3dprint .expanded-thumb__status-bar { padding-left: 36px; padding-right: 40px; }
+
+/* ---- tag count chip ------------------------------------------------------ */
+.timrx-3dprint .lib-tagcount {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 12;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  color: var(--accent-blue-soft, #a5ded9);
+  font: 700 9px/1.4 var(--font-ui, 'Inter', sans-serif);
+  letter-spacing: 0.03em;
+  pointer-events: none;
+}
+
+/* An asset that belongs to a collection gets a quiet edge, not a badge —
+   badges compete with the stage pill for the same glance. */
+.timrx-3dprint .expanded-thumb.is-collected::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border-left: 2px solid rgba(var(--accent-purple-rgb, 184, 167, 122), 0.75);
+  pointer-events: none;
+}
+
+/* ---- selection ----------------------------------------------------------- */
+.timrx-3dprint .lib-select {
+  position: absolute;
+  inset: 0;
+  z-index: 14;
+  border: 2px solid transparent;
+  border-radius: inherit;
+  background: rgba(6, 9, 10, 0.35);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.timrx-3dprint .lib-select::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  background: rgba(0, 0, 0, 0.5);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.timrx-3dprint .lib-select.is-on { background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.16); }
+.timrx-3dprint .lib-select.is-on::before {
+  background: var(--accent-blue, #7fc8c2);
+  border-color: var(--accent-blue, #7fc8c2);
+}
+.timrx-3dprint .lib-select.is-on::after {
+  content: '';
+  position: absolute;
+  top: 12px;
+  left: 13px;
+  width: 5px;
+  height: 9px;
+  border: solid #0b0f0f;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+.timrx-3dprint .expanded-thumb.is-selected {
+  box-shadow: 0 0 0 2px var(--accent-blue, #7fc8c2), 0 0 20px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.25);
+}
+
+/* ---- filter row ---------------------------------------------------------- */
+.timrx-3dprint .lib-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 0 0 12px;
+}
+.timrx-3dprint .lib-filters__spacer { flex: 1 1 auto; }
+
+.timrx-3dprint .lib-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-soft, #c8d0d0);
+  font: 600 11px/1 var(--font-ui, 'Inter', sans-serif);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.timrx-3dprint .lib-chip svg { width: 11px; height: 11px; fill: currentColor; }
+.timrx-3dprint .lib-chip:hover { background: rgba(255, 255, 255, 0.07); color: var(--text, #f2f5f3); }
+.timrx-3dprint .lib-chip.is-on {
+  background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.16);
+  border-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.45);
+  color: var(--accent-blue-soft, #a5ded9);
+}
+.timrx-3dprint .lib-chip--star.is-on { color: #f0c674; border-color: rgba(240, 198, 116, 0.45); background: rgba(240, 198, 116, 0.14); }
+.timrx-3dprint .lib-chip__count { opacity: 0.6; font-variant-numeric: tabular-nums; }
+.timrx-3dprint .lib-chip--clear { color: #d98a8a; }
+
+.timrx-3dprint .lib-select-input {
+  padding: 5px 9px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-soft, #c8d0d0);
+  font: 600 11px/1 var(--font-ui, 'Inter', sans-serif);
+  cursor: pointer;
+}
+.timrx-3dprint .lib-select-input option { background: #12181a; color: var(--text, #f2f5f3); }
+
+/* ---- filtered-out cards + empty state ------------------------------------ */
+.timrx-3dprint .expanded-thumb.is-lib-hidden { display: none; }
+
+.timrx-3dprint .lib-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 40px 16px;
+  color: var(--text-dim, #6d7779);
+  font: 500 13px/1.4 var(--font-ui, 'Inter', sans-serif);
+}
+.timrx-3dprint .lib-empty__clear {
+  padding: 6px 14px;
+  border: 1px solid rgba(var(--accent-blue-rgb, 127, 200, 194), 0.4);
+  border-radius: 999px;
+  background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.12);
+  color: var(--accent-blue-soft, #a5ded9);
+  font: 600 11px/1 var(--font-ui, 'Inter', sans-serif);
+  cursor: pointer;
+}
+
+/* ---- bulk action bar ----------------------------------------------------- */
+/* variables.css:205 demotes every positioned direct child of body.print3d-page
+   to position:relative — the bulk bar is appended to <body>, so it lands in
+   that net and renders inline instead of pinned. Same explicit restore the
+   dock and the progress card use. */
+html body.print3d-page > .lib-bulk { position: fixed; z-index: 200200; }
+
+.lib-bulk {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%);
+  z-index: 200200; /* above the assets modal */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(760px, calc(100vw - 32px));
+  padding: 9px 12px;
+  border: 1px solid rgba(var(--accent-blue-rgb, 127, 200, 194), 0.28);
+  border-radius: 14px;
+  background: rgba(13, 16, 18, 0.95);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+  animation: libBulkIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes libBulkIn {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to   { opacity: 1; transform: translate(-50%, 0); }
+}
+.lib-bulk__count {
+  font: 700 11px/1 var(--font-ui, 'Inter', sans-serif);
+  color: var(--accent-blue-soft, #a5ded9);
+  white-space: nowrap;
+}
+.lib-bulk__spacer { flex: 1 1 auto; }
+.lib-bulk__btn {
+  padding: 6px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-soft, #c8d0d0);
+  font: 600 11px/1 var(--font-ui, 'Inter', sans-serif);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.lib-bulk__btn:hover { background: rgba(255, 255, 255, 0.09); color: var(--text, #f2f5f3); }
+.lib-bulk__btn--ghost { border-color: transparent; color: var(--text-dim, #6d7779); }
+
+/* ---- card menu additions ------------------------------------------------- */
+.timrx-3dprint .card-menu__label {
+  padding: 7px 10px 3px;
+  color: var(--text-dim, #6d7779);
+  font: 700 8.5px/1 var(--font-ui, 'Inter', sans-serif);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.timrx-3dprint .card-menu__hint {
+  padding: 5px 10px 8px;
+  color: var(--text-dim, #6d7779);
+  font: 400 10.5px/1.4 var(--font-ui, 'Inter', sans-serif);
+}
+.timrx-3dprint .card-menu__group { border-bottom: 1px solid rgba(255, 255, 255, 0.07); padding-bottom: 5px; }
+
+.timrx-3dprint .lib-menu-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 3px 10px 7px;
+}
+.timrx-3dprint .lib-menu-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 7px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-soft, #c8d0d0);
+  font: 600 9.5px/1.4 var(--font-ui, 'Inter', sans-serif);
+  cursor: pointer;
+}
+.timrx-3dprint .lib-menu-tag:hover { border-color: rgba(217, 138, 138, 0.5); color: #d98a8a; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lib-bulk { animation: none; }
+  .timrx-3dprint .lib-star:hover { transform: none; }
 }

@@ -238,6 +238,7 @@
   .inspire-grid {
     grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
     gap: 10px;
+    align-items: start;
   }
 
   .inspire-header {
@@ -245,7 +246,16 @@
   }
 
   .inspire-content {
-    padding: 16px 18px 22px;
+    padding: 16px 18px max(34px, calc(env(safe-area-inset-bottom, 0px) + 22px));
+    scroll-padding-bottom: max(34px, calc(env(safe-area-inset-bottom, 0px) + 22px));
+  }
+
+  .inspire-overlay .inspire-card,
+  .inspire-overlay .inspire-card.landscape,
+  .inspire-overlay .inspire-card.portrait,
+  .inspire-overlay .inspire-card.square {
+    aspect-ratio: 1 / 1 !important;
+    min-height: 0;
   }
 
   .inspire-overlay .inspire-filters {
@@ -294,10 +304,11 @@
   .inspire-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
+    align-items: start;
   }
 
   .inspire-content {
-    padding: 15px 16px 22px;
+    padding: 15px 16px max(34px, calc(env(safe-area-inset-bottom, 0px) + 22px));
   }
 
   .inspire-header__title h2 {
@@ -325,7 +336,7 @@
   }
 
   .inspire-card {
-    min-height: 128px;
+    min-height: 0;
   }
 
   .inspire-card__video-badge {

@@ -21,7 +21,7 @@
 /* Top: brand + nav columns */
 .ft-main{
   display:grid;
-  grid-template-columns:minmax(220px,.75fr) minmax(0,1.9fr);
+  grid-template-columns:minmax(240px,.7fr) minmax(0,2fr);
   align-items:start;
   gap:clamp(24px,5vw,64px);
   padding-bottom:0;
@@ -54,9 +54,13 @@
 /* Nav columns */
 .ft-cols{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(128px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
   align-items:start;
   gap:clamp(14px,2vw,28px);
+}
+.ft-col{
+  min-width:0;
+  padding:2px 0;
 }
 .ft-heading{
   font-size:11px;font-weight:700;
@@ -66,6 +70,9 @@
 }
 .ft-links{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
 .ft-links a{
+  display:inline-flex;
+  align-items:center;
+  min-height:24px;
   font-size:13px;color:#9ca3af;
   text-decoration:none;
   transition:color .2s ease;
@@ -88,17 +95,32 @@
 /* Mobile stacking */
 @media(max-width:900px){
   .ft-main{grid-template-columns:1fr;gap:24px}
-  .ft-cols{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px 24px}
+  .ft-cols{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .ft-col{
+    min-height:100%;
+    padding:14px;
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:10px;
+    background:rgba(255,255,255,.018);
+  }
+  .ft-col:last-child:nth-child(odd){grid-column:1 / -1}
   .ft-desc{max-width:100%}
 }
 @media(max-width:520px){
   .site-footer{padding:28px 0 18px}
   .site-footer .container{padding:0 18px}
   .ft-main{gap:22px}
-  .ft-cols{gap:18px 16px}
+  .ft-cols{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .ft-col{padding:12px}
+  .ft-heading{font-size:10px;margin-bottom:8px}
+  .ft-links{gap:6px}
+  .ft-links a{font-size:12px;line-height:1.35}
   .ft-bottom{flex-direction:column;align-items:flex-start;gap:4px}
   .ft-copy,.ft-meta{white-space:normal}
 }
 @media(max-width:360px){
-  .ft-cols{grid-template-columns:1fr}
+  .site-footer .container{padding:0 14px}
+  .ft-cols{gap:10px}
+  .ft-col{padding:10px}
+  .ft-links a{font-size:11.5px}
 }

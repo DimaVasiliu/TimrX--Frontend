@@ -27,8 +27,8 @@ import {
   getGroupedCardItems,
   resetGalleryInfiniteScroll,
   syncAssetsToolbarFilters
-} from './history.js?v=20260812e';
-import * as API from './api.js?v=20260812e';
+} from './history.js?v=20260813p2b';
+import * as API from './api.js?v=20260813p2b';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
@@ -130,8 +130,13 @@ function switchHistoryFilter(filter = 'all') {
   if (_suppressHistoryFilterReset || window._timrxSuppressHistoryFilterReset) return;
   // Only reset page if filter actually changed
   if (State.historyState.filter !== filter) {
-    // Collapse expanded gallery when switching away from 'all'
-    if (filter !== 'all' && State.historyState.galleryExpanded) {
+    // Collapse expanded gallery when switching away from 'all' — but never
+    // while the Assets modal owns the screen. The library is a single grid
+    // now; dropping it into the old collections view mid-filter was what made
+    // the modal look like two different products depending on which chip you
+    // pressed.
+    if (filter !== 'all' && State.historyState.galleryExpanded
+        && !document.body.classList.contains('assets-modal-open')) {
       State.historyState.galleryExpanded = false;
     }
     State.historyState.filter = filter;

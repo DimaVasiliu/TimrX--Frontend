@@ -142,14 +142,18 @@
   <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260811ah">
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260812assettoolbar">
+  <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260814x3d">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260814tiles">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
   <link rel="stylesheet" href="tx-menu.css?v=1">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
   <script defer src="3dprint-modules/3dprint-app.js?v=20260812d"></script>
   <script defer src="3dprint-modules/inspire.js?v=20260811q"></script>
-  <script defer src="js/workspace-loader.js?v=20260811ab"></script>
+  <script defer src="js/workspace-loader.js?v=20260814x3d"></script>
+  <!-- My Assets Phase 2 (stars, tags, collections, multi-select, remix).
+       Classic script by design: it has no importers, so it can never
+       invalidate the ES module version chain. -->
+  <script defer src="js/library.js?v=20260813p2b"></script>
 
   <!-- Visually Hidden Utility + Ticker Styles -->
   <style>
@@ -171,7 +175,7 @@
     window.addEventListener('load',function(){setTimeout(function(){(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-TH8DB6S5');},0);});
   </script>
   <!-- End Google Tag Manager -->
-  <script defer src="js/google-ads-conversions.js?v=20260515a"></script>
+  <script defer src="js/google-ads-conversions.js?v=20260813sync"></script>
   <script src="js/console-shield.js?v=1"></script>
 </head>
 <body class="print3d-page">
@@ -190,25 +194,52 @@
     <div class="workspace-loader__grain" aria-hidden="true"></div>
     <div class="workspace-loader__shadow" aria-hidden="true"></div>
     <div class="workspace-loader__halo" aria-hidden="true"></div>
+    <!-- The screen surface itself. workspace-loader.js tessellates this into
+         ~70 fragments at boot — each one carrying the veil's own background,
+         offset so they compose back into a single seamless image — and breaks
+         it on the frame the falling X lands. Empty under prefers-reduced-motion
+         or if the build is skipped, in which case the veil simply crossfades. -->
+    <div class="workspace-loader__shards" data-shards aria-hidden="true"></div>
+    <!-- The workspace's own perspective floor grid, carried by the veil so the
+         boot screen and the workspace are the same picture. Sits above the
+         fragments because a 3D-transformed plane cannot be baked into their
+         flat backgrounds. -->
+    <div class="workspace-loader__floor" aria-hidden="true"></div>
     <div class="workspace-loader__scene">
       <div class="workspace-loader__mark">
-        <h1 class="workspace-loader__brand" aria-label="TimrX">
-          <span style="--i:0">T</span>
-          <span style="--i:1">i</span>
-          <span style="--i:2">m</span>
-          <span style="--i:3">r</span>
-          <span style="--i:4">X</span>
-        </h1>
-        <div class="workspace-loader__meter" aria-hidden="true">
-          <div class="workspace-loader__progress">
-            <span class="workspace-loader__bar" data-loader-bar></span>
-          </div>
-          <div class="workspace-loader__readout">
-            <p class="workspace-loader__percent" data-loader-percent>00%</p>
-            <p class="workspace-loader__status" data-loader-status>Initializing</p>
-          </div>
+        <div class="workspace-loader__logo-wrap" aria-hidden="true">
+          <span class="workspace-loader__orbit"></span>
+          <span class="workspace-loader__orbit workspace-loader__orbit--slow"></span>
+          <img class="workspace-loader__logo" src="img/logo.png" width="150" height="150" alt="" decoding="async" fetchpriority="high">
         </div>
+        <h1 class="workspace-loader__brand" aria-label="TimrX">
+          <span class="workspace-loader__glyph" style="--i:0">T</span>
+          <span class="workspace-loader__glyph" style="--i:1">i</span>
+          <span class="workspace-loader__glyph" style="--i:2">m</span>
+          <span class="workspace-loader__glyph" style="--i:3">r</span>
+          <!-- The X is a solid, not a letter. The outer span owns the fall and
+               the impact; the inner face owns the extrusion and the angle it is
+               seen from, so the two never fight over `transform`. -->
+          <span class="workspace-loader__glyph workspace-loader__glyph--x"><i class="workspace-loader__x-face">X</i></span>
+        </h1>
       </div>
+    </div>
+    <!-- The damage: the crack network plus the debris it throws. Sits behind
+         the wordmark — the X is a solid that hit the screen, so the star
+         belongs in the surface under it. -->
+    <div class="workspace-loader__glass" aria-hidden="true">
+      <svg class="workspace-loader__fracture" data-fracture focusable="false"></svg>
+      <span class="workspace-loader__dust"></span>
+      <span class="workspace-loader__crush" data-crush></span>
+      <span class="workspace-loader__flash"></span>
+      <div class="workspace-loader__spall" data-spall></div>
+    </div>
+    <div class="workspace-loader__meter" aria-hidden="true">
+      <div class="workspace-loader__progress">
+        <span class="workspace-loader__bar" data-loader-bar></span>
+      </div>
+      <p class="workspace-loader__percent" data-loader-percent>00</p>
+      <p class="workspace-loader__status" data-loader-status>Initializing</p>
     </div>
   </div>
 
@@ -1828,7 +1859,7 @@
   })();
   </script>
 
-  <script src="js/env-config.js?v=3"></script>
+  <script src="js/env-config.js?v=20260813sync"></script>
 
   <!-- Three.js Setup - Single instance via importmap (prevents "Multiple instances" warning) -->
   <script type="importmap">
@@ -2005,7 +2036,7 @@
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260812e"></script>
+  <script type="module" src="./js/main.js?v=20260813p2b"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
   <script src="js/command-palette.js?v=20260802f" defer></script>

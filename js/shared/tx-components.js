@@ -395,7 +395,7 @@
         var href = item.external ? item.href : resolveInternalHref(item.href);
         return '<li><a href="' + href + '"' + externalAttrs(item) + '>' + escapeHtml(item.label) + '</a></li>';
       }).join('');
-      return '<div><h3 class="site-shell-footer-heading">' + escapeHtml(column.heading) + '</h3>'
+      return '<div class="site-shell-footer-col"><h3 class="site-shell-footer-heading">' + escapeHtml(column.heading) + '</h3>'
         + '<ul class="site-shell-footer-links">' + links + '</ul></div>';
     }).join('');
 

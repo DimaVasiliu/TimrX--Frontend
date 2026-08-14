@@ -601,21 +601,42 @@ body.hero-command-docked .hero-command{
 }
 
 .footer-grid{
-  grid-template-columns:1fr;
-  gap:28px;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
 }
 
 .footer-grid > div{
-  grid-column:auto;
+  grid-column:1 / -1;
 }
 
 .footer-grid nav{
   min-width:0;
+  min-height:100%;
+  padding:14px;
+  border:1px solid rgba(244,241,234,.08);
+  border-radius:12px;
+  background:rgba(244,241,234,.025);
+  gap:8px;
+}
+
+.footer-grid nav h2{
+  margin-bottom:3px;
+  font-size:9.5px;
+}
+
+.footer-grid nav a{
+  min-height:24px;
+  font-size:12px;
+  line-height:1.35;
+}
+
+.footer-grid nav:last-child{
+  grid-column:1 / -1;
 }
 
 .footer-bottom{
   flex-direction:column;
-  gap:12px;
+  gap:10px;
 }
 
 /* Floating UI and modals -------------------------------------------------- */
@@ -765,7 +786,7 @@ body.hero-command-docked .hero-command{
     width:auto;
   }
   .footer-grid{
-    grid-template-columns:1.2fr 1fr 1fr;
+    grid-template-columns:1.2fr repeat(3,minmax(0,1fr));
   }
   .footer-grid > div{
     grid-column:1 / -1;
@@ -871,9 +892,13 @@ body.hero-command-docked .hero-command{
     border-radius:24px;
   }
   .footer-grid{
-    grid-template-columns:1.2fr repeat(4,minmax(100px,auto));
+    grid-template-columns:minmax(180px,1.2fr) repeat(5,minmax(96px,auto));
   }
   .footer-grid > div{
+    grid-column:auto;
+  }
+
+  .footer-grid nav:last-child{
     grid-column:auto;
   }
 }

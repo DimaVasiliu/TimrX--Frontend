@@ -1267,6 +1267,50 @@
             <p class="field-hint texture-setting-note">If both text and image are set, Meshy uses the image reference to guide the retexture.</p>
           </div>
 
+          <div class="texture-style-block" id="textureMultiviewBlock" style="display:none">
+            <span class="field-label-inline">Multiview Style Images <span class="info-dot" title="Meshy 7 / Latest can texture from up to 4 photos of the same object. The first image is the primary front view; the other angles can be in any order.">i</span></span>
+            <div id="textureMultiviewGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px auto;max-width:240px">
+              <div class="multi-img-slot" data-slot="0">
+                <div class="video-drop-zone" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span style="font-size:10px;color:#c9b47a;margin-top:3px;font-weight:600">Style 1 · Front</span>
+                  <input type="file" class="multi-img-input" accept="image/png,image/jpeg" hidden />
+                </div>
+                <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
+              </div>
+              <div class="multi-img-slot" data-slot="1">
+                <div class="video-drop-zone" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span style="font-size:10px;color:#888;margin-top:3px">Style 2 · optional</span>
+                  <input type="file" class="multi-img-input" accept="image/png,image/jpeg" hidden />
+                </div>
+                <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
+              </div>
+              <div class="multi-img-slot" data-slot="2">
+                <div class="video-drop-zone" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span style="font-size:10px;color:#888;margin-top:3px">Style 3 · optional</span>
+                  <input type="file" class="multi-img-input" accept="image/png,image/jpeg" hidden />
+                </div>
+                <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
+              </div>
+              <div class="multi-img-slot" data-slot="3">
+                <div class="video-drop-zone" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:18px;height:18px;opacity:.4"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                  <span style="font-size:10px;color:#888;margin-top:3px">Style 4 · optional</span>
+                  <input type="file" class="multi-img-input" accept="image/png,image/jpeg" hidden />
+                </div>
+                <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
+              </div>
+            </div>
+            <div class="inline-field texture-style-url-row">
+              <label for="textureMultiviewUrls">Or paste image URLs</label>
+              <input type="text" id="textureMultiviewUrls" placeholder="https://a.jpg, https://b.jpg">
+            </div>
+            <div id="textureMultiviewCount" style="font-size:11px;color:#666;margin-top:4px">0 / 4 style views selected</div>
+            <p class="field-hint texture-setting-note" id="textureMultiviewNote">Multiview replaces the text prompt and the single style image — when views are set, Meshy textures from them alone.</p>
+          </div>
+
           <div class="material-chips" id="materialChips">
             <button type="button" class="material-chip" data-material="Rusty weathered metal with scratches, oxidation, and patina">Rusty Metal</button>
             <button type="button" class="material-chip" data-material="Polished natural wood grain with warm tones and subtle varnish">Polished Wood</button>
@@ -1318,7 +1362,7 @@
                 <span class="toggle-slider"></span>
               </label>
             </div>
-            <p class="field-hint texture-setting-note" id="textureRemoveLightingNote">Cleaner base color textures for custom lighting setups. Only available on Meshy 6 / latest.</p>
+            <p class="field-hint texture-setting-note" id="textureRemoveLightingNote">Cleaner base color textures for custom lighting setups. Only available on Meshy 6.</p>
             <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
               <input type="checkbox" id="seamless" checked>
               <span>Preserve Original UV</span>
@@ -6131,10 +6175,84 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         });
       }
 
+      // ── Retexture multiview style views (Meshy 7 / latest only) ──
+      const textureMultiviewBlock = leftStack.querySelector('#textureMultiviewBlock');
+      const textureMultiviewGrid = leftStack.querySelector('#textureMultiviewGrid');
+      const textureMultiviewUrls = leftStack.querySelector('#textureMultiviewUrls');
+      const textureMultiviewCount = leftStack.querySelector('#textureMultiviewCount');
+
+      const countMultiviewImages = () => {
+        const slotted = textureMultiviewGrid
+          ? Array.from(textureMultiviewGrid.querySelectorAll('.multi-img-preview'))
+              .filter((img) => img.style.display !== 'none' && img.src).length
+          : 0;
+        const pasted = (textureMultiviewUrls?.value || '')
+          .split(/[\s,]+/).map((v) => v.trim()).filter(Boolean).length;
+        return Math.min(4, slotted + pasted);
+      };
+
+      const syncTextureMultiviewCount = () => {
+        if (textureMultiviewCount) {
+          textureMultiviewCount.textContent = `${countMultiviewImages()} / 4 style views selected`;
+        }
+      };
+
+      if (textureMultiviewGrid) {
+        textureMultiviewGrid.querySelectorAll('.multi-img-slot').forEach((slot) => {
+          const dropZone = slot.querySelector('.video-drop-zone');
+          const fileInput = slot.querySelector('.multi-img-input');
+          const preview = slot.querySelector('.multi-img-preview');
+          if (!dropZone || !fileInput || !preview) return;
+
+          dropZone.addEventListener('click', () => fileInput.click());
+          fileInput.addEventListener('change', async function () {
+            if (!this.files || !this.files[0]) return;
+            try {
+              preview.src = await readFileAsDataUrl(this.files[0]);
+              preview.style.display = 'block';
+              dropZone.style.display = 'none';
+            } catch (err) {
+              console.warn('[Texture] Invalid multiview style image:', err);
+              this.value = '';
+              preview.style.display = 'none';
+              preview.src = '';
+              dropZone.style.display = '';
+              showImageUploadError(err?.message || 'Invalid image file.');
+            }
+            syncTextureMultiviewCount();
+          });
+          dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.style.borderColor = 'rgba(255,255,255,.3)'; });
+          dropZone.addEventListener('dragleave', () => { dropZone.style.borderColor = ''; });
+          dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '';
+            if (e.dataTransfer.files?.[0]) {
+              fileInput.files = e.dataTransfer.files;
+              fileInput.dispatchEvent(new Event('change'));
+            }
+          });
+          // Click a filled slot to clear it
+          preview.addEventListener('click', () => {
+            preview.style.display = 'none';
+            preview.src = '';
+            dropZone.style.display = '';
+            fileInput.value = '';
+            syncTextureMultiviewCount();
+          });
+        });
+      }
+      textureMultiviewUrls?.addEventListener('input', syncTextureMultiviewCount);
+      syncTextureMultiviewCount();
+
       const syncTextureLightingSupport = () => {
         if (!textureAiModel) return;
         const isMeshy5 = textureAiModel.value === 'meshy-5';
         const supportsRemoveLighting = textureAiModel.value === 'meshy-6';
+        // Meshy documents multiview_image_urls for meshy-7 / latest only.
+        const supportsMultiview = ['latest', 'meshy-7'].includes(textureAiModel.value);
+        if (textureMultiviewBlock) {
+          textureMultiviewBlock.style.display = supportsMultiview ? '' : 'none';
+        }
         if (textureRemoveLighting) {
           textureRemoveLighting.disabled = !supportsRemoveLighting;
           if (!supportsRemoveLighting) textureRemoveLighting.checked = false;
