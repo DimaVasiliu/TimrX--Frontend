@@ -5929,6 +5929,99 @@ html body.print3d-page > .lib-bulk { position: fixed; z-index: 200200; }
 }
 .timrx-3dprint .lib-menu-tag:hover { border-color: rgba(217, 138, 138, 0.5); color: #d98a8a; }
 
+@media (max-width: 760px) {
+  body.assets-modal-open.history-menu-open::before {
+    background: rgba(3, 5, 6, 0.44);
+    z-index: 200240;
+    -webkit-backdrop-filter: blur(2px);
+    backdrop-filter: blur(2px);
+  }
+
+  body.assets-modal-open .timrx-3dprint .ws-right.assets-modal .card.history {
+    overflow: visible;
+  }
+
+  body.assets-modal-open .timrx-3dprint .ws-right.assets-modal .history .history-grid {
+    scrollbar-gutter: stable;
+  }
+
+  body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet,
+  body.assets-modal-open .timrx-3dprint .card-submenu.is-mobile-sheet {
+    --asset-menu-sheet-left: max(0px, env(safe-area-inset-left, 0px));
+    --asset-menu-sheet-right: max(0px, env(safe-area-inset-right, 0px));
+    position: fixed !important;
+    left: var(--asset-menu-sheet-left) !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
+    width: min(340px, calc(100vw - 48px - var(--asset-menu-sheet-left) - var(--asset-menu-sheet-right))) !important;
+    min-width: 0;
+    max-width: none;
+    max-height: min(560px, calc(72dvh - max(0px, env(safe-area-inset-bottom, 0px))));
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    padding: 10px;
+    border-radius: 20px;
+    z-index: 200320 !important;
+    background:
+      radial-gradient(circle at 14% 0%, rgba(var(--accent-blue-rgb), 0.12), transparent 34%),
+      linear-gradient(180deg, rgba(22, 29, 31, 0.98), rgba(7, 10, 11, 0.99));
+    border-color: rgba(212, 230, 227, 0.14);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.62), inset 0 1px 0 rgba(242, 245, 243, 0.06);
+    -webkit-transform: translateY(0) translateZ(0) !important;
+    transform: translateY(0) translateZ(0) !important;
+  }
+
+  body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet.has-mobile-submenu {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet .card-menu__list,
+  body.assets-modal-open .timrx-3dprint .card-submenu.is-mobile-sheet {
+    gap: 5px;
+  }
+
+  body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet .card-menu__item,
+  body.assets-modal-open .timrx-3dprint .card-submenu.is-mobile-sheet .card-submenu__item {
+    min-height: 48px;
+    padding: 12px 13px;
+    border-radius: 12px;
+    font-size: 14px;
+  }
+
+  body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet .card-menu__item-inner {
+    min-width: 0;
+  }
+
+  body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet .card-menu__item-inner > span:last-child,
+  body.assets-modal-open .timrx-3dprint .card-submenu.is-mobile-sheet .card-submenu__item {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet .card-menu__label {
+    padding: 10px 10px 5px;
+    font-size: 9.5px;
+  }
+
+  body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet .card-menu__hint {
+    padding: 7px 10px 10px;
+  }
+
+  body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet .lib-menu-tags {
+    padding-inline: 8px;
+  }
+
+  body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet .lib-menu-tag {
+    min-height: 32px;
+    padding: 5px 9px;
+    font-size: 11px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .lib-bulk { animation: none; }
   .timrx-3dprint .lib-star:hover { transform: none; }

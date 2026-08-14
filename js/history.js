@@ -29,6 +29,22 @@ let activeHistoryMenu = null;
 let activeHistorySubmenuBtn = null;
 let activeHistorySubmenu = null;
 
+function isMobileAssetsMenu() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') return false;
+  return document.body.classList.contains('assets-modal-open') &&
+    window.matchMedia('(max-width: 760px)').matches;
+}
+
+function resetMenuPlacement(el) {
+  if (!el) return;
+  el.classList.remove('is-mobile-sheet');
+  el.style.left = '';
+  el.style.right = '';
+  el.style.top = '';
+  el.style.bottom = '';
+  el.style.width = '';
+}
+
 // ============================================================================
 // INFINITE SCROLL STATE (expanded gallery)
 // ============================================================================
@@ -1054,9 +1070,9 @@ export function closeActiveHistorySubmenu() {
   }
   if (activeHistorySubmenu) {
     activeHistorySubmenu.classList.remove('is-open');
-    activeHistorySubmenu.style.left = '';
-    activeHistorySubmenu.style.top = '';
+    resetMenuPlacement(activeHistorySubmenu);
   }
+  if (activeHistoryMenu) activeHistoryMenu.classList.remove('has-mobile-submenu');
   activeHistorySubmenuBtn = null;
   activeHistorySubmenu = null;
 }
@@ -1070,8 +1086,7 @@ export function closeActiveHistoryMenu() {
   }
   if (activeHistoryMenu) {
     activeHistoryMenu.classList.remove('is-open');
-    activeHistoryMenu.style.left = '';
-    activeHistoryMenu.style.top = '';
+    resetMenuPlacement(activeHistoryMenu);
   }
   activeHistoryMenuBtn = null;
   activeHistoryMenu = null;
@@ -1090,6 +1105,7 @@ export function openHistoryMenu(menuBtn, menu) {
   menu.classList.add('is-open');
   activeHistoryMenuBtn = menuBtn;
   activeHistoryMenu = menu;
+  menu.classList.toggle('is-mobile-sheet', isMobileAssetsMenu());
   positionHistoryMenu(menuBtn, menu);
   document.body.classList.add('history-menu-open');
   requestAnimationFrame(() => {
@@ -1110,11 +1126,21 @@ export function openHistorySubmenu(submenuBtn, submenu) {
   submenu.classList.add('is-open');
   activeHistorySubmenuBtn = submenuBtn;
   activeHistorySubmenu = submenu;
+  submenu.classList.toggle('is-mobile-sheet', isMobileAssetsMenu());
+  if (activeHistoryMenu) activeHistoryMenu.classList.toggle('has-mobile-submenu', isMobileAssetsMenu());
   positionHistorySubmenu(submenuBtn, submenu);
 }
 
 function positionHistoryMenu(anchorBtn, menu) {
   if (!anchorBtn || !menu) return;
+  if (isMobileAssetsMenu()) {
+    menu.style.left = '';
+    menu.style.right = '';
+    menu.style.top = '';
+    menu.style.bottom = '';
+    menu.style.width = '';
+    return;
+  }
   const spacing = HISTORY_MENU_EDGE_PAD;
   const gap = 6;
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
@@ -1151,6 +1177,14 @@ function positionHistoryMenu(anchorBtn, menu) {
 
 function positionHistorySubmenu(anchorBtn, submenu) {
   if (!anchorBtn || !submenu) return;
+  if (isMobileAssetsMenu()) {
+    submenu.style.left = '';
+    submenu.style.right = '';
+    submenu.style.top = '';
+    submenu.style.bottom = '';
+    submenu.style.width = '';
+    return;
+  }
   const spacing = HISTORY_MENU_EDGE_PAD;
   const gap = HISTORY_SUBMENU_GAP;
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
@@ -1180,6 +1214,10 @@ function positionHistorySubmenu(anchorBtn, submenu) {
 
 export function updateActiveHistoryMenuPosition() {
   if (!activeHistoryMenuBtn || !activeHistoryMenu) return;
+  const mobileAssets = isMobileAssetsMenu();
+  activeHistoryMenu.classList.toggle('is-mobile-sheet', mobileAssets);
+  if (activeHistorySubmenu) activeHistorySubmenu.classList.toggle('is-mobile-sheet', mobileAssets);
+  activeHistoryMenu.classList.toggle('has-mobile-submenu', mobileAssets && !!activeHistorySubmenu);
   positionHistoryMenu(activeHistoryMenuBtn, activeHistoryMenu);
   if (activeHistorySubmenuBtn && activeHistorySubmenu) {
     positionHistorySubmenu(activeHistorySubmenuBtn, activeHistorySubmenu);

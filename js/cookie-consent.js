@@ -13,19 +13,19 @@
   // Already consented or declined - nothing to show.
   if (stored === 'accepted' || stored === 'declined') return;
 
-  // The consent surface is intentionally modal: the page stays visible behind
-  // it, but cannot be used until the visitor makes a choice.
+  // Keep consent visible without blocking core navigation. The wrapper is
+  // click-through; only the consent card itself receives pointer events.
   var style = document.createElement('style');
   style.textContent = [
-    'html.cc-consent-open,body.cc-consent-open{overflow:hidden!important;}',
     '.cc-banner{',
-    '  position:fixed;inset:0;z-index:2147483647;',
+    '  position:fixed;inset:0;z-index:990;',
     '  display:grid;place-items:center;',
     '  padding:clamp(18px,4vw,48px);',
     '  background:rgba(4,7,8,.74);',
     '  backdrop-filter:blur(16px) saturate(.88);-webkit-backdrop-filter:blur(16px) saturate(.88);',
     '  opacity:0;animation:ccReveal .42s cubic-bezier(.22,.61,.36,1) .15s forwards;',
     '  isolation:isolate;',
+    '  pointer-events:none;',
     '}',
     '.cc-inner{',
     '  width:min(100%,620px);margin:0 auto;',
@@ -35,6 +35,7 @@
     '  box-shadow:0 30px 90px rgba(0,0,0,.58),inset 0 1px 0 rgba(242,245,243,.07);',
     '  transform:translateY(12px) scale(.98);',
     '  animation:ccPanelIn .48s cubic-bezier(.22,.61,.36,1) .2s forwards;',
+    '  pointer-events:auto;',
     '}',
     '.cc-heading{display:grid;gap:8px;}',
     '.cc-eyebrow{',
@@ -90,8 +91,7 @@
 
   var banner = document.createElement('div');
   banner.className = 'cc-banner';
-  banner.setAttribute('role', 'dialog');
-  banner.setAttribute('aria-modal', 'true');
+  banner.setAttribute('role', 'region');
   banner.setAttribute('aria-label', 'Cookie consent');
   banner.innerHTML =
     '<div class="cc-inner">' +
@@ -112,21 +112,11 @@
 
   document.documentElement.classList.add('cc-consent-open');
   document.body.classList.add('cc-consent-open');
-  Array.prototype.forEach.call(document.body.children, function (element) {
-    if (element !== banner) {
-      element.inert = true;
-      element.setAttribute('data-cc-inert', '');
-    }
-  });
 
   function dismiss(choice) {
     try { localStorage.setItem(STORAGE_KEY, choice); } catch (_) { /* Safari: storage blocked */ }
     document.documentElement.classList.remove('cc-consent-open');
     document.body.classList.remove('cc-consent-open');
-    Array.prototype.forEach.call(document.querySelectorAll('[data-cc-inert]'), function (element) {
-      element.inert = false;
-      element.removeAttribute('data-cc-inert');
-    });
     banner.classList.add('cc-hiding');
     banner.addEventListener('animationend', function () {
       banner.remove();

@@ -41,7 +41,7 @@
 @import url('media/viewer-media.css?v=20260811ah');
 
 /* 6. History Panel */
-@import url('css/history.css?v=20260814filters');
+@import url('css/history.css?v=20260814assetmenu');
 @import url('media/history-media.css?v=20260811ah');
 
 /* 10. Inspire Section */
@@ -56,7 +56,7 @@
 @import url('css/multi-color-print.css?v=20260802f');
 
 /* 13. Workspace navigation — command trigger + command palette */
-@import url('css/nav.css?v=20260812viewer');
+@import url('css/nav.css?v=20260814cmdscroll');
 
 /* 14. Control sheet — the tool panel */
 @import url('css/panel.css?v=20260811ah');
@@ -69,7 +69,7 @@
 
 /* 15c. Floating generation progress — reactor card + minimisable orb.
    Replaces the old .gen-track cards (markup retired; see generation-tracker.js). */
-@import url('css/gen-progress.css?v=20260812a');
+@import url('css/gen-progress.css?v=20260814place');
 
 /* 16. Responsive layer for the stage + bottom chrome — imported LAST on
    purpose: it corrects nav.css launcher geometry and stage safe areas

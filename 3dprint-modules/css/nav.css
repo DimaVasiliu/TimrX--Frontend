@@ -169,6 +169,7 @@
     /* Matches the bar's width so the two read as one object. */
     width: min(var(--ws-cmdbar-w), calc(100vw - 40px));
     max-height: min(700px, 76vh);
+    min-height: 0;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -265,6 +266,8 @@
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-y;
     padding: 12px;
     scrollbar-width: thin;
     scrollbar-color: rgba(var(--accent-blue-rgb), 0.2) transparent;
@@ -496,7 +499,11 @@
     .ws-cmd-trigger__kbd { display: none; }
     
   
-    .ws-cmd__panel { max-height: 68vh; }
+    .ws-cmd__panel {
+      height: min(720px, calc(100vh - max(24px, env(safe-area-inset-top, 0px)) - max(18px, env(safe-area-inset-bottom, 0px))));
+      height: min(720px, calc(100dvh - max(24px, env(safe-area-inset-top, 0px)) - max(18px, env(safe-area-inset-bottom, 0px))));
+      max-height: min(720px, calc(100dvh - max(24px, env(safe-area-inset-top, 0px)) - max(18px, env(safe-area-inset-bottom, 0px))));
+    }
     .ws-cmd__foot { display: none; }
   }
   
@@ -507,8 +514,17 @@
     
     .ws-cmd-trigger__icon { width: 18px; height: 18px; }
   
-    .ws-cmd { padding: 6vh 10px max(12px, env(safe-area-inset-bottom, 0px)); }
-    .ws-cmd__panel { width: calc(100vw - 20px); max-height: 74vh; border-radius: 20px; }
+    .ws-cmd {
+      padding: max(14px, env(safe-area-inset-top, 0px)) 10px
+               max(12px, env(safe-area-inset-bottom, 0px));
+    }
+    .ws-cmd__panel {
+      width: calc(100vw - 20px);
+      height: calc(100vh - max(14px, env(safe-area-inset-top, 0px)) - max(12px, env(safe-area-inset-bottom, 0px)));
+      height: calc(100dvh - max(14px, env(safe-area-inset-top, 0px)) - max(12px, env(safe-area-inset-bottom, 0px)));
+      max-height: calc(100dvh - max(14px, env(safe-area-inset-top, 0px)) - max(12px, env(safe-area-inset-bottom, 0px)));
+      border-radius: 20px;
+    }
     .ws-cmd__field { padding: 10px 20px; }
     .ws-cmd__item { padding: 13px 14px; font-size: 15px; }
     .ws-cmd__item-meta { display: none; }
@@ -518,7 +534,11 @@
   @media (max-height: 560px) {
     :root { --ws-cmdbar-h: 48px; --ws-cmdbar-gap: 10px; }
     
-    .ws-cmd__panel { max-height: 82vh; }
+    .ws-cmd__panel {
+      height: calc(100vh - max(10px, env(safe-area-inset-top, 0px)) - max(10px, env(safe-area-inset-bottom, 0px)));
+      height: calc(100dvh - max(10px, env(safe-area-inset-top, 0px)) - max(10px, env(safe-area-inset-bottom, 0px)));
+      max-height: calc(100dvh - max(10px, env(safe-area-inset-top, 0px)) - max(10px, env(safe-area-inset-bottom, 0px)));
+    }
     .ws-cmd__foot { display: none; }
   }
   

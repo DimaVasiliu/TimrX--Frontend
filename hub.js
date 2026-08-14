@@ -168,8 +168,9 @@ if (slider) {
 // Dashboard shortcuts delegate to the existing money-management controls.
 (function(){
   const manageBtn = document.getElementById('dashboardManageBillingBtn');
-  if (!manageBtn) return;
-  manageBtn.addEventListener('click', () => {
+  const billingAction = document.getElementById('dashboardBillingAction');
+
+  function openBilling() {
     const subscriptionPill = document.getElementById('subscriptionStatusPill');
     if (subscriptionPill && !subscriptionPill.classList.contains('hidden')) {
       subscriptionPill.click();
@@ -177,36 +178,193 @@ if (slider) {
     }
     const pricing = document.getElementById('pricing');
     if (pricing) pricing.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
+  }
+
+  manageBtn?.addEventListener('click', openBilling);
+  billingAction?.addEventListener('click', openBilling);
 })();
 
-// Mirror shared nav wallet/subscription text into the dashboard summary. This is
-// display-only; credits.js remains the single owner of wallet and billing state.
+// Dashboard account, credit and billing summary. Display-only: credits.js remains
+// the single owner of wallet, auth, checkout and subscription state.
 (function(){
   const generalOut = document.getElementById('dashboardCreditsValue');
   const videoOut = document.getElementById('dashboardVideoCreditsValue');
   const planOut = document.getElementById('dashboardPlanValue');
-  if (!generalOut && !videoOut && !planOut) return;
+  const accountBtn = document.getElementById('dashboardAccountBtn');
+  const nextStep = document.getElementById('dashboardNextStep');
+  const nextLabel = document.getElementById('dashboardNextStepLabel');
+  const nextTitle = document.getElementById('dashboardNextStepTitle');
+  const nextBtn = document.getElementById('dashboardNextStepBtn');
+  const billingState = document.getElementById('dashboardBillingState');
+  const billingTitle = document.getElementById('dashboardBillingTitle');
+  const billingCopy = document.getElementById('dashboardBillingCopy');
+  const billingAction = document.getElementById('dashboardBillingAction');
+  const imageEstimate = document.getElementById('dashboardImageEstimate');
+  const modelEstimate = document.getElementById('dashboardModelEstimate');
+  const videoEstimate = document.getElementById('dashboardVideoEstimate');
+
+  if (!generalOut && !videoOut && !planOut && !nextStep && !billingState) return;
+
+  const state = {
+    general: null,
+    video: null,
+    email: '',
+    verified: false,
+    subscriptionStatus: '',
+    subscriptionText: '',
+    hasSubscription: false
+  };
 
   let observer = null;
   let tries = 0;
+
+  function toNumber(text) {
+    const n = parseInt(String(text || '').replace(/[^\d]/g, ''), 10);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function fmt(value) {
+    return Number.isFinite(value) ? value.toLocaleString() : '--';
+  }
+
+  function scrollToPricing() {
+    document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function openAccount() {
+    const account = document.getElementById('accountStatusBtn');
+    const signIn = document.getElementById('signInBtn');
+    if (account) account.click();
+    else signIn?.click();
+  }
+
+  function openBilling() {
+    const subscriptionPill = document.getElementById('subscriptionStatusPill');
+    if (subscriptionPill && !subscriptionPill.classList.contains('hidden')) subscriptionPill.click();
+    else scrollToPricing();
+  }
+
+  function runAction(action) {
+    if (action === 'account') openAccount();
+    else if (action === 'billing') openBilling();
+    else if (action === 'pricing') scrollToPricing();
+    else window.location.href = '/3dprint?refresh=1';
+  }
+
+  function setAction(action, label, title, buttonText) {
+    if (nextLabel) nextLabel.textContent = label;
+    if (nextTitle) nextTitle.textContent = title;
+    if (nextBtn) {
+      nextBtn.textContent = buttonText;
+      nextBtn.dataset.action = action;
+    }
+  }
+
+  function updateEstimates() {
+    const general = Number.isFinite(state.general) ? state.general : 0;
+    const video = Number.isFinite(state.video) ? state.video : 0;
+    if (imageEstimate) imageEstimate.textContent = fmt(Math.floor(general / 4));
+    if (modelEstimate) modelEstimate.textContent = fmt(Math.floor(general / 20));
+    if (videoEstimate) videoEstimate.textContent = fmt(Math.floor(video / 45));
+  }
+
+  function updateNextStep() {
+    const total = (Number.isFinite(state.general) ? state.general : 0) + (Number.isFinite(state.video) ? state.video : 0);
+    if (state.subscriptionStatus === 'past_due' || state.subscriptionStatus === 'suspended') {
+      setAction('billing', 'Payment attention needed', 'Resolve billing to resume subscription credit refills.', 'Manage billing');
+    } else if (!state.verified) {
+      setAction('account', 'Recommended next step', 'Sign in to sync credits, checkout and creation history.', 'Sign in');
+    } else if (total <= 0) {
+      setAction('pricing', 'Balance is empty', 'Choose a credit pack or subscription before starting a new generation.', 'Buy credits');
+    } else if (Number.isFinite(state.general) && state.general < 20 && Number.isFinite(state.video) && state.video < 45) {
+      setAction('pricing', 'Balance is low', 'Top up before starting larger 3D or video jobs.', 'Top up');
+    } else {
+      setAction('workspace', 'Ready to create', 'Open the workspace with your current credit balance.', 'Open workspace');
+    }
+  }
+
+  function updateBillingFromPill() {
+    const sub = document.getElementById('subscriptionStatusPill');
+    const visible = sub && !sub.classList.contains('hidden');
+    state.hasSubscription = Boolean(visible);
+    state.subscriptionText = visible ? sub.textContent.replace(/\s+/g, ' ').trim() : '';
+    state.subscriptionStatus = '';
+
+    if (visible) {
+      const match = Array.from(sub.classList).find(cls => cls.indexOf('status-') === 0);
+      state.subscriptionStatus = match ? match.replace('status-', '') : '';
+    }
+
+    if (planOut) planOut.textContent = state.subscriptionText || 'Free';
+    if (!billingState || !billingTitle || !billingCopy || !billingAction) return;
+
+    billingState.classList.remove('is-good', 'is-warning');
+    if (!visible) {
+      billingTitle.textContent = 'No subscription detected';
+      billingCopy.textContent = 'Use one-time credits or choose a monthly plan below.';
+      billingAction.textContent = 'Browse plans';
+    } else if (state.subscriptionStatus === 'active') {
+      billingState.classList.add('is-good');
+      billingTitle.textContent = 'Subscription active';
+      billingCopy.textContent = state.subscriptionText || 'Monthly credits are enabled.';
+      billingAction.textContent = 'Manage';
+    } else if (state.subscriptionStatus === 'past_due' || state.subscriptionStatus === 'suspended') {
+      billingState.classList.add('is-warning');
+      billingTitle.textContent = state.subscriptionStatus === 'past_due' ? 'Payment failed' : 'Subscription suspended';
+      billingCopy.textContent = state.subscriptionText || 'Billing needs attention before credits can resume.';
+      billingAction.textContent = 'Recover';
+    } else {
+      billingState.classList.add('is-warning');
+      billingTitle.textContent = 'Subscription pending';
+      billingCopy.textContent = state.subscriptionText || 'Payment confirmation is still syncing.';
+      billingAction.textContent = 'Manage';
+    }
+  }
+
   function sync(){
     const general = document.getElementById('hoverGeneralValue') || document.getElementById('creditsValue');
     const video = document.getElementById('hoverVideoValue');
     const sub = document.getElementById('subscriptionStatusPill');
+    const generalValue = toNumber(general?.textContent);
+    const videoValue = toNumber(video?.textContent);
+    if (generalValue !== null) state.general = generalValue;
+    if (videoValue !== null) state.video = videoValue;
     if (generalOut && general && general.textContent.trim()) generalOut.textContent = general.textContent.trim();
     if (videoOut && video && video.textContent.trim()) videoOut.textContent = video.textContent.trim();
-    if (planOut && sub && !sub.classList.contains('hidden')) {
-      const txt = sub.textContent.replace(/\s+/g, ' ').trim();
-      if (txt) planOut.textContent = txt;
-    }
+    updateBillingFromPill();
+    updateEstimates();
+    updateNextStep();
     if ((general || sub) && !observer) {
       observer = new MutationObserver(sync);
-      [general, video, sub].filter(Boolean).forEach(el => observer.observe(el, { childList:true, subtree:true, characterData:true, attributes:true }));
+      [general, video, sub].filter(Boolean).forEach(el => observer.observe(el, { childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:['class'] }));
     }
     tries += 1;
     if (tries < 40 && (!general || !sub)) window.setTimeout(sync, 250);
   }
+
+  accountBtn?.addEventListener('click', openAccount);
+  nextBtn?.addEventListener('click', () => runAction(nextBtn.dataset.action || 'account'));
+  window.addEventListener('timrx:wallet', (event) => {
+    const wallet = event.detail || {};
+    state.general = Number(wallet.available ?? state.general ?? 0);
+    state.video = Number(wallet.videoAvailable ?? state.video ?? 0);
+    state.email = wallet.email || state.email;
+    state.verified = Boolean(wallet.emailVerified);
+    if (generalOut) generalOut.textContent = fmt(state.general);
+    if (videoOut) videoOut.textContent = fmt(state.video);
+    updateEstimates();
+    updateNextStep();
+  });
+  window.addEventListener('timrx:auth:verified', () => {
+    state.verified = true;
+    updateNextStep();
+  });
+  window.addEventListener('timrx:auth:switched', (event) => {
+    state.email = event.detail?.email || state.email;
+    state.verified = true;
+    updateNextStep();
+  });
+
   sync();
 })();
 

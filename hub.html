@@ -413,6 +413,14 @@
           <a class="btn ghost" href="#pricing">Buy Credits</a>
           <button type="button" class="btn ghost" id="dashboardManageBillingBtn">Manage Billing</button>
         </div>
+        <div class="dashboard-next-step" id="dashboardNextStep">
+          <i class="fa-solid fa-compass" aria-hidden="true"></i>
+          <div>
+            <span id="dashboardNextStepLabel">Recommended next step</span>
+            <strong id="dashboardNextStepTitle">Sign in to sync credits and creation history.</strong>
+          </div>
+          <button type="button" id="dashboardNextStepBtn">Sign in</button>
+        </div>
       </div>
 
       <aside class="dashboard-account-card" aria-label="Account snapshot">
@@ -435,6 +443,10 @@
           </div>
         </div>
         <p class="dashboard-card-note">Balances update after sign in, checkout confirmation or purchase recovery.</p>
+        <div class="dashboard-account-actions">
+          <button type="button" id="dashboardAccountBtn">Account</button>
+          <a href="/3dprint?panel=history">History</a>
+        </div>
       </aside>
     </section>
 
@@ -452,10 +464,43 @@
         </div>
       </article>
 
+      <article class="dashboard-panel dashboard-panel--usage">
+        <div class="dashboard-panel-head">
+          <span>Credit planner</span>
+          <a href="#valueCalculator">Calculator <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </div>
+        <div class="dashboard-estimates" aria-label="Estimated creations from current balance">
+          <div>
+            <i class="fa-solid fa-image" aria-hidden="true"></i>
+            <span>Images from balance</span>
+            <strong id="dashboardImageEstimate">--</strong>
+          </div>
+          <div>
+            <i class="fa-solid fa-cube" aria-hidden="true"></i>
+            <span>Standard 3D models</span>
+            <strong id="dashboardModelEstimate">--</strong>
+          </div>
+          <div>
+            <i class="fa-solid fa-film" aria-hidden="true"></i>
+            <span>Short videos</span>
+            <strong id="dashboardVideoEstimate">--</strong>
+          </div>
+        </div>
+        <p class="dashboard-panel-note">Estimates use common starting costs: 4 general credits per image, 20 per 3D model, and 45 video credits per short video.</p>
+      </article>
+
       <article class="dashboard-panel">
         <div class="dashboard-panel-head">
           <span>Billing</span>
           <a href="#pricing">Pricing <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
+        </div>
+        <div class="dashboard-billing-state" id="dashboardBillingState">
+          <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+          <div>
+            <strong id="dashboardBillingTitle">No subscription detected</strong>
+            <p id="dashboardBillingCopy">Use one-time credits or choose a monthly plan below.</p>
+          </div>
+          <button type="button" id="dashboardBillingAction">Browse plans</button>
         </div>
         <ul class="dashboard-list">
           <li><span>Credit packs</span><strong>One-time</strong></li>
@@ -474,6 +519,10 @@
           <li><span>Payment status</span><strong>Auto recovery</strong></li>
           <li><span>Downloads</span><strong>From creation panel</strong></li>
         </ul>
+        <div class="dashboard-workflow-actions">
+          <a href="/3dprint?panel=history">Open history</a>
+          <a href="/stl-library">STL library</a>
+        </div>
       </article>
     </section>
 

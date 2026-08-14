@@ -79,6 +79,71 @@
   gap:12px;
   margin-top:28px;
 }
+.dashboard-next-step{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:14px;
+  margin-top:22px;
+  padding:14px;
+  border:1px solid rgba(125,211,252,.16);
+  border-radius:18px;
+  background:rgba(125,211,252,.055);
+}
+.dashboard-next-step i{
+  display:grid;
+  place-items:center;
+  width:38px;
+  height:38px;
+  border-radius:14px;
+  background:rgba(125,211,252,.12);
+  color:#7dd3fc;
+}
+.dashboard-next-step span{
+  display:block;
+  color:#8ea3b6;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.dashboard-next-step strong{
+  display:block;
+  margin-top:3px;
+  color:#f6f2ea;
+  font-size:13px;
+  line-height:1.35;
+}
+.dashboard-next-step button,
+.dashboard-account-actions button,
+.dashboard-account-actions a,
+.dashboard-billing-state button,
+.dashboard-workflow-actions a{
+  appearance:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:34px;
+  padding:0 12px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:999px;
+  background:rgba(255,255,255,.055);
+  color:#f6f2ea;
+  font:800 11px Inter,system-ui,sans-serif;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+  transition:background .2s ease,border-color .2s ease,transform .2s ease;
+}
+.dashboard-next-step button:hover,
+.dashboard-account-actions button:hover,
+.dashboard-account-actions a:hover,
+.dashboard-billing-state button:hover,
+.dashboard-workflow-actions a:hover{
+  transform:translateY(-1px);
+  border-color:rgba(125,211,252,.34);
+  background:rgba(125,211,252,.11);
+}
 .dashboard-account-card,
 .dashboard-panel{
   border:1px solid rgba(255,255,255,.08);
@@ -146,13 +211,22 @@
   font-size:12px;
   line-height:1.55;
 }
+.dashboard-account-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:16px;
+}
 .dashboard-grid{
   display:grid;
-  grid-template-columns:1.25fr .875fr .875fr;
+  grid-template-columns:repeat(2,minmax(0,1fr));
   gap:clamp(28px,3.4vw,42px);
   margin-top:clamp(18px,2.4vw,34px);
   padding-top:0;
   padding-bottom:clamp(28px,4vw,52px);
+}
+.dashboard-panel--wide{
+  grid-column:span 2;
 }
 .dashboard-panel{
   padding:clamp(24px,2.8vw,34px);
@@ -232,6 +306,88 @@
   font-size:13px;
   text-align:right;
 }
+.dashboard-estimates{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+}
+.dashboard-estimates>div{
+  display:grid;
+  gap:8px;
+  min-height:118px;
+  padding:16px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  background:rgba(255,255,255,.035);
+}
+.dashboard-estimates i{
+  color:#7dd3fc;
+  font-size:17px;
+}
+.dashboard-estimates span{
+  color:#948c80;
+  font-size:12px;
+  line-height:1.35;
+}
+.dashboard-estimates strong{
+  align-self:end;
+  color:#f6f2ea;
+  font-size:clamp(28px,4vw,44px);
+  line-height:.9;
+  letter-spacing:-.06em;
+}
+.dashboard-panel-note{
+  margin:14px 0 0;
+  color:#817a70;
+  font-size:12px;
+  line-height:1.55;
+}
+.dashboard-billing-state{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  margin-bottom:14px;
+  padding:14px;
+  border:1px solid rgba(255,255,255,.08);
+  border-radius:18px;
+  background:rgba(255,255,255,.035);
+}
+.dashboard-billing-state i{
+  color:#7dd3fc;
+}
+.dashboard-billing-state strong{
+  display:block;
+  color:#f6f2ea;
+  font-size:13px;
+  line-height:1.3;
+}
+.dashboard-billing-state p{
+  margin:4px 0 0;
+  color:#948c80;
+  font-size:12px;
+  line-height:1.45;
+}
+.dashboard-billing-state.is-warning{
+  border-color:rgba(251,191,36,.28);
+  background:rgba(251,191,36,.07);
+}
+.dashboard-billing-state.is-warning i{
+  color:#fbbf24;
+}
+.dashboard-billing-state.is-good{
+  border-color:rgba(52,211,153,.22);
+  background:rgba(52,211,153,.065);
+}
+.dashboard-billing-state.is-good i{
+  color:#86efac;
+}
+.dashboard-workflow-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:16px;
+}
 .hub-dashboard .pricing-wrap{
   border-top:1px solid rgba(255,255,255,.08);
   background:#090909;
@@ -240,6 +396,9 @@
   .dashboard-hero,
   .dashboard-grid{
     grid-template-columns:1fr;
+  }
+  .dashboard-panel--wide{
+    grid-column:auto;
   }
   .dashboard-hero-copy,
   .dashboard-account-card{
@@ -263,7 +422,24 @@
     width:100%;
     justify-content:center;
   }
+  .dashboard-next-step,
+  .dashboard-billing-state{
+    grid-template-columns:1fr;
+  }
+  .dashboard-next-step i{
+    display:none;
+  }
+  .dashboard-next-step button,
+  .dashboard-billing-state button{
+    width:100%;
+  }
   .dashboard-shortcuts{
+    grid-template-columns:1fr;
+  }
+  .dashboard-estimates{
+    grid-template-columns:1fr;
+  }
+  .dashboard-account-actions{
     grid-template-columns:1fr;
   }
 }

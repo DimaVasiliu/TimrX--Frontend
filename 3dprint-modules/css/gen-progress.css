@@ -22,8 +22,8 @@ html body.print3d-page > .gp { position: fixed; z-index: 61; }
 
 .gp {
   position: fixed;
-  right: 20px;
-  bottom: 104px; /* clears the dock card */
+  right: clamp(18px, 2vw, 32px);
+  bottom: clamp(96px, 11vh, 132px); /* clears the dock card */
   z-index: 61;
   display: flex;
   flex-direction: column;
@@ -43,7 +43,7 @@ body.print3d-page.print-panel-open .gp {
 
 /* ---- expanded card ------------------------------------------------------ */
 .gp__card {
-  width: min(360px, calc(100vw - 32px));
+  width: min(380px, calc(100vw - 32px));
   border-radius: 18px;
   background: rgba(13, 16, 18, 0.92);
   border: 1px solid rgba(var(--accent-blue-rgb), 0.22);
@@ -304,8 +304,86 @@ body.print3d-page.print-panel-open .gp {
 
 /* ---- small screens ------------------------------------------------------ */
 @media (max-width: 768px) {
-  .gp { right: 12px; bottom: 130px; }
-  .gp__card { width: min(330px, calc(100vw - 24px)); }
+  .gp {
+    left: 50%;
+    right: auto;
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 126px);
+    transform: translateX(-50%);
+    align-items: center;
+    width: calc(100vw - 20px);
+  }
+
+  body.print3d-page.ws-viewer-open .gp {
+    bottom: max(16px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .gp__card {
+    width: min(360px, 100%);
+    border-radius: 18px;
+    box-shadow:
+      0 16px 46px rgba(0, 0, 0, 0.54),
+      0 0 28px rgba(var(--accent-blue-rgb), 0.14),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  }
+
+  .gp__head {
+    padding: 8px 9px 7px 10px;
+    gap: 8px;
+  }
+
+  .gp__list {
+    max-height: min(34vh, 210px);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .gp__row {
+    gap: 9px;
+    padding: 9px 10px;
+  }
+
+  .gp__row-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 9px;
+  }
+
+  .gp__row-stage {
+    gap: 6px;
+  }
+
+  .gp__row-prompt {
+    max-width: 100%;
+  }
+
+  .gp__orb {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 430px) {
+  .gp {
+    width: calc(100vw - 16px);
+    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 120px);
+  }
+
+  body.print3d-page.ws-viewer-open .gp {
+    bottom: max(14px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .gp__card {
+    width: 100%;
+  }
+
+  .gp__head-title {
+    font-size: 12.5px;
+  }
+
+  .gp__row-meta {
+    font-size: 10px;
+    gap: 5px;
+  }
 }
 
 /* ---- reduced motion ----------------------------------------------------- */

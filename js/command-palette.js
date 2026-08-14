@@ -343,6 +343,7 @@
   });
 
   list.addEventListener('pointermove', function (e) {
+    if (e.pointerType && e.pointerType !== 'mouse') return;
     var el = e.target.closest('.ws-cmd__item');
     if (!el || el.hidden) return;
     var i = items.indexOf(el);
