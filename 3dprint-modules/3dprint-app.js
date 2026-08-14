@@ -1100,6 +1100,19 @@
 
           <div class="card-divider"></div>
 
+          <div class="field-group" style="margin-bottom:12px">
+            <span class="field-label-inline">Operation <span class="info-dot" title="Each operation is a separate Meshy API with its own credit cost.">i</span></span>
+            <div class="segment-group" data-segment-group data-target="#meshOperationMode">
+              <button type="button" class="segment is-active" data-value="remesh">Remesh</button>
+              <button type="button" class="segment" data-value="convert">Convert</button>
+              <button type="button" class="segment" data-value="resize">Resize</button>
+              <button type="button" class="segment" data-value="uv_unwrap">UV Unwrap</button>
+            </div>
+            <input type="hidden" id="meshOperationMode" value="remesh">
+            <p class="field-hint texture-setting-note" id="meshOperationNote">Rebuilds topology for clean, printable geometry.</p>
+          </div>
+
+          <div id="meshRemeshModeFields">
           <h4 style="margin:0 0 8px;font-size:12px;font-weight:600;color:rgba(255,255,255,.7);letter-spacing:.02em">Remesh Preset</h4>
           <div class="remesh-presets" id="remeshPresets">
             <button type="button" class="remesh-preset is-active" data-preset="print-ready" data-poly="50000" data-topo="triangle">
@@ -1132,21 +1145,61 @@
             4. Run <strong>Print Check</strong> in the viewer toolbar to verify<br>
             5. Export STL from the Print Check panel
           </div>
+          </div>
+
+          <div id="meshResizeModeFields" style="display:none">
+            <div class="inline-field">
+              <label for="meshResizeMode">Sizing</label>
+              <select id="meshResizeMode">
+                <option value="resize_height" selected>Height (metres)</option>
+                <option value="resize_longest_side">Longest side (metres)</option>
+                <option value="auto_size">Auto size (Meshy estimates real-world scale)</option>
+              </select>
+            </div>
+            <div class="inline-field" id="meshResizeValueField">
+              <label for="meshResizeValue">Target size (m)</label>
+              <input type="number" id="meshResizeValue" min="0" step="0.01" value="0.1">
+            </div>
+            <p class="field-hint texture-setting-note">Meshy Resize accepts exactly one sizing choice. Origin is set in Advanced Settings.</p>
+          </div>
+
+          <div id="meshUvUnwrapModeFields" style="display:none">
+            <p class="field-hint texture-setting-note">UV Unwrap generates a clean UV layout for the source model above. It changes no geometry and takes no other settings — run it before texturing a model with poor UVs.</p>
+          </div>
 
           <button type="button" class="remesh-advanced-toggle" id="remeshAdvancedToggle">
             <span>Advanced Settings</span>
             <svg class="remesh-advanced-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
           </button>
           <div class="remesh-advanced remesh-advanced--collapsed" id="remeshAdvanced">
-            <div class="inline-field">
-              <label for="targetPolyCount">Poly Count</label>
-              <input type="number" id="targetPolyCount" value="50000" min="100" max="1000000" step="1000">
+            <div id="meshRemeshAdvancedFields">
+              <div class="inline-field">
+                <label for="targetPolyCount">Poly Count</label>
+                <input type="number" id="targetPolyCount" value="50000" min="100" max="1000000" step="1000">
+              </div>
+              <div class="inline-field">
+                <label for="remeshDecimationMode">Decimation <span class="info-dot" title="Adaptive decimation lets Meshy pick the polycount. When set, Poly Count is ignored.">i</span></label>
+                <select id="remeshDecimationMode">
+                  <option value="" selected>Off — use poly count</option>
+                  <option value="1">Adaptive — Ultra</option>
+                  <option value="2">Adaptive — High</option>
+                  <option value="3">Adaptive — Medium</option>
+                  <option value="4">Adaptive — Low</option>
+                </select>
+              </div>
+              <div class="inline-field">
+                <label for="remeshResizeHeight">Resize Height (m)</label>
+                <input type="number" id="remeshResizeHeight" min="0" step="0.01" placeholder="0 = keep original">
+              </div>
+              <div class="field-row">
+                <span class="field-label-inline">Transparent Thumbnail</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="remeshAlphaThumbnail">
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
             </div>
-            <div class="inline-field">
-              <label for="remeshResizeHeight">Resize Height (m)</label>
-              <input type="number" id="remeshResizeHeight" min="0" step="0.01" placeholder="0 = keep original">
-            </div>
-            <div class="inline-field">
+            <div class="inline-field" id="meshOriginField">
               <label for="remeshOriginAt">Origin</label>
               <select id="remeshOriginAt">
                 <option value="" selected>Keep Original</option>
@@ -1154,7 +1207,7 @@
                 <option value="center">Center</option>
               </select>
             </div>
-            <div class="texture-format-group">
+            <div class="texture-format-group" id="meshFormatsField">
               <span class="field-label-inline">Additional Export Formats</span>
               <div class="texture-format-grid" id="remeshTargetFormats">
                 <label class="texture-format-option">
@@ -1184,14 +1237,6 @@
               </div>
               <p class="field-hint texture-setting-note">GLB is always included for in-app preview. STL for 3D printing. 3MF for color printing. OBJ/FBX for editing. USDZ for AR.</p>
             </div>
-            <div class="field-row">
-              <span class="field-label-inline">Format Only (skip remesh)</span>
-              <label class="toggle-switch">
-                <input type="checkbox" id="remeshConvertFormatOnly">
-                <span class="toggle-slider"></span>
-              </label>
-            </div>
-            <p class="field-hint texture-setting-note" id="remeshConvertOnlyNote">When enabled, Meshy exports the selected formats without changing topology, origin, or size. Use this to convert an already-clean mesh to different file formats.</p>
           </div>
         </div>
 
@@ -6453,10 +6498,40 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const remeshAdvancedToggle = leftStack.querySelector('#remeshAdvancedToggle');
       const remeshAdvanced = leftStack.querySelector('#remeshAdvanced');
       const remeshFormatContainer = leftStack.querySelector('#remeshTargetFormats');
-      const remeshConvertFormatOnly = leftStack.querySelector('#remeshConvertFormatOnly');
       const remeshResizeHeight = leftStack.querySelector('#remeshResizeHeight');
       const remeshOriginAt = leftStack.querySelector('#remeshOriginAt');
       const remeshPolyInput = leftStack.querySelector('#targetPolyCount');
+      const remeshDecimationMode = leftStack.querySelector('#remeshDecimationMode');
+      const meshOperationMode = leftStack.querySelector('#meshOperationMode');
+      const meshOperationNote = leftStack.querySelector('#meshOperationNote');
+      const meshRemeshModeFields = leftStack.querySelector('#meshRemeshModeFields');
+      const meshRemeshAdvancedFields = leftStack.querySelector('#meshRemeshAdvancedFields');
+      const meshResizeModeFields = leftStack.querySelector('#meshResizeModeFields');
+      const meshUvUnwrapModeFields = leftStack.querySelector('#meshUvUnwrapModeFields');
+      const meshOriginField = leftStack.querySelector('#meshOriginField');
+      const meshFormatsField = leftStack.querySelector('#meshFormatsField');
+      const meshResizeModeSelect = leftStack.querySelector('#meshResizeMode');
+      const meshResizeValueField = leftStack.querySelector('#meshResizeValueField');
+
+      // Each operation is a separate Meshy endpoint with its own price.
+      const MESH_OPERATIONS = {
+        remesh: {
+          label: 'Remesh', action: 'remesh', fallbackCost: 5,
+          note: 'Rebuilds topology for clean, printable geometry.',
+        },
+        convert: {
+          label: 'Convert', action: 'convert', fallbackCost: 1,
+          note: 'Exports the model to other file formats. Geometry, size and origin are untouched.',
+        },
+        resize: {
+          label: 'Resize', action: 'resize', fallbackCost: 1,
+          note: 'Rescales the model. Pick exactly one sizing method below.',
+        },
+        uv_unwrap: {
+          label: 'UV Unwrap', action: 'uv_unwrap', fallbackCost: 5,
+          note: 'Generates a clean UV layout so textures apply evenly.',
+        },
+      };
 
       const syncRemeshPresetDefaults = (card) => {
         if (!card) return;
@@ -6469,29 +6544,57 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       };
 
       const syncRemeshAdvancedState = () => {
-        const convertOnly = !!remeshConvertFormatOnly?.checked;
-        [remeshPolyInput, remeshResizeHeight, remeshOriginAt].forEach((el) => {
-          if (!el) return;
-          el.disabled = convertOnly;
-        });
-        // Format Only routes to Meshy Convert (1 credit), not Remesh (5).
-        const action = convertOnly ? 'convert' : 'remesh';
-        const fallbackCost = convertOnly ? 1 : 5;
-        const cost = window.WorkspaceCredits?.getActionCost?.(action) || fallbackCost;
-        const actionLabel = convertOnly ? 'Convert' : 'Remesh';
+        const mode = (meshOperationMode?.value || 'remesh').trim() || 'remesh';
+        const op = MESH_OPERATIONS[mode] || MESH_OPERATIONS.remesh;
+        const isRemesh = mode === 'remesh';
+        const isConvert = mode === 'convert';
+        const isResize = mode === 'resize';
+
+        // Mode-specific field groups
+        if (meshRemeshModeFields) meshRemeshModeFields.style.display = isRemesh ? '' : 'none';
+        if (meshRemeshAdvancedFields) meshRemeshAdvancedFields.style.display = isRemesh ? '' : 'none';
+        if (meshResizeModeFields) meshResizeModeFields.style.display = isResize ? '' : 'none';
+        if (meshUvUnwrapModeFields) meshUvUnwrapModeFields.style.display = mode === 'uv_unwrap' ? '' : 'none';
+        // Origin applies to remesh and resize; formats to remesh and convert.
+        if (meshOriginField) meshOriginField.style.display = (isRemesh || isResize) ? '' : 'none';
+        if (meshFormatsField) meshFormatsField.style.display = (isRemesh || isConvert) ? '' : 'none';
+
+        // Adaptive decimation replaces the manual poly count.
+        const decimationActive = isRemesh && !!remeshDecimationMode?.value;
+        if (remeshPolyInput) {
+          remeshPolyInput.disabled = !isRemesh || decimationActive;
+          remeshPolyInput.title = decimationActive ? 'Ignored while adaptive decimation is selected' : '';
+        }
+        if (remeshResizeHeight) remeshResizeHeight.disabled = !isRemesh;
+
+        // Resize takes exactly one sizing choice — auto size needs no value.
+        if (isResize && meshResizeValueField) {
+          const usesValue = (meshResizeModeSelect?.value || 'resize_height') !== 'auto_size';
+          meshResizeValueField.style.display = usesValue ? '' : 'none';
+        }
+
+        // Advanced holds the only controls Convert and Resize have, so open it.
+        if (remeshAdvanced && !isRemesh) {
+          remeshAdvanced.classList.remove('remesh-advanced--collapsed');
+          remeshAdvancedToggle?.classList.add('is-open');
+        }
+
+        if (meshOperationNote) meshOperationNote.textContent = op.note;
+
+        const cost = window.WorkspaceCredits?.getActionCost?.(op.action) || op.fallbackCost;
         const remeshCredits = leftStack.querySelector('#remeshCreditsDisplay');
         const applyRemeshBtn = leftStack.querySelector('#applyRemeshBtn');
         if (remeshCredits) remeshCredits.innerHTML = `<i class="fa-solid fa-coins"></i> ${cost}`;
         if (applyRemeshBtn) {
           // Tells the credits module which action to price this button with,
           // so a later cost refresh doesn't restore the remesh cost.
-          applyRemeshBtn.dataset.currentAction = action;
+          applyRemeshBtn.dataset.currentAction = op.action;
           applyRemeshBtn.title = `${cost} credits`;
           const costBadge = applyRemeshBtn.querySelector('.btn-cost-badge');
           if (costBadge) costBadge.textContent = `${cost} cr`;
           const textNode = Array.from(applyRemeshBtn.childNodes)
             .find((node) => node.nodeType === Node.TEXT_NODE && node.textContent.trim());
-          if (textNode) textNode.textContent = `\n            ${actionLabel} `;
+          if (textNode) textNode.textContent = `\n            ${op.label} `;
         }
         window.WorkspaceCredits?.updateButtonCosts?.();
       };
@@ -6521,6 +6624,9 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           refine: 'Refined mesh \u2014 good base for remeshing',
           retexture: 'Retextured mesh \u2014 remesh after texture changes',
           remesh: 'Already remeshed \u2014 re-remesh only if settings need changing',
+          convert: 'Converted export \u2014 geometry unchanged from its source',
+          resize: 'Resized mesh \u2014 scale already applied',
+          uv_unwrap: 'UV unwrapped \u2014 ready for texturing',
           image3d: 'Image-to-3D mesh \u2014 remeshing recommended before print',
         };
         label.textContent = stageMap[stage] || ('Stage: ' + (stage || 'unknown'));
@@ -6537,10 +6643,10 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         });
       }
 
-      if (remeshConvertFormatOnly) {
-        remeshConvertFormatOnly.addEventListener('change', syncRemeshAdvancedState);
-        syncRemeshAdvancedState();
-      }
+      meshOperationMode?.addEventListener('change', syncRemeshAdvancedState);
+      meshResizeModeSelect?.addEventListener('change', syncRemeshAdvancedState);
+      remeshDecimationMode?.addEventListener('change', syncRemeshAdvancedState);
+      syncRemeshAdvancedState();
 
       // Material chips for texture panel
       const materialChipsWrap = leftStack.querySelector('#materialChips');
@@ -6612,7 +6718,12 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           if (!btn) return;
           group.querySelectorAll('[data-value]').forEach((b) => b.classList.remove('is-active'));
           btn.classList.add('is-active');
-          if (targetInput) targetInput.value = btn.getAttribute('data-value') || '';
+          if (targetInput) {
+            targetInput.value = btn.getAttribute('data-value') || '';
+            // Hidden inputs fire nothing on their own — let listeners react
+            // (the mesh Operation Mode control depends on this).
+            targetInput.dispatchEvent(new Event('change', { bubbles: true }));
+          }
         };
 
         group.addEventListener('click', (event) => {

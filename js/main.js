@@ -28,7 +28,7 @@ import {
   resetGalleryInfiniteScroll,
   syncAssetsToolbarFilters
 } from './history.js?v=20260813p2b';
-import * as API from './api.js?v=20260813p2b';
+import * as API from './api.js?v=20260814viewerops';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
@@ -761,6 +761,475 @@ function closeViewerPopovers() {
   if (_printToastTimer) { clearTimeout(_printToastTimer); _printToastTimer = null; }
 }
 
+function viewerEscapeHtml(value = '') {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getViewerModelUrl(item = {}) {
+  return item.glb_proxy || item.glb_url || item.model_url || item.model_urls?.glb || item.textured_model_urls?.glb || '';
+}
+
+function getViewerRigTaskId(item = {}) {
+  const payload = item.payload || item.meta || {};
+  const stage = String(item.stage || item.model_stage || payload.stage || '').toLowerCase();
+  const candidates = [
+    item.rig_task_id,
+    payload.rig_task_id,
+    item.rigging_task_id,
+    payload.rigging_task_id,
+    item.source_rig_task_id,
+    payload.source_rig_task_id,
+  ];
+  if (stage === 'rig' || stage === 'rigged') {
+    candidates.push(item.original_job_id, payload.original_job_id, item.job_id, payload.job_id, item.id);
+  }
+  return candidates.map((value) => String(value || '').trim()).find(Boolean) || '';
+}
+
+function isViewerRiggedItem(item = {}) {
+  const payload = item.payload || item.meta || {};
+  const stage = String(item.stage || item.model_stage || payload.stage || '').toLowerCase();
+  return !!getViewerRigTaskId(item) || stage === 'rig' || stage === 'rigged';
+}
+
+function openViewerActionModal(config = {}) {
+  document.getElementById('viewerActionOverlay')?.remove();
+  closeViewerPopovers();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'viewerActionOverlay';
+  overlay.className = 'workspace-modal-overlay viewer-action-overlay';
+  overlay.innerHTML = `
+    <div class="workspace-modal viewer-action-modal${config.wide ? ' viewer-action-modal--wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="viewerActionTitle">
+      <div class="workspace-modal__header">
+        <div>
+          <p class="workspace-modal__eyebrow">${viewerEscapeHtml(config.eyebrow || 'Viewer action')}</p>
+          <h2 class="workspace-modal__title" id="viewerActionTitle">${viewerEscapeHtml(config.title || 'Apply to viewer model')}</h2>
+          ${config.subtitle ? `<p class="workspace-modal__subtitle">${viewerEscapeHtml(config.subtitle)}</p>` : ''}
+        </div>
+        <button type="button" class="workspace-modal__close" data-viewer-modal-close aria-label="Close">&times;</button>
+      </div>
+      <div class="workspace-modal__body viewer-action-body">${config.bodyHtml || ''}</div>
+      <div class="workspace-modal__footer">
+        <span class="field-hint">${viewerEscapeHtml(config.hint || '')}</span>
+        <div class="workspace-modal__actions">
+          <button type="button" class="btn secondary workspace-modal__ghost" data-viewer-modal-close>${viewerEscapeHtml(config.cancelLabel || 'Cancel')}</button>
+          <button type="button" class="btn primary" data-viewer-modal-submit>${viewerEscapeHtml(config.submitLabel || 'Generate')}</button>
+        </div>
+      </div>
+    </div>
+  `;
+
+  const close = () => {
+    overlay.remove();
+    document.removeEventListener('keydown', onKeydown);
+  };
+  const onKeydown = (event) => {
+    if (event.key === 'Escape') close();
+  };
+
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay || event.target.closest('[data-viewer-modal-close]')) close();
+  });
+
+  const submitBtn = overlay.querySelector('[data-viewer-modal-submit]');
+  submitBtn?.addEventListener('click', async () => {
+    if (typeof config.onSubmit !== 'function') {
+      close();
+      return;
+    }
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = config.busyLabel || 'Starting...';
+    try {
+      const shouldClose = await config.onSubmit(overlay);
+      if (shouldClose !== false) close();
+    } catch (err) {
+      console.error('[ViewerActionModal] Submit failed:', err);
+      if (window.showToast) window.showToast(err?.message || 'Action failed.', 'error');
+      else alert(err?.message || 'Action failed.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    }
+  });
+
+  document.body.appendChild(overlay);
+  document.addEventListener('keydown', onKeydown);
+  config.onMount?.(overlay);
+  const firstInput = overlay.querySelector('textarea, input, select, button.viewer-action-preset');
+  firstInput?.focus?.({ preventScroll: true });
+  return overlay;
+}
+
+function openViewerRemeshModal(item) {
+  const title = shortTitle(item);
+  const presets = [
+    { key: 'balanced', label: 'Balanced', copy: 'Clean topology for continued editing.', poly: 50000, topo: 'triangle' },
+    { key: 'print-ready', label: 'Print ready', copy: 'Denser mesh, bottom origin, STL/3MF export.', poly: 120000, topo: 'triangle' },
+    { key: 'game-ready', label: 'Game ready', copy: 'Quad-friendly lighter mesh for engines.', poly: 25000, topo: 'quad' },
+  ];
+  openViewerActionModal({
+    eyebrow: 'Remesh',
+    title: 'Repair and convert this model',
+    subtitle: title,
+    submitLabel: 'Start Remesh',
+    busyLabel: 'Remeshing...',
+    hint: 'Creates a new asset and keeps the original intact.',
+    bodyHtml: `
+      <div class="viewer-action-current"><span>Source</span><strong>${viewerEscapeHtml(title)}</strong></div>
+      <div class="viewer-action-preset-grid">
+        ${presets.map((preset, index) => `
+          <button type="button" class="viewer-action-preset${index === 1 ? ' is-active' : ''}" data-preset="${preset.key}" data-poly="${preset.poly}" data-topo="${preset.topo}">
+            <strong>${preset.label}</strong>
+            <span>${preset.copy}</span>
+          </button>
+        `).join('')}
+      </div>
+      <div class="viewer-action-grid">
+        <label class="viewer-action-field">
+          <span>Target faces</span>
+          <input type="number" min="1000" max="500000" step="1000" data-field="target-polycount" value="120000">
+        </label>
+        <label class="viewer-action-field">
+          <span>Origin</span>
+          <select data-field="origin-at">
+            <option value="bottom">Bottom for printing</option>
+            <option value="center">Center</option>
+          </select>
+        </label>
+        <label class="viewer-action-field">
+          <span>Resize height</span>
+          <input type="number" min="0" step="0.01" data-field="resize-height" placeholder="Optional meters">
+        </label>
+        <label class="viewer-action-field">
+          <span>Print height</span>
+          <input type="number" min="0" step="1" data-field="print-height" placeholder="Optional mm">
+        </label>
+      </div>
+      <label class="viewer-action-check">
+        <input type="checkbox" data-field="convert-only">
+        <span>Only convert/export formats without changing mesh density.</span>
+      </label>
+      <div class="viewer-action-formats" aria-label="Export formats">
+        ${['stl', 'obj', 'fbx', '3mf'].map((format) => `
+          <label><input type="checkbox" data-format="${format}" ${format === 'stl' || format === '3mf' ? 'checked' : ''}> ${format.toUpperCase()}</label>
+        `).join('')}
+      </div>
+    `,
+    onMount: (overlay) => {
+      const polyInput = overlay.querySelector('[data-field="target-polycount"]');
+      const originInput = overlay.querySelector('[data-field="origin-at"]');
+      overlay.querySelectorAll('.viewer-action-preset').forEach((button) => {
+        button.addEventListener('click', () => {
+          overlay.querySelectorAll('.viewer-action-preset').forEach((el) => el.classList.remove('is-active'));
+          button.classList.add('is-active');
+          if (polyInput) polyInput.value = button.dataset.poly || '50000';
+          if (originInput && button.dataset.preset === 'print-ready') originInput.value = 'bottom';
+        });
+      });
+    },
+    onSubmit: async (overlay) => {
+      const activePreset = overlay.querySelector('.viewer-action-preset.is-active');
+      const formats = Array.from(overlay.querySelectorAll('[data-format]:checked')).map((input) => input.dataset.format);
+      await API.startViewerRemeshFromHistory(item, {
+        preset: activePreset?.dataset.preset || 'balanced',
+        topology: activePreset?.dataset.topo || 'triangle',
+        target_polycount: overlay.querySelector('[data-field="target-polycount"]')?.value || activePreset?.dataset.poly,
+        origin_at: overlay.querySelector('[data-field="origin-at"]')?.value || 'bottom',
+        resize_height: overlay.querySelector('[data-field="resize-height"]')?.value || '',
+        print_height_mm: overlay.querySelector('[data-field="print-height"]')?.value || '',
+        convert_format_only: !!overlay.querySelector('[data-field="convert-only"]')?.checked,
+        target_formats: formats,
+      });
+    },
+  });
+}
+
+function openViewerTextureModal(item) {
+  const title = shortTitle(item);
+  openViewerActionModal({
+    eyebrow: 'Texture',
+    title: 'Retexture this model',
+    subtitle: title,
+    submitLabel: 'Generate Texture',
+    busyLabel: 'Texturing...',
+    hint: 'Prompt, image style, model, and export settings stay attached to this asset.',
+    bodyHtml: `
+      <div class="viewer-action-current"><span>Source</span><strong>${viewerEscapeHtml(title)}</strong></div>
+      <label class="viewer-action-field">
+        <span>Texture prompt</span>
+        <textarea data-field="texture-prompt" placeholder="Matte black ceramic with subtle edge wear, studio product finish..."></textarea>
+      </label>
+      <label class="viewer-action-field">
+        <span>Negative prompt</span>
+        <input type="text" data-field="negative-prompt" placeholder="blurry, noisy, low detail">
+      </label>
+      <div class="viewer-action-grid">
+        <label class="viewer-action-field">
+          <span>Provider</span>
+          <select data-field="texture-model">
+            <option value="latest">Latest</option>
+            <option value="meshy-7">Meshy 7</option>
+            <option value="meshy-6">Meshy 6</option>
+          </select>
+        </label>
+        <label class="viewer-action-field">
+          <span>Resolution</span>
+          <select data-field="texture-resolution">
+            <option value="2k">2K</option>
+            <option value="4k">4K</option>
+            <option value="8k">8K</option>
+          </select>
+        </label>
+      </div>
+      <label class="viewer-action-field">
+        <span>Style image URL</span>
+        <input type="text" data-field="style-url" placeholder="Optional JPG or PNG URL">
+      </label>
+      <div class="viewer-action-formats" aria-label="Texture exports">
+        ${['stl', 'obj', 'fbx', '3mf'].map((format) => `
+          <label><input type="checkbox" data-format="${format}"> ${format.toUpperCase()}</label>
+        `).join('')}
+      </div>
+      <label class="viewer-action-check">
+        <input type="checkbox" data-field="enable-pbr" checked>
+        <span>Generate PBR texture maps.</span>
+      </label>
+      <label class="viewer-action-check">
+        <input type="checkbox" data-field="remove-lighting">
+        <span>Remove baked lighting when using Meshy 6.</span>
+      </label>
+    `,
+    onSubmit: async (overlay) => {
+      const formats = Array.from(overlay.querySelectorAll('[data-format]:checked')).map((input) => input.dataset.format);
+      await API.startViewerTextureFromHistory(item, {
+        text_style_prompt: overlay.querySelector('[data-field="texture-prompt"]')?.value || '',
+        negative_prompt: overlay.querySelector('[data-field="negative-prompt"]')?.value || '',
+        image_style_url: overlay.querySelector('[data-field="style-url"]')?.value || '',
+        ai_model: overlay.querySelector('[data-field="texture-model"]')?.value || 'latest',
+        texture_resolution: overlay.querySelector('[data-field="texture-resolution"]')?.value || '2k',
+        enable_pbr: !!overlay.querySelector('[data-field="enable-pbr"]')?.checked,
+        remove_lighting: !!overlay.querySelector('[data-field="remove-lighting"]')?.checked,
+        target_formats: formats,
+      });
+    },
+  });
+}
+
+function openViewerRigModal(item) {
+  const title = shortTitle(item);
+  openViewerActionModal({
+    eyebrow: 'Rig',
+    title: 'Create an animation-ready rig',
+    subtitle: title,
+    submitLabel: 'Start Rigging',
+    busyLabel: 'Rigging...',
+    hint: 'Best results come from upright character or creature models.',
+    bodyHtml: `
+      <div class="viewer-action-current"><span>Source</span><strong>${viewerEscapeHtml(title)}</strong></div>
+      <div class="viewer-action-note">
+        <strong>What this creates</strong>
+        <span>A new rigged asset in your history. The original model remains unchanged.</span>
+      </div>
+      <div class="viewer-action-grid">
+        <label class="viewer-action-field">
+          <span>Character height</span>
+          <input type="number" min="0.1" max="5" step="0.1" data-field="rig-height" value="1.7">
+        </label>
+        <label class="viewer-action-field">
+          <span>Texture PNG URL</span>
+          <input type="text" data-field="rig-texture-url" placeholder="Optional transparent PNG">
+        </label>
+      </div>
+      <div class="viewer-action-checklist">
+        <span>Upright full body model</span>
+        <span>Clear arms and legs</span>
+        <span>No severe merged geometry</span>
+      </div>
+    `,
+    onSubmit: async (overlay) => {
+      await API.startViewerRigFromHistory(item, {
+        height_meters: overlay.querySelector('[data-field="rig-height"]')?.value || '1.7',
+        texture_image_url: overlay.querySelector('[data-field="rig-texture-url"]')?.value || '',
+      });
+    },
+  });
+}
+
+function buildViewerAnimationPostProcess(overlay) {
+  const type = (overlay.querySelector('[data-field="post-process"]')?.value || '').trim();
+  if (!type) return null;
+  if (type === 'change_fps') {
+    const fps = parseInt(overlay.querySelector('[data-field="target-fps"]')?.value || '30', 10);
+    if (!Number.isFinite(fps) || ![24, 25, 30, 60].includes(fps)) {
+      throw new Error('Target FPS must be 24, 25, 30, or 60.');
+    }
+    return { operation_type: 'change_fps', fps };
+  }
+  if (type === 'fbx2usdz') return { operation_type: 'fbx2usdz' };
+  if (type === 'extract_armature') return { operation_type: 'extract_armature' };
+  return null;
+}
+
+function openViewerAnimateModal(item) {
+  const title = shortTitle(item);
+  if (!isViewerRiggedItem(item)) {
+    openViewerActionModal({
+      eyebrow: 'Animate',
+      title: 'Rig this model first',
+      subtitle: title,
+      submitLabel: 'Open Rig Settings',
+      hint: 'Animation requires a completed rigged asset.',
+      bodyHtml: `
+        <div class="viewer-action-current"><span>Source</span><strong>${viewerEscapeHtml(title)}</strong></div>
+        <div class="viewer-action-note viewer-action-note--warn">
+          <strong>No rig found on this asset</strong>
+          <span>Start a rig job from here. When the rigged result is ready, open it and choose Animate again.</span>
+        </div>
+      `,
+      onSubmit: async () => {
+        openViewerRigModal(item);
+      },
+    });
+    return;
+  }
+
+  openViewerActionModal({
+    eyebrow: 'Animate',
+    title: 'Apply motion to this rig',
+    subtitle: title,
+    submitLabel: 'Start Animation',
+    busyLabel: 'Animating...',
+    hint: 'Choose a motion and optional output process.',
+    wide: true,
+    bodyHtml: `
+      <div class="viewer-action-current"><span>Rig</span><strong>${viewerEscapeHtml(title)}</strong></div>
+      <div class="viewer-action-grid viewer-action-grid--three">
+        <label class="viewer-action-field">
+          <span>Search</span>
+          <input type="text" data-field="anim-search" placeholder="walk, run, dance...">
+        </label>
+        <label class="viewer-action-field">
+          <span>Category</span>
+          <select data-field="anim-category"><option value="">All categories</option></select>
+        </label>
+        <label class="viewer-action-field">
+          <span>Output</span>
+          <select data-field="post-process">
+            <option value="">GLB animation</option>
+            <option value="change_fps">Change FPS</option>
+            <option value="fbx2usdz">Convert to USDZ</option>
+            <option value="extract_armature">Extract armature</option>
+          </select>
+        </label>
+      </div>
+      <label class="viewer-action-field viewer-action-fps" hidden>
+        <span>Target FPS</span>
+        <select data-field="target-fps">
+          <option value="24">24</option>
+          <option value="25">25</option>
+          <option value="30" selected>30</option>
+          <option value="60">60</option>
+        </select>
+      </label>
+      <div class="viewer-action-anim-grid" data-anim-grid>
+        <span class="viewer-action-loading">Loading animation library...</span>
+      </div>
+    `,
+    onMount: async (overlay) => {
+      const state = { items: [], selected: null };
+      overlay.__viewerAnimationState = state;
+      const grid = overlay.querySelector('[data-anim-grid]');
+      const categorySelect = overlay.querySelector('[data-field="anim-category"]');
+      const searchInput = overlay.querySelector('[data-field="anim-search"]');
+      const postProcess = overlay.querySelector('[data-field="post-process"]');
+      const fpsField = overlay.querySelector('.viewer-action-fps');
+
+      const render = () => {
+        const search = (searchInput?.value || '').toLowerCase();
+        const category = categorySelect?.value || '';
+        let items = state.items.filter((anim) => anim.enabled !== false);
+        if (category) items = items.filter((anim) => anim.category === category);
+        if (search) {
+          items = items.filter((anim) =>
+            String(anim.name || '').toLowerCase().includes(search) ||
+            String(anim.category || '').toLowerCase().includes(search) ||
+            String(anim.subcategory || '').toLowerCase().includes(search) ||
+            (Array.isArray(anim.tags) && anim.tags.some((tag) => String(tag || '').toLowerCase().includes(search)))
+          );
+        }
+        items.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+        if (!grid) return;
+        if (!items.length) {
+          grid.innerHTML = '<span class="viewer-action-empty">No matching animations found.</span>';
+          return;
+        }
+        grid.innerHTML = items.slice(0, 48).map((anim) => `
+          <button type="button" class="viewer-action-anim${String(state.selected?.action_id || '') === String(anim.action_id) ? ' is-active' : ''}" data-action-id="${viewerEscapeHtml(anim.action_id)}">
+            <strong>${viewerEscapeHtml(anim.name || 'Animation')}</strong>
+            <span>${viewerEscapeHtml(anim.subcategory || anim.category || '')}</span>
+          </button>
+        `).join('');
+        grid.querySelectorAll('[data-action-id]').forEach((button) => {
+          button.addEventListener('click', () => {
+            state.selected = state.items.find((anim) => String(anim.action_id) === String(button.dataset.actionId)) || null;
+            render();
+          });
+        });
+      };
+
+      searchInput?.addEventListener('input', render);
+      categorySelect?.addEventListener('change', render);
+      postProcess?.addEventListener('change', () => {
+        if (fpsField) fpsField.hidden = postProcess.value !== 'change_fps';
+      });
+
+      try {
+        const result = await apiFetch('/api/_mod/rig/animations/library');
+        state.items = result.ok && Array.isArray(result.data?.items) ? result.data.items : [];
+        const categories = Array.from(new Set(state.items.map((anim) => anim.category).filter(Boolean))).sort();
+        if (categorySelect) {
+          categorySelect.innerHTML = '<option value="">All categories</option>' + categories.map((category) => `<option value="${viewerEscapeHtml(category)}">${viewerEscapeHtml(category)}</option>`).join('');
+        }
+        state.selected = state.items.find((anim) => anim.enabled !== false && /walk/i.test(anim.name || '')) || state.items.find((anim) => anim.enabled !== false) || null;
+        render();
+      } catch (err) {
+        console.warn('[ViewerAnimate] Failed to load animation library:', err);
+        if (grid) grid.innerHTML = '<span class="viewer-action-empty">Animation library could not be loaded.</span>';
+      }
+    },
+    onSubmit: async (overlay) => {
+      const rigTaskId = getViewerRigTaskId(item);
+      const state = overlay.__viewerAnimationState || {};
+      const selected = state.selected;
+      if (!rigTaskId) throw new Error('No rig task id found for this asset.');
+      if (!selected?.action_id) throw new Error('Choose an animation first.');
+      const postProcess = buildViewerAnimationPostProcess(overlay);
+
+      window._timrxAnimState = window._timrxAnimState || {};
+      Object.assign(window._timrxAnimState, {
+        source_type: 'viewer',
+        rig_task_id: rigTaskId,
+        model_id: item.id || rigTaskId,
+        is_rigged: true,
+        title: item.title || item.prompt || title || 'Rigged Model',
+        model_url: getViewerModelUrl(item) || null,
+        thumbnail_url: item.thumbnail_url || item.image_url || null,
+        lineage_origin_id: item.lineage_origin_id || item.lineage_root_id || item.id || rigTaskId,
+        lineage_root_id: item.lineage_root_id || item.lineage_origin_id || item.id || rigTaskId,
+        selected_action_id: selected.action_id,
+        selected_animation: selected,
+      });
+      await API.startAnimationFromPanel(rigTaskId, parseInt(selected.action_id, 10), postProcess);
+    },
+  });
+}
+
 function initViewerToolbar() {
   const toolbar = document.getElementById('viewerToolbar');
   if (!toolbar) return;
@@ -1338,37 +1807,39 @@ function initViewerToolbar() {
       return;
     }
 
-    // Rig / Animate: open their tool panel with the source already set to
-    // "Current model" (the panels default to it), so the pipeline runs on
-    // the asset that is in the viewer right now.
-    if ((action === 'rig' || action === 'animate')) {
-      if (!activeItem) {
-        if (window.showToast) window.showToast('Load or generate a model first.', 'info');
-        return;
-      }
-      const rail = document.querySelector('.rail-btn[data-panel="model"]');
-      if (rail && !rail.classList.contains('is-active')) rail.click();
-      const featureBtn = document.querySelector('.model-feature-btn[data-model-panel="' + action + '"]');
-      if (featureBtn) featureBtn.click();
-      if (window.TimrXSheet && typeof window.TimrXSheet.open === 'function') window.TimrXSheet.open();
+    if (!activeItem && ['download', 'texture', 'refine', 'remesh', 'evolve', 'retry', 'print', 'rig', 'animate', 'ar'].includes(action)) {
+      if (window.showToast) window.showToast('Load or generate a model first.', 'info');
       return;
     }
 
-    if (action === 'download' && activeItem?.glb_url) {
+    if ((action === 'rig' || action === 'animate')) {
+      if (action === 'rig') openViewerRigModal(activeItem);
+      else openViewerAnimateModal(activeItem);
+      return;
+    }
+
+    if (action === 'download') {
+      const modelUrl = activeItem ? getViewerModelUrl(activeItem) : '';
+      if (!modelUrl) {
+        if (window.showToast) window.showToast('No downloadable model found for this item.', 'info');
+        return;
+      }
       if (!window.WorkspaceCredits?.canDownloadAssets?.()) {
         Credits.showDownloadAccessRequiredMessage('model');
         return;
       }
       const filename = buildItemDownloadFilename(activeItem, {
         type: 'model',
-        sourceUrl: activeItem.glb_url,
-        extension: inferExtensionFromUrl(activeItem.glb_url) || 'glb',
+        sourceUrl: modelUrl,
+        extension: inferExtensionFromUrl(modelUrl) || 'glb',
       });
-      startWorkspaceDownload(activeItem.glb_url, filename);
+      startWorkspaceDownload(modelUrl, filename);
+      return;
     }
 
     if (action === 'texture' && activeItem) {
-      API.startTextureFromHistory(activeItem, 'viewer');
+      openViewerTextureModal(activeItem);
+      return;
     }
 
     if (action === 'paint') {
@@ -1422,10 +1893,12 @@ function initViewerToolbar() {
 
     if (action === 'refine' && activeItem) {
       API.startRefineFromHistory(activeItem, 'viewer');
+      return;
     }
 
     if (action === 'remesh' && activeItem) {
-      API.startRemeshFromHistory(activeItem);
+      openViewerRemeshModal(activeItem);
+      return;
     }
 
     if (action === 'share') {

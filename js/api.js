@@ -2090,18 +2090,59 @@ function buildCanonicalRetextureSource(item, origin = 'unknown') {
 }
 
 /**
- * Get remesh form values from the UI
+ * Read the selected mesh Operation Mode (remesh | convert | resize | uv_unwrap).
+ * Each mode is a separate Meshy endpoint with its own credit cost.
+ */
+function getMeshOperationMode() {
+  const mode = (byId('meshOperationMode')?.value || 'remesh').trim().toLowerCase();
+  return ['remesh', 'convert', 'resize', 'uv_unwrap'].includes(mode) ? mode : 'remesh';
+}
+
+/**
+ * Get mesh operation form values from the UI.
+ *
+ * Only the fields the selected operation actually supports are returned, so
+ * each Meshy endpoint receives a clean payload.
  */
 function getRemeshFormValues() {
+  const mode = getMeshOperationMode();
   // Try active preset first
   const activePreset = document.querySelector('#remeshPresets .remesh-preset.is-active');
   const advancedOpen = document.querySelector('#remeshAdvanced') &&
     !document.querySelector('#remeshAdvanced').classList.contains('remesh-advanced--collapsed');
-  const convertFormatOnlyInput = byId('remeshConvertFormatOnly');
   const resizeInput = byId('remeshResizeHeight');
   const originInput = byId('remeshOriginAt');
   const formatInputs = Array.from(document.querySelectorAll('#remeshTargetFormats input[type="checkbox"]:checked'));
-  const convert_format_only = !!convertFormatOnlyInput?.checked;
+
+  const target_formats = Array.from(new Set([
+    'glb',
+    ...formatInputs.map((input) => String(input.value || '').trim().toLowerCase()).filter(Boolean)
+  ]));
+  const originAt = (originInput?.value || '').trim().toLowerCase();
+
+  // UV Unwrap takes nothing but the source model.
+  if (mode === 'uv_unwrap') {
+    return { operation_mode: mode };
+  }
+
+  // Convert only carries formats (GLB stays so the viewer keeps a preview).
+  if (mode === 'convert') {
+    return { operation_mode: mode, target_formats, convert_format_only: true };
+  }
+
+  // Resize takes exactly one sizing choice plus an optional origin.
+  if (mode === 'resize') {
+    const result = { operation_mode: mode };
+    const sizingMode = (byId('meshResizeMode')?.value || 'resize_height').trim();
+    const sizingValue = parseFloat(byId('meshResizeValue')?.value || '0');
+    if (sizingMode === 'auto_size') {
+      result.auto_size = true;
+    } else if (Number.isFinite(sizingValue) && sizingValue > 0) {
+      result[sizingMode === 'resize_longest_side' ? 'resize_longest_side' : 'resize_height'] = sizingValue;
+    }
+    if (originAt === 'bottom' || originAt === 'center') result.origin_at = originAt;
+    return result;
+  }
 
   let target_polycount;
   let topology;
@@ -2117,41 +2158,106 @@ function getRemeshFormValues() {
     topology = activePreset?.dataset.topo || 'triangle';
   }
 
-  const target_formats = Array.from(new Set([
-    'glb',
-    ...formatInputs.map((input) => String(input.value || '').trim().toLowerCase()).filter(Boolean)
-  ]));
-
   const result = {
+    operation_mode: mode,
     target_formats,
-    convert_format_only,
+    convert_format_only: false,
+    topology,
   };
 
-  if (!convert_format_only) {
+  // Meshy ignores target_polycount when decimation_mode is set, so send one.
+  const decimationMode = parseInt(byId('remeshDecimationMode')?.value || '', 10);
+  if ([1, 2, 3, 4].includes(decimationMode)) {
+    result.decimation_mode = decimationMode;
+  } else {
     result.target_polycount = target_polycount;
-    result.topology = topology;
+  }
 
-    const resizeHeight = parseFloat(resizeInput?.value || '0');
-    if (Number.isFinite(resizeHeight) && resizeHeight > 0) {
-      result.resize_height = resizeHeight;
-    }
+  const alphaThumbnail = byId('remeshAlphaThumbnail');
+  if (alphaThumbnail) result.alpha_thumbnail = !!alphaThumbnail.checked;
 
-    const originAt = (originInput?.value || '').trim().toLowerCase();
-    if (originAt === 'bottom' || originAt === 'center') {
-      result.origin_at = originAt;
-    }
+  const resizeHeight = parseFloat(resizeInput?.value || '0');
+  if (Number.isFinite(resizeHeight) && resizeHeight > 0) {
+    result.resize_height = resizeHeight;
+  }
 
-    // Preserve the print workflow: if no Meshy resize height is set and the
-    // print-ready preset is active, keep forwarding the mm target height so the
-    // STL export path can respect the user's print scale.
-    const isPrintPreset = activePreset?.dataset.preset === 'print-ready';
-    const printHeight = document.getElementById('printTargetHeight')?.value;
-    if (!result.resize_height && isPrintPreset && printHeight && parseFloat(printHeight) > 0) {
-      result.print_height_mm = parseFloat(printHeight);
+  if (originAt === 'bottom' || originAt === 'center') {
+    result.origin_at = originAt;
+  }
+
+  // Preserve the print workflow: if no Meshy resize height is set and the
+  // print-ready preset is active, keep forwarding the mm target height so the
+  // STL export path can respect the user's print scale.
+  const isPrintPreset = activePreset?.dataset.preset === 'print-ready';
+  const printHeight = document.getElementById('printTargetHeight')?.value;
+  if (!result.resize_height && isPrintPreset && printHeight && parseFloat(printHeight) > 0) {
+    result.print_height_mm = parseFloat(printHeight);
+  }
+
+  return result;
+}
+
+function normalizeRemeshValues(input = {}) {
+  const preset = String(input.preset || '').trim().toLowerCase();
+  const presetDefaults = {
+    balanced: { target_polycount: 50000, topology: 'triangle' },
+    'print-ready': { target_polycount: 120000, topology: 'triangle' },
+    lowpoly: { target_polycount: 12000, topology: 'quad' },
+    'game-ready': { target_polycount: 25000, topology: 'quad' },
+  };
+  const defaults = presetDefaults[preset] || presetDefaults.balanced;
+  const convert_format_only = !!input.convert_format_only;
+  const targetFormats = Array.isArray(input.target_formats) ? input.target_formats : [];
+  const target_formats = Array.from(new Set([
+    'glb',
+    ...targetFormats.map((format) => String(format || '').trim().toLowerCase()).filter(Boolean)
+  ]));
+  const result = { target_formats, convert_format_only };
+
+  if (!convert_format_only) {
+    let target_polycount = parseInt(input.target_polycount || defaults.target_polycount, 10);
+    if (!Number.isFinite(target_polycount) || target_polycount <= 0) target_polycount = defaults.target_polycount;
+    result.target_polycount = Math.max(1000, Math.min(500000, target_polycount));
+    const topology = String(input.topology || defaults.topology || 'triangle').trim().toLowerCase();
+    result.topology = topology === 'quad' ? 'quad' : 'triangle';
+
+    const resizeHeight = parseFloat(input.resize_height || '0');
+    if (Number.isFinite(resizeHeight) && resizeHeight > 0) result.resize_height = resizeHeight;
+
+    const originAt = String(input.origin_at || '').trim().toLowerCase();
+    if (originAt === 'bottom' || originAt === 'center') result.origin_at = originAt;
+
+    const printHeight = parseFloat(input.print_height_mm || '0');
+    if (!result.resize_height && Number.isFinite(printHeight) && printHeight > 0) {
+      result.print_height_mm = printHeight;
     }
   }
 
   return result;
+}
+
+function normalizeTextureValues(input = {}) {
+  const aiModel = String(input.ai_model || 'latest').trim() || 'latest';
+  const resolution = String(input.texture_resolution || '2k').trim().toLowerCase();
+  const targetFormats = Array.isArray(input.target_formats) ? input.target_formats : [];
+  const multiviewUrls = Array.isArray(input.multiview_image_urls) ? input.multiview_image_urls : [];
+  const usesMultiview = ['latest', 'meshy-7'].includes(aiModel) && multiviewUrls.length > 0;
+  const values = {
+    text_style_prompt: usesMultiview ? '' : String(input.text_style_prompt || '').trim(),
+    negative_prompt: String(input.negative_prompt || '').trim(),
+    image_style_url: usesMultiview ? '' : String(input.image_style_url || '').trim(),
+    enable_pbr: input.enable_pbr !== false,
+    enable_original_uv: !!input.enable_original_uv,
+    remove_lighting: aiModel === 'meshy-6' && !!input.remove_lighting,
+    ai_model: aiModel,
+    texture_resolution: ['2k', '4k', '8k'].includes(resolution) ? resolution : '2k',
+  };
+  if (usesMultiview) values.multiview_image_urls = Array.from(new Set(multiviewUrls.map((url) => String(url || '').trim()).filter(Boolean))).slice(0, 4);
+  values.target_formats = Array.from(new Set([
+    'glb',
+    ...targetFormats.map((format) => String(format || '').trim().toLowerCase()).filter(Boolean)
+  ]));
+  return values;
 }
 
 /**
@@ -3118,6 +3224,9 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
 export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } = {}) {
   const isImageKind = kind === 'image3d' || kind === 'multi_image3d';
 
+  // Convert / resize / uv_unwrap are distinct Meshy endpoints, but they all
+  // report through the shared remesh status route, which picks the provider
+  // path from the job's stored stage.
   const endpoint = kind === 'texture'
     ? '/api/_mod/mesh/retexture'
     : kind === 'image3d'
@@ -3126,13 +3235,16 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
         ? '/api/_mod/multi-image-to-3d/status'
         : '/api/_mod/mesh/remesh';
 
-  const stageLabel = kind === 'texture'
-    ? 'Texturing'
-    : kind === 'image3d'
-      ? 'Image to 3D'
-      : kind === 'multi_image3d'
-        ? 'Multi-Image to 3D'
-        : 'Remeshing';
+  const MESH_STAGE_LABELS = {
+    texture: 'Texturing',
+    image3d: 'Image to 3D',
+    multi_image3d: 'Multi-Image to 3D',
+    remesh: 'Remeshing',
+    convert: 'Converting',
+    resize: 'Resizing',
+    uv_unwrap: 'UV Unwrapping',
+  };
+  const stageLabel = MESH_STAGE_LABELS[kind] || 'Remeshing';
 
   // History/UI stage: multi-image results are ordinary image-to-3D models
   // downstream (badges, stage ordering, next-step suggestions).
@@ -3431,12 +3543,40 @@ export function watchGeminiImageJob(jobId, reservationId, meta = {}) {
 // ============================================================================
 
 /**
- * Begin a Meshy task (remesh, texture)
+ * Meshy mesh operations, one dedicated endpoint each.
+ * Status polling for all of them goes through the shared remesh status route,
+ * which resolves the provider path from the job's stored stage.
+ */
+const MESH_TASK_ENDPOINTS = {
+  texture:   '/api/_mod/mesh/retexture',
+  remesh:    '/api/_mod/mesh/remesh',
+  convert:   '/api/_mod/mesh/convert',
+  resize:    '/api/_mod/mesh/resize',
+  uv_unwrap: '/api/_mod/mesh/uv-unwrap',
+};
+
+/** Operation Mode → button/label text used by the mesh panel and history */
+const MESH_OPERATION_LABELS = {
+  remesh: 'Remesh',
+  convert: 'Convert',
+  resize: 'Resize',
+  uv_unwrap: 'UV Unwrap',
+};
+
+const MESH_TASK_LABELS = {
+  texture:   'Texturing...',
+  remesh:    'Remeshing...',
+  convert:   'Converting...',
+  resize:    'Resizing...',
+  uv_unwrap: 'Unwrapping UVs...',
+};
+
+/**
+ * Begin a Meshy mesh task (remesh, convert, resize, uv_unwrap, texture)
  */
 async function beginMeshyTask(kind, payload, meta = {}) {
-  // Format-only remesh is dispatched to Meshy Convert by the backend, which
-  // reserves MESHY_CONVERT (1 credit) instead of MESHY_REMESH (5) — the
-  // frontend preflight and reservation must use the same action key.
+  // Legacy format-only remesh still maps to Meshy Convert pricing; the
+  // Operation Mode control now routes convert to its own endpoint instead.
   const creditAction = (kind === 'remesh' && payload?.convert_format_only) ? 'convert' : kind;
 
   // Check credits before proceeding
@@ -3444,12 +3584,10 @@ async function beginMeshyTask(kind, payload, meta = {}) {
     return;
   }
 
-  const endpoint = kind === 'texture'
-    ? '/api/_mod/mesh/retexture'
-    : '/api/_mod/mesh/remesh';
-  const statusLabel = kind === 'texture'
-    ? 'Texturing...'
-    : creditAction === 'convert' ? 'Converting...' : 'Remeshing...';
+  const endpoint = MESH_TASK_ENDPOINTS[kind] || MESH_TASK_ENDPOINTS.remesh;
+  const statusLabel = creditAction === 'convert' && kind === 'remesh'
+    ? MESH_TASK_LABELS.convert
+    : (MESH_TASK_LABELS[kind] || MESH_TASK_LABELS.remesh);
   const prog = UI.makeProgressDriver();
 
   // Reserve credits BEFORE API call
@@ -6662,7 +6800,17 @@ export async function startRemeshFromPanel() {
   }
 
   const remeshValues = getRemeshFormValues();
-  const remeshActionLabel = remeshValues.convert_format_only ? 'Convert' : 'Remesh';
+  const operationMode = remeshValues.operation_mode || 'remesh';
+  const remeshActionLabel = MESH_OPERATION_LABELS[operationMode] || 'Remesh';
+
+  if (operationMode === 'resize'
+    && !remeshValues.auto_size
+    && !remeshValues.resize_height
+    && !remeshValues.resize_longest_side) {
+    alert('Enter a target size, or pick Auto size, before resizing.');
+    return;
+  }
+
   const meta = {
     prompt: labelPrompt ? labelPrompt.replace(/^Remesh\b/, remeshActionLabel) : `${remeshActionLabel} model`,
     root_prompt: baseItem?.root_prompt || baseItem?.prompt || '',
@@ -6670,20 +6818,25 @@ export async function startRemeshFromPanel() {
     license: baseItem?.license || 'private',
     lineage_origin_id: baseItem?.lineage_root_id || baseItem?.id || null,
     source_model_id: baseItem?.id || null,
+    operation_mode: operationMode,
     topology: remeshValues.topology,
     target_polycount: remeshValues.target_polycount,
+    decimation_mode: remeshValues.decimation_mode || null,
     target_formats: remeshValues.target_formats || [],
     resize_height: remeshValues.resize_height,
+    resize_longest_side: remeshValues.resize_longest_side,
+    auto_size: !!remeshValues.auto_size,
+    alpha_thumbnail: !!remeshValues.alpha_thumbnail,
     origin_at: remeshValues.origin_at || '',
     convert_format_only: !!remeshValues.convert_format_only,
     print_height_mm: remeshValues.print_height_mm || null
   };
 
   try {
-    await beginMeshyTask('remesh', { ...source, ...remeshValues }, meta);
+    await beginMeshyTask(operationMode, { ...source, ...remeshValues }, meta);
   } catch (err) {
     console.error(err);
-    alert(err?.message || 'Remesh failed.');
+    alert(err?.message || `${remeshActionLabel} failed.`);
   }
 }
 
@@ -7208,6 +7361,145 @@ export async function startRigFromPanel() {
   confirmCreditsReservation(reservation.reservationId, job_id);
 
   // Replace temp placeholder with real job_id
+  State.deleteHistoryItem(tempId, { skipRemote: true });
+  State.deletePendingMeta(tempId);
+  rigMeta.status_label = 'Rigging...';
+  addGeneratingPlaceholder(job_id, rigMeta);
+  State.savePendingMeta(job_id, { ...rigMeta, source_thumbnail_url: sourceThumbnail });
+  State.addActiveJob(job_id);
+  renderHistory();
+
+  startLock = false;
+  prog.label('Rigging in progress...');
+  watchRigJob(job_id);
+}
+
+export async function startViewerRigFromHistory(item, options = {}) {
+  if (startLock) return;
+  startLock = true;
+  window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'rig' } }));
+
+  if (!item) {
+    alert('Load or generate a model before rigging.');
+    startLock = false;
+    return;
+  }
+
+  if (!checkCreditsFor('rig')) { startLock = false; return; }
+
+  const heightVal = parseFloat(options.height_meters || '1.7');
+  const height_meters = Math.max(0.1, Math.min(5.0, Number.isFinite(heightVal) ? heightVal : 1.7));
+  const payload = { height_meters };
+  const source = buildMeshySourceFromItem(item);
+  Object.assign(payload, source);
+  if (!payload.input_task_id && !payload.model_url) {
+    alert('This model has no valid source for rigging. Try generating or uploading a model first.');
+    startLock = false;
+    return;
+  }
+  if (item.id) payload.source_history_id = String(item.id);
+
+  const textureImageUrl = String(options.texture_image_url || '').trim();
+  if (textureImageUrl) {
+    if (!/\.png($|\?)/i.test(textureImageUrl) && !textureImageUrl.startsWith('data:image/png')) {
+      alert('Rig texture image URL must point to a PNG file.');
+      startLock = false;
+      return;
+    }
+    payload.texture_image_url = textureImageUrl;
+  }
+
+  const labelPrompt = `Rig ${shortTitle(item)}`;
+  const lineageRootId = item.lineage_root_id || item.lineage_origin_id || item.id || null;
+  const sourceOperationId = item.id || payload.input_task_id || payload.model_url || '';
+  const operationKey = buildDerivedOperationKey('rig', {
+    source_id: sourceOperationId,
+    lineage_id: lineageRootId,
+    height_meters,
+    uses_texture_image: !!payload.texture_image_url,
+  });
+  const rigDecision = await shouldStartDerivedOperation('Rigging', operationKey);
+  if (!rigDecision.start) {
+    startLock = false;
+    return;
+  }
+
+  const idempotencyKey = operationIdempotencyKey('rig', operationKey, rigDecision.forceNew);
+  const prog = UI.makeProgressDriver();
+  const sourceThumbnail = item.thumbnail_url || '';
+  const tempId = `rig-temp-${Date.now()}`;
+  const rigMeta = {
+    prompt: labelPrompt,
+    root_prompt: labelPrompt,
+    stage: 'rig',
+    status_label: 'Starting rigging...',
+    type: 'model',
+    source_thumbnail_url: sourceThumbnail,
+    thumbnail_url: sourceThumbnail,
+    uses_texture_image: !!payload.texture_image_url,
+    height_meters,
+    source_model_id: item.id || null,
+    source_history_id: item.id || null,
+    operation_key: operationKey,
+    idempotency_key: idempotencyKey,
+    lineage_origin_id: lineageRootId,
+    lineage_root_id: lineageRootId,
+  };
+  addGeneratingPlaceholder(tempId, rigMeta);
+  State.savePendingMeta(tempId, rigMeta);
+  renderHistory();
+
+  prog.label('Reserving credits...');
+  const reservation = reserveCreditsForAction('rig', 1);
+  if (reservation.insufficient) {
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
+    startLock = false;
+    return;
+  }
+
+  prog.label('Starting rigging...');
+  payload.prompt = labelPrompt;
+  payload.idempotency_key = idempotencyKey;
+
+  let result;
+  try {
+    result = await apiFetch('/api/_mod/rig/start', {
+      method: 'POST',
+      body: payload,
+      headers: { 'Idempotency-Key': idempotencyKey }
+    });
+  } catch (err) {
+    releaseCreditsReservation(reservation.reservationId);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
+    prog.fail('Rigging request failed');
+    startLock = false;
+    throw err;
+  }
+
+  if (!result.ok) {
+    releaseCreditsReservation(reservation.reservationId);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
+    const errMsg = result.data?.message || result.error || 'Rigging failed';
+    prog.fail(errMsg);
+    alert(errMsg);
+    startLock = false;
+    return;
+  }
+
+  const { job_id } = result.data;
+  if (!job_id) {
+    releaseCreditsReservation(reservation.reservationId);
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    renderHistory();
+    prog.fail('No job ID returned');
+    startLock = false;
+    return;
+  }
+
+  confirmCreditsReservation(reservation.reservationId, job_id);
   State.deleteHistoryItem(tempId, { skipRemote: true });
   State.deletePendingMeta(tempId);
   rigMeta.status_label = 'Rigging...';
@@ -7942,7 +8234,7 @@ function _pollAnimJob(job_id, prog, est, cleanup, startedAt, shared) {
 /**
  * Start remesh from a history item
  */
-export async function startRemeshFromHistory(item) {
+async function startRemeshFromHistoryWithValues(item, remeshValues) {
   if (!item) return;
   State.setHistoryActiveModelId(item.id);
   const source = buildMeshySourceFromItem(item);
@@ -7950,16 +8242,20 @@ export async function startRemeshFromHistory(item) {
     alert('This model has no valid source for remeshing. Try generating or uploading a model first.');
     return;
   }
-  const remeshValues = getRemeshFormValues();
-  const remeshActionLabel = remeshValues.convert_format_only ? 'Convert' : 'Remesh';
+  const operationMode = remeshValues.operation_mode
+    || (remeshValues.convert_format_only ? 'convert' : 'remesh');
+  const remeshActionLabel = MESH_OPERATION_LABELS[operationMode] || 'Remesh';
   const lineageRootId = item.lineage_root_id || item.lineage_origin_id || item.id;
-  const operationKey = buildDerivedOperationKey('remesh', {
+  const operationKey = buildDerivedOperationKey(operationMode, {
     source_id: item.id,
     lineage_id: lineageRootId,
     topology: remeshValues.topology || '',
     target_polycount: remeshValues.target_polycount || null,
+    decimation_mode: remeshValues.decimation_mode || null,
     target_formats: remeshValues.target_formats || [],
     resize_height: remeshValues.resize_height || null,
+    resize_longest_side: remeshValues.resize_longest_side || null,
+    auto_size: !!remeshValues.auto_size,
     origin_at: remeshValues.origin_at || '',
     convert_format_only: !!remeshValues.convert_format_only,
     print_height_mm: remeshValues.print_height_mm || null,
@@ -7976,22 +8272,35 @@ export async function startRemeshFromHistory(item) {
     source_model_id: item.id,
     source_history_id: item.id,
     operation_key: operationKey,
-    idempotency_key: operationIdempotencyKey('remesh', operationKey, remeshDecision.forceNew),
+    idempotency_key: operationIdempotencyKey(operationMode, operationKey, remeshDecision.forceNew),
     thumbnail_url: item.thumbnail_url || '',
+    operation_mode: operationMode,
     topology: remeshValues.topology,
     target_polycount: remeshValues.target_polycount,
+    decimation_mode: remeshValues.decimation_mode || null,
     target_formats: remeshValues.target_formats || [],
     resize_height: remeshValues.resize_height,
+    resize_longest_side: remeshValues.resize_longest_side,
+    auto_size: !!remeshValues.auto_size,
+    alpha_thumbnail: !!remeshValues.alpha_thumbnail,
     origin_at: remeshValues.origin_at || '',
     convert_format_only: !!remeshValues.convert_format_only,
     print_height_mm: remeshValues.print_height_mm || null
   };
   try {
-    await beginMeshyTask('remesh', { ...source, ...remeshValues }, meta);
+    await beginMeshyTask(operationMode, { ...source, ...remeshValues }, meta);
   } catch (err) {
     console.error(err);
-    alert(err?.message || 'Remesh failed.');
+    alert(err?.message || `${remeshActionLabel} failed.`);
   }
+}
+
+export async function startRemeshFromHistory(item) {
+  return startRemeshFromHistoryWithValues(item, getRemeshFormValues());
+}
+
+export async function startViewerRemeshFromHistory(item, options = {}) {
+  return startRemeshFromHistoryWithValues(item, normalizeRemeshValues(options));
 }
 
 /**
@@ -8050,7 +8359,7 @@ export async function startPrintReadyRemeshFromItem(item, options = {}) {
 /**
  * Start texture from a history item
  */
-export async function startTextureFromHistory(item, origin = 'history') {
+async function startTextureFromHistoryWithValues(item, texValues, origin = 'history') {
   if (!item) return;
   State.setHistoryActiveModelId(item.id);
 
@@ -8061,13 +8370,6 @@ export async function startTextureFromHistory(item, origin = 'history') {
     return;
   }
 
-  let texValues;
-  try {
-    texValues = await getTextureFormValues();
-  } catch (err) {
-    alert(err?.message || 'Unable to read texture settings.');
-    return;
-  }
   const usesMultiviewStyle = Array.isArray(texValues.multiview_image_urls) && texValues.multiview_image_urls.length > 0;
   if (!usesMultiviewStyle && !texValues.text_style_prompt && !texValues.image_style_url) {
     // Fallback: derive a short texture-appropriate prompt from the model title.
@@ -8114,6 +8416,21 @@ export async function startTextureFromHistory(item, origin = 'history') {
     console.error(err);
     alert(err?.message || 'Texture generation failed.');
   }
+}
+
+export async function startTextureFromHistory(item, origin = 'history') {
+  let texValues;
+  try {
+    texValues = await getTextureFormValues();
+  } catch (err) {
+    alert(err?.message || 'Unable to read texture settings.');
+    return;
+  }
+  return startTextureFromHistoryWithValues(item, texValues, origin);
+}
+
+export async function startViewerTextureFromHistory(item, options = {}) {
+  return startTextureFromHistoryWithValues(item, normalizeTextureValues(options), 'viewer');
 }
 
 /**
@@ -8320,6 +8637,9 @@ function _inferStageFromAction(job) {
   const code = (job.action_code || '').toLowerCase();
   if (code.includes('image_to_3d')) return 'image3d';
   if (code.includes('refine')) return 'refine';
+  if (code.includes('convert')) return 'convert';
+  if (code.includes('resize')) return 'resize';
+  if (code.includes('uv_unwrap') || code.includes('uv-unwrap')) return 'uv_unwrap';
   if (code.includes('remesh') || code.includes('upscale')) return 'remesh';
   if (code.includes('retexture') || code.includes('texture')) return 'texture';
   if (code.includes('rigging') || code === 'rig') return 'rig';
@@ -8334,6 +8654,9 @@ function _inferStageFromAction(job) {
 const _STRATEGY_TO_CATEGORY = {
   meshy_retexture:   'mesh',
   meshy_remesh:      'mesh',
+  meshy_convert:     'mesh',
+  meshy_resize:      'mesh',
+  meshy_uv_unwrap:   'mesh',
   meshy_image_to_3d: 'mesh',
   meshy_multi_image_to_3d: 'mesh',
   meshy_text_to_3d:  'text',
@@ -8349,6 +8672,9 @@ const _STRATEGY_TO_CATEGORY = {
 const _STRATEGY_TO_STAGE = {
   meshy_retexture:   'texture',
   meshy_remesh:      'remesh',
+  meshy_convert:     'convert',
+  meshy_resize:      'resize',
+  meshy_uv_unwrap:   'uv_unwrap',
   meshy_image_to_3d: 'image3d',
   // Multi-image shares the image3d stage for history/UI; only the poll route differs.
   meshy_multi_image_to_3d: 'image3d',
@@ -8364,6 +8690,7 @@ const _STRATEGY_TO_STAGE = {
 /** Legacy: infer resume_strategy from a stage string */
 function _inferStrategyFromStage(stage) {
   const map = { texture: 'meshy_retexture', remesh: 'meshy_remesh', image3d: 'meshy_image_to_3d',
+    convert: 'meshy_convert', resize: 'meshy_resize', uv_unwrap: 'meshy_uv_unwrap',
     multi_image3d: 'meshy_multi_image_to_3d',
     preview: 'meshy_text_to_3d', refine: 'meshy_refine', rig: 'meshy_rig',
     animate: 'meshy_animation', animation: 'meshy_animation', video: 'video', image: 'image',
@@ -8375,6 +8702,9 @@ function _inferStrategyFromStage(stage) {
 const _STRATEGY_TO_MESH_KIND = {
   meshy_retexture:   'texture',
   meshy_remesh:      'remesh',
+  meshy_convert:     'convert',
+  meshy_resize:      'resize',
+  meshy_uv_unwrap:   'uv_unwrap',
   meshy_image_to_3d: 'image3d',
   meshy_multi_image_to_3d: 'multi_image3d',
 };
@@ -8595,6 +8925,7 @@ async function _doResumePendingJobs(options = {}) {
   // Mark recovered jobs as "generating" in history so cards show progress overlay
   const STATUS_LABELS = {
     texture: 'Texturing...', remesh: 'Remeshing...', image3d: 'Generating 3D...',
+    convert: 'Converting...', resize: 'Resizing...', uv_unwrap: 'Unwrapping UVs...',
     video: 'Generating video...', rig: 'Rigging...', animate: 'Animating...',
     animation: 'Animating...', refine: 'Refining...', preview: 'Generating...',
     image: 'Generating image...', multi_color_print: 'Preparing Meshy 3MF...',
@@ -8906,7 +9237,10 @@ window.startAnimationFromPanel = startAnimationFromPanel;
 window.watchRigJob = watchRigJob;
 window.watchAnimationJob = watchAnimationJob;
 window.startTextureFromHistory = startTextureFromHistory;
+window.startViewerTextureFromHistory = startViewerTextureFromHistory;
 window.startRemeshFromHistory = startRemeshFromHistory;
+window.startViewerRemeshFromHistory = startViewerRemeshFromHistory;
+window.startViewerRigFromHistory = startViewerRigFromHistory;
 window.startImageTo3DFromHistory = startImageTo3DFromHistory;
 window.onGenerateClick = onGenerateClick;
 window.startVideoGeneration = startVideoGeneration;

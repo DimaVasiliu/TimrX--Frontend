@@ -142,14 +142,20 @@
   <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260814x3d">
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260814filters">
+  <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260814ground">
+  <link rel="stylesheet" href="3dprint-modules/css/workspace-loader-grid.css?v=20260814grid4">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260814viewerops">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
   <link rel="stylesheet" href="tx-menu.css?v=1">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
   <script defer src="3dprint-modules/3dprint-app.js?v=20260812d"></script>
   <script defer src="3dprint-modules/inspire.js?v=20260811q"></script>
-  <script defer src="js/workspace-loader.js?v=20260814x3d"></script>
+  <script defer src="js/workspace-loader.js?v=20260814slow"></script>
+  <!-- The orbit grid. Reads workspace-loader.js's published --loader-progress
+       and injects its own DOM, so it shares no state with the loader and
+       cannot desync from it. Load order does not matter; if it fails, the
+       loader is untouched. -->
+  <script defer src="js/workspace-loader-grid.js?v=20260814grid4"></script>
   <!-- My Assets Phase 2 (stars, tags, collections, multi-select, remix).
        Classic script by design: it has no importers, so it can never
        invalidate the ES module version chain. -->
@@ -189,51 +195,41 @@
        ws-intro-go, and the loader releases them at handoff. Inline so the
        class exists before any animation can start. -->
   <script>document.body.classList.add('has-ws-loader');</script>
-  <div class="workspace-loader" id="workspaceLoader" role="status" aria-live="polite" aria-label="Preparing TimrX workspace">
-    <div class="workspace-loader__void" aria-hidden="true"></div>
-    <div class="workspace-loader__grain" aria-hidden="true"></div>
-    <div class="workspace-loader__shadow" aria-hidden="true"></div>
-    <div class="workspace-loader__halo" aria-hidden="true"></div>
-    <!-- The screen surface itself. workspace-loader.js tessellates this into
-         ~70 fragments at boot — each one carrying the veil's own background,
-         offset so they compose back into a single seamless image — and breaks
-         it on the frame the falling X lands. Empty under prefers-reduced-motion
-         or if the build is skipped, in which case the veil simply crossfades. -->
-    <div class="workspace-loader__shards" data-shards aria-hidden="true"></div>
-    <!-- The workspace's own perspective floor grid, carried by the veil so the
-         boot screen and the workspace are the same picture. Sits above the
-         fragments because a 3D-transformed plane cannot be baked into their
-         flat backgrounds. -->
+  <!-- Boot veil. Stripped 2026-08-14 to the progress meter plus the orbit
+       grid; the wordmark, the falling X and the glass are gone. The grid is
+       NOT in this markup — js/workspace-loader-grid.js injects it into
+       .workspace-loader__scene, so that empty div is load-bearing. -->
+  <div class="workspace-loader" id="workspaceLoader" role="status" aria-live="polite" aria-label="Preparing TimrX workspace" data-grid-base="img/">
+    <!-- The boot screen's own ground: a perspective grid baked to a WebP and
+         laid down flat. Loader-only, and it fades before the crossfade. See
+         the long note on .wsl-ground in workspace-loader.css for why it is a
+         picture rather than a live 3D layer. -->
+    <div class="wsl-ground" aria-hidden="true"></div>
+    <!-- the workspace's own drifting floor plane, carried by the veil so the
+         boot screen and the workspace are the same picture at handoff -->
     <div class="workspace-loader__floor" aria-hidden="true"></div>
-    <div class="workspace-loader__scene">
-      <div class="workspace-loader__mark">
-        <div class="workspace-loader__logo-wrap" aria-hidden="true">
-          <span class="workspace-loader__orbit"></span>
-          <span class="workspace-loader__orbit workspace-loader__orbit--slow"></span>
-          <img class="workspace-loader__logo" src="img/logo.png" width="150" height="150" alt="" decoding="async" fetchpriority="high">
-        </div>
-        <h1 class="workspace-loader__brand" aria-label="TimrX">
-          <span class="workspace-loader__glyph" style="--i:0">T</span>
-          <span class="workspace-loader__glyph" style="--i:1">i</span>
-          <span class="workspace-loader__glyph" style="--i:2">m</span>
-          <span class="workspace-loader__glyph" style="--i:3">r</span>
-          <!-- The X is a solid, not a letter. The outer span owns the fall and
-               the impact; the inner face owns the extrusion and the angle it is
-               seen from, so the two never fight over `transform`. -->
-          <span class="workspace-loader__glyph workspace-loader__glyph--x"><i class="workspace-loader__x-face">X</i></span>
-        </h1>
-      </div>
+    <!-- The statement, left of the orbit. aria-hidden on purpose: the loader
+         root is already a live region that narrates each stage, and a heading
+         in here would both talk over that and compete with the workspace's own
+         h1. This is a poster, not a document. -->
+    <div class="wsl-hero" aria-hidden="true">
+      <p class="wsl-hero__eyebrow">
+        <span class="wsl-hero__brand">TimrX</span>
+        <i class="wsl-hero__rule"></i>
+        <span class="wsl-hero__kicker">AI 3D Workspace</span>
+      </p>
+      <p class="wsl-hero__head">
+        <span class="wsl-hero__line"><span class="wsl-hero__word">Prompt in</span></span>
+        <!-- This line is not decorated with the progress, it IS the progress:
+             the ink fills left to right off --loader-progress, so the words
+             print themselves while the workspace builds. -->
+        <span class="wsl-hero__line wsl-hero__line--print">
+          <span class="wsl-hero__word wsl-hero__ink">print out.<i class="wsl-hero__tip"></i></span>
+        </span>
+      </p>
+      <p class="wsl-hero__sub">Describe it. Watch it build. Send it to the plate.</p>
     </div>
-    <!-- The damage: the crack network plus the debris it throws. Sits behind
-         the wordmark — the X is a solid that hit the screen, so the star
-         belongs in the surface under it. -->
-    <div class="workspace-loader__glass" aria-hidden="true">
-      <svg class="workspace-loader__fracture" data-fracture focusable="false"></svg>
-      <span class="workspace-loader__dust"></span>
-      <span class="workspace-loader__crush" data-crush></span>
-      <span class="workspace-loader__flash"></span>
-      <div class="workspace-loader__spall" data-spall></div>
-    </div>
+    <div class="workspace-loader__scene"></div>
     <div class="workspace-loader__meter" aria-hidden="true">
       <div class="workspace-loader__progress">
         <span class="workspace-loader__bar" data-loader-bar></span>
@@ -2036,7 +2032,7 @@
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260813p2b"></script>
+  <script type="module" src="./js/main.js?v=20260814viewerops"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
   <script src="js/command-palette.js?v=20260802f" defer></script>

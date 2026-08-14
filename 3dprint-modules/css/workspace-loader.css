@@ -1,29 +1,27 @@
 /* ==========================================================================
-   WORKSPACE-LOADER.CSS — boot veil (shatter rework 2026-08-13)
+   WORKSPACE-LOADER.CSS — boot veil (stripped 2026-08-14)
    --------------------------------------------------------------------------
-   Near-black field with the same teal/sand radial wash as the stage, a
-   horizontal TimrX wordmark whose X falls out of the sky, and a surface that
-   genuinely breaks when it lands — see THE BREAK, below.
+   Two things on screen and nothing else: the orbit grid (workspace-loader-grid
+   .css) and the progress meter. The wordmark, the falling X, the glass
+   fracture, the shards, the spall, the crush, the flash, the dust, the logo,
+   the orbit rings and the halo are all gone — with them, ~700 lines of CSS and
+   every keyframe they needed.
+
+   The floor grid is the one decorative-looking thing kept, and it is not
+   decoration: it is a copy of the workspace's own drifting plane
+   (`.sim-viewer-bg::before` in css/workspace.css), matched stop for stop, so
+   that when the veil fades the ground underneath is already in the same place
+   at the same offset. Delete it and the grid pops into existence at handoff.
+   If you want it gone anyway it is one rule and one line in the markup.
 
    JS contract (js/workspace-loader.js):
      .workspace-loader           overlay root, [hidden] once done
      [data-loader-bar]           width driven inline as N%
-     --loader-progress           set on the root as N%
-     --impact-x / --impact-y     measured landing point of the X, in px
-     --veil-image                the veil's background, re-used by every shard
+     --loader-progress           set on the root as N%  (the grid reads this)
      [data-loader-percent]       "07" text
      [data-loader-status]        status line; .is-swapping during text swap
-     [data-shards]               host for the tessellated surface
-     [data-fracture]             SVG sheet for the crack network
-     [data-crush] / [data-spall] impact debris
-     .has-shatter                the surface built; take the shatter exit
-     .is-broken                  added on the frame the X lands
-     .is-exiting                 added ~170ms before the surface lets go
+     .is-exiting                 added at handoff; the veil crossfades out
      body.has-ws-loader / body.ws-intro-go   chrome gating (rules at bottom)
-
-   Exit budget: JS hides the node 1680ms after .is-exiting when the surface
-   built (1320ms without it, 340ms reduced motion). The longest fall here is
-   950ms plus a 400ms stagger — inside the budget, with margin.
    ========================================================================== */
 
 /* body.print3d-page > * demotes positioned direct body children to
@@ -34,39 +32,44 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
   position: fixed;
   inset: 0;
   z-index: 2147480000;
+  /* Statement left, orbit right — mirrors the composition the veil hands over
+     to. The two in-flow children are the only grid items; the floor is
+     absolute and the meter is fixed, so both sit this out. */
   display: grid;
-  place-items: center;
+  /* The statement is the wider column on purpose. It carries a two-word
+     headline at poster size in a face that may not be the condensed one (see
+     .wsl-hero__head); the orbit is a square that reads fine at any size and
+     loses nothing by being smaller. An even split starved the side that could
+     not afford it.
+
+     Both columns are minmax(0, …) so an over-long headline shrinks its own
+     column instead of blowing the grid past 100vw. */
+  grid-template-columns: minmax(0, 1.18fr) minmax(0, 0.82fr);
+  align-items: center;
+  column-gap: clamp(20px, 4vw, 76px);
+  /* The meter is position:fixed, so it contributes nothing to this grid and
+     `align-items: center` would happily centre the row underneath it. The
+     bottom padding is the meter's own band, reserved by hand — it is what
+     makes "centred" mean centred in the space the user can actually see. */
+  padding:
+    clamp(56px, 9vh, 110px)
+    clamp(18px, 4vw, 60px)
+    clamp(128px, 21vh, 210px)
+    clamp(22px, 5.5vw, 92px);
   /* THE VEIL IS THE WORKSPACE'S OWN GROUND, not a lookalike.
-     --------------------------------------------------------------------
      Copied verbatim from `html body.print3d-page > .sim-viewer-bg`
      (css/workspace.css) — same layers, same stops, same order. Both boxes are
-     position:fixed inset:0, so both gradients resolve against exactly the same
-     100vw x 100vh positioning area and land pixel-for-pixel on top of each
-     other.
+     position:fixed inset:0, so both gradients resolve against the same
+     100vw x 100vh area and land pixel-for-pixel on top of each other. With the
+     break gone this no longer has to survive being cut into fragments, but it
+     is still what makes the crossfade at handoff invisible.
 
-     This matters at precisely one moment: when the surface breaks, the seams
-     between displaced fragments are the first place the workspace shows
-     through. If the veil is its own darker field the break reads as one screen
-     tearing to reveal a different one. Matched, there is nothing behind the
-     glass to notice — only the glass.
-
-     If .sim-viewer-bg's background changes, change this with it.
-
-     Declared as a variable because every fragment of the broken surface
-     re-uses it verbatim, which is the only reason the pieces compose back into
-     a single uninterrupted image instead of a patchwork. */
+     If .sim-viewer-bg's background changes, change this with it. */
   --veil-image:
     radial-gradient(ellipse at 50% 46%, rgba(var(--accent-blue-rgb, 127, 200, 194), 0.075), transparent 42%),
     radial-gradient(ellipse at 50% 62%, rgba(34, 49, 52, 0.34), transparent 54%),
     radial-gradient(ellipse at 50% 105%, rgba(var(--accent-purple-rgb, 184, 167, 122), 0.05), transparent 38%),
     linear-gradient(180deg, #080b0c 0%, #0d1214 50%, #090c0d 100%);
-  /* Where the X lands. workspace-loader.js measures the glyph and overwrites
-     both in px; the fallbacks keep the origin roughly right if that never runs.
-     The X sits right of centre, so nothing here may assume 50%. */
-  --impact-x: 50%;
-  --impact-y: 58%;
-  /* The final layer of --veil-image is opaque, so this only shows on the
-     fragments that overhang the viewport — off-screen either way. */
   background-color: #080b0c;
   background-image: var(--veil-image);
   opacity: 1;
@@ -75,24 +78,134 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
 .workspace-loader.is-exiting { opacity: 0; pointer-events: none; }
 .workspace-loader[hidden] { display: none; }
 
-/* legacy atmosphere layers from the previous design — retired, markup kept */
+/* retired layers from earlier designs — markup may still carry them */
 .workspace-loader__void,
 .workspace-loader__grain,
-.workspace-loader__shadow { display: none; }
+.workspace-loader__shadow,
+.workspace-loader__halo,
+.workspace-loader__shards,
+.workspace-loader__glass { display: none; }
 
-/* ---- the workspace's floor grid, on the veil ----------------------------
-   The other half of matching the ground: .sim-viewer-bg carries a drifting
-   perspective grid as well as its gradients, and a veil with the gradients but
-   no grid still reads as a different screen the moment it opens.
+/* ==========================================================================
+   THE GROUND — depth around the floor plane, without touching it
+   --------------------------------------------------------------------------
+   .workspace-loader__floor is a pixel copy of .sim-viewer-bg::before and has
+   to stay one, or the crossfade at handoff shows a jump. So the atmosphere is
+   built AROUND it in two layers that do not exist in the workspace and are
+   gone before the veil lifts:
 
-   Mirrors `.sim-viewer-bg::before` exactly and shares its keyframes, so the two
-   planes stay in phase — both animations start at the same first render. When
-   the loader is finally removed the workspace's own grid is already sitting
-   underneath in the same place at the same offset, so the swap is invisible.
+     ::before   the horizon — a wide, low pool of brand light where the plane
+                recedes, plus a vignette that closes the corners down. This is
+                what turns a grid drawn in perspective into a room.
+     ::after    a slow light sweep across that plane, 19s, deliberately NOT
+                tied to --loader-progress. Three things already run off that
+                value (the ink, the meter, the cluster); a fourth would read as
+                the same event happening four times.
 
-   Above the fragments, because a plane with a 3D transform cannot be baked
-   into their flat backgrounds. The 2px residual displacement of a fragment
-   under a 1px grid line at 34% opacity is not something the eye finds. */
+   Both are absolute. A ::before left in flow on this element would become a
+   grid item, take column 1 and shove the statement into column 2.
+   ========================================================================== */
+.workspace-loader::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    /* horizon pool, sitting on the vanishing line of the floor */
+    radial-gradient(ellipse 62% 26% at 50% 78%,
+      rgba(var(--accent-blue-rgb, 127, 200, 194), 0.10),
+      rgba(var(--accent-blue-rgb, 127, 200, 194), 0.03) 46%,
+      transparent 72%),
+    /* a colder counter-light from high left, so the room has two sources */
+    radial-gradient(ellipse 46% 40% at 6% 8%,
+      rgba(150, 178, 186, 0.055), transparent 66%),
+    /* vignette — closes the corners so nothing competes with the two columns */
+    radial-gradient(ellipse 78% 74% at 50% 50%,
+      transparent 42%, rgba(4, 6, 7, 0.42) 88%, rgba(3, 5, 6, 0.62) 100%);
+  pointer-events: none;
+}
+
+.workspace-loader::after {
+  content: "";
+  position: absolute;
+  z-index: 3;                     /* over the floor, under everything read */
+  left: -40%;
+  right: -40%;
+  bottom: -6vh;
+  height: 62vh;
+  background: linear-gradient(100deg,
+    transparent 34%,
+    rgba(var(--accent-blue-rgb, 127, 200, 194), 0.055) 47%,
+    rgba(232, 252, 250, 0.05) 50%,
+    rgba(var(--accent-blue-rgb, 127, 200, 194), 0.055) 53%,
+    transparent 66%);
+  -webkit-mask-image: linear-gradient(to top, #000 6%, rgba(0, 0, 0, 0.5) 46%, transparent 88%);
+  mask-image: linear-gradient(to top, #000 6%, rgba(0, 0, 0, 0.5) 46%, transparent 88%);
+  animation: wsGroundSweep 19s cubic-bezier(0.5, 0, 0.5, 1) infinite;
+  pointer-events: none;
+}
+@keyframes wsGroundSweep {
+  0%        { transform: translate3d(-46%, 0, 0); opacity: 0; }
+  12%, 78%  { opacity: 1; }
+  100%      { transform: translate3d(46%, 0, 0); opacity: 0; }
+}
+
+/* ==========================================================================
+   THE GROUND PLANE — the boot screen's own 3D floor
+   --------------------------------------------------------------------------
+   Separate from .workspace-loader__floor on purpose, and the reason is
+   geometry rather than taste. That element is a pixel copy of
+   .sim-viewer-bg::before: 76vh tall, anchored at bottom:-20vh, rotateX(64deg)
+   about its own bottom edge. Measure it and it projects to a ~180px band
+   starting BELOW the fold on a 1000px viewport — it exists to be in the right
+   place at the moment of handoff, not to be looked at. Brightening it to make
+   a background would break the match it exists for.
+
+   So this is a second plane, steeper and much closer to the camera, that is
+   loader-only and fades before the crossfade. What is left when the veil
+   lifts is the matched copy and nothing else.
+
+   Absolute, so it never becomes a grid item on the two-column root.
+   ========================================================================== */
+.wsl-ground {
+  position: absolute;
+  z-index: 1;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: min(54vh, 620px);
+  /* A BAKED plane, not a live one.
+     ------------------------------------------------------------------
+     This started as a real 3D layer: 210vw x 104vh, perspective(900px)
+     rotateX(68deg), a gradient mask and a drifting texture. Measured against
+     the same page with the layer removed it cost about three quarters of the
+     frame budget — 43fps down to 11 — and turning the animation off recovered
+     almost none of it, so the cost was rasterising a large transformed and
+     masked layer, not moving it. That is an unaffordable price on the one
+     screen whose whole job is to stay smooth while the bundle parses.
+
+     So the perspective is rendered once, offline, into a 102KB WebP: rows
+     compressing toward the vanishing point, columns converging on it, the
+     horizon dissolve baked into the alpha. At runtime it is one flat
+     background image with no transform, no mask and no animation. The motion
+     in this region comes from the sweep on .workspace-loader::after, which is
+     a single composited translate.
+
+     Regenerate with the script in the commit that added it if the accent
+     colour ever changes — the teal is baked into the pixels. */
+  background:
+    url("../../img/loader/ground-grid.webp") center bottom / cover no-repeat;
+  opacity: 0.9;
+  transition: opacity 0.24s ease;
+  pointer-events: none;
+}
+.workspace-loader.is-exiting .wsl-ground { opacity: 0; }
+
+@media (max-width: 940px) {
+  .wsl-ground { height: min(42vh, 380px); }
+}
+
+/* ---- the workspace's floor grid, on the veil --------------------------- */
 .workspace-loader__floor {
   position: absolute;
   z-index: 2;
@@ -114,737 +227,184 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
   pointer-events: none;
 }
 
-/* one soft breathing halo behind the mark, in the brand teal.
-   Above the fragments, not below them: the fragments are opaque, and the halo
-   is light coming off the screen rather than part of its surface. */
-.workspace-loader__halo {
-  position: absolute;
-  z-index: 3;
-  width: 90vmin;
-  height: 90vmin;
-  border-radius: 50%;
-  background: radial-gradient(circle,
-    rgba(var(--accent-blue-rgb, 127, 200, 194), 0.07),
-    transparent 58%);
-  filter: blur(6px);
-  animation: wsLoaderBreathe 5.2s ease-in-out infinite;
-  pointer-events: none;
-}
-@keyframes wsLoaderBreathe {
-  0%, 100% { transform: scale(0.96); opacity: 0.75; }
-  50%      { transform: scale(1.05); opacity: 1; }
-}
+/* (the matched plane carries no extra layer — see .wsl-ground above) */
 
+/* ---- the stage: nothing but the orbit grid's host ---------------------- */
 .workspace-loader__scene {
   position: relative;
   z-index: 5;
+  grid-column: 2;
   display: grid;
-  justify-items: center;
-  gap: clamp(30px, 5vh, 48px);
-  padding: 0 24px;
-}
-
-.workspace-loader__mark {
-  display: grid;
-  justify-items: center;
-  gap: clamp(18px, 3.4vh, 32px);
-}
-
-/* ---- logo: central mark with a quiet orbital boot motion --------------- */
-.workspace-loader__logo-wrap {
-  position: relative;
-  width: clamp(92px, 12vw, 132px);
-  aspect-ratio: 1;
-  display: grid;
-  place-items: center;
-  opacity: 0;
-  transform: translateY(12px) scale(0.86);
-  /* The idle float used to start at 0.9s and run straight through the X's
-     landing, so the logo drifted serenely while the screen was breaking
-     underneath it. It now holds still through the impact, jolts with it, and
-     only then settles into its float. */
-  animation:
-    wsLoaderLogoIn 0.78s cubic-bezier(0.16, 1, 0.3, 1) 80ms forwards,
-    wsLoaderLogoRecoil 0.5s cubic-bezier(0.22, 1, 0.36, 1) 1240ms,
-    wsLoaderLogoFloat 3.6s ease-in-out 1780ms infinite;
-}
-
-/* Kicked upward by the shock, then dropped back. */
-@keyframes wsLoaderLogoRecoil {
-  0%   { transform: translateY(0) scale(1); }
-  22%  { transform: translateY(-14px) scale(1.06); }
-  52%  { transform: translateY(4px) scale(0.985); }
-  100% { transform: translateY(0) scale(1); }
-}
-
-.workspace-loader__logo-wrap::before,
-.workspace-loader__logo-wrap::after {
-  content: "";
-  position: absolute;
-  inset: 12%;
-  border-radius: 50%;
-  pointer-events: none;
-}
-
-.workspace-loader__logo-wrap::before {
-  background:
-    radial-gradient(circle at 50% 45%, rgba(255,255,255,0.16), transparent 42%),
-    radial-gradient(circle, rgba(var(--accent-blue-rgb, 127, 200, 194), 0.24), transparent 68%);
-  filter: blur(12px);
-  opacity: 0.78;
-  animation: wsLoaderCorePulse 2.4s ease-in-out infinite;
-}
-
-.workspace-loader__logo-wrap::after {
-  inset: 2%;
-  border: 1px solid rgba(var(--accent-blue-rgb, 127, 200, 194), 0.14);
-  box-shadow:
-    inset 0 0 22px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.08),
-    0 0 34px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.10);
-}
-
-.workspace-loader__logo {
-  position: relative;
-  z-index: 2;
-  width: 78%;
-  height: 78%;
-  object-fit: contain;
-  filter:
-    drop-shadow(0 16px 22px rgba(0, 0, 0, 0.45))
-    drop-shadow(0 0 20px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.22));
-  animation: wsLoaderLogoGlow 2.8s ease-in-out infinite;
-}
-
-.workspace-loader__orbit {
-  position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  border: 1px solid transparent;
-  border-top-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.76);
-  border-right-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.12);
-  transform: rotate(-16deg);
-  animation: wsLoaderOrbit 2.3s linear infinite;
-}
-
-.workspace-loader__orbit {
-  animation:
-    wsLoaderOrbit 2.3s linear infinite,
-    wsLoaderOrbitSnap 0.44s cubic-bezier(0.16, 1, 0.3, 1) 1240ms;
-}
-
-@keyframes wsLoaderOrbitSnap {
-  0%   { border-top-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.76); }
-  18%  { border-top-color: #ffffff; }
-  100% { border-top-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.76); }
-}
-
-.workspace-loader__orbit--slow {
-  inset: 8%;
-  border-top-color: rgba(255, 255, 255, 0.28);
-  border-left-color: rgba(var(--accent-purple-rgb, 184, 167, 122), 0.16);
-  animation-duration: 3.6s;
-  animation-direction: reverse;
-}
-
-@keyframes wsLoaderLogoIn {
-  70% { opacity: 1; transform: translateY(-2px) scale(1.04); }
-  100% { opacity: 1; transform: translateY(0) scale(1); }
-}
-
-@keyframes wsLoaderLogoFloat {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-5px) scale(1.015); }
-}
-
-@keyframes wsLoaderCorePulse {
-  0%, 100% { opacity: 0.62; transform: scale(0.96); }
-  50% { opacity: 0.9; transform: scale(1.08); }
-}
-
-@keyframes wsLoaderLogoGlow {
-  0%, 100% {
-    filter:
-      drop-shadow(0 16px 22px rgba(0, 0, 0, 0.45))
-      drop-shadow(0 0 18px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.18));
-  }
-  50% {
-    filter:
-      drop-shadow(0 18px 24px rgba(0, 0, 0, 0.5))
-      drop-shadow(0 0 30px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.36));
-  }
-}
-
-@keyframes wsLoaderOrbit {
-  to { transform: rotate(344deg); }
+  /* Both of these are load-bearing. `justify-self: center` made this box
+     shrink-to-fit, and the orbit inside it is sized `width: min(100%, …)` —
+     100% of a shrink-to-fit parent whose width comes from its child is a
+     circular definition, which resolves to zero. The column then claimed its
+     fr share while rendering nothing, which is what was squeezing the
+     statement. Stretch fills the column; `justify-items: end` keeps the
+     cluster on the outside edge where it was. */
+  justify-self: stretch;
+  justify-items: end;
+  padding: 0;
 }
 
 /* ==========================================================================
-   WORDMARK — "Timr" arrives from depth, "X" falls and fractures the veil
+   THE STATEMENT
    --------------------------------------------------------------------------
-   The approach is CSS on a page-load clock. The impact is NOT: JS listens for
-   this fall's `animationend` and drives everything downstream off that, so the
-   damage lands on the letter's frame however late fonts or first paint were.
-
-       160ms   T starts its approach from ~900px behind the screen
-       ...     i, m, r follow, 110ms apart
-       860ms   "Timr" has settled
-       880ms   X is released above the viewport
-      ~1240ms  IMPACT — the surface breaks (see THE BREAK)
-      ~2100ms  the last held-back crack arrives
-
-   All of it inside the loader's MIN_SHOWTIME_MS of 2800ms
-   (workspace-loader.js), so nothing is ever cut off and boot does not get
-   slower. The old fixed 1240ms delays on the logo recoil and orbit snap are
-   left alone deliberately: they share the same first-render origin as this
-   fall, so they stay in step with it without needing to be re-keyed.
+   Two lines of condensed caps, and the second one is the loading indicator.
+   Not decorated with the progress — made OF it: the ink fills left to right
+   off --loader-progress, the same value the meter and the orbit grid read, so
+   the words finish printing exactly as the workspace finishes building and the
+   full stop lands on 100. That is the whole idea; everything else here is
+   restraint around it.
    ========================================================================== */
-.workspace-loader__brand {
-  margin: 0;
+.wsl-hero {
+  position: relative;
+  z-index: 5;
+  grid-column: 1;
+  justify-self: start;
+  min-width: 0;
+  /* No max-width here. An em value would resolve against THIS element's font
+     size (~16px), not the headline's, which is how the statement ended up
+     boxed into 240px and guillotined. The grid column is the bound. */
+  /* The root now reserves the meter's band in its own bottom padding, so this
+     is optical balance only, not collision avoidance. */
+  margin-bottom: clamp(4px, 1.5vh, 18px);
+}
+
+/* ---- eyebrow ------------------------------------------------------------ */
+.wsl-hero__eyebrow {
   display: flex;
-  align-items: baseline;
-  gap: 0.04em;
-  font-family: 'Space Grotesk', 'Bebas Neue', 'Inter', system-ui, sans-serif;
-  font-size: clamp(56px, 9vw, 108px);
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 clamp(14px, 2.2vh, 24px);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(9px, 1vw, 12px);
   font-weight: 700;
-  letter-spacing: 0.01em;
-  line-height: 1;
-  color: var(--text, #f2f5f3);
-  /* Depth needs a camera. Without this the Z translations below collapse to
-     nothing and the letters just fade — the loader had no perspective at all
-     before this change. */
-  perspective: 900px;
-  perspective-origin: 50% 45%;
-  transform-style: preserve-3d;
-}
-
-.workspace-loader__glyph {
-  display: inline-block;
-  will-change: transform, opacity, filter;
-}
-
-/* ---- "Timr": out of the depth ------------------------------------------- */
-.workspace-loader__glyph:not(.workspace-loader__glyph--x) {
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  white-space: nowrap;
   opacity: 0;
-  transform: translateZ(-900px);
-  filter: blur(14px);
-  animation: wsLoaderDepth 0.86s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  animation-delay: calc(160ms + var(--i, 0) * 110ms);
+  animation: wsHeroFade 0.5s cubic-bezier(0.22, 1, 0.36, 1) 60ms forwards;
+}
+.wsl-hero__brand { color: var(--accent-blue, #7fc8c2); }
+.wsl-hero__kicker { color: rgba(220, 228, 226, 0.42); }
+/* draws itself open rather than fading in — the one flourish up here */
+.wsl-hero__rule {
+  flex: none;
+  width: clamp(20px, 3vw, 46px);
+  height: 1px;
+  background: linear-gradient(90deg,
+    rgba(var(--accent-blue-rgb, 127, 200, 194), 0.75),
+    rgba(var(--accent-blue-rgb, 127, 200, 194), 0.12));
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  animation: wsHeroRule 0.62s cubic-bezier(0.22, 1, 0.36, 1) 180ms forwards;
+}
+@keyframes wsHeroRule { to { transform: scaleX(1); } }
+
+/* ---- the headline ------------------------------------------------------- */
+.wsl-hero__head {
+  margin: 0;
+  /* Bebas is the only condensed face already self-hosted for this page, and
+     condensed is what carries a two-word line at poster size. It ships one
+     weight, so the poster weight comes from the size, not from a synthetic
+     bold — which on a condensed face smears the counters shut. */
+  font-family: 'Bebas Neue', 'Arial Narrow', 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  /* Sized so the longest line still fits the column in the WIDEST face this
+     stack can resolve to, not the narrowest. Bebas is declared
+     `font-display: optional` in fonts/fonts.css, which means a cold visit that
+     loses the preload race renders this whole screen in the fallback and never
+     swaps — so the layout cannot assume it got the condensed one. */
+  /* 6.2vw, not 6.9: at 6.9 the longest line measured flush to the column
+     edge in the fallback face, which means any wider fallback overflows the
+     clip-path silently. This leaves it a little air. */
+  font-size: clamp(38px, 6.2vw, 104px);
+  line-height: 0.9;
+  letter-spacing: 0.005em;
+  text-transform: uppercase;
 }
 
-@keyframes wsLoaderDepth {
-  0%   { opacity: 0; transform: translateZ(-900px); filter: blur(14px); }
-  55%  { opacity: 1; }
-  /* a touch past the screen plane, so it reads as mass arriving rather than
-     a scale-up */
-  82%  { transform: translateZ(46px); filter: blur(0); }
-  100% { opacity: 1; transform: translateZ(0); filter: blur(0); }
-}
-
-/* ---- "X": falls, lands, stays lit --------------------------------------- */
-.workspace-loader__glyph--x {
-  color: var(--accent-blue, #7fc8c2);
-  /* Perspective for the extruded face inside. It has to sit here rather than on
-     .workspace-loader__brand: that one only reaches its own children, and the
-     face is a grandchild. Shallow, so the foreshortening is felt and not
-     announced. */
-  perspective: 520px;
-  perspective-origin: 50% 62%;
-  opacity: 0;
-  transform: translateY(-115vh);
-  /* wsLoaderXLand is `forwards`, NOT `both`, and the distinction is the whole
-     animation: a `both` fill applies its 0% keyframe from time zero, and
-     because it is listed second it outranks wsLoaderXFall on `transform`. The
-     X was therefore pinned at the baseline, already squashed, for the entire
-     880ms of its own fall — it appeared at the floor rather than arriving
-     there. With `forwards` the fall owns the transform until it lands. */
-  animation:
-    wsLoaderXFall 0.36s cubic-bezier(0.55, 0, 1, 0.42) 880ms forwards,
-    wsLoaderXLand 0.62s cubic-bezier(0.22, 1, 0.36, 1) 1240ms forwards;
-}
-
-/* ---- the X as a solid ---------------------------------------------------
-   A stack of hard text-shadows is the extrusion: sixteen steps running back
-   and down from the front face, each one a shade darker, then the shadow the
-   whole thing casts into the surface it just broke. Offsets are in `em`, so
-   the depth scales with the wordmark's clamp() rather than going slab-like on
-   a phone and thin on a desktop.
-
-   Total depth is ~0.07em — about 7px at the desktop type size. Keep the step
-   count when tuning this and change the step SIZE: the sixteen layers are what
-   make the side read as a continuous surface, and dropping them to widen the
-   gaps brings back visible banding.
-
-   Painting order matters and runs first-on-top: the rim light leads so it
-   catches the top-left edge above every extrusion step, then the body from the
-   near face outward, then the cast shadow last and furthest back.
-
-   The colours are the brand teal walked down to ~8% — a solid's sides are not
-   its face at lower opacity, they are darker, and stepping the ramp is what
-   makes the eye read a turned surface instead of a blur. */
-.workspace-loader__x-face {
-  display: inline-block;
-  font-style: normal;
-  color: inherit;
-  /* Turned just enough to see that it has sides. */
-  transform: rotateY(-17deg) rotateX(8deg);
-  transform-origin: 50% 68%;
-  text-shadow:
-    -0.008em -0.009em 0 rgba(228, 252, 249, 0.5),
-     0.004em  0.005em 0 #55817d,
-     0.008em  0.009em 0 #4f7a76,
-     0.012em  0.014em 0 #49736f,
-     0.016em  0.018em 0 #436c68,
-     0.020em  0.023em 0 #3d6562,
-     0.024em  0.027em 0 #375e5b,
-     0.028em  0.032em 0 #325754,
-     0.032em  0.036em 0 #2c504d,
-     0.036em  0.041em 0 #274946,
-     0.040em  0.045em 0 #22423f,
-     0.044em  0.050em 0 #1d3b38,
-     0.048em  0.054em 0 #193431,
-     0.052em  0.059em 0 #152d2b,
-     0.056em  0.063em 0 #112624,
-     0.060em  0.068em 0 #0e201e,
-     0.064em  0.072em 0 #0b1a18,
-     0.078em  0.098em 0.07em rgba(0, 0, 0, 0.5);
-}
-
-/* Gravity: no ease-out. The X accelerates all the way into the floor, and
-   smears as it goes — a shape moving that fast cannot also be in focus. */
-@keyframes wsLoaderXFall {
-  0%   { opacity: 1; transform: translateY(-115vh) scaleY(1); filter: blur(0); }
-  30%  { filter: blur(1.4px); }
-  85%  { opacity: 1; transform: translateY(-8vh) scaleY(1.14); filter: blur(1px); }
-  100% { opacity: 1; transform: translateY(0) scaleY(1.2); filter: blur(0); }
-}
-
-/* Squash on contact, then recover. The letter also blows out white for a
-   frame — it is the thing that hit, so it takes the flash first. */
-/* The glow is a filter now, not a text-shadow: text-shadow is the extrusion,
-   and it belongs to the face rather than to this element. drop-shadow also
-   reads the whole rendered silhouette, extrusion included, so the light comes
-   off the solid instead of off a letter-shaped outline inside it.
-
-   `color` still animates here even though the glyph lives one level down —
-   colour inherits, and the face takes it; its extrusion is explicit hex and so
-   stays dark through the flash, which is what a lit front face on an unlit
-   body should do. */
-@keyframes wsLoaderXLand {
-  0%   { transform: translateY(0) scale(1.2, 0.78);
-         color: #ffffff;
-         filter:
-           drop-shadow(0 0 24px rgba(255, 255, 255, 0.85))
-           drop-shadow(0 0 64px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.75)); }
-  18%  { color: #ffffff; }
-  26%  { transform: translateY(-0.1em) scale(0.94, 1.1); }
-  55%  { transform: translateY(0) scale(1.03, 0.98); }
-  100% { transform: translateY(0) scale(1, 1);
-         color: var(--accent-blue, #7fc8c2);
-         filter:
-           drop-shadow(0 0 16px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.42))
-           drop-shadow(0 0 52px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.20)); }
-}
-
-/* wsLoaderRise is still used by the meter below — do not remove it. */
-@keyframes wsLoaderRise {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-/* ==========================================================================
-   THE BREAK — the veil is a surface, and it comes apart
-   --------------------------------------------------------------------------
-   Two layers, both built by workspace-loader.js, both keyed off ONE class:
-   `.is-broken`, which JS adds on the `animationend` of the X's fall. Nothing
-   below runs on a page-load timer, so the damage cannot drift away from the
-   letter that caused it — which is what the old hardcoded 1240ms delays did
-   whenever fonts or first paint ran late.
-
-     .workspace-loader__shards    the surface itself, tessellated into ~70
-                                  fragments UNDER the wordmark. Each carries
-                                  the veil's own background, offset so the
-                                  pieces compose into one seamless image, and
-                                  each holds its own brightness — identical
-                                  fragments read as a drawing, a mosaic of
-                                  luminances reads as glass.
-     .workspace-loader__glass     the damage, BEHIND the wordmark: the crack
-                                  network, the crush zone, the flash, the
-                                  spall. The X is an extruded solid that struck
-                                  the screen, so the star it made sits in the
-                                  surface behind it and the letter occludes its
-                                  own impact point.
-
-   Geometry lives in the JS (a polar tessellation with wandering spokes and
-   deliberately discontinuous concentric rings). Everything here is timing,
-   light and physics.
-   ========================================================================== */
-
-/* ---- the quake ----------------------------------------------------------
-   Everything that is "on the screen" moves together — surface, wordmark and
-   meter — because a hit that only shook the middle of the veil would read as
-   damage to the type instead of to the display.
-
-   The loader root itself is deliberately NOT transformed: it is the only thing
-   guaranteed to cover the viewport, and a transformed ancestor would also
-   become the containing block for the position:fixed meter. The meter's own
-   children are shaken instead, which sidesteps both problems.
-
-   No fill mode. These keyframes start and end at identity, and filling them
-   forwards would permanently pin the transform of .workspace-loader__status,
-   whose swap transition needs it back.
-
-   The floor plane is deliberately absent from this list, for two reasons: it
-   already carries a transform (the perspective rotation) that these keyframes
-   would overwrite outright, and it has to stay locked to the workspace's own
-   grid underneath, which does not shake. */
-.workspace-loader.is-broken .workspace-loader__scene,
-.workspace-loader.is-broken .workspace-loader__shards,
-.workspace-loader.is-broken .workspace-loader__glass,
-.workspace-loader.is-broken .workspace-loader__meter > * {
-  animation: wsLoaderQuake 0.46s linear;
-}
-
-/* Amplitude decays inside the keyframes rather than through an easing curve,
-   so the first bounce is the violent one and the tail is a tremor. The small
-   rotation is what stops it reading as a slider being nudged. */
-@keyframes wsLoaderQuake {
-  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
-  6%   { transform: translate3d(-9px, 7px, 0) rotate(-0.32deg); }
-  14%  { transform: translate3d(8px, -6px, 0) rotate(0.26deg); }
-  23%  { transform: translate3d(-7px, 4px, 0) rotate(-0.2deg); }
-  33%  { transform: translate3d(5px, -4px, 0) rotate(0.15deg); }
-  44%  { transform: translate3d(-4px, 3px, 0) rotate(-0.1deg); }
-  56%  { transform: translate3d(3px, -2px, 0) rotate(0.07deg); }
-  69%  { transform: translate3d(-2px, 1.4px, 0) rotate(-0.04deg); }
-  82%  { transform: translate3d(1.2px, -0.8px, 0) rotate(0.02deg); }
-  92%  { transform: translate3d(-0.5px, 0.4px, 0) rotate(0deg); }
-  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
-}
-
-/* ---- the surface --------------------------------------------------------- */
-.workspace-loader__shards {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  /* the fragments tumble toward the viewer on the way out, away from the
-     point that broke them */
-  perspective: 1400px;
-  perspective-origin: var(--impact-x, 50%) var(--impact-y, 58%);
-}
-
-.workspace-loader__shard {
-  position: absolute;
+/* The clip mask for the rise. The generous padding is not spacing — it is
+   headroom for the print tip's bloom, which would otherwise be cut off at the
+   mask edge; the matching negative margin keeps the layout where it was. */
+/* The mask for the rise. clip-path rather than overflow:hidden, and the
+   difference matters twice: it clips the bottom ONLY, so a line set in a wider
+   fallback face is never chopped mid-word, and it leaves the print tip's bloom
+   room to spill sideways. (overflow-x: visible with overflow-y: hidden is not
+   a thing — setting either axis to non-visible forces the other to auto.) */
+.wsl-hero__line {
   display: block;
-  background-color: #080b0c;
-  background-image: var(--veil-image);
-  background-repeat: no-repeat;
-  /* left/top/width/height, background-size, background-position and the
-     clip-path polygon are all written inline by workspace-loader.js */
-  backface-visibility: hidden;
+  clip-path: inset(-0.35em -0.6em 0 -0.6em);
+}
+.wsl-hero__word {
+  display: inline-block;
+  white-space: nowrap;
+  color: var(--text, #f2f5f3);
+  transform: translateY(1.05em);
+  animation: wsHeroRise 0.66s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.wsl-hero__line:first-child .wsl-hero__word { animation-delay: 150ms; }
+.wsl-hero__line--print .wsl-hero__word { animation-delay: 260ms; }
+@keyframes wsHeroRise { to { transform: translateY(0); } }
+
+/* ---- the ink ------------------------------------------------------------
+   Filled portion runs brand teal into sand, with a white-hot head sitting
+   exactly on the fill edge; everything ahead of it is an unprinted ghost.
+   Stops that resolve out of order at 0% are clamped up by the browser, which
+   is what leaves the line a clean ghost before the first byte lands. */
+.wsl-hero__line--print { position: relative; }
+.wsl-hero__ink {
+  --p: var(--loader-progress, 0%);
+  position: relative;
+  background-image: linear-gradient(90deg,
+    var(--accent-blue, #7fc8c2) 0%,
+    var(--accent-purple, #b8a77a) calc(var(--p) * 0.72),
+    #f4fffd calc(var(--p) - 0.6%),
+    rgba(214, 230, 228, 0.13) calc(var(--p) + 0.4%),
+    rgba(214, 230, 228, 0.13) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
 }
 
-/* The facet: a light wash across each piece at its own angle, clipped by the
-   fragment it belongs to. Held at zero until the break — until then this is
-   one intact surface, and any per-piece shading would give the tessellation
-   away before the X has even landed.
-
-   Additive rather than a brightness filter, and the reason is worth keeping:
-   the veil is #07090a, so multiplying it by 0.9..1.1 moves it by a single
-   value step and is invisible. Laying light ON it is not. */
-.workspace-loader__shard::after {
-  content: "";
+/* the print head, riding the fill edge */
+.wsl-hero__tip {
   position: absolute;
-  inset: 0;
-  background: linear-gradient(var(--sh-ang, 120deg),
-    rgba(226, 246, 243, var(--sh-hi, 0.03)) 0%,
-    rgba(226, 246, 243, calc(var(--sh-hi, 0.03) * 0.22)) 48%,
-    rgba(0, 0, 0, var(--sh-lo, 0.04)) 100%);
+  top: -0.04em;
+  bottom: 0.02em;
+  left: min(100%, var(--p));
+  width: 2px;
+  margin-left: -1px;
+  background: linear-gradient(180deg,
+    transparent, #eafffb 20%, #eafffb 80%, transparent);
+  box-shadow:
+    0 0 10px 1px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.7),
+    0 0 26px 5px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.28);
   opacity: 0;
-}
-
-/* the flare, used only on the way out — see wsShardFlare */
-.workspace-loader__shard::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(calc(var(--sh-ang, 120deg) + 42deg),
-    rgba(238, 253, 251, 0.065) 0%,
-    rgba(238, 253, 251, 0.012) 52%,
-    transparent 100%);
-  opacity: 0;
-}
-
-/* The hit: every piece is thrown outward, hardest nearest the impact, then
-   settles a hair short of where it started. Those residual offsets are the
-   whole point — they are the seams you see when the surface is broken but
-   still standing.
-
-   No will-change: the animations promote these on their own, and pinning ~70
-   viewport-fraction layers for the whole dwell costs real memory on a phone
-   for no gain. */
-.workspace-loader.is-broken .workspace-loader__shard {
-  animation: wsShardHit 0.52s cubic-bezier(0.16, 1, 0.3, 1) var(--hit-delay, 0ms) both;
-}
-.workspace-loader.is-broken .workspace-loader__shard::after {
-  animation: wsShardFacet 0.42s ease-out var(--hit-delay, 0ms) forwards;
-}
-@keyframes wsShardFacet { to { opacity: 1; } }
-
-@keyframes wsShardHit {
-  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
-  16%  { transform: translate3d(calc(var(--nx) * var(--kick)), calc(var(--ny) * var(--kick)), 0)
-                    rotate(var(--tilt)); }
-  100% { transform: translate3d(calc(var(--nx) * var(--rest)), calc(var(--ny) * var(--rest)), 0)
-                    rotate(var(--tilt)); }
-}
-
-/* ---- the damage ---------------------------------------------------------- */
-.workspace-loader__glass {
-  position: absolute;
-  inset: 0;
-  /* BEHIND the wordmark. The X is a solid object that struck the screen, so the
-     damage belongs in the surface behind it, not painted across its face — the
-     letter occludes the star it made, and the crush glow rims its base. */
-  z-index: 4;
+  animation: wsHeroFade 0.5s ease 420ms forwards;
   pointer-events: none;
 }
 
-/* The sheet overhangs the viewport so the quake cannot expose a bare edge;
-   workspace-loader.js sets a viewBox with the matching negative origin, which
-   keeps this at an exact 1:1 with CSS pixels.
-
-   Sized explicitly rather than with inset: an absolutely positioned REPLACED
-   element resolves `width: auto` from its intrinsic size, not from its insets,
-   so `inset: -48px` alone would leave the sheet at the SVG default of
-   300x150. */
-.workspace-loader__fracture {
-  position: absolute;
-  left: -48px;
-  top: -48px;
-  width: calc(100% + 96px);
-  height: calc(100% + 96px);
-  overflow: visible;
-}
-
-/* Held fully retracted until the break. This resting state MUST live on the
-   base rule with the animation gated behind .is-broken — the sheet is built
-   early, as soon as the type has settled and well before the X is released, so
-   an ungated animation here starts drawing the instant the paths are inserted
-   and the screen cracks while the letter is still in the air. */
-.workspace-loader__fracture path {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dashoffset: var(--len, 900);
+/* ---- subtext ------------------------------------------------------------ */
+.wsl-hero__sub {
+  margin: clamp(16px, 2.6vh, 30px) 0 0;
+  max-width: 30ch;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: clamp(11px, 1.15vw, 15px);
+  font-weight: 500;
+  line-height: 1.65;
+  color: rgba(220, 228, 226, 0.5);
   opacity: 0;
+  animation: wsHeroFade 0.5s cubic-bezier(0.22, 1, 0.36, 1) 400ms forwards;
 }
 
-/* stroke-dasharray, --len, duration and delay are per-path, written inline:
-   cracks propagate at a roughly constant speed, so a long span has to take
-   longer to arrive than a short one. Giving them all the same duration is what
-   makes a fracture look like it was drawn rather than travelled. */
-.workspace-loader.is-broken .workspace-loader__fracture path {
-  animation: wsCrackDraw 0.3s cubic-bezier(0.05, 0.7, 0.2, 1) both;
-}
-
-/* Every crack is drawn twice: a dark stroke offset down-right, and a bright
-   one on top of it. That bevel is the difference between a line lying on the
-   surface and a split going into it. */
-.workspace-loader__crack-under path { stroke: #000000; }
-.workspace-loader__crack-under { transform: translate(0.8px, 1.2px); }
-.workspace-loader__crack-lit path { stroke: #eef8f7; }
-
-@keyframes wsCrackDraw {
-  0%   { stroke-dashoffset: var(--len, 900); opacity: 0; }
-  8%   { opacity: 1; }
-  100% { stroke-dashoffset: 0; opacity: 1; }
-}
-
-/* As the surface finally lets go the damage brightens for a beat, then leaves
-   with the fragments it was drawn on. */
-.workspace-loader.is-exiting .workspace-loader__crack-lit path { stroke: #ffffff; }
-.workspace-loader.is-exiting .workspace-loader__fracture {
-  opacity: 0;
-  transition: opacity 0.42s ease 0.12s;
-}
-
-/* The crush zone. Where the X actually struck, glass is not cracked — it is
-   powdered. workspace-loader.js scatters the grit gradients, because a clean
-   white disc reads as a glow and a scatter reads as damage. */
-.workspace-loader__crush {
-  position: absolute;
-  left: var(--impact-x, 50%);
-  top: var(--impact-y, 58%);
-  width: var(--crush-size, 68px);
-  height: var(--crush-size, 68px);
-  margin: calc(var(--crush-size, 68px) / -2) 0 0 calc(var(--crush-size, 68px) / -2);
-  border-radius: 50%;
-  opacity: 0;
-}
-.workspace-loader.is-broken .workspace-loader__crush {
-  animation: wsCrush 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
-}
-@keyframes wsCrush {
-  0%   { opacity: 0;    transform: scale(0.3); }
-  9%   { opacity: 1;    transform: scale(1.18); }
-  100% { opacity: 0.55; transform: scale(1); }
-}
-
-/* The flash. One frame of overexposure at the point of contact, then gone —
-   an expanding ring would read as a shockwave graphic, not as light. */
-.workspace-loader__flash {
-  position: absolute;
-  left: var(--impact-x, 50%);
-  top: var(--impact-y, 58%);
-  width: 78vmax;
-  height: 78vmax;
-  margin: -39vmax 0 0 -39vmax;
-  border-radius: 50%;
-  background: radial-gradient(circle,
-    rgba(255, 255, 255, 0.45),
-    rgba(200, 240, 236, 0.14) 20%,
-    transparent 55%);
-  opacity: 0;
-}
-.workspace-loader.is-broken .workspace-loader__flash {
-  animation: wsFlash 0.44s cubic-bezier(0.12, 0.85, 0.3, 1) forwards;
-}
-@keyframes wsFlash {
-  0%   { opacity: 0; transform: scale(0.18); }
-  7%   { opacity: 1; transform: scale(0.5); }
-  100% { opacity: 0; transform: scale(1.2); }
-}
-
-/* Dust lifting out of the break. */
-.workspace-loader__dust {
-  position: absolute;
-  left: var(--impact-x, 50%);
-  top: var(--impact-y, 58%);
-  width: min(58vw, 640px);
-  height: 190px;
-  margin: -95px 0 0 min(-29vw, -320px);
-  border-radius: 50%;
-  background: radial-gradient(ellipse at 50% 100%,
-    rgba(var(--accent-blue-rgb, 127, 200, 194), 0.20),
-    rgba(255, 255, 255, 0.06) 38%,
-    transparent 70%);
-  filter: blur(14px);
-  opacity: 0;
-}
-.workspace-loader.is-broken .workspace-loader__dust {
-  animation: wsLoaderDust 1.15s cubic-bezier(0.16, 1, 0.3, 1) 20ms forwards;
-}
-@keyframes wsLoaderDust {
-  0%   { opacity: 0;    transform: scale(0.32, 0.18); }
-  18%  { opacity: 0.85; }
-  100% { opacity: 0;    transform: translateY(-70%) scale(1.5, 1.25); }
-}
-
-/* Spall: chips thrown clear of the impact on a parabola. A few of them are
-   held back by a second or more, because debris keeps dropping long after the
-   noise stops — that late tick is what sells the first one as real. */
-.workspace-loader__spall i {
-  position: absolute;
-  left: var(--impact-x, 50%);
-  top: var(--impact-y, 58%);
-  width: var(--sz, 3px);
-  height: var(--sz, 3px);
-  margin: calc(var(--sz, 3px) / -2) 0 0 calc(var(--sz, 3px) / -2);
-  border-radius: 40% 55% 45% 60%;
-  background: rgba(240, 253, 251, 0.95);
-  box-shadow: 0 0 6px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.7);
-  opacity: 0;
-}
-.workspace-loader.is-broken .workspace-loader__spall i {
-  animation: wsSpall var(--dur, 900ms) cubic-bezier(0.2, 0.5, 0.5, 1) var(--dly, 0ms) forwards;
-}
-@keyframes wsSpall {
-  0%   { opacity: 0; transform: translate3d(0, 0, 0) scale(0.4); }
-  9%   { opacity: 1; }
-  45%  { opacity: 1; transform: translate3d(calc(var(--dx) * 0.62), var(--apex), 0) scale(1); }
-  100% { opacity: 0; transform: translate3d(var(--dx), var(--dy), 0) scale(0.6) rotate(var(--rot)); }
-}
-
-/* ==========================================================================
-   LETTING GO — the surface falls away rather than fading out
-   --------------------------------------------------------------------------
-   Only when the break actually built (`has-shatter`). Without it the veil
-   keeps its original crossfade, so reduced motion, a failed build and old
-   engines all still get a clean handoff.
-   ========================================================================== */
-.workspace-loader.has-shatter { transition: none; }
-
-/* The veil stops painting the instant it lets go: from here the fragments ARE
-   the image, and the workspace shows through the gaps between them. */
-.workspace-loader.has-shatter.is-exiting {
-  opacity: 1;
-  background-color: transparent;
-  background-image: none;
-}
-
-/* Falling glass passes in FRONT of the boot screen it was covering. */
-.workspace-loader.has-shatter.is-exiting .workspace-loader__shards { z-index: 8; }
-
-/* Drop the veil's copy of the floor the moment the surface lets go, and hand
-   the plane back to the workspace's own grid.
-
-   Two identical grids at 0.34 do not composite to 0.34, they composite to
-   0.56 — so leaving this one up while the fragments clear would thicken every
-   grid line for the length of the exit and then snap back when the node is
-   removed. Doing it here is free: .is-exiting also lifts the fragments to
-   z:8, and at that instant they are still at their rest offsets tiling the
-   whole viewport, so this vanishes behind them unseen. */
-.workspace-loader.has-shatter.is-exiting .workspace-loader__floor { opacity: 0; }
-
-/* Released, not dropped: the pieces take their momentum from the break, so the
-   curve leaves quickly and eases as they clear the frame. A gravity-shaped
-   ease-in would leave them hanging over the workspace for half the exit. */
-.workspace-loader.has-shatter.is-exiting .workspace-loader__shard {
-  animation: wsShardFall 0.95s cubic-bezier(0.34, 0.16, 0.42, 1) var(--fall-delay, 0ms) forwards;
-}
-
-@keyframes wsShardFall {
-  0%   { transform: translate3d(calc(var(--nx) * var(--rest)), calc(var(--ny) * var(--rest)), 0)
-                    rotate(var(--tilt));
-         opacity: 1; }
-  62%  { opacity: 1; }
-  100% { transform: translate3d(calc(var(--nx) * var(--fx)),
-                               calc(var(--ny) * var(--fx) + var(--fy)),
-                               var(--fz))
-                    rotate3d(var(--rx), var(--ry), var(--rz), var(--spin));
-         opacity: 0; }
-}
-
-/* Mid-tumble each piece turns its face to the light. This needs its own layer:
-   the facet wash is already at opacity 1, and opacity clamps there, so it
-   cannot be pushed brighter — a second, stronger wash fading in over it can. */
-.workspace-loader.has-shatter.is-exiting .workspace-loader__shard::before {
-  animation: wsShardFlare 0.95s ease-in-out var(--fall-delay, 0ms) forwards;
-}
-@keyframes wsShardFlare {
-  0%   { opacity: 0; }
-  42%  { opacity: 1; }
-  100% { opacity: 0.3; }
-}
-
-/* The boot screen's own content is not glass — it just goes dark, fast, and
-   is gone before the first fragment has cleared the frame. Declared as an
-   animation rather than a transition because the meter's arrival animation
-   fills forwards and would otherwise win. */
-.workspace-loader.has-shatter.is-exiting .workspace-loader__scene,
-.workspace-loader.has-shatter.is-exiting .workspace-loader__meter,
-.workspace-loader.has-shatter.is-exiting .workspace-loader__halo {
-  animation: wsLoaderPowerDown 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
-}
-@keyframes wsLoaderPowerDown {
-  from { opacity: 1; transform: scale(1); }
-  to   { opacity: 0; transform: scale(0.988); }
-}
+@keyframes wsHeroFade { to { opacity: 1; } }
 
 /* ---- meter -------------------------------------------------------------- */
 .workspace-loader__meter {
   position: fixed;
-  /* above the surface, the floor and the damage in them */
   z-index: 5;
   left: clamp(10px, 1.8vw, 30px);
   right: clamp(10px, 1.8vw, 30px);
@@ -858,35 +418,25 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
   justify-items: stretch;
   column-gap: clamp(18px, 3vw, 42px);
   row-gap: 16px;
-  width: auto;
   min-height: clamp(104px, 15vh, 154px);
-  max-width: none;
   padding: clamp(20px, 3vh, 34px) clamp(22px, 3vw, 44px) clamp(18px, 2.6vh, 30px);
-  border: 0;
-  border-radius: 0;
-  background: none;
-  box-shadow: none;
   opacity: 0;
-  animation: wsLoaderRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 620ms forwards;
+  animation: wsLoaderRise 0.7s cubic-bezier(0.22, 1, 0.36, 1) 300ms forwards;
+}
+@keyframes wsLoaderRise {
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* ==========================================================================
    PROGRESS — a filament of light, not a bar
    --------------------------------------------------------------------------
-   No track, no border, no bead, no rectangle. Three ingredients, and every one
-   of them fades to nothing at its edges so there is never a visible box:
-
-     rail      a 1px hairline across the full width, barely above black, so
-               there is somewhere for the light to travel without drawing a
-               container around it
+     rail      a 1px hairline across the full width, so there is somewhere for
+               the light to travel without drawing a container around it
      filament  the filled run — transparent at the origin, brand teal through
                the middle, white at the head
-     head      a RADIAL bloom centred exactly on the tip. The previous version
-               used a blurred rectangle, which blurs to a grey slab with a
-               visible right edge; a radial gradient has no edge to show.
-
-   A slow highlight drifts along the filled run so the bar still reads as alive
-   while a milestone is pending and the width is not moving.
+     head      a RADIAL bloom centred on the tip; a blurred rectangle blurs to
+               a grey slab with a visible right edge, a radial gradient has no
+               edge to show
    ========================================================================== */
 .workspace-loader__progress {
   grid-area: track;
@@ -895,9 +445,6 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
   height: 26px;
   align-self: end;
   margin-bottom: 2px;
-  background: none;
-  border: 0;
-  box-shadow: none;
   overflow: visible;
 }
 
@@ -924,11 +471,6 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
   height: 100%;
   width: 0%;
   min-width: 2px;
-  border: 0;
-  border-radius: 0;
-  background: none;
-  filter: none;
-  box-shadow: none;
   transition: width 0.62s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -948,18 +490,14 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
     rgba(var(--accent-blue-rgb, 127, 200, 194), 0.72) 62%,
     rgba(232, 252, 250, 0.95) 88%,
     #ffffff 100%);
-  /* the only glow the line itself needs — box-shadow has no edges */
   box-shadow:
     0 0 6px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.45),
     0 0 18px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.20);
   pointer-events: none;
 }
 
-/* The head. A circle centred on the tip reads as a ball no matter how soft it
-   is — the eye finds the silhouette. This is a wide, shallow ellipse whose core
-   sits on the tip and whose mass trails BACKWARD along the line, so it reads as
-   light spilling in the direction of travel. Nothing here has a boundary: the
-   gradient reaches full transparency well inside its own box. */
+/* The head. A wide, shallow ellipse whose core sits on the tip and whose mass
+   trails BACKWARD, so it reads as light spilling in the direction of travel. */
 .workspace-loader__bar::after {
   content: "";
   position: absolute;
@@ -967,8 +505,6 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
   top: 50%;
   width: clamp(150px, 17vw, 280px);
   height: 22px;
-  /* Only a sliver of spill sits ahead of the tip. Any more and the forward
-     half reads as a separate smudge floating past the end of the line. */
   transform: translate(6%, -50%);
   background:
     radial-gradient(ellipse 46% 50% at 93% 50%,
@@ -980,6 +516,10 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
   filter: blur(4px);
   animation: wsLoaderEndpointPulse 2.8s ease-in-out infinite;
   pointer-events: none;
+}
+@keyframes wsLoaderEndpointPulse {
+  0%, 100% { opacity: 0.8; transform: translate(6%, -50%) scaleX(0.97); }
+  50%      { opacity: 1;   transform: translate(6%, -50%) scaleX(1.04); }
 }
 
 /* a highlight drifting along the filled run — motion while the width waits */
@@ -1006,7 +546,6 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
   animation: wsLoaderShimmer 2.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
   pointer-events: none;
 }
-
 @keyframes wsLoaderShimmer {
   0%   { background-position: -45% 0; }
   100% { background-position: 145% 0; }
@@ -1020,7 +559,6 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
   font-family: 'Inter', system-ui, sans-serif;
   font-size: clamp(54px, 7vw, 96px);
   font-weight: 760;
-  letter-spacing: 0;
   line-height: 0.78;
   color: var(--text, #f2f5f3);
   text-shadow:
@@ -1048,25 +586,36 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
   transform: translateY(3px);
 }
 
-@keyframes wsLoaderEndpointPulse {
-  0%, 100% { opacity: 0.8; transform: translate(6%, -50%) scaleX(0.97); }
-  50%      { opacity: 1;   transform: translate(6%, -50%) scaleX(1.04); }
+/* ---- letting go ---------------------------------------------------------
+   The veil crossfades and the content on it goes dark faster than the veil
+   does. Declared as an animation rather than a transition because the meter's
+   arrival animation fills forwards and would otherwise win. */
+/* The two atmosphere layers go first and fast: what has to be left at the
+   crossfade is the matched floor plane and nothing else. */
+.workspace-loader.is-exiting::before,
+.workspace-loader.is-exiting::after { opacity: 0; transition: opacity 0.24s ease; }
+
+.workspace-loader.is-exiting .wsl-hero,
+.workspace-loader.is-exiting .workspace-loader__scene,
+.workspace-loader.is-exiting .workspace-loader__meter {
+  animation: wsLoaderPowerDown 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+@keyframes wsLoaderPowerDown {
+  from { opacity: 1; transform: scale(1); }
+  to   { opacity: 0; transform: scale(0.988); }
 }
 
 /* ==========================================================================
-   CHROME GATING — unchanged behavior from the previous loader.
+   CHROME GATING — unchanged.
    `has-ws-loader` is set by workspace-loader.js at boot (pages without the
    loader, or with JS disabled, are never gated); `ws-intro-go` at handoff:
    the workspace chrome holds its entrance animations until the veil opens.
    ========================================================================== */
-
 body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-header-left,
 body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-credits > *,
 html body.print3d-page.has-ws-loader:not(.ws-intro-go) > .ws-prompt-guide-launcher {
   animation-play-state: paused;
 }
-
-/* the redesigned chrome waits too: dock, filmstrip, hero */
 body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-dock,
 body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-filmstrip,
 body.print3d-page.has-ws-loader:not(.ws-intro-go) .ws-hero {
@@ -1079,10 +628,10 @@ body.print3d-page.ws-intro-go .ws-hero {
   transition: opacity 0.6s ease 0.15s;
 }
 
-/* --- small screens ------------------------------------------------------- */
-/* The floor plane is re-cut on small screens — mirrors the matching override
-   for .sim-viewer-bg::before in media/workspace-media.css. Note that one uses
-   a 760px breakpoint, not the 720px the rest of this file uses, and it has to
+/* --- small screens -------------------------------------------------------
+   The floor plane is re-cut on small screens — mirrors the matching override
+   for .sim-viewer-bg::before in media/workspace-media.css. That one uses a
+   760px breakpoint, not the 720px the rest of this file uses, and it has to
    stay that way: the two planes must change shape on the same pixel or they
    drift apart between 720 and 760. */
 @media (max-width: 760px) {
@@ -1094,10 +643,43 @@ body.print3d-page.ws-intro-go .ws-hero {
   }
 }
 
+/* Below this the two columns are both too narrow: the headline starts
+   breaking mid-phrase and the orbit loses its ring. Stack instead, statement
+   first — it is the thing worth reading. */
+@media (max-width: 940px) {
+  .workspace-loader {
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    row-gap: clamp(16px, 3.5vh, 38px);
+    padding: 0 clamp(18px, 6vw, 44px) clamp(96px, 18vh, 150px);
+  }
+  .wsl-hero {
+    grid-column: 1;
+    /* `max-width: 17em` here resolved against THIS element's font size, not
+       the headline's — the exact trap the desktop rule above documents. At
+       900px it capped the statement at 272px and the headline overhung it by
+       295px. The column is the bound; nothing else needs to be. */
+    justify-self: stretch;
+    max-width: 100%;
+    margin-bottom: 0;
+  }
+  .workspace-loader__scene {
+    grid-column: 1;
+    justify-items: center;      /* centred once it is the only thing in the row */
+  }
+  /* 9vw, not 10.5: at 10.5 the longest line clears the padding by under 40px
+     in the fallback face, and any wider fallback overflows. */
+  .wsl-hero__head { font-size: clamp(36px, 9vw, 68px); }
+  .wsl-hero__sub { max-width: 34ch; }
+}
+
+/* Very short viewports have no room for both. The orbit is the decoration and
+   the statement carries the brand, so the orbit is what goes. */
+@media (max-height: 540px) and (max-width: 940px) {
+  .workspace-loader__scene { display: none; }
+}
+
 @media (max-width: 720px) {
-  .workspace-loader__brand { font-size: clamp(44px, 15vw, 72px); }
-  .workspace-loader__logo-wrap { width: clamp(86px, 28vw, 118px); }
-  .workspace-loader__halo { width: 120vmin; height: 120vmin; }
   .workspace-loader__meter {
     left: 12px;
     right: 12px;
@@ -1111,9 +693,7 @@ body.print3d-page.ws-intro-go .ws-hero {
     min-height: 104px;
     padding: 16px 96px 14px 14px;
   }
-  .workspace-loader__progress {
-    max-width: 100%;
-  }
+  .workspace-loader__progress { max-width: 100%; height: 18px; }
   .workspace-loader__percent {
     position: absolute;
     right: 16px;
@@ -1129,7 +709,6 @@ body.print3d-page.ws-intro-go .ws-hero {
     letter-spacing: 0.13em;
     line-height: 1.35;
   }
-  .workspace-loader__progress { height: 18px; }
   .workspace-loader__bar::before { height: 2px; }
   .workspace-loader__bar::after { width: 120px; height: 18px; }
 }
@@ -1137,52 +716,27 @@ body.print3d-page.ws-intro-go .ws-hero {
 /* --- reduced motion ------------------------------------------------------ */
 @media (prefers-reduced-motion: reduce) {
   .workspace-loader { transition-duration: 0.2s; }
-  .workspace-loader__halo { animation: none; }
-  .workspace-loader__logo-wrap,
-  .workspace-loader__logo,
-  .workspace-loader__logo-wrap::before,
-  .workspace-loader__orbit,
   .workspace-loader__bar::after,
   .workspace-loader__progress::after {
     animation: none;
-  }
-  .workspace-loader__logo-wrap {
-    opacity: 1;
-    transform: none;
   }
   .workspace-loader__meter {
     animation-duration: 0.01ms;
     animation-delay: 0ms;
   }
-  /* No depth rush, no falling mass, nothing breaks. The wordmark is simply
-     present, and workspace-loader.js never builds the surface in the first
-     place — these rules only have to neutralise what is in the markup. */
-  .workspace-loader__glyph,
-  .workspace-loader__glyph--x,
-  .workspace-loader__glyph:not(.workspace-loader__glyph--x) {
-    animation: none;
-    opacity: 1;
-    transform: none;
-    filter: none;
-  }
-  .workspace-loader__brand { perspective: none; }
-  .workspace-loader__scene,
-  .workspace-loader__dust,
-  .workspace-loader__crush,
-  .workspace-loader__flash,
-  .workspace-loader__fracture path,
-  .workspace-loader__shard,
-  .workspace-loader__spall i,
-  .workspace-loader__orbit {
-    animation: none;
-  }
-  .workspace-loader__shards,
-  .workspace-loader__glass { display: none; }
   /* The floor stays — it is the ground, not choreography — but it holds still,
      matching what workspace.css does to .sim-viewer-bg::before here. If only
      one of the two planes drifts they slide out of phase and the handoff shows
      a jump. */
   .workspace-loader__floor { animation: none; }
+  .workspace-loader::after { animation: none; opacity: 0.5; transform: none; }
+  /* The reveal choreography goes; the ink fill stays, because it is the
+     progress readout and not decoration. */
+  .wsl-hero__eyebrow,
+  .wsl-hero__sub,
+  .wsl-hero__tip { animation: none; opacity: 1; }
+  .wsl-hero__rule { animation: none; transform: scaleX(1); }
+  .wsl-hero__word { animation: none; transform: none; }
   .workspace-loader__bar { transition: none; }
   .workspace-loader__bar::before {
     opacity: 0.36;

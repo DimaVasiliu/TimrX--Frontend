@@ -190,6 +190,9 @@ function buildGroupedCardHTML(group, items) {
   const firstStage = (items[0]?.stage || 'preview').toLowerCase();
   const stageLabel = firstStage === 'refine' || firstStage === 'refined' ? 'Refined'
     : firstStage === 'remesh' || firstStage === 'remeshed' ? 'Remeshed'
+    : firstStage === 'convert' ? 'Converted'
+    : firstStage === 'resize' ? 'Resized'
+    : firstStage === 'uv_unwrap' || firstStage === 'uv-unwrap' ? 'UV Unwrapped'
     : firstStage === 'texture' || firstStage === 'textured' ? 'Textured'
     : firstStage === 'image3d' ? 'Image to 3D'
     : firstStage === 'multi_color_print' ? '3D Print'
@@ -980,7 +983,8 @@ function deriveBatchBundleKey(model = {}) {
  * Stage-based order first (preview → refine → texture → remesh → rig → animate),
  * then by created_at, so the same family renders identically before and after reload.
  */
-const _STAGE_ORDER = { preview: 0, image3d: 1, refine: 2, texture: 3, remesh: 4, rig: 5, animate: 6, animation: 6 };
+const _STAGE_ORDER = { preview: 0, image3d: 1, refine: 2, texture: 3, remesh: 4,
+  convert: 4, resize: 4, uv_unwrap: 4, 'uv-unwrap': 4, rig: 5, animate: 6, animation: 6 };
 
 function compareHistoryModels(a = {}, b = {}) {
   const stageA = (a?.stage || 'preview').toLowerCase();
@@ -1699,6 +1703,9 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     : stageVal === 'animate' || stageVal === 'animation' || stageVal === 'animated' ? 'Animation failed'
     : stageVal === 'texture' || stageVal === 'textured' ? 'Texturing failed'
     : stageVal === 'refine' || stageVal === 'refined' ? 'Refining failed'
+    : stageVal === 'convert' ? 'Convert failed'
+    : stageVal === 'resize' ? 'Resize failed'
+    : stageVal === 'uv_unwrap' || stageVal === 'uv-unwrap' ? 'UV unwrap failed'
     : stageVal === 'image3d' ? 'Image to 3D failed'
     : 'Generation failed';
   const previewMarkup = status === 'failed'
@@ -1727,6 +1734,9 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
 
   const stageLabel = stageVal === 'refine' || stageVal === 'refined' ? 'Refined'
     : stageVal === 'remesh' || stageVal === 'remeshed' ? 'Remeshed'
+    : stageVal === 'convert' ? 'Converted'
+    : stageVal === 'resize' ? 'Resized'
+    : stageVal === 'uv_unwrap' || stageVal === 'uv-unwrap' ? 'UV Unwrapped'
     : stageVal === 'texture' || stageVal === 'textured' ? 'Textured'
     : stageVal === 'image3d' ? 'Image to 3D'
     : stageVal === 'rig' || stageVal === 'rigged' ? 'Rigged'
