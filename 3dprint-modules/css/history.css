@@ -5701,26 +5701,59 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   box-shadow: 0 0 0 2px var(--accent-blue, #7fc8c2), 0 0 20px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.25);
 }
 
-/* ---- filter row ---------------------------------------------------------- */
+/* ---- filter row ----------------------------------------------------------
+   One row, always. Three problems this block solves:
+
+   1. The selects rendered full-width and each claimed its own line, so the
+      toolbar was four stacked rows instead of one. They are flex items with
+      `flex: 0 1 auto`, which should size to content — but inside `.card` they
+      inherit the workspace's form-field styling and blow out. Explicit
+      `flex: 0 0 auto` + a fixed width settles it regardless of what the
+      inherited rules want.
+   2. They also *looked* like form fields (38px tall, 8px radius, heavy
+      padding) sitting next to 26px pills. They are filters, so they are now
+      pills too.
+   3. Wrapping is replaced by horizontal scroll. A filter bar that reflows to
+      three lines when you add a tag chip pushes the grid down the page every
+      time; scrolling keeps the toolbar exactly one row tall forever.
+   -------------------------------------------------------------------------- */
 .timrx-3dprint .lib-filters {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 7px;
+  padding: 0 0 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* let the pills' focus rings and glows show despite the scroll container */
+  padding-top: 2px;
+}
+.timrx-3dprint .lib-filters::-webkit-scrollbar { display: none; }
+.timrx-3dprint .lib-filters > * { flex: 0 0 auto; }
+.timrx-3dprint .lib-filters__spacer { flex: 1 1 auto; min-width: 10px; }
+
+/* actions cluster keeps its buttons together at the right edge */
+.timrx-3dprint .lib-filters__actions {
+  display: flex;
   align-items: center;
   gap: 6px;
-  padding: 0 0 12px;
+  padding-left: 4px;
 }
-.timrx-3dprint .lib-filters__spacer { flex: 1 1 auto; }
 
 .timrx-3dprint .lib-chip {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 11px;
+  height: 30px;
+  padding: 0 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.03);
   color: var(--text-soft, #c8d0d0);
   font: 600 11px/1 var(--font-ui, 'Inter', sans-serif);
+  white-space: nowrap;
   cursor: pointer;
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
@@ -5731,20 +5764,62 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   border-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.45);
   color: var(--accent-blue-soft, #a5ded9);
 }
-.timrx-3dprint .lib-chip--star.is-on { color: #f0c674; border-color: rgba(240, 198, 116, 0.45); background: rgba(240, 198, 116, 0.14); }
+.timrx-3dprint .lib-chip--star.is-on {
+  color: #f0c674;
+  border-color: rgba(240, 198, 116, 0.45);
+  background: rgba(240, 198, 116, 0.14);
+}
 .timrx-3dprint .lib-chip__count { opacity: 0.6; font-variant-numeric: tabular-nums; }
 .timrx-3dprint .lib-chip--clear { color: #d98a8a; }
+.timrx-3dprint .lib-chip--primary {
+  background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.14);
+  border-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.38);
+  color: var(--accent-blue-soft, #a5ded9);
+}
 
+/* Selects match the pills exactly. The high-specificity prefix is deliberate:
+   `.timrx-3dprint .card select` (components.css) would otherwise win. */
+.timrx-3dprint .card select.lib-select-input,
 .timrx-3dprint .lib-select-input {
-  padding: 5px 9px;
+  flex: 0 0 auto;
+  width: clamp(116px, 11vw, 158px);
+  min-width: 0;
+  min-height: 0;
+  height: 30px;
+  padding: 0 26px 0 12px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.03);
+  background-color: rgba(255, 255, 255, 0.03);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='6'%3E%3Cpath fill='%238d9896' d='M0 0l4.5 6L9 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 11px center;
+  background-size: 9px 6px;
   color: var(--text-soft, #c8d0d0);
   font: 600 11px/1 var(--font-ui, 'Inter', sans-serif);
+  text-overflow: ellipsis;
   cursor: pointer;
+  -webkit-appearance: none;
+  appearance: none;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.timrx-3dprint .card select.lib-select-input:hover,
+.timrx-3dprint .lib-select-input:hover {
+  background-color: rgba(255, 255, 255, 0.07);
+  color: var(--text, #f2f5f3);
+}
+/* a select with an active filter reads like an active chip */
+.timrx-3dprint .card select.lib-select-input.is-on,
+.timrx-3dprint .lib-select-input.is-on {
+  background-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.16);
+  border-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.45);
+  color: var(--accent-blue-soft, #a5ded9);
 }
 .timrx-3dprint .lib-select-input option { background: #12181a; color: var(--text, #f2f5f3); }
+
+@media (max-width: 720px) {
+  .timrx-3dprint .lib-filters { gap: 6px; }
+  .timrx-3dprint .lib-select-input { width: 118px; }
+}
 
 /* ---- filtered-out cards + empty state ------------------------------------ */
 .timrx-3dprint .expanded-thumb.is-lib-hidden { display: none; }
@@ -5857,4 +5932,188 @@ html body.print3d-page > .lib-bulk { position: fixed; z-index: 200200; }
 @media (prefers-reduced-motion: reduce) {
   .lib-bulk { animation: none; }
   .timrx-3dprint .lib-star:hover { transform: none; }
+}
+
+/* ==========================================================================
+   LIBRARY DIALOG — replaces window.prompt for naming and picking
+   --------------------------------------------------------------------------
+   window.prompt() cannot be styled, blocks the main thread, is suppressed
+   entirely in some embedded contexts, and rendered the collection picker as
+   "Add to which collection?\n1. Print Queue\n2. Client X" with the user typing
+   a number. This is the same interaction as a real dialog.
+
+   Appended to <body>, so nothing here is scoped to .timrx-3dprint — the
+   workspace class does not reach it.
+   ========================================================================== */
+html body.print3d-page > .lib-dialog { position: fixed; z-index: 200300; }
+
+/* The dialog is appended to <body>, OUTSIDE .timrx-3dprint — so the workspace
+   reset (`.timrx-3dprint * { box-sizing: border-box; margin: 0; padding: 0 }`)
+   does not reach it, and the page's global form styling does. Without this the
+   input renders 68px tall: 40px of height plus 28px of inherited padding on a
+   content-box element. The dialog carries its own reset. */
+.lib-dialog,
+.lib-dialog *,
+.lib-dialog *::before,
+.lib-dialog *::after {
+  box-sizing: border-box;
+  margin: 0;
+  font-family: var(--font-ui, 'Inter', system-ui, sans-serif);
+}
+
+.lib-dialog input,
+.lib-dialog button { padding: 0; border: 0; background: none; }
+
+.lib-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 200300;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(4, 6, 7, 0.62);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+  animation: libDialogFade 0.16s ease;
+}
+@keyframes libDialogFade { from { opacity: 0; } to { opacity: 1; } }
+
+.lib-dialog__panel {
+  width: min(400px, 100%);
+  max-height: min(70vh, 560px);
+  display: flex;
+  flex-direction: column;
+  border: 1px solid rgba(var(--accent-blue-rgb, 127, 200, 194), 0.22);
+  border-radius: 16px;
+  background: rgba(15, 19, 21, 0.98);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  animation: libDialogIn 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+}
+@keyframes libDialogIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.975); }
+  to   { opacity: 1; transform: none; }
+}
+
+.lib-dialog__title {
+  margin: 0;
+  padding: 16px 18px 4px;
+  font: 650 14px/1.25 var(--font-ui, 'Inter', sans-serif);
+  color: var(--text, #f2f5f3);
+}
+.lib-dialog__hint {
+  margin: 0;
+  padding: 0 18px 12px;
+  font: 400 11.5px/1.45 var(--font-ui, 'Inter', sans-serif);
+  color: var(--text-dim, #6d7779);
+}
+
+.lib-dialog__body { padding: 0 18px; overflow-y: auto; }
+
+.lib-dialog .lib-dialog__input {
+  width: 100%;
+  height: 40px;
+  /* explicit on all four sides — a page-level `input` rule sets 14px 16px and
+     the shorthand above would otherwise only reset the axes it names */
+  padding: 0 12px 0 12px;
+  box-sizing: border-box;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text, #f2f5f3);
+  font: 500 13px/1 var(--font-ui, 'Inter', sans-serif);
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.lib-dialog .lib-dialog__input::placeholder { color: var(--text-dim, #6d7779); }
+.lib-dialog .lib-dialog__input:focus {
+  border-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.55);
+  background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.07);
+}
+
+.lib-dialog__error {
+  margin: 8px 0 0;
+  font: 500 11px/1.4 var(--font-ui, 'Inter', sans-serif);
+  color: #d98a8a;
+}
+.lib-dialog__error:empty { display: none; }
+
+/* colour swatches */
+.lib-dialog__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 12px;
+}
+.lib-dialog .lib-swatch {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.14s ease, border-color 0.14s ease;
+}
+.lib-dialog .lib-swatch:hover { transform: scale(1.12); }
+.lib-dialog .lib-swatch.is-on { border-color: #ffffff; }
+
+/* choice list (pick a collection) */
+.lib-dialog__choices { display: flex; flex-direction: column; gap: 4px; }
+.lib-dialog .lib-choice {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-soft, #c8d0d0);
+  font: 600 12px/1 var(--font-ui, 'Inter', sans-serif);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+}
+.lib-dialog .lib-choice:hover {
+  background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.12);
+  border-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.34);
+  color: var(--text, #f2f5f3);
+}
+.lib-choice__dot {
+  width: 9px;
+  height: 9px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent-blue, #7fc8c2);
+}
+.lib-choice__meta { margin-left: auto; color: var(--text-dim, #6d7779); font-weight: 500; }
+
+.lib-dialog__foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 14px 18px 16px;
+}
+.lib-dialog .lib-dialog__btn {
+  height: 32px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-soft, #c8d0d0);
+  font: 600 11.5px/1 var(--font-ui, 'Inter', sans-serif);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.lib-dialog .lib-dialog__btn:hover { background: rgba(255, 255, 255, 0.09); color: var(--text, #f2f5f3); }
+.lib-dialog .lib-dialog__btn--primary {
+  border-color: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.5);
+  background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.2);
+  color: var(--accent-blue-soft, #a5ded9);
+}
+.lib-dialog .lib-dialog__btn--primary:hover { background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.3); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lib-dialog, .lib-dialog__panel { animation: none; }
+  .lib-dialog .lib-swatch:hover { transform: none; }
 }

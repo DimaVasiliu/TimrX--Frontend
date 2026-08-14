@@ -63,6 +63,116 @@
     return String(value).replace(/[^a-zA-Z0-9_-]/g, '\\$&');
   }
 
+  // ---------------------------------------------------------------- dialog
+  // window.prompt() cannot be styled, blocks the main thread, and is silently
+  // suppressed in some embedded contexts — and the collection picker it gave
+  // us was "type the number of the collection you want". One small promise-
+  // based dialog replaces every prompt in this file.
+  //
+  //   openDialog({ title, hint, placeholder, value, submitLabel, swatches })
+  //     -> Promise<string|null>            text entry, null when cancelled
+  //   openDialog({ title, choices:[{id,label,meta,color}] })
+  //     -> Promise<choice|null>            picker
+  function openDialog(opts) {
+    return new Promise(function (resolve) {
+      var host = document.createElement('div');
+      host.className = 'lib-dialog';
+      host.setAttribute('role', 'dialog');
+      host.setAttribute('aria-modal', 'true');
+
+      var isPicker = Array.isArray(opts.choices);
+      var swatches = opts.swatches || [];
+      var chosenColor = swatches.length ? swatches[0] : null;
+
+      host.innerHTML =
+        '<div class="lib-dialog__panel" role="document">' +
+          '<h2 class="lib-dialog__title">' + esc(opts.title || '') + '</h2>' +
+          (opts.hint ? '<p class="lib-dialog__hint">' + esc(opts.hint) + '</p>' : '') +
+          '<div class="lib-dialog__body">' +
+            (isPicker
+              ? '<div class="lib-dialog__choices">' + opts.choices.map(function (c, i) {
+                  return '<button type="button" class="lib-choice" data-choice="' + i + '">' +
+                    '<span class="lib-choice__dot"' + (c.color ? ' style="background:' + esc(c.color) + '"' : '') + '></span>' +
+                    '<span>' + esc(c.label) + '</span>' +
+                    (c.meta ? '<span class="lib-choice__meta">' + esc(c.meta) + '</span>' : '') +
+                  '</button>';
+                }).join('') + '</div>'
+              : '<input class="lib-dialog__input" type="text" autocomplete="off" spellcheck="false"' +
+                ' maxlength="' + (opts.maxLength || 64) + '"' +
+                ' placeholder="' + esc(opts.placeholder || '') + '"' +
+                ' value="' + esc(opts.value || '') + '">' +
+                (swatches.length
+                  ? '<div class="lib-dialog__swatches" role="group" aria-label="Colour">' +
+                      swatches.map(function (c, i) {
+                        return '<button type="button" class="lib-swatch' + (i === 0 ? ' is-on' : '') +
+                          '" data-swatch="' + esc(c) + '" style="background:' + esc(c) + '"' +
+                          ' aria-label="Colour ' + (i + 1) + '"></button>';
+                      }).join('') +
+                    '</div>'
+                  : '') +
+                '<p class="lib-dialog__error" data-dialog-error></p>') +
+          '</div>' +
+          '<div class="lib-dialog__foot">' +
+            '<button type="button" class="lib-dialog__btn" data-dialog-cancel>Cancel</button>' +
+            (isPicker ? '' :
+              '<button type="button" class="lib-dialog__btn lib-dialog__btn--primary" data-dialog-ok>' +
+                esc(opts.submitLabel || 'Save') + '</button>') +
+          '</div>' +
+        '</div>';
+
+      document.body.appendChild(host);
+      var input = host.querySelector('.lib-dialog__input');
+      var errEl = host.querySelector('[data-dialog-error]');
+      var settled = false;
+
+      function close(result) {
+        if (settled) return;
+        settled = true;
+        document.removeEventListener('keydown', onKey, true);
+        host.remove();
+        resolve(result);
+      }
+
+      function submit() {
+        var text = (input && input.value || '').trim();
+        if (!text) {
+          if (errEl) errEl.textContent = 'Give it a name first.';
+          if (input) input.focus();
+          return;
+        }
+        close(swatches.length ? { name: text, color: chosenColor } : text);
+      }
+
+      function onKey(e) {
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(null); }
+        else if (e.key === 'Enter' && !isPicker) { e.preventDefault(); submit(); }
+      }
+
+      host.addEventListener('click', function (e) {
+        // click on the backdrop, never on the panel
+        if (e.target === host) { close(null); return; }
+        var swatch = e.target.closest('[data-swatch]');
+        if (swatch) {
+          chosenColor = swatch.getAttribute('data-swatch');
+          host.querySelectorAll('[data-swatch]').forEach(function (el) {
+            el.classList.toggle('is-on', el === swatch);
+          });
+          return;
+        }
+        var choice = e.target.closest('[data-choice]');
+        if (choice) { close(opts.choices[parseInt(choice.getAttribute('data-choice'), 10)]); return; }
+        if (e.target.closest('[data-dialog-cancel]')) { close(null); return; }
+        if (e.target.closest('[data-dialog-ok]')) submit();
+      });
+
+      document.addEventListener('keydown', onKey, true);
+      if (input) { input.focus(); input.select(); }
+      else { var first = host.querySelector('.lib-choice'); if (first) first.focus(); }
+    });
+  }
+
+  var COLLECTION_COLORS = ['#7fc8c2', '#b8a77a', '#d98a8a', '#8ab4d9', '#a98ad9', '#8ad99b'];
+
   // ------------------------------------------------------------------ data
   function request(path, options) {
     var a = api();
@@ -370,7 +480,7 @@
       }).join('') +
 
       (state.collections.length
-        ? '<select class="lib-select-input" data-lib-act="filter-collection" aria-label="Filter by collection">' +
+        ? '<select class="lib-select-input' + (state.filter.collection ? ' is-on' : '') + '" data-lib-act="filter-collection" aria-label="Filter by collection">' +
             '<option value="">All collections</option>' +
             state.collections.map(function (c) {
               return '<option value="' + esc(c.id) + '"' + (state.filter.collection === c.id ? ' selected' : '') + '>' +
@@ -380,7 +490,7 @@
         : '') +
 
       (providers.length > 1
-        ? '<select class="lib-select-input" data-lib-act="filter-provider" aria-label="Filter by provider">' +
+        ? '<select class="lib-select-input' + (state.filter.provider ? ' is-on' : '') + '" data-lib-act="filter-provider" aria-label="Filter by provider">' +
             '<option value="">All providers</option>' +
             providers.map(function (p) {
               return '<option value="' + esc(p) + '"' + (state.filter.provider === p ? ' selected' : '') + '>' + esc(p) + '</option>';
@@ -388,7 +498,7 @@
           '</select>'
         : '') +
 
-      '<select class="lib-select-input" data-lib-act="filter-status" aria-label="Filter by status">' +
+      '<select class="lib-select-input' + (state.filter.status ? ' is-on' : '') + '" data-lib-act="filter-status" aria-label="Filter by status">' +
         '<option value="">Any status</option>' +
         '<option value="live"' + (state.filter.status === 'live' ? ' selected' : '') + '>Generating</option>' +
         '<option value="done"' + (state.filter.status === 'done' ? ' selected' : '') + '>Finished</option>' +
@@ -396,14 +506,18 @@
 
       '<span class="lib-filters__spacer"></span>' +
 
-      (activeFilterCount()
-        ? '<button type="button" class="lib-chip lib-chip--clear" data-lib-act="clear-filters">Clear</button>'
-        : '') +
-
-      '<button type="button" class="lib-chip' + (state.selectMode ? ' is-on' : '') + '" data-lib-act="toggle-select">' +
-        (state.selectMode ? 'Done' : 'Select') + '</button>' +
-
-      '<button type="button" class="lib-chip" data-lib-act="new-collection">+ Collection</button>';
+      // The actions stay glued together at the right edge instead of being
+      // three loose chips that the spacer can separate.
+      '<span class="lib-filters__actions">' +
+        (activeFilterCount()
+          ? '<button type="button" class="lib-chip lib-chip--clear" data-lib-act="clear-filters">Clear</button>'
+          : '') +
+        '<button type="button" class="lib-chip' + (state.selectMode ? ' is-on' : '') + '" data-lib-act="toggle-select">' +
+          (state.selectMode ? 'Done' : 'Select') + '</button>' +
+        '<button type="button" class="lib-chip lib-chip--primary" data-lib-act="new-collection">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" style="fill:none" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>' +
+          'Collection</button>' +
+      '</span>';
   }
 
   function syncFilterChips() {
@@ -487,8 +601,19 @@
   }
 
   function addTag(id) {
-    var raw = window.prompt('Tag this asset');
-    if (!raw || !raw.trim()) return;
+    openDialog({
+      title: 'Add a tag',
+      hint: 'Tags are lower-cased and shared across your whole library.',
+      placeholder: 'e.g. low poly',
+      submitLabel: 'Add tag',
+      maxLength: 48,
+    }).then(function (raw) {
+      if (!raw) return;
+      applyTag(id, raw);
+    });
+  }
+
+  function applyTag(id, raw) {
     request('/api/library/tags/' + encodeURIComponent(id), {
       method: 'POST', body: { tag: raw },
     }).then(function (res) {
@@ -522,18 +647,28 @@
   }
 
   function newCollection() {
-    var name = window.prompt('Name the new collection');
-    if (!name || !name.trim()) return;
-    request('/api/library/collections', { method: 'POST', body: { name: name } })
+    openDialog({
+      title: 'New collection',
+      hint: 'Group assets however you like — a client, a print run, a mood.',
+      placeholder: 'e.g. Print queue',
+      submitLabel: 'Create',
+      swatches: COLLECTION_COLORS,
+    }).then(function (result) {
+      if (!result || !result.name) return;
+      request('/api/library/collections', { method: 'POST', body: { name: result.name, color: result.color } })
       .then(function (res) {
         var data = (res && res.data) || {};
         if (!res || !res.ok || !data.ok) {
           toast((data.error && data.error.message) || 'Could not create that collection.', 'error');
           return;
         }
-        toast('Collection "' + (data.collection && data.collection.name) + '" created.', 'success');
+        var c = data.collection || {};
+        toast(c.created === false
+          ? 'You already have a collection called "' + c.name + '".'
+          : 'Collection "' + c.name + '" created.', c.created === false ? 'info' : 'success');
         load(true).then(refresh);
       });
+    });
   }
 
   function bulk(action, extra) {
@@ -676,14 +811,22 @@
       case 'bulk-favorite': bulk('favorite'); break;
       case 'bulk-unfavorite': bulk('unfavorite'); break;
       case 'bulk-tag':
-        var bulkTag = window.prompt('Tag ' + state.selection.size + ' selected assets');
-        if (bulkTag && bulkTag.trim()) bulk('tag', { tag: bulkTag });
+        openDialog({
+          title: 'Tag ' + state.selection.size + ' asset' + (state.selection.size === 1 ? '' : 's'),
+          placeholder: 'e.g. client x',
+          submitLabel: 'Apply tag',
+          maxLength: 48,
+        }).then(function (t) { if (t) bulk('tag', { tag: t }); });
         break;
       case 'bulk-collect':
-        var names = state.collections.map(function (c, i) { return (i + 1) + '. ' + c.name; }).join('\n');
-        var pick = window.prompt('Add to which collection?\n' + names);
-        var index = parseInt(pick, 10) - 1;
-        if (state.collections[index]) bulk('collect', { collection_id: state.collections[index].id });
+        openDialog({
+          title: 'Add to collection',
+          hint: state.selection.size + ' asset' + (state.selection.size === 1 ? '' : 's') + ' selected.',
+          choices: state.collections.map(function (c) {
+            return { id: c.id, label: c.name, color: c.color,
+                     meta: c.item_count + (c.item_count === 1 ? ' item' : ' items') };
+          }),
+        }).then(function (c) { if (c) bulk('collect', { collection_id: c.id }); });
         break;
       case 'bulk-download': bulkDownload(); break;
       case 'bulk-clear':
