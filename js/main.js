@@ -28,7 +28,7 @@ import {
   resetGalleryInfiniteScroll,
   syncAssetsToolbarFilters
 } from './history.js?v=20260815menuanchor';
-import * as API from './api.js?v=20260815menuanchor';
+import * as API from './api.js?v=20260815rigfix';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';

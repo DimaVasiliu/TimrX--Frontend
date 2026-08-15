@@ -263,9 +263,16 @@ if (slider) {
   function updateEstimates() {
     const general = Number.isFinite(state.general) ? state.general : 0;
     const video = Number.isFinite(state.video) ? state.video : 0;
-    if (imageEstimate) imageEstimate.textContent = fmt(Math.floor(general / 4));
-    if (modelEstimate) modelEstimate.textContent = fmt(Math.floor(general / 20));
-    if (videoEstimate) videoEstimate.textContent = fmt(Math.floor(video / 45));
+    const set = (el, count) => {
+      if (!el) return;
+      el.textContent = fmt(count);
+      // Mark the whole row, so a balance that buys nothing reads as a state
+      // rather than a bare 0 sitting next to two healthy numbers.
+      el.closest('.dashboard-estimate')?.classList.toggle('is-empty', count <= 0);
+    };
+    set(imageEstimate, Math.floor(general / 4));
+    set(modelEstimate, Math.floor(general / 20));
+    set(videoEstimate, Math.floor(video / 45));
   }
 
   function updateNextStep() {
@@ -334,12 +341,21 @@ if (slider) {
     updateBillingFromPill();
     updateEstimates();
     updateNextStep();
-    if ((general || sub) && !observer) {
-      observer = new MutationObserver(sync);
-      [general, video, sub].filter(Boolean).forEach(el => observer.observe(el, { childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:['class'] }));
-    }
+    // Attach per element, not once for the whole set. credits.js injects the
+    // subscription pill asynchronously, so on most loads `sub` is still null at
+    // the first sync — the old single-shot guard latched on to the credits
+    // element, never observed the pill, and the billing card stayed on
+    // "No subscription detected" for the entire session even while the PLAN row
+    // above it read "Active".
+    if (!observer) observer = new MutationObserver(sync);
+    [general, video, sub].filter(Boolean).forEach((el) => {
+      if (el.dataset.dashObserved === '1') return;
+      el.dataset.dashObserved = '1';
+      observer.observe(el, { childList:true, subtree:true, characterData:true, attributes:true, attributeFilter:['class'] });
+    });
+    // Keep polling until the pill exists, not just until the credits do.
+    if (!sub && tries < 40) window.setTimeout(sync, 250);
     tries += 1;
-    if (tries < 40 && (!general || !sub)) window.setTimeout(sync, 250);
   }
 
   accountBtn?.addEventListener('click', openAccount);
@@ -352,6 +368,9 @@ if (slider) {
     state.verified = Boolean(wallet.emailVerified);
     if (generalOut) generalOut.textContent = fmt(state.general);
     if (videoOut) videoOut.textContent = fmt(state.video);
+    // Billing was missing here. A wallet refresh is exactly the moment the
+    // subscription pill lands, so this is the callback that has to re-read it.
+    updateBillingFromPill();
     updateEstimates();
     updateNextStep();
   });

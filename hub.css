@@ -6190,3 +6190,57 @@ body[data-shell-page="hub"] .dashboard-grid.container{
 body[data-shell-page="hub"] .dashboard-panel{
   padding:clamp(30px,3.5vw,42px);
 }
+
+/* ==========================================================================
+   CREDIT PLANNER — rows are entry points, not read-outs
+   --------------------------------------------------------------------------
+   The three estimate rows told you how many images / models / videos your
+   balance buys and then left you to go find the generator yourself. They are
+   now links into the matching tool, so the number and the action live in the
+   same place. Markup: <a class="dashboard-estimate"> in hub.html.
+   ========================================================================== */
+.dashboard-estimates .dashboard-estimate {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  margin: 0 -10px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+.dashboard-estimates .dashboard-estimate:hover,
+.dashboard-estimates .dashboard-estimate:focus-visible {
+  background: rgba(255, 255, 255, 0.045);
+  border-color: rgba(255, 255, 255, 0.09);
+  transform: translateX(2px);
+  outline: none;
+}
+.dashboard-estimates .dashboard-estimate > span:first-of-type { flex: 1 1 auto; min-width: 0; }
+.dashboard-estimates .dashboard-estimate strong { font-variant-numeric: tabular-nums; }
+
+/* the arrow only announces itself on hover, so the row stays a read-out at rest */
+.dashboard-estimate__go {
+  flex: none;
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+  color: var(--accent, #7fc8c2);
+  font-weight: 700;
+}
+.dashboard-estimate:hover .dashboard-estimate__go,
+.dashboard-estimate:focus-visible .dashboard-estimate__go {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+/* A balance that buys nothing should say so rather than printing a bare 0. */
+.dashboard-estimate.is-empty strong { color: #d98a8a; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-estimates .dashboard-estimate,
+  .dashboard-estimate__go { transition: none; }
+  .dashboard-estimates .dashboard-estimate:hover { transform: none; }
+}

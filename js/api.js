@@ -107,6 +107,36 @@ function operationIdempotencyKey(stage, operationKey, forceNew = false) {
   return `${stage}:${hashOperationKey(`${operationKey}${salt}`)}`;
 }
 
+function isHttpUrl(value = '') {
+  return /^https?:\/\//i.test(String(value || '').trim());
+}
+
+function isBrowserOnlyUrl(value = '') {
+  return /^(blob|data):/i.test(String(value || '').trim());
+}
+
+function modelUrlFromHistoryItem(item = {}) {
+  const payload = item.payload || {};
+  const candidates = [
+    item.glb_url,
+    item.glb_proxy,
+    item.model_url,
+    item.model_glb_url,
+    item.model_urls?.glb,
+    payload.glb_url,
+    payload.model_url,
+    payload.model_urls?.glb,
+    payload.rigged_character_glb_url,
+    payload.animation_glb_url,
+  ];
+  for (const raw of candidates) {
+    const url = String(raw || '').trim();
+    if (!url || isBrowserOnlyUrl(url)) continue;
+    if (isHttpUrl(url)) return url;
+  }
+  return '';
+}
+
 function showOperationError(message, fallback = 'Operation failed') {
   const text = message || fallback;
   if (UI?.toast) {
@@ -2043,11 +2073,30 @@ export function getActiveHistoryItem() {
  */
 function buildMeshySourceFromItem(item = {}) {
   if (!item) return {};
-  const taskId = item.id || item.preview_task_id || item.preview_task || item.source_task_id;
-  const modelUrl = item.glb_url || item.glb_proxy;
+  const payload = item.payload || {};
+  const taskId = item.upstream_job_id
+    || item.task_id
+    || item.preview_task_id
+    || item.preview_task
+    || item.source_task_id
+    || payload.upstream_job_id
+    || payload.task_id
+    || payload.job_id
+    || payload.original_job_id
+    || payload.preview_task_id
+    || payload.source_task_id
+    || item.id;
+  const modelUrl = modelUrlFromHistoryItem(item);
   const result = {};
   if (taskId) result.input_task_id = taskId;
   if (modelUrl) result.model_url = modelUrl;
+  if (!modelUrl && (isBrowserOnlyUrl(item.glb_url) || isBrowserOnlyUrl(item.glb_proxy))) {
+    console.warn('[Meshy:SRC] Ignored browser-only model URL for backend operation', {
+      id: item.id,
+      glb_url: String(item.glb_url || '').slice(0, 40),
+      glb_proxy: String(item.glb_proxy || '').slice(0, 40),
+    });
+  }
   return Object.keys(result).length ? result : {};
 }
 

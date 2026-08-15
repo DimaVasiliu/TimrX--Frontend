@@ -237,14 +237,14 @@
   <noscript><link rel="stylesheet" href="/fonts/fonts.css"></noscript>
 
   <!-- Font Awesome 6 -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
-  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer" /></noscript>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'" />
+  <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" /></noscript>
 
   <!-- Model Viewer loaded lazily (see bottom of body) -->
 
   <!-- Stylesheets -->
-  <link rel="stylesheet" href="hub.css?v=20260803-dashboard-spacing">
-  <link rel="stylesheet" href="media/hub.css?v=20260518a">
+  <link rel="stylesheet" href="hub.css?v=20260815hubfix">
+  <link rel="stylesheet" href="media/hub.css?v=20260815hubfix">
   <link rel="stylesheet" href="footer.css?v=20260518a">
   <link rel="stylesheet" href="trustpilot.css?v=20260518a">
   <link rel="stylesheet" href="site-shell.css?v=20260518a">
@@ -392,6 +392,7 @@
   <!-- End Google Tag Manager -->
   <script defer src="js/google-ads-conversions.js?v=20260813sync"></script>
   <script src="js/console-shield.js?v=1"></script>
+  <script defer src="creditsstub.js"></script>
 </head>
 <body class="has-site-shell" data-shell-page="hub">
   <!-- Google Tag Manager (noscript) -->
@@ -472,21 +473,15 @@
           <a href="#valueCalculator">Calculator <i class="fa-solid fa-arrow-right" aria-hidden="true"></i></a>
         </div>
         <div class="dashboard-estimates" aria-label="Estimated creations from current balance">
-          <div>
-            <i class="fa-solid fa-image" aria-hidden="true"></i>
+          <a class="dashboard-estimate" href="/3dprint?tool=image" data-estimate="image" aria-label="Open the image generator"><i class="fa-solid fa-image" aria-hidden="true"></i>
             <span>Images from balance</span>
-            <strong id="dashboardImageEstimate">--</strong>
-          </div>
-          <div>
-            <i class="fa-solid fa-cube" aria-hidden="true"></i>
+            <strong id="dashboardImageEstimate">--</strong><span class="dashboard-estimate__go" aria-hidden="true">→</span></a>
+          <a class="dashboard-estimate" href="/3dprint?tool=model" data-estimate="model" aria-label="Open the 3D model generator"><i class="fa-solid fa-cube" aria-hidden="true"></i>
             <span>Standard 3D models</span>
-            <strong id="dashboardModelEstimate">--</strong>
-          </div>
-          <div>
-            <i class="fa-solid fa-film" aria-hidden="true"></i>
+            <strong id="dashboardModelEstimate">--</strong><span class="dashboard-estimate__go" aria-hidden="true">→</span></a>
+          <a class="dashboard-estimate" href="/3dprint?tool=video" data-estimate="video" aria-label="Open the video generator"><i class="fa-solid fa-film" aria-hidden="true"></i>
             <span>Short videos</span>
-            <strong id="dashboardVideoEstimate">--</strong>
-          </div>
+            <strong id="dashboardVideoEstimate">--</strong><span class="dashboard-estimate__go" aria-hidden="true">→</span></a>
         </div>
         <p class="dashboard-panel-note">Estimates use common starting costs: 4 general credits per image, 20 per 3D model, and 45 video credits per short video.</p>
       </article>
@@ -1065,7 +1060,7 @@
       </div>
     </div>
 
-    <script src="hub.js?v=20260518a"></script>
+    <script src="hub.js?v=20260815hubfix"></script>
     <script src="js/fx.js?v=20260525c"></script>
     <!-- Shared component layer (Phase 1): nav/footer model + UI factories. Must load before site-shell.js. -->
     <script src="js/shared/site-nav-data.js?v=20260803a" defer></script>
