@@ -512,6 +512,8 @@ function getDefaultActionCosts() {
     'convert': 1,                 // Meshy Convert (format-only remesh)
     'resize': 1,                  // Meshy Resize
     'uv_unwrap': 5,               // Meshy UV Unwrap
+    'print_analyze': 0,           // Meshy Analyze Printability (free)
+    'print_repair': 10,           // Meshy Repair Printability
     'video_generate': 96,         // Video generation (Vertex 8s 720p base)
     'video_text_generate': 96,    // Text to video (base)
     'video_image_animate': 96,    // Image to video (equalized)
@@ -540,6 +542,8 @@ function getDefaultActionCosts() {
     'MESHY_CONVERT': 1,
     'MESHY_RESIZE': 1,
     'MESHY_UV_UNWRAP': 5,
+    'MESHY_PRINT_ANALYZE': 0,
+    'MESHY_PRINT_REPAIR': 10,
     'MESHY_REFINE': 6,
     'MESHY_RIGGING': 5,
     'MESHY_ANIMATION': 3,

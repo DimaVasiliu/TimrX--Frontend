@@ -27,8 +27,8 @@ import {
   getGroupedCardItems,
   resetGalleryInfiniteScroll,
   syncAssetsToolbarFilters
-} from './history.js?v=20260814menupos4';
-import * as API from './api.js?v=20260814menupos4';
+} from './history.js?v=20260815menuanchor';
+import * as API from './api.js?v=20260815menuanchor';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
 import * as Notifications from './notifications.js';
@@ -1257,10 +1257,60 @@ function initViewerToolbar() {
     if (results) results.style.display = state === 'results' ? '' : 'none';
   }
 
-  function renderPrintResults(data) {
+  function renderPrintResults(data, item = null) {
+    renderMeshyPrintability(data.printability || null, item || API.getActiveHistoryItem());
     const printerTypeValue = document.getElementById('printPrinterType')?.value || 'fdm';
     const isResin = printerTypeValue === 'resin';
     const printerLabel = isResin ? 'Resin' : 'FDM';
+
+    // Meshy Analyze returns provider metrics only — no TimrX score, no local
+    // checks grid. Render that variant and stop before the local-only sections.
+    if (data.provider === 'meshy') {
+      const meshyBadge = document.getElementById('printScoreBadge');
+      const meshyVerdict = document.getElementById('printVerdict');
+      const meshySummary = document.querySelector('.print-panel-summary');
+      const printability = data.printability || null;
+      if (meshyBadge) {
+        meshyBadge.className = 'print-panel-score-badge';
+        if (!printability) {
+          meshyBadge.textContent = '—';
+        } else if (printability.status === 'healthy') {
+          meshyBadge.textContent = '✓';
+          meshyBadge.classList.add('score-good');
+        } else if (printability.status === 'error') {
+          meshyBadge.textContent = '!';
+          meshyBadge.classList.add('score-bad');
+        } else {
+          meshyBadge.textContent = '~';
+          meshyBadge.classList.add('score-warn');
+        }
+      }
+      if (meshyVerdict) {
+        meshyVerdict.textContent = !printability ? 'No report'
+          : printability.status === 'healthy' ? 'Healthy'
+          : printability.status === 'error' ? 'Needs repair'
+          : printability.status === 'warning' ? 'Warnings' : 'Unknown';
+      }
+      if (meshySummary) {
+        meshySummary.textContent = printability?.needs_repair
+          ? 'Meshy found geometry that will cause slicing problems. Use Meshy Repair below, or switch to Local Check for wall thickness and overhang analysis.'
+          : 'Meshy found no blocking geometry problems. Switch to Local Check for wall thickness, overhangs and print scale.';
+      }
+      const localGrid = document.getElementById('printChecksGrid');
+      if (localGrid) {
+        localGrid.innerHTML = '<div class="print-check-row is-neutral">'
+          + '<span class="print-check-icon">—</span>'
+          + '<span class="print-check-label">Local checks</span>'
+          + '<span class="print-check-detail">Switch Check Provider to Local Check to run these</span>'
+          + '</div>';
+      }
+      const meshyIssues = document.getElementById('printIssuesList');
+      if (meshyIssues) meshyIssues.style.display = 'none';
+      const meshySuggestions = document.getElementById('printSuggestionsList');
+      if (meshySuggestions) meshySuggestions.style.display = 'none';
+      showPrintPanelState('results');
+      return;
+    }
 
     // Score badge
     const badge = document.getElementById('printScoreBadge');
@@ -1664,6 +1714,108 @@ function initViewerToolbar() {
     showPrintPanelState('results');
   }
 
+  /**
+   * Render Meshy's printability report next to the local checks.
+   * Metrics come from the backend already normalized (see meshy_printability.py).
+   */
+  function renderMeshyPrintability(printability, item) {
+    const section = document.getElementById('printMeshySection');
+    const grid = document.getElementById('printMeshyGrid');
+    const repairRow = document.getElementById('printMeshyRepairRow');
+    const note = document.getElementById('printMeshyNote');
+    if (!section || !grid) return;
+
+    if (!printability) {
+      section.style.display = 'none';
+      return;
+    }
+    section.style.display = '';
+
+    const fmtInt = (value) => (typeof value === 'number' ? value.toLocaleString() : 'Unknown');
+    const volumeCm3 = typeof printability.volume === 'number'
+      ? `${(printability.volume * 1e6).toFixed(1)} cm³`
+      : 'Unavailable';
+
+    const rows = [
+      {
+        label: 'Watertight',
+        ok: printability.is_watertight === true ? true : printability.is_watertight === false ? false : null,
+        detail: printability.is_watertight === true ? 'Closed mesh'
+          : printability.is_watertight === false ? 'Open mesh — holes detected' : 'Unknown',
+      },
+      { label: 'Holes', ok: printability.holes === 0 ? true : printability.holes > 0 ? false : null,
+        detail: `${fmtInt(printability.holes)} boundary loops` },
+      { label: 'Non-manifold edges', ok: printability.non_manifold_edges === 0 ? true : printability.non_manifold_edges > 0 ? false : null,
+        detail: `${fmtInt(printability.non_manifold_edges)} edges` },
+      { label: 'Degenerate faces', ok: printability.degenerate_faces === 0 ? true : printability.degenerate_faces > 0 ? false : null,
+        detail: `${fmtInt(printability.degenerate_faces)} faces` },
+      { label: 'Volume', ok: typeof printability.volume === 'number' && printability.volume > 0 ? true : null,
+        detail: volumeCm3 },
+    ];
+
+    grid.innerHTML = rows.map(r => `
+        <div class="print-check-row ${r.ok === true ? 'is-good' : r.ok === false ? 'is-bad' : 'is-neutral'}">
+          <span class="print-check-icon">${r.ok === true ? '✓' : r.ok === false ? '!' : '—'}</span>
+          <span class="print-check-label">${r.label}</span>
+          <span class="print-check-detail">${r.detail}</span>
+        </div>
+      `).join('');
+
+    if (note) {
+      const statusCopy = {
+        healthy: 'Meshy reports this mesh as healthy for printing.',
+        warning: 'Meshy flagged non-blocking warnings on this mesh.',
+        error: 'Meshy found errors that will affect slicing.',
+        unknown: 'Meshy returned no overall verdict for this mesh.',
+      };
+      note.textContent = statusCopy[printability.status] || statusCopy.unknown;
+    }
+
+    // Only offer the paid repair when there is something to repair.
+    if (repairRow) {
+      repairRow.style.display = printability.needs_repair ? 'flex' : 'none';
+      const repairBtn = document.getElementById('printMeshyRepairBtn');
+      if (repairBtn && printability.needs_repair) {
+        repairBtn.onclick = async () => {
+          repairBtn.disabled = true;
+          try {
+            await API.startMeshyPrintRepair(item);
+            togglePrintPanel(false);
+            if (window.showToast) {
+              window.showToast('Meshy repair started — the repaired model will appear in your history.', 'info');
+            }
+          } catch (err) {
+            if (window.showToast) window.showToast(err?.message || 'Could not start Meshy repair.', 'error');
+          } finally {
+            repairBtn.disabled = false;
+          }
+        };
+      }
+    }
+  }
+
+  async function runMeshyPrintCheck(item) {
+    const loadingText = document.querySelector('#printPanelLoading .viewer-print-toast__text');
+    const originalLoadingText = loadingText?.textContent || '';
+    try {
+      const data = await API.runMeshyPrintAnalyze(item, {
+        onProgress: (label) => { if (loadingText) loadingText.textContent = label; },
+      });
+      // Meshy returns metrics only — keep the local panel's shape by rendering
+      // an empty local result and filling the Meshy section.
+      renderPrintResults({
+        score: null,
+        checks: {},
+        issues: [],
+        suggestions: [],
+        provider: 'meshy',
+        printability: data.printability || null,
+      }, item);
+    } finally {
+      if (loadingText) loadingText.textContent = originalLoadingText;
+    }
+  }
+
   async function runPrintCheck(item) {
     if (_printCheckInFlight) return;
     _printCheckInFlight = true;
@@ -1676,6 +1828,12 @@ function initViewerToolbar() {
     togglePrintPanel(true);
 
     try {
+      const provider = document.getElementById('printCheckProvider')?.value || 'local';
+      if (provider === 'meshy') {
+        await runMeshyPrintCheck(item);
+        return;
+      }
+
       const jobId = item.id || item.model_id;
       const printerType = document.getElementById('printPrinterType')?.value || 'fdm';
       const res = await apiFetch(`/api/_mod/print-check/${encodeURIComponent(jobId)}`, {
@@ -1686,7 +1844,7 @@ function initViewerToolbar() {
       if (!res.ok) {
         throw new Error(res.error || `Server error (${res.status})`);
       }
-      renderPrintResults(res.data);
+      renderPrintResults(res.data, item);
     } catch (err) {
       showPrintPanelState('error');
       const errMsg = document.getElementById('printPanelErrorMsg');
@@ -1712,6 +1870,13 @@ function initViewerToolbar() {
   });
 
   document.getElementById('printPrinterType')?.addEventListener('change', () => {
+    const item = API.getActiveHistoryItem();
+    if (item && printPanel?.classList.contains('is-visible')) {
+      runPrintCheck(item);
+    }
+  });
+
+  document.getElementById('printCheckProvider')?.addEventListener('change', () => {
     const item = API.getActiveHistoryItem();
     if (item && printPanel?.classList.contains('is-visible')) {
       runPrintCheck(item);

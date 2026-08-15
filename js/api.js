@@ -18,7 +18,7 @@ import {
 import * as State from './state.js?v=20260812a';
 import * as Viewer from './viewer.js?v=20260806a';
 import * as UI from './ui-utils.js';
-import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260814menupos4';
+import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260815menuanchor';
 
 // ============================================================================
 // LOCKS & STATE
@@ -105,6 +105,15 @@ function hashOperationKey(value = '') {
 function operationIdempotencyKey(stage, operationKey, forceNew = false) {
   const salt = forceNew ? `:${Date.now()}:${Math.random().toString(36).slice(2)}` : '';
   return `${stage}:${hashOperationKey(`${operationKey}${salt}`)}`;
+}
+
+function showOperationError(message, fallback = 'Operation failed') {
+  const text = message || fallback;
+  if (UI?.toast) {
+    UI.toast(text, 'error', 7000);
+  } else {
+    console.error(text);
+  }
 }
 
 function activeDerivedOperationJob(operationKey) {
@@ -3233,9 +3242,12 @@ export function watchMeshyTask(job_id, kind = 'remesh', { isRecovery = false } =
       ? '/api/_mod/image-to-3d/status'
       : kind === 'multi_image3d'
         ? '/api/_mod/multi-image-to-3d/status'
-        : '/api/_mod/mesh/remesh';
+        : kind === 'print_repair'
+          ? '/api/_mod/mesh/print/repair/status'
+          : '/api/_mod/mesh/remesh';
 
   const MESH_STAGE_LABELS = {
+    print_repair: 'Repairing for print',
     texture: 'Texturing',
     image3d: 'Image to 3D',
     multi_image3d: 'Multi-Image to 3D',
@@ -3553,6 +3565,7 @@ const MESH_TASK_ENDPOINTS = {
   convert:   '/api/_mod/mesh/convert',
   resize:    '/api/_mod/mesh/resize',
   uv_unwrap: '/api/_mod/mesh/uv-unwrap',
+  print_repair: '/api/_mod/mesh/print/repair',
 };
 
 /** Operation Mode → button/label text used by the mesh panel and history */
@@ -3569,6 +3582,7 @@ const MESH_TASK_LABELS = {
   convert:   'Converting...',
   resize:    'Resizing...',
   uv_unwrap: 'Unwrapping UVs...',
+  print_repair: 'Repairing for print...',
 };
 
 /**
@@ -7332,9 +7346,11 @@ export async function startRigFromPanel() {
     releaseCreditsReservation(reservation.reservationId);
     State.deleteHistoryItem(tempId, { skipRemote: true });
     renderHistory();
-    prog.fail('Rigging request failed');
+    const errMsg = err?.message || 'Rigging request failed';
+    prog.fail(errMsg);
+    showOperationError(errMsg, 'Rigging request failed');
     startLock = false;
-    throw err;
+    return;
   }
 
   if (!result.ok) {
@@ -7343,7 +7359,7 @@ export async function startRigFromPanel() {
     renderHistory();
     const errMsg = result.data?.message || result.error || 'Rigging failed';
     prog.fail(errMsg);
-    alert(errMsg);
+    showOperationError(errMsg, 'Rigging failed');
     startLock = false;
     return;
   }
@@ -7473,9 +7489,11 @@ export async function startViewerRigFromHistory(item, options = {}) {
     releaseCreditsReservation(reservation.reservationId);
     State.deleteHistoryItem(tempId, { skipRemote: true });
     renderHistory();
-    prog.fail('Rigging request failed');
+    const errMsg = err?.message || 'Rigging request failed';
+    prog.fail(errMsg);
+    showOperationError(errMsg, 'Rigging request failed');
     startLock = false;
-    throw err;
+    return;
   }
 
   if (!result.ok) {
@@ -7484,7 +7502,7 @@ export async function startViewerRigFromHistory(item, options = {}) {
     renderHistory();
     const errMsg = result.data?.message || result.error || 'Rigging failed';
     prog.fail(errMsg);
-    alert(errMsg);
+    showOperationError(errMsg, 'Rigging failed');
     startLock = false;
     return;
   }
@@ -8303,6 +8321,101 @@ export async function startViewerRemeshFromHistory(item, options = {}) {
   return startRemeshFromHistoryWithValues(item, normalizeRemeshValues(options));
 }
 
+// ============================================================================
+// MESHY PRINTABILITY (Analyze / Repair)
+// ============================================================================
+
+/**
+ * Run Meshy's Analyze Printability on a model and wait for the metrics.
+ *
+ * Free (0 credits) and returns metrics only — no model, no history entry — so
+ * it is polled inline here rather than through the shared job watchers.
+ *
+ * @param {object} item - history item to analyse
+ * @param {{ onProgress?: (label: string) => void, signal?: AbortSignal }} opts
+ * @returns {Promise<object>} normalized status payload including `printability`
+ */
+export async function runMeshyPrintAnalyze(item, opts = {}) {
+  const source = buildMeshySourceFromItem(item);
+  if (!source.input_task_id && !source.model_url) {
+    throw new Error('This model has no source Meshy can analyse. Try generating or uploading a model first.');
+  }
+
+  opts.onProgress?.('Sending model to Meshy...');
+  const started = await apiFetch('/api/_mod/mesh/print/analyze', { method: 'POST', body: source });
+  if (!started.ok) throw new Error(started.error || `Analyze failed (HTTP ${started.status})`);
+
+  const jobId = started.data?.job_id;
+  if (!jobId) throw new Error('Meshy did not return an analysis job id.');
+
+  opts.onProgress?.('Analysing geometry...');
+  return pollMeshyPrintability(`/api/_mod/mesh/print/analyze/status/${encodeURIComponent(jobId)}`, opts);
+}
+
+/**
+ * Poll a printability status endpoint until it reaches a terminal state.
+ * Analyze is quick, so this uses a short fixed interval with a hard cap.
+ */
+async function pollMeshyPrintability(url, opts = {}) {
+  const intervalMs = 2500;
+  const maxAttempts = 48; // ~2 minutes
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    if (opts.signal?.aborted) throw new Error('Analysis cancelled.');
+    const res = await apiFetch(url);
+    if (!res.ok) throw new Error(res.error || `Analyze status failed (HTTP ${res.status})`);
+    const data = res.data || {};
+    if (data.status === 'done') return data;
+    if (data.status === 'failed') {
+      throw new Error(data.message || data.error || 'Meshy could not analyse this model.');
+    }
+    if (typeof data.pct === 'number' && data.pct > 0) {
+      opts.onProgress?.(`Analysing geometry... ${Math.min(99, data.pct)}%`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs));
+  }
+  throw new Error('Meshy analysis timed out. Please try again.');
+}
+
+/**
+ * Start Meshy's Repair Printability (10 credits) on a model.
+ * Runs through the normal job pipeline so the repaired model lands in history
+ * and the viewer, and credits reserve/finalize exactly once.
+ */
+export async function startMeshyPrintRepair(item, options = {}) {
+  if (!item) return;
+  State.setHistoryActiveModelId(item.id);
+  const source = buildMeshySourceFromItem(item);
+  if (!source.input_task_id && !source.model_url) {
+    alert('This model has no source Meshy can repair. Try generating or uploading a model first.');
+    return;
+  }
+
+  const lineageRootId = item.lineage_root_id || item.lineage_origin_id || item.id;
+  const meta = {
+    prompt: `Print repair ${shortTitle(item)}`,
+    root_prompt: item.root_prompt || item.prompt || '',
+    model: item.model || 'latest',
+    license: item.license || 'private',
+    lineage_origin_id: lineageRootId,
+    lineage_root_id: lineageRootId,
+    source_model_id: item.id,
+    source_history_id: item.id,
+    thumbnail_url: item.thumbnail_url || '',
+    alpha_thumbnail: !!options.alpha_thumbnail,
+    operation_mode: 'print_repair',
+  };
+
+  try {
+    await beginMeshyTask('print_repair', {
+      ...source,
+      alpha_thumbnail: !!options.alpha_thumbnail,
+    }, meta);
+  } catch (err) {
+    console.error(err);
+    alert(err?.message || 'Print repair failed.');
+  }
+}
+
 /**
  * Start a print-focused repair/remesh from a history item.
  * Used by the manual paint workflow before users spend time coloring a mesh
@@ -8637,6 +8750,7 @@ function _inferStageFromAction(job) {
   const code = (job.action_code || '').toLowerCase();
   if (code.includes('image_to_3d')) return 'image3d';
   if (code.includes('refine')) return 'refine';
+  if (code.includes('print_repair')) return 'print_repair';
   if (code.includes('convert')) return 'convert';
   if (code.includes('resize')) return 'resize';
   if (code.includes('uv_unwrap') || code.includes('uv-unwrap')) return 'uv_unwrap';
@@ -8657,6 +8771,7 @@ const _STRATEGY_TO_CATEGORY = {
   meshy_convert:     'mesh',
   meshy_resize:      'mesh',
   meshy_uv_unwrap:   'mesh',
+  meshy_print_repair: 'mesh',
   meshy_image_to_3d: 'mesh',
   meshy_multi_image_to_3d: 'mesh',
   meshy_text_to_3d:  'text',
@@ -8675,6 +8790,7 @@ const _STRATEGY_TO_STAGE = {
   meshy_convert:     'convert',
   meshy_resize:      'resize',
   meshy_uv_unwrap:   'uv_unwrap',
+  meshy_print_repair: 'print_repair',
   meshy_image_to_3d: 'image3d',
   // Multi-image shares the image3d stage for history/UI; only the poll route differs.
   meshy_multi_image_to_3d: 'image3d',
@@ -8691,6 +8807,7 @@ const _STRATEGY_TO_STAGE = {
 function _inferStrategyFromStage(stage) {
   const map = { texture: 'meshy_retexture', remesh: 'meshy_remesh', image3d: 'meshy_image_to_3d',
     convert: 'meshy_convert', resize: 'meshy_resize', uv_unwrap: 'meshy_uv_unwrap',
+    print_repair: 'meshy_print_repair', print_analyze: 'skip',
     multi_image3d: 'meshy_multi_image_to_3d',
     preview: 'meshy_text_to_3d', refine: 'meshy_refine', rig: 'meshy_rig',
     animate: 'meshy_animation', animation: 'meshy_animation', video: 'video', image: 'image',
@@ -8705,6 +8822,7 @@ const _STRATEGY_TO_MESH_KIND = {
   meshy_convert:     'convert',
   meshy_resize:      'resize',
   meshy_uv_unwrap:   'uv_unwrap',
+  meshy_print_repair: 'print_repair',
   meshy_image_to_3d: 'image3d',
   meshy_multi_image_to_3d: 'multi_image3d',
 };
@@ -8926,6 +9044,7 @@ async function _doResumePendingJobs(options = {}) {
   const STATUS_LABELS = {
     texture: 'Texturing...', remesh: 'Remeshing...', image3d: 'Generating 3D...',
     convert: 'Converting...', resize: 'Resizing...', uv_unwrap: 'Unwrapping UVs...',
+    print_repair: 'Repairing for print...',
     video: 'Generating video...', rig: 'Rigging...', animate: 'Animating...',
     animation: 'Animating...', refine: 'Refining...', preview: 'Generating...',
     image: 'Generating image...', multi_color_print: 'Preparing Meshy 3MF...',

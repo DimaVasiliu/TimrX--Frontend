@@ -29,10 +29,23 @@ let activeHistoryMenu = null;
 let activeHistorySubmenuBtn = null;
 let activeHistorySubmenu = null;
 
+/* The asset menu becomes a bottom sheet on phones — and on tablets.
+ *
+ * The width-only test left a gap: an iPad in portrait (768) or landscape
+ * (1024) is wider than 760, so it got the desktop popover with 26px items and
+ * a hover-sized hit area, on a touch screen. Adding the coarse-pointer band
+ * hands tablets the same 48px-target sheet phones already get, while a
+ * narrow *desktop* window (fine pointer) keeps the anchored popover, which is
+ * the right behaviour there.
+ *
+ * Keep this condition in sync with the matching @media block in history.css. */
+const MOBILE_ASSET_MENU_QUERY =
+  '(max-width: 760px), (max-width: 1024px) and (pointer: coarse)';
+
 function isMobileAssetsMenu() {
   if (typeof window === 'undefined' || typeof document === 'undefined') return false;
   return document.body.classList.contains('assets-modal-open') &&
-    window.matchMedia('(max-width: 760px)').matches;
+    window.matchMedia(MOBILE_ASSET_MENU_QUERY).matches;
 }
 
 function resetMenuPlacement(el) {
@@ -209,6 +222,7 @@ function buildGroupedCardHTML(group, items) {
     : firstStage === 'convert' ? 'Converted'
     : firstStage === 'resize' ? 'Resized'
     : firstStage === 'uv_unwrap' || firstStage === 'uv-unwrap' ? 'UV Unwrapped'
+    : firstStage === 'print_repair' ? 'Print Repaired'
     : firstStage === 'texture' || firstStage === 'textured' ? 'Textured'
     : firstStage === 'image3d' ? 'Image to 3D'
     : firstStage === 'multi_color_print' ? '3D Print'
@@ -1000,7 +1014,7 @@ function deriveBatchBundleKey(model = {}) {
  * then by created_at, so the same family renders identically before and after reload.
  */
 const _STAGE_ORDER = { preview: 0, image3d: 1, refine: 2, texture: 3, remesh: 4,
-  convert: 4, resize: 4, uv_unwrap: 4, 'uv-unwrap': 4, rig: 5, animate: 6, animation: 6 };
+  convert: 4, resize: 4, uv_unwrap: 4, 'uv-unwrap': 4, print_repair: 4, rig: 5, animate: 6, animation: 6 };
 
 function compareHistoryModels(a = {}, b = {}) {
   const stageA = (a?.stage || 'preview').toLowerCase();
@@ -1142,12 +1156,11 @@ function positionHistoryMenu(anchorBtn, menu) {
     return;
   }
   const spacing = HISTORY_MENU_EDGE_PAD;
-  const gap = 4;
+  const gap = 6;
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
   const btnRect = anchorBtn.getBoundingClientRect();
-  const hostRect = getHistoryMenuHost(anchorBtn)?.getBoundingClientRect() || btnRect;
   // Reset so getBoundingClientRect returns the menu's natural size
   menu.style.left = '0px';
   menu.style.top = '0px';
@@ -1156,35 +1169,51 @@ function positionHistoryMenu(anchorBtn, menu) {
   const originTop = menuRect.top;
   const menuWidth = menuRect.width;
   const menuHeight = menuRect.height;
-  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+
+  // Never let the bounds invert. If a menu is somehow still taller than the
+  // viewport (a browser that ignores the CSS cap, a very short window), the
+  // old code's clamp collapsed to its minimum and parked the menu at the top
+  // of the screen, nowhere near the card. Clamping the *bound* first means the
+  // worst case is a menu flush with the top edge but still horizontally on its
+  // card — not one teleported across the page.
+  const maxLeft = Math.max(spacing, viewportWidth - menuWidth - spacing);
+  const maxTop = Math.max(spacing, viewportHeight - menuHeight - spacing);
+  const clampLeft = (v) => Math.max(spacing, Math.min(maxLeft, v));
+  const clampTop = (v) => Math.max(spacing, Math.min(maxTop, v));
   const fits = (left, top) => left >= spacing &&
     top >= spacing &&
     left + menuWidth + spacing <= viewportWidth &&
     top + menuHeight + spacing <= viewportHeight;
-  const overlapsHost = (left, top) => {
-    const right = left + menuWidth;
-    const bottom = top + menuHeight;
-    return !(right <= hostRect.left || left >= hostRect.right || bottom <= hostRect.top || top >= hostRect.bottom);
-  };
 
-  const topNearButton = clamp(btnRect.top, spacing, viewportHeight - menuHeight - spacing);
-  const alignedLeft = clamp(btnRect.right - menuWidth, spacing, viewportWidth - menuWidth - spacing);
+  // The menu belongs to the ⋯ button, so every preferred position is measured
+  // from the BUTTON, not from the card. The previous order flanked the whole
+  // card first and rejected anything overlapping it, which pushed the menu a
+  // full card-width away from the thumbnail you actually clicked. Overlapping
+  // its own card is normal menu behaviour and is now allowed.
+  const underButton = btnRect.bottom + gap;
+  const aboveButton = btnRect.top - menuHeight - gap;
+  const rightAligned = btnRect.right - menuWidth;   // menu's right edge on the button's
+  const leftAligned = btnRect.left;
+
   const candidates = [
-    { left: hostRect.right + gap, top: topNearButton },
-    { left: hostRect.left - menuWidth - gap, top: topNearButton },
-    { left: alignedLeft, top: hostRect.bottom + gap },
-    { left: alignedLeft, top: hostRect.top - menuHeight - gap }
+    { left: rightAligned, top: underButton },   // below, hanging left  ← default
+    { left: rightAligned, top: aboveButton },   // above, hanging left
+    { left: leftAligned,  top: underButton },   // below, hanging right
+    { left: leftAligned,  top: aboveButton },   // above, hanging right
   ];
 
-  let chosen = candidates.find((pos) => fits(pos.left, pos.top) && !overlapsHost(pos.left, pos.top)) ||
-    candidates.find((pos) => fits(pos.left, pos.top)) ||
-    {
-      left: clamp(alignedLeft, spacing, viewportWidth - menuWidth - spacing),
-      top: clamp(hostRect.bottom + gap, spacing, viewportHeight - menuHeight - spacing)
-    };
+  // Fallback for a card near the bottom of the viewport, where neither below
+  // nor above leaves room: keep the menu locked to the button horizontally and
+  // slide it vertically until it fits. Flanking the whole card was the old
+  // behaviour and it threw the menu a card-width away from the thumbnail you
+  // clicked — the thing this is meant to stop.
+  const chosen = candidates.find((pos) => fits(pos.left, pos.top)) || {
+    left: rightAligned,
+    top: clampTop(underButton),
+  };
 
-  menu.style.left = `${Math.round(chosen.left - originLeft)}px`;
-  menu.style.top = `${Math.round(chosen.top - originTop)}px`;
+  menu.style.left = `${Math.round(clampLeft(chosen.left) - originLeft)}px`;
+  menu.style.top = `${Math.round(clampTop(chosen.top) - originTop)}px`;
 }
 
 function positionHistorySubmenu(anchorBtn, submenu) {
@@ -1779,6 +1808,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     : stageVal === 'convert' ? 'Convert failed'
     : stageVal === 'resize' ? 'Resize failed'
     : stageVal === 'uv_unwrap' || stageVal === 'uv-unwrap' ? 'UV unwrap failed'
+    : stageVal === 'print_repair' ? 'Print repair failed'
     : stageVal === 'image3d' ? 'Image to 3D failed'
     : 'Generation failed';
   const previewMarkup = status === 'failed'
@@ -1810,6 +1840,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     : stageVal === 'convert' ? 'Converted'
     : stageVal === 'resize' ? 'Resized'
     : stageVal === 'uv_unwrap' || stageVal === 'uv-unwrap' ? 'UV Unwrapped'
+    : stageVal === 'print_repair' ? 'Print Repaired'
     : stageVal === 'texture' || stageVal === 'textured' ? 'Textured'
     : stageVal === 'image3d' ? 'Image to 3D'
     : stageVal === 'rig' || stageVal === 'rigged' ? 'Rigged'

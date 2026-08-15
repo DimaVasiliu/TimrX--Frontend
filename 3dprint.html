@@ -26,8 +26,10 @@
 
   
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="img/logo.png" />
-  <link rel="apple-touch-icon" href="img/logo.png" />
+  <link rel="icon" type="image/png" href="img/logo.png?v=20260815logo" />
+  <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-logo-192.png?v=20260815logo">
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-logo-180.png?v=20260815logo">
+  
   <link rel="manifest" href="site.webmanifest" />
   <meta name="theme-color" content="#0b0b0b" />
   <meta name="msapplication-TileColor" content="#0b0b0b" />
@@ -144,7 +146,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260814ground">
   <link rel="stylesheet" href="3dprint-modules/css/workspace-loader-grid.css?v=20260814grid4">
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260814menupos3">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260815menuanchor">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
   <link rel="stylesheet" href="tx-menu.css?v=1">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
@@ -244,7 +246,7 @@
     <!-- Brand (top-left) -->
     <div class="ws-header-left">
       <a href="/" class="ws-home-link" aria-label="Back to TimrX landing page">
-        <img src="img/logo.png" alt="TimrX" class="ws-nav-logo" width="50" height="50">
+        <img src="img/logo.png?v=20260815logo" alt="TimrX" class="ws-nav-logo" width="50" height="50">
       </a>
       <a href="/" class="ws-brand" id="brand" aria-label="Back to TimrX landing page">
         <span class="swap" id="brandTim" aria-label="TimrX">
@@ -333,7 +335,7 @@
     <div class="tx-menu-panel">
       <div class="tx-menu-head">
         <span class="tx-menu-brand" aria-hidden="true">
-          <img src="img/logo.png" width="34" height="34" alt="">
+          <img src="img/logo.png?v=20260815logo" width="34" height="34" alt="">
           <span>T<span>X</span></span>
         </span>
         <button class="tx-menu-close" type="button" aria-label="Close menu" data-tx-menu-close><span></span><span></span></button>
@@ -941,6 +943,15 @@
                     </div>
 
                     <div class="print-prep-printer-select">
+                      <label for="printCheckProvider">Check Provider</label>
+                      <select id="printCheckProvider" class="print-prep-select">
+                        <option value="local" selected>Local Check (free)</option>
+                        <option value="meshy">Meshy Analyze (free)</option>
+                      </select>
+                      <span class="field-hint">Local runs TimrX's own geometry analysis. Meshy Analyze uses Meshy's printability API and can hand off to Meshy Repair.</span>
+                    </div>
+
+                    <div class="print-prep-printer-select">
                       <label for="printPrinterType">Printer Type</label>
                       <select id="printPrinterType" class="print-prep-select">
                         <option value="fdm" selected>FDM (Filament)</option>
@@ -986,6 +997,27 @@
                     </div>
                     <div class="print-panel-checks" id="printChecksGrid">
                       <!-- Populated by JS -->
+                    </div>
+                  </section>
+
+                  <section class="print-panel-surface" id="printMeshySection" style="display:none">
+                    <div class="print-panel-surface-head">
+                      <div>
+                        <p class="viewer-print-toast__subtitle">Meshy printability</p>
+                        <p class="print-panel-surface-note" id="printMeshyNote">Provider-side geometry report from Meshy's Analyze Printability API.</p>
+                      </div>
+                    </div>
+                    <div class="print-panel-checks" id="printMeshyGrid">
+                      <!-- Populated by JS -->
+                    </div>
+                    <div id="printMeshyRepairRow" style="display:none;margin-top:10px;display:flex;flex-direction:column;gap:6px">
+                      <button type="button" class="print-panel-export-btn print-panel-export-btn--repair" id="printMeshyRepairBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                          <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.8-3.8a6 6 0 01-7.8 7.8l-6.9 6.9a2.1 2.1 0 01-3-3l6.9-6.9a6 6 0 017.8-7.8l-3.8 3.8z"/>
+                        </svg>
+                        Repair with Meshy (10 cr)
+                      </button>
+                      <span class="field-hint" id="printMeshyRepairHint">Meshy rebuilds the mesh to close holes and remove non-manifold geometry. The repaired model appears in your history.</span>
                     </div>
                   </section>
 
@@ -2032,7 +2064,7 @@
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260814menupos4"></script>
+  <script type="module" src="./js/main.js?v=20260815menuanchor"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
   <script src="js/command-palette.js?v=20260814scroll" defer></script>

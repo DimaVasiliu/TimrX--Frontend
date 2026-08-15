@@ -12,9 +12,11 @@
   <link rel="canonical" href="https://timrx.live/">
   <link rel="alternate" hreflang="en-gb" href="https://timrx.live/">
   <link rel="alternate" hreflang="x-default" href="https://timrx.live/">
-  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-logo-32.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-logo-16.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="img/favicon-logo-180.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-logo-32.png?v=20260815logo">
+  <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-logo-192.png?v=20260815logo">
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-logo-180.png?v=20260815logo">
+  <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-logo-16.png?v=20260815logo">
+  
   <link rel="manifest" href="site.webmanifest">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="TimrX">
@@ -83,7 +85,7 @@
        ========================================================================== -->
   <header class="site-header" data-header>
     <div class="shell nav-shell">
-      <a class="brand" href="/" aria-label="TimrX home"><img src="img/logo.png" width="44" height="44" alt=""><span>Timr<span>X</span></span></a>
+      <a class="brand" href="/" aria-label="TimrX home"><img src="img/logo.png?v=20260815logo" width="44" height="44" alt=""><span>Timr<span>X</span></span></a>
       <nav class="desktop-nav" aria-label="Primary navigation">
         <a href="/" aria-current="page">Home</a><a href="/3dprint" data-track="nav_create">Create</a><a href="/community" data-track="nav_community">Community</a><a href="/tutorials" data-track="nav_tutorials">Tutorials</a><a href="/docs" data-track="nav_docs">Docs</a><a href="/hub#pricing" data-track="nav_pricing">Pricing</a><a href="/blogs" data-track="nav_blog">Blog</a><a href="/hub" data-track="nav_dashboard">Dashboard</a>
       </nav>
@@ -97,7 +99,7 @@
     <div class="tx-menu-panel">
       <div class="tx-menu-head">
         <span class="tx-menu-brand" aria-hidden="true">
-          <img src="img/logo.png" width="34" height="34" alt="">
+          <img src="img/logo.png?v=20260815logo" width="34" height="34" alt="">
           <span>T<span>X</span></span>
         </span>
         <button class="tx-menu-close" type="button" aria-label="Close menu" data-tx-menu-close><span></span><span></span></button>
@@ -419,56 +421,56 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
         <div class="section-heading section-heading-center reveal">
           <span class="section-index">02 / FEATURES</span>
           <h2 id="features-title">Smart tools. One creative workflow.</h2>
-          <p>Generate, refine, animate, share and export from the same browser workspace.</p>
+          <p>Generate images, video and 3D, then refine, organize, print-prep and export from the same browser workspace.</p>
         </div>
         <div class="feature-grid">
           <article class="feature-card reveal">
             <div class="feature-card__icon" aria-hidden="true">⬢</div>
-            <span class="feature-card__eyebrow">Text to 3D</span>
-            <h3>Move from prompt or reference image into 3D drafts fast</h3>
-            <p>Start with text-to-3D or image-to-3D, compare draft bundles, retry quickly, and continue the best result straight into refinement.</p>
+            <span class="feature-card__eyebrow">3D Generation</span>
+            <h3>Move from prompt or reference image into editable 3D drafts</h3>
+            <p>Create text-to-3D or image-to-3D batches, compare draft picks, retry variations, then continue the best model into refine, remesh or texture.</p>
             <ul class="feature-points"><li>Text to 3D</li><li>Image to 3D</li><li>Draft picks</li></ul>
             <a href="/3dprint?panel=model" class="feature-link" data-track="feature_model">Generate <span>→</span></a>
           </article>
           <article class="feature-card reveal">
             <div class="feature-card__icon" aria-hidden="true">▧</div>
-            <span class="feature-card__eyebrow">Text to Image</span>
-            <h3>Generate brand, concept, and product visuals with multiple AI engines</h3>
-            <p>Use prompt-led and reference-based image workflows across OpenAI, Imagen, FLUX.2 Pro, Ideogram, Recraft, and Nano Banana.</p>
-            <ul class="feature-points"><li>Reference upload</li><li>2K / 4K output</li><li>SVG-ready flow</li></ul>
+            <span class="feature-card__eyebrow">Image Studio</span>
+            <h3>Create brand, concept and product visuals with current image engines</h3>
+            <p>Use OpenAI, Imagen, FLUX.2 Pro, Ideogram, Recraft, Nano Banana and Nano Banana Pro for references, text graphics, SVG and 4K outputs.</p>
+            <ul class="feature-points"><li>Multi-provider</li><li>4K output</li><li>SVG flow</li></ul>
             <a href="/3dprint?panel=image" class="feature-link" data-track="feature_image">Generate <span>→</span></a>
           </article>
           <article class="feature-card reveal">
             <div class="feature-card__icon" aria-hidden="true">▶</div>
-            <span class="feature-card__eyebrow">Video</span>
-            <h3>Turn prompts and stills into moving clips, animations, and transitions</h3>
-            <p>Build text-to-video clips, animate source images, and create transition shots with Veo 3.1 and Seedance inside the same workspace.</p>
-            <ul class="feature-points"><li>Text to video</li><li>Image animation</li><li>Transition shots</li></ul>
+            <span class="feature-card__eyebrow">Video Studio</span>
+            <h3>Turn prompts, stills and references into moving clips</h3>
+            <p>Generate text-to-video, animate source images, build transition shots, and choose cinematic Veo or fast Seedance flows without leaving the workspace.</p>
+            <ul class="feature-points"><li>Text to video</li><li>Image to video</li><li>Seedance / Veo</li></ul>
             <a href="/3dprint?panel=video" class="feature-link" data-track="feature_video">Generate <span>→</span></a>
           </article>
           <article class="feature-card reveal">
             <div class="feature-card__icon" aria-hidden="true">▦</div>
-            <span class="feature-card__eyebrow">Remesh &amp; Texture</span>
-            <h3>Clean topology, apply materials, and prep assets for production</h3>
-            <p>Use remesh presets, advanced controls, texture prompts, and PBR material generation to move rough output into cleaner deliverables.</p>
-            <ul class="feature-points"><li>Remesh presets</li><li>PBR texture</li><li>Topology cleanup</li></ul>
+            <span class="feature-card__eyebrow">Refine &amp; Prep</span>
+            <h3>Clean, texture and prepare models for real output</h3>
+            <p>Run refine, remesh, texture prompts, print readiness checks, manual paint 3MF and Meshy Auto 3MF from the model viewer and asset menu.</p>
+            <ul class="feature-points"><li>Remesh</li><li>Print check</li><li>3MF export</li></ul>
             <a href="/3dprint?panel=remesh" class="feature-link" data-track="feature_remesh">Open Panel <span>→</span></a>
           </article>
           <article class="feature-card reveal">
             <div class="feature-card__icon" aria-hidden="true">♙</div>
             <span class="feature-card__eyebrow">Rig &amp; Animate</span>
-            <h3>Rig models, browse motion presets, and push assets into animation</h3>
-            <p>Auto-rig character models, load the animation library, choose actions, and reuse rigged assets from history when you need to reanimate.</p>
+            <h3>Rig characters, browse motion presets and reuse animation workflows</h3>
+            <p>Auto-rig humanoid models, open the animation library, choose actions, reanimate history items, and keep the new result beside the source asset.</p>
             <ul class="feature-points"><li>Auto-rig</li><li>Animation library</li><li>Reanimate from history</li></ul>
             <a href="/3dprint?panel=rig" class="feature-link" data-track="feature_rig">Open Panel <span>→</span></a>
           </article>
           <article class="feature-card reveal">
             <div class="feature-card__icon" aria-hidden="true">↗</div>
-            <span class="feature-card__eyebrow">Share &amp; Export</span>
-            <h3>Keep assets searchable, share to community, and export in the right format</h3>
-            <p>Reopen work from history, remix community posts, run print readiness checks, preview in AR, and convert assets for creator, AR, and 3D print delivery.</p>
-            <ul class="feature-points"><li>History search</li><li>Community remix</li><li>GLB / STL / USDZ</li></ul>
-            <a href="/converter" class="feature-link" data-track="feature_export">Open Panel <span>→</span></a>
+            <span class="feature-card__eyebrow">Assets &amp; Sharing</span>
+            <h3>Organize every result and publish the right version</h3>
+            <p>Use My Assets for favourites, filters, versions, downloads and bulk actions, then share selected work to Inspire or Community when it is ready.</p>
+            <ul class="feature-points"><li>My Assets</li><li>Inspire</li><li>Community</li></ul>
+            <a href="/3dprint#my-assets" class="feature-link" data-track="feature_assets">Open Assets <span>→</span></a>
           </article>
         </div>
       </div>
@@ -661,7 +663,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
        (window.TIMRX_NAV.footerColumns). Same caveat as the nav: static here on
        purpose because the SEO homepage must render useful navigation without JS.
        ========================================================================== -->
-  <footer class="site-footer"><div class="shell footer-grid"><div><a class="brand" href="/"><img src="img/logo.png" width="40" height="40" alt=""><span>Timr<span>X</span></span></a><p>Images, video and 3D creation in one browser workspace.</p></div><nav aria-label="Product"><h2>Product</h2><a href="/3dprint">Create</a><a href="/ai-tools">Tools</a><a href="/converter">Converter</a><a href="/stl-library">STL Library</a></nav><nav aria-label="Explore"><h2>Explore</h2><a href="/blogs">Blog</a><a href="/tutorials">Tutorials</a><a href="/community">Community</a><a href="/prompts">Prompts</a><a href="/company">Company</a></nav><nav aria-label="Account"><h2>Account</h2><a href="/hub">Dashboard</a><a href="/hub#pricing">Pricing</a><a href="/docs">Docs</a></nav><nav aria-label="Connect"><h2>Connect</h2><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a><a href="mailto:support@timrx.live">Support</a><a href="/llms.txt">LLM Summary</a></nav><nav aria-label="Legal"><h2>Legal</h2><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></nav></div><div class="shell footer-bottom"><span>© <span data-year></span> TimrX</span><a href="/dima-vasiliu">Built by Dima Vasiliu <span>↗</span></a></div></footer>
+  <footer class="site-footer"><div class="shell footer-grid"><div><a class="brand" href="/"><img src="img/logo.png?v=20260815logo" width="40" height="40" alt=""><span>Timr<span>X</span></span></a><p>Images, video and 3D creation in one browser workspace.</p></div><nav aria-label="Product"><h2>Product</h2><a href="/3dprint">Create</a><a href="/ai-tools">Tools</a><a href="/converter">Converter</a><a href="/stl-library">STL Library</a></nav><nav aria-label="Explore"><h2>Explore</h2><a href="/blogs">Blog</a><a href="/tutorials">Tutorials</a><a href="/community">Community</a><a href="/prompts">Prompts</a><a href="/company">Company</a></nav><nav aria-label="Account"><h2>Account</h2><a href="/hub">Dashboard</a><a href="/hub#pricing">Pricing</a><a href="/docs">Docs</a></nav><nav aria-label="Connect"><h2>Connect</h2><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a><a href="mailto:support@timrx.live">Support</a><a href="/llms.txt">LLM Summary</a></nav><nav aria-label="Legal"><h2>Legal</h2><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></nav></div><div class="shell footer-bottom"><span>© <span data-year></span> TimrX</span><a href="/dima-vasiliu">Built by Dima Vasiliu <span>↗</span></a></div></footer>
   <script src="js/env-config.js?v=20260813sync"></script>
   <script>
     window.TIMRX_CHAT_CONTEXT = 'You are the TimrX platform assistant on the main product landing page. Answer as TimrX, not as Dima personally. Focus on helping visitors understand the product, choose the right tool, open the workspace, understand credits, exports, formats and workflows. Keep answers concise, conversion-focused and practical. If users ask for freelance services or Dima personally, route them to /dima-vasiliu instead of mixing that into the product funnel.';

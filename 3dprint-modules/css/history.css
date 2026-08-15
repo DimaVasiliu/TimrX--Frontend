@@ -464,6 +464,18 @@ body.history-menu-open .timrx-3dprint .history-group-card.is-menu-open .history-
   left: -9999px;
   min-width: 180px;
   max-width: 220px;
+  /* The menu MUST stay shorter than the viewport. positionHistoryMenu()
+     clamps with `viewportHeight - menuHeight - spacing` as the upper bound;
+     once the menu grows past that the bound goes negative, the clamp collapses
+     to the minimum, and the menu pins itself to the top of the screen with no
+     relationship to the card that opened it. The Phase 2 block ("Do more with
+     this" + Organise + collections) is what pushed it over. Capping the height
+     keeps that arithmetic in range at every viewport. */
+  max-height: min(62vh, 520px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.16) transparent;
   padding: 8px;
   border-radius: 12px;
   background: rgba(8, 10, 16, 0.98);
@@ -630,6 +642,29 @@ body.history-menu-open .timrx-3dprint .history-group-card.is-menu-open .history-
 .timrx-3dprint .card-submenu__item.card-submenu__item--community:hover:not([disabled]) {
   background: rgba(var(--accent-purple-rgb), 0.1);
   color: #c4b5fd;
+}
+
+.timrx-3dprint .card-menu::-webkit-scrollbar { width: 8px; }
+.timrx-3dprint .card-menu::-webkit-scrollbar-track { background: transparent; }
+.timrx-3dprint .card-menu::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background-clip: content-box;
+  background-color: rgba(255, 255, 255, 0.16);
+}
+.timrx-3dprint .card-menu::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+/* Section labels stay put while the items scroll under them, so you never lose
+   track of which group you are in inside a long menu. */
+.timrx-3dprint .card-menu .card-menu__label {
+  position: sticky;
+  /* matches .card-menu's own padding, so the label parks flush with the top
+     edge instead of leaving a sliver of scrolled content above it */
+  top: -8px;
+  z-index: 1;
+  background: rgba(8, 10, 16, 0.98);
 }
 
 .timrx-3dprint .card-submenu {
@@ -5940,7 +5975,10 @@ html body.print3d-page > .lib-bulk { position: fixed; z-index: 200200; }
 }
 .timrx-3dprint .lib-menu-tag:hover { border-color: rgba(217, 138, 138, 0.5); color: #d98a8a; }
 
-@media (max-width: 760px) {
+/* Phones AND tablets get the bottom sheet — see MOBILE_ASSET_MENU_QUERY in
+   js/history.js, which must stay in sync with this condition. A narrow desktop
+   window (fine pointer) deliberately keeps the anchored popover. */
+@media (max-width: 760px), (max-width: 1024px) and (pointer: coarse) {
   body.assets-modal-open.history-menu-open::before {
     background: rgba(3, 5, 6, 0.44);
     z-index: 200240;
@@ -6016,6 +6054,10 @@ html body.print3d-page > .lib-bulk { position: fixed; z-index: 200200; }
   body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet .card-menu__label {
     padding: 10px 10px 5px;
     font-size: 9.5px;
+    /* the sheet uses 10px padding and its own gradient, so the sticky offset
+       and backing from the desktop rule would both be wrong here */
+    top: -10px;
+    background: linear-gradient(180deg, rgba(20, 27, 29, 0.99), rgba(18, 24, 26, 0.99));
   }
 
   body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet .card-menu__hint {
