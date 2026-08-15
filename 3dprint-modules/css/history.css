@@ -503,6 +503,13 @@ body.history-menu-open .timrx-3dprint .history-group-card.is-menu-open .history-
   transform: none !important;
 }
 
+.timrx-3dprint .history-thumb.is-menu-open,
+.timrx-3dprint .expanded-thumb.is-menu-open,
+.timrx-3dprint .history-group-card.is-menu-open {
+  will-change: auto !important;
+  contain: none !important;
+}
+
 .timrx-3dprint .expanded-thumb.is-menu-open {
   animation: none !important;
   opacity: 1;
@@ -878,6 +885,10 @@ body.assets-modal-open .timrx-3dprint .assets-side-launcher {
   pointer-events: auto;
   transform: translateY(0) scale(1);
   transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s 0s;
+}
+
+body.assets-modal-open.history-menu-open .timrx-3dprint .ws-right.assets-modal.is-open {
+  transform: none !important;
 }
 
 .timrx-3dprint .ws-right.assets-modal .card.history {
@@ -5947,14 +5958,14 @@ html body.print3d-page > .lib-bulk { position: fixed; z-index: 200200; }
 
   body.assets-modal-open .timrx-3dprint .card-menu.is-mobile-sheet,
   body.assets-modal-open .timrx-3dprint .card-submenu.is-mobile-sheet {
-    --asset-menu-sheet-left: max(0px, env(safe-area-inset-left, 0px));
-    --asset-menu-sheet-right: max(0px, env(safe-area-inset-right, 0px));
+    --asset-menu-sheet-left: max(4px, env(safe-area-inset-left, 0px));
+    --asset-menu-sheet-right: max(4px, env(safe-area-inset-right, 0px));
     position: fixed !important;
     left: var(--asset-menu-sheet-left) !important;
     right: auto !important;
     top: auto !important;
     bottom: max(12px, env(safe-area-inset-bottom, 0px)) !important;
-    width: min(340px, calc(100vw - 48px - var(--asset-menu-sheet-left) - var(--asset-menu-sheet-right))) !important;
+    width: min(340px, calc(100vw - 56px - var(--asset-menu-sheet-left) - var(--asset-menu-sheet-right))) !important;
     min-width: 0;
     max-width: none;
     max-height: min(560px, calc(72dvh - max(0px, env(safe-area-inset-bottom, 0px))));

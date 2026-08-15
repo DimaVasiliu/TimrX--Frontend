@@ -1106,8 +1106,8 @@ export function openHistoryMenu(menuBtn, menu) {
   activeHistoryMenuBtn = menuBtn;
   activeHistoryMenu = menu;
   menu.classList.toggle('is-mobile-sheet', isMobileAssetsMenu());
-  positionHistoryMenu(menuBtn, menu);
   document.body.classList.add('history-menu-open');
+  positionHistoryMenu(menuBtn, menu);
   requestAnimationFrame(() => {
     if (activeHistoryMenuBtn === menuBtn && activeHistoryMenu === menu) {
       positionHistoryMenu(menuBtn, menu);
@@ -1142,37 +1142,49 @@ function positionHistoryMenu(anchorBtn, menu) {
     return;
   }
   const spacing = HISTORY_MENU_EDGE_PAD;
-  const gap = 6;
+  const gap = 4;
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
   const btnRect = anchorBtn.getBoundingClientRect();
+  const hostRect = getHistoryMenuHost(anchorBtn)?.getBoundingClientRect() || btnRect;
   // Reset so getBoundingClientRect returns the menu's natural size
   menu.style.left = '0px';
   menu.style.top = '0px';
   const menuRect = menu.getBoundingClientRect();
+  const originLeft = menuRect.left;
+  const originTop = menuRect.top;
+  const menuWidth = menuRect.width;
+  const menuHeight = menuRect.height;
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+  const fits = (left, top) => left >= spacing &&
+    top >= spacing &&
+    left + menuWidth + spacing <= viewportWidth &&
+    top + menuHeight + spacing <= viewportHeight;
+  const overlapsHost = (left, top) => {
+    const right = left + menuWidth;
+    const bottom = top + menuHeight;
+    return !(right <= hostRect.left || left >= hostRect.right || bottom <= hostRect.top || top >= hostRect.bottom);
+  };
 
-  // Try to place the menu to the RIGHT of the button, top-aligned
-  let left = btnRect.right + gap;
-  let top = btnRect.top;
+  const topNearButton = clamp(btnRect.top, spacing, viewportHeight - menuHeight - spacing);
+  const alignedLeft = clamp(btnRect.right - menuWidth, spacing, viewportWidth - menuWidth - spacing);
+  const candidates = [
+    { left: hostRect.right + gap, top: topNearButton },
+    { left: hostRect.left - menuWidth - gap, top: topNearButton },
+    { left: alignedLeft, top: hostRect.bottom + gap },
+    { left: alignedLeft, top: hostRect.top - menuHeight - gap }
+  ];
 
-  // If it overflows the right edge, place it LEFT of the button
-  if (left + menuRect.width + spacing > viewportWidth) {
-    left = btnRect.left - menuRect.width - gap;
-  }
-  // If that also overflows left, just flush to the right edge
-  if (left < spacing) {
-    left = viewportWidth - menuRect.width - spacing;
-  }
+  let chosen = candidates.find((pos) => fits(pos.left, pos.top) && !overlapsHost(pos.left, pos.top)) ||
+    candidates.find((pos) => fits(pos.left, pos.top)) ||
+    {
+      left: clamp(alignedLeft, spacing, viewportWidth - menuWidth - spacing),
+      top: clamp(hostRect.bottom + gap, spacing, viewportHeight - menuHeight - spacing)
+    };
 
-  // Vertical: if it overflows the bottom, shift up
-  if (top + menuRect.height + spacing > viewportHeight) {
-    top = viewportHeight - menuRect.height - spacing;
-  }
-  if (top < spacing) top = spacing;
-
-  menu.style.left = `${Math.round(left)}px`;
-  menu.style.top = `${Math.round(top)}px`;
+  menu.style.left = `${Math.round(chosen.left - originLeft)}px`;
+  menu.style.top = `${Math.round(chosen.top - originTop)}px`;
 }
 
 function positionHistorySubmenu(anchorBtn, submenu) {
@@ -1186,7 +1198,7 @@ function positionHistorySubmenu(anchorBtn, submenu) {
     return;
   }
   const spacing = HISTORY_MENU_EDGE_PAD;
-  const gap = HISTORY_SUBMENU_GAP;
+  const gap = Math.min(HISTORY_SUBMENU_GAP, 6);
   const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
   const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
 
@@ -1194,22 +1206,45 @@ function positionHistorySubmenu(anchorBtn, submenu) {
   submenu.style.top = '0px';
 
   const btnRect = anchorBtn.getBoundingClientRect();
+  const menuRect = activeHistoryMenu?.getBoundingClientRect() || btnRect;
+  const hostRect = activeHistoryMenuBtn ?
+    (getHistoryMenuHost(activeHistoryMenuBtn)?.getBoundingClientRect() || null) :
+    null;
   const submenuRect = submenu.getBoundingClientRect();
+  const originLeft = submenuRect.left;
+  const originTop = submenuRect.top;
+  const submenuWidth = submenuRect.width;
+  const submenuHeight = submenuRect.height;
+  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 
-  let left = btnRect.right + gap;
-  let top = btnRect.top;
+  const top = clamp(btnRect.top, spacing, viewportHeight - submenuHeight - spacing);
+  const candidates = [
+    { left: menuRect.right + gap, top },
+    { left: menuRect.left - submenuWidth - gap, top },
+    { left: clamp(btnRect.right - submenuWidth, spacing, viewportWidth - submenuWidth - spacing), top: menuRect.bottom + gap },
+    { left: clamp(btnRect.right - submenuWidth, spacing, viewportWidth - submenuWidth - spacing), top: menuRect.top - submenuHeight - gap }
+  ];
 
-  if (left + submenuRect.width + spacing > viewportWidth) {
-    left = btnRect.left - submenuRect.width - gap;
-  }
-  if (left < spacing) left = spacing;
-  if (top + submenuRect.height + spacing > viewportHeight) {
-    top = viewportHeight - submenuRect.height - spacing;
-  }
-  if (top < spacing) top = spacing;
+  const fitsViewport = (pos) => pos.left >= spacing &&
+    pos.top >= spacing &&
+    pos.left + submenuWidth + spacing <= viewportWidth &&
+    pos.top + submenuHeight + spacing <= viewportHeight;
+  const overlapsRect = (pos, rect) => {
+    if (!rect) return false;
+    const right = pos.left + submenuWidth;
+    const bottom = pos.top + submenuHeight;
+    return !(right <= rect.left || pos.left >= rect.right || bottom <= rect.top || pos.top >= rect.bottom);
+  };
 
-  submenu.style.left = `${Math.round(left)}px`;
-  submenu.style.top = `${Math.round(top)}px`;
+  const chosen = candidates.find((pos) => fitsViewport(pos) && !overlapsRect(pos, hostRect) && !overlapsRect(pos, menuRect)) ||
+    candidates.find((pos) => fitsViewport(pos) && !overlapsRect(pos, hostRect)) ||
+    candidates.find(fitsViewport) || {
+      left: clamp(menuRect.left, spacing, viewportWidth - submenuWidth - spacing),
+      top: clamp(menuRect.bottom + gap, spacing, viewportHeight - submenuHeight - spacing)
+    };
+
+  submenu.style.left = `${Math.round(chosen.left - originLeft)}px`;
+  submenu.style.top = `${Math.round(chosen.top - originTop)}px`;
 }
 
 export function updateActiveHistoryMenuPosition() {

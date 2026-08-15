@@ -18,7 +18,7 @@ import {
 import * as State from './state.js?v=20260812a';
 import * as Viewer from './viewer.js?v=20260806a';
 import * as UI from './ui-utils.js';
-import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260814assetmenu';
+import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260814menupos4';
 
 // ============================================================================
 // LOCKS & STATE
