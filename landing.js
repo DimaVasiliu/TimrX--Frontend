@@ -16,6 +16,64 @@
   document.querySelectorAll('[data-track]').forEach(link=>link.addEventListener('click',()=>{window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'cta_click',cta_name:link.dataset.track,cta_url:link.getAttribute('href'),page_type:'platform_landing'})}));
   document.querySelectorAll('[data-year]').forEach(node=>{node.textContent=String(new Date().getFullYear())});
 
+  (function initPromptRecipes(){
+    const recipes=[...document.querySelectorAll('[data-prompt-recipe]')];
+    if(!recipes.length)return;
+    const input=document.getElementById('heroAssistantInput');
+    const route=document.querySelector('[data-hero-route]');
+    let activeIndex=Math.max(0,recipes.findIndex(card=>card.classList.contains('is-active')));
+    let timer=null;
+    const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function recipePayload(card){
+      return {
+        source:'homepage_recipe',
+        label:card.dataset.recipeLabel||card.textContent.trim(),
+        output:card.dataset.recipeOutput||'',
+        panel:card.dataset.recipePanel||'model',
+        tab:card.dataset.recipeTab||'',
+        prompt:card.dataset.recipePrompt||'',
+        created_at:new Date().toISOString()
+      };
+    }
+    function setActive(index,fill){
+      if(!recipes.length)return;
+      activeIndex=((index%recipes.length)+recipes.length)%recipes.length;
+      recipes.forEach((card,i)=>card.classList.toggle('is-active',i===activeIndex));
+      const card=recipes[activeIndex];
+      const payload=recipePayload(card);
+      if(fill&&input&&payload.prompt){
+        input.value=payload.prompt;
+        input.dispatchEvent(new Event('input',{bubbles:true}));
+      }
+      if(route)route.href=card.getAttribute('href')||'/3dprint';
+    }
+    function storeRecipe(card){
+      const payload=recipePayload(card);
+      try{sessionStorage.setItem('timrx_pending_homepage_recipe',JSON.stringify(payload));}catch(_){}
+      if(input&&payload.prompt){
+        input.value=payload.prompt;
+        input.dispatchEvent(new Event('input',{bubbles:true}));
+      }
+      window.dataLayer=window.dataLayer||[];
+      window.dataLayer.push({event:'homepage_recipe_selected',recipe_name:payload.label,recipe_panel:payload.panel,recipe_output:payload.output,page_type:'platform_landing'});
+    }
+    function start(){
+      if(reducedMotion||recipes.length<2)return;
+      stop();
+      timer=window.setInterval(()=>setActive(activeIndex+1,true),4200);
+    }
+    function stop(){if(timer){window.clearInterval(timer);timer=null;}}
+    recipes.forEach((card,index)=>{
+      card.addEventListener('mouseenter',()=>{stop();setActive(index,true)});
+      card.addEventListener('focus',()=>{stop();setActive(index,true)});
+      card.addEventListener('mouseleave',start);
+      card.addEventListener('blur',start);
+      card.addEventListener('click',()=>{setActive(index,true);storeRecipe(card);});
+    });
+    setActive(activeIndex,true);
+    start();
+  })();
+
 	  const communityGrid=document.getElementById('homeCommunityGrid');
 	  const communityShuffle=document.getElementById('homeCommunityShuffle');
 	  const communityStatus=document.getElementById('homeCommunityStatus');

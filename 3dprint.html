@@ -146,12 +146,12 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260814ground">
   <link rel="stylesheet" href="3dprint-modules/css/workspace-loader-grid.css?v=20260814grid4">
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260815menuanchor">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260815inspire">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
   <link rel="stylesheet" href="tx-menu.css?v=1">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
-  <script defer src="3dprint-modules/3dprint-app.js?v=20260812d"></script>
-  <script defer src="3dprint-modules/inspire.js?v=20260811q"></script>
+  <script defer src="3dprint-modules/3dprint-app.js?v=20260815recipes"></script>
+  <script defer src="3dprint-modules/inspire.js?v=20260815inspire"></script>
   <script defer src="js/workspace-loader.js?v=20260814slow"></script>
   <!-- The orbit grid. Reads workspace-loader.js's published --loader-progress
        and injects its own DOM, so it shares no state with the loader and
@@ -278,6 +278,12 @@
           <span class="mode-ico mode-ico--image" aria-hidden="true"><i></i><i></i><i></i></span>
           <span class="ws-mode__label">Image</span>
           <span class="ws-mode__meta">Generate and edit</span>
+        </button>
+        <button type="button" class="rail-btn ws-mode" data-panel="creativeLab"
+                aria-pressed="false" aria-label="Creative Lab — Photo to printable product">
+          <span class="mode-ico mode-ico--cube" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="ws-mode__label">Creative Lab</span>
+          <span class="ws-mode__meta">Photo to printable product</span>
         </button>
     </nav>
 
@@ -587,34 +593,6 @@
   <!-- Visually hidden SEO content -->
   <p class="visually-hidden">Use TimrX to generate images, videos, and 3D models from text prompts or reference inputs. Assets can be remeshed, textured, rigged, animated, shared, checked for print readiness, and exported in creator and 3D print formats.</p>
 
-<section class="workspace-feature-strip hidden" aria-labelledby="workspaceIntroTitle">
-  <div class="workspace-feature-strip__inner">
-    <div class="workspace-feature-strip__copy">
-      <span class="workspace-feature-strip__eyebrow">Workspace overview</span>
-      <h1 id="workspaceIntroTitle">Generate, refine, animate, and export from one browser workspace</h1>
-      <p>TimrX combines image, video, and 3D creation with remesh, PBR texture, rigging, animation, asset history, community sharing, AR preview, file conversion, and print checks in one continuous flow.</p>
-    </div>
-    <div class="workspace-feature-strip__grid" aria-label="Workspace capabilities">
-      <article class="workspace-feature-tile">
-        <strong>Create</strong>
-        <span>Text to image, image animation, text to video, text to 3D, and image to 3D.</span>
-      </article>
-      <article class="workspace-feature-tile">
-        <strong>Refine</strong>
-        <span>Draft selection, remesh presets, texture prompting, and material-ready output.</span>
-      </article>
-      <article class="workspace-feature-tile">
-        <strong>Animate</strong>
-        <span>Rig characters, reuse history, open the motion library, and reanimate faster.</span>
-      </article>
-      <article class="workspace-feature-tile">
-        <strong>Deliver</strong>
-        <span>History search, community remix, AR preview, print checks, and multi-format export.</span>
-      </article>
-    </div>
-  </div>
-</section>
-
 <div class="sim-viewer-bg" aria-hidden="true">
 </div>
 
@@ -673,12 +651,73 @@
     <div class="ws-stage" id="wsStage" role="region" aria-label="Workspace">
       <div class="ws-stage__inner">
         <div class="ws-hero" id="wsHero">
-          <h1 class="ws-hero__title">What will you <em>create</em>?</h1>
-          <p class="ws-hero__sub">Describe any 3D model, image, or video. Pick an engine, tune it with the chips below, and generate.</p>
-          <div class="ws-hero__hints">
-            <button type="button" class="ws-hero__hint" data-hint-mode="model" data-hint="A chess knight, art-deco style, ready for FDM printing">♞ Art-deco chess knight</button>
-            <button type="button" class="ws-hero__hint" data-hint-mode="model" data-hint="A low-poly fox game asset with hand-painted textures">🦊 Low-poly fox</button>
-            <button type="button" class="ws-hero__hint" data-hint-mode="video" data-hint="Cinematic drone shot over a misty forest at dawn, 8 seconds">🎬 Misty forest flyover</button>
+          <div class="ws-starter">
+            <p class="ws-starter__eyebrow">Start a creative workflow</p>
+            <h1 class="ws-hero__title">What will you <em>create</em>?</h1>
+            <p class="ws-hero__sub">Choose a starter action to load the right workspace mode, fill an example brief, or bring in your own model.</p>
+            <div class="ws-starter__content">
+              <section class="workspace-feature-strip workspace-feature-strip--starter" aria-labelledby="workspaceIntroTitle">
+                <div class="workspace-feature-strip__inner">
+                  <div class="workspace-feature-strip__copy">
+                    <span class="workspace-feature-strip__eyebrow">Workspace overview</span>
+                    <h2 id="workspaceIntroTitle">Generate, refine, animate, and export from one browser workspace</h2>
+                    <p>TimrX combines image, video, and 3D creation with remesh, PBR texture, rigging, animation, AR preview, print checks, and export in one continuous flow.</p>
+                  </div>
+                  <div class="workspace-feature-strip__grid" aria-label="Workspace capabilities">
+                    <article class="workspace-feature-tile">
+                      <strong>Create</strong>
+                      <span>Prompt or reference inputs for image, video, and 3D output.</span>
+                    </article>
+                    <article class="workspace-feature-tile">
+                      <strong>Refine</strong>
+                      <span>Draft picks, remesh presets, PBR textures, and print checks.</span>
+                    </article>
+                    <article class="workspace-feature-tile">
+                      <strong>Animate</strong>
+                      <span>Rig characters, open the motion library, and reuse history.</span>
+                    </article>
+                    <article class="workspace-feature-tile">
+                      <strong>Deliver</strong>
+                      <span>AR preview, community remix, and STL, 3MF, or GLB export.</span>
+                    </article>
+                  </div>
+                </div>
+              </section>
+              <div class="ws-starter__grid" aria-label="Workspace starter actions">
+                <button type="button" class="ws-starter-action ws-starter-action--model" data-hint-mode="model" data-hint="A modular desk organizer with cable channels, rounded edges, matte black plastic, ready for FDM printing">
+                  <span class="ws-starter-action__icon" aria-hidden="true"><i class="fa-solid fa-cube"></i></span>
+                  <span class="ws-starter-action__body">
+                    <strong>Generate 3D model</strong>
+                    <span class="ws-starter-action__example">Example: modular desk organizer with cable channels</span>
+                    <small>Expected: textured GLB, then remesh, print check, STL or 3MF export.</small>
+                  </span>
+                </button>
+                <button type="button" class="ws-starter-action ws-starter-action--image" data-hint-mode="image" data-hint="A clean product mockup of a matte black smart desk lamp on a white studio background, soft shadows, premium ecommerce style">
+                  <span class="ws-starter-action__icon" aria-hidden="true"><i class="fa-solid fa-image"></i></span>
+                  <span class="ws-starter-action__body">
+                    <strong>Create image</strong>
+                    <span class="ws-starter-action__example">Example: premium ecommerce product mockup</span>
+                    <small>Expected: image concept for ads, references, thumbnails, or image-to-3D input.</small>
+                  </span>
+                </button>
+                <button type="button" class="ws-starter-action ws-starter-action--video" data-hint-mode="video" data-hint="Cinematic 8 second product video of a desk lamp switching on in a minimal studio, slow push-in camera, warm practical light, 16:9">
+                  <span class="ws-starter-action__icon" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
+                  <span class="ws-starter-action__body">
+                    <strong>Make video</strong>
+                    <span class="ws-starter-action__example">Example: 8 second product reveal shot</span>
+                    <small>Expected: short clip from text or image for social, ads, or motion previews.</small>
+                  </span>
+                </button>
+                <button type="button" class="ws-starter-action ws-starter-action--upload" data-starter-action="upload">
+                  <span class="ws-starter-action__icon" aria-hidden="true"><i class="fa-solid fa-upload"></i></span>
+                  <span class="ws-starter-action__body">
+                    <strong>Upload model</strong>
+                    <span class="ws-starter-action__example">Example: bring in a GLB, GLTF, or STL file</span>
+                    <small>Expected: live 3D preview with scale, rotate, inspect, refine, and export tools.</small>
+                  </span>
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -973,7 +1012,7 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                           <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.8-3.8a6 6 0 01-7.8 7.8l-6.9 6.9a2.1 2.1 0 01-3-3l6.9-6.9a6 6 0 017.8-7.8l-3.8 3.8z"/>
                         </svg>
-                        Repair STL
+                        Repair STL locally
                       </button>
                       <button type="button" class="print-panel-export-btn print-panel-export-btn--3mf" id="printExport3MFBtn">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
@@ -2064,7 +2103,7 @@
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260815rigfix"></script>
+  <script type="module" src="./js/main.js?v=20260815rigpick"></script>
   <script src="./js/auth-modal.js?v=20260407a"></script>
   <script src="js/onboarding.js" defer></script>
   <script src="js/command-palette.js?v=20260814scroll" defer></script>
@@ -2193,6 +2232,6 @@
   </script>
   <script src="js/shared/tx-menu.js?v=1" defer></script>
   <!-- Bottom prompt dock (adapter over the legacy panels — see file header) -->
-  <script src="js/workspace-dock.js?v=20260811ae" defer></script>
+  <script src="js/workspace-dock.js?v=20260815starter" defer></script>
 </body>
 </html>

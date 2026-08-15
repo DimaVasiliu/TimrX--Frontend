@@ -238,6 +238,25 @@ html body.print3d-page > .ws-cmd {
   z-index: 200500;
 }
 
+/* ui-utils.toast() appends #toastContainer straight to <body>, so the (0,2,1)
+   rule above stripped its `position: fixed` and every toast rendered in normal
+   document flow at the very bottom of the page — underneath the creation dock.
+   That is why messages like "No rigged model found" read as text stuck behind
+   the command bar (audit 2026-08-15).
+
+   Centred on purpose: for several actions the toast is the only feedback there
+   is, so it belongs in the middle of the screen above every workspace layer
+   rather than tucked into a corner. */
+html body.print3d-page > .toast-container {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  right: auto;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  z-index: 300030;
+}
+
 /* Utilities */
 .hidden,
 [hidden] {

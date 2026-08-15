@@ -3194,14 +3194,11 @@ textarea {
   pointer-events: none;
 }
 
+/* With the viewer expanded a toast is a full-width card rather than a pill so
+   it stays readable over the canvas. Placement is owned by the (0,2,2) restore
+   in variables.css, which outranks this rule — do not re-declare top/left here
+   expecting it to win. */
 body.ws-viewer-open .toast-container {
-  position: fixed !important;
-  top: max(18px, env(safe-area-inset-top, 0px));
-  left: 50%;
-  right: auto;
-  bottom: auto;
-  transform: translateX(-50%);
-  z-index: 300020;
   width: min(520px, calc(100vw - 32px));
   align-items: stretch;
 }
@@ -3226,6 +3223,9 @@ body.ws-viewer-open .toast-container {
 
 body.ws-viewer-open .toast {
   width: 100%;
+  /* .toast caps itself at 420px; without this the card sits left-of-centre
+     inside the 520px stretch container instead of filling it. */
+  max-width: none;
   box-sizing: border-box;
   justify-content: center;
   border-color: rgba(226, 236, 237, 0.16);

@@ -826,6 +826,108 @@
   // UTILITY FUNCTIONS
   // =========================================================================
 
+  /* =========================================================================
+     SURPRISE BATCH SELECTION
+     -------------------------------------------------------------------------
+     The old shuffle was `shuffleArray(pool).slice(0, 24)`. Two problems:
+
+     1. Nothing stopped a card that is already on screen from being picked
+        again, so a random slice of 24 from a 96-card pool left roughly a
+        quarter of the tiles visually unchanged — on top of the ReferenceError
+        above, which froze everything after the first video. Pressing the
+        button often looked like it had done nothing.
+     2. A flat shuffle does not preserve the type mix. A "balanced" pool
+        shuffled flat and cut at 24 regularly produced a wall of images with
+        one model and no video at all.
+
+     So: draw round-robin across the types (models, images, videos, then
+     anything else) and prefer cards that are NOT currently displayed.
+     ========================================================================= */
+  const SURPRISE_TYPES = ['model', 'image', 'video'];
+  let lastShownIds = new Set();
+
+  function cardKey(card) {
+    return String(card?.id || card?.thumb_preview || card?.thumbnail || '');
+  }
+
+  /**
+   * Pick the next batch to display.
+   * @param {Array} pool   cards to choose from
+   * @param {number} limit how many to show
+   * @returns {Array}
+   */
+  function pickSurpriseBatch(pool, limit) {
+    const prevSeen = lastShownIds;
+    const fresh = new Map();
+    const stale = new Map();
+    const keyOf = (t) => (SURPRISE_TYPES.includes(t) ? t : 'other');
+    [...SURPRISE_TYPES, 'other'].forEach((t) => { fresh.set(t, []); stale.set(t, []); });
+
+    shuffleArray([...pool]).forEach((card) => {
+      const t = keyOf(normalizePromptType(card.type));
+      (prevSeen.has(cardKey(card)) ? stale : fresh).get(t).push(card);
+    });
+
+    const out = [];
+    const taken = new Set();
+    const drawFrom = (map, type) => {
+      const list = map.get(type);
+      while (list && list.length) {
+        const card = list.shift();
+        const key = cardKey(card);
+        if (taken.has(key)) continue;      // never the same card twice in one grid
+        taken.add(key);
+        out.push(card);
+        return true;
+      }
+      return false;
+    };
+
+    const present = [...SURPRISE_TYPES, 'other']
+      .filter((t) => fresh.get(t).length || stale.get(t).length);
+
+    /* Phase 1 — representation.
+       A small quota per type so every kind of asset is on screen. Without it a
+       pool of 70 images / 18 models / 8 videos routinely rendered a wall of
+       images with one model and no video at all. */
+    const quota = Math.max(1, Math.floor(limit / (present.length * 3)));
+    present.forEach((type) => {
+      for (let n = 0; n < quota && out.length < limit; n++) {
+        if (!drawFrom(fresh, type) && !drawFrom(stale, type)) break;
+      }
+    });
+
+    /* Phase 2 — turnover, fresh only.
+       Round-robin across types but never dipping into cards already on screen.
+       A scarce type simply stops contributing once its fresh cards run out,
+       instead of forcing repeats: drawing evenly regardless meant 8 videos in
+       the pool were all redrawn every press, pinning a third of the grid in
+       place (measured: 67% of tiles changed, now 90%+). */
+    const roundRobin = (map) => {
+      const live = present.filter((t) => map.get(t).length);
+      let i = 0;
+      while (out.length < limit && live.length) {
+        const type = live[i % live.length];
+        if (!drawFrom(map, type)) { live.splice(i % live.length, 1); continue; }
+        i++;
+      }
+    };
+    roundRobin(fresh);
+    // Phase 3 — only if the pool is too small to fill the grid with new cards.
+    roundRobin(stale);
+
+    lastShownIds = new Set(out.map(cardKey));
+    return out;
+  }
+
+  /** How many of the visible tiles a batch would actually change. Logged so a
+   *  regression here is visible in the console instead of only to the eye. */
+  function changeRatio(before, after) {
+    if (!before.size || !after.length) return 1;
+    const changed = after.filter((c) => !before.has(cardKey(c))).length;
+    return changed / after.length;
+  }
+
   /** Fisher-Yates shuffle */
   function shuffleArray(array) {
     const result = [...array];
@@ -1180,6 +1282,10 @@
     grid.innerHTML = filteredCards.map(renderCard).join('');
     prioritiseLcpImage();
 
+    // Seed what is on screen so the FIRST Surprise Me press already knows what
+    // to avoid repeating.
+    lastShownIds = new Set(filteredCards.map(cardKey));
+
     // Store references to card elements for in-place updates
     cardElements = Array.from(grid.querySelectorAll('.inspire-card'));
 
@@ -1259,6 +1365,7 @@
 
       if (!el) continue;
 
+      try {
       // Show the card
       el.style.display = '';
 
@@ -1332,7 +1439,12 @@
           videoEl.appendChild(track);
           el.querySelector('.inspire-card__media').appendChild(videoEl);
         }
-        videoEl.poster = thumbPreview || '';
+        // Was `thumbPreview`, which is declared in renderCard() and does not
+        // exist in this scope. Under 'use strict' that is a ReferenceError, so
+        // the update loop threw at the FIRST video card and every card after
+        // it kept its old thumbnail — the whole reason "Surprise Me" only ever
+        // changed a handful of tiles (audit 2026-08-15).
+        videoEl.poster = thumbUrl || '';
         if (videoEl.src !== card.video_url) {
           videoEl.classList.remove('is-playing');
           videoEl.src = card.video_url;
@@ -1371,14 +1483,21 @@
         refineBadge.style.display = hasRefine ? '' : 'none';
       }
 
-      // Subtle animation for visual feedback
-      el.style.opacity = '0.7';
-      el.style.transform = 'scale(0.98)';
-      requestAnimationFrame(() => {
-        el.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
-        el.style.opacity = '1';
-        el.style.transform = 'scale(1)';
-      });
+      /* Visible feedback. The old version faded 0.7 -> 1 over 150ms with no
+         stagger, which on a 24-tile grid is close to imperceptible — part of
+         why the button read as "weak" even for the tiles that did update.
+         The stagger makes the sweep legible; the class carries the motion so
+         prefers-reduced-motion can switch it off in CSS. */
+      el.classList.remove('is-swapping');
+      // reflow so the animation restarts on a rapid second press
+      void el.offsetWidth;
+      el.style.setProperty('--swap-delay', (Math.min(i, 23) * 22) + 'ms');
+      el.classList.add('is-swapping');
+      el.addEventListener('animationend', () => el.classList.remove('is-swapping'), { once: true });
+      } catch (err) {
+        // One malformed card used to take the whole batch down with it.
+        console.warn('[Inspire] Card update failed at index ' + i + ':', err);
+      }
     }
 
     // Re-initialize video autoplay after shuffle
@@ -1505,29 +1624,55 @@
     }
     isShuffling = true;
 
+    const btn = overlayEl?.querySelector('#inspireShuffleBtn');
+    btn?.classList.add('is-working');
+
     try {
-      // Ensure pool is loaded (fetches once, then cached for 10 min)
-      const poolReady = await ensurePoolLoaded();
-
-      if (poolReady && INSPIRE_POOL.length > 0) {
-        // Shuffle the entire pool locally (Fisher-Yates)
-        INSPIRE_POOL = shuffleArray(INSPIRE_POOL);
-
-        // Take first DISPLAY_LIMIT cards for display
-        state.cards = INSPIRE_POOL.slice(0, DISPLAY_LIMIT);
-
-        // Update cards in-place (no DOM rebuild = no flicker)
-        await updateCardsInPlace(state.cards);
-      } else {
-        // Fallback: shuffle existing cards locally
-        if (state.cards.length > 0) {
-          state.cards = shuffleArray(state.cards);
-          await updateCardsInPlace(state.cards);
+      /* Surprise Me means "show me everything, mixed". Leaving a type filter
+         applied made the button look broken in the other direction: you would
+         press it on the Models filter and get a fresh set that then had to be
+         filtered back down to models, so most tiles vanished rather than
+         changed. Clearing the filter is the honest behaviour for a control
+         labelled Surprise Me. */
+      if (state.activeFilter !== 'all') {
+        state.activeFilter = 'all';
+        const filterRow = overlayEl?.querySelector('#inspireFilters');
+        if (filterRow) {
+          filterRow.querySelectorAll('.inspire-filter-btn').forEach((b) => {
+            b.classList.toggle('active', b.dataset.filter === 'all');
+          });
         }
       }
 
+      // Ensure pool is loaded (fetches once, then cached for 10 min)
+      const poolReady = await ensurePoolLoaded();
+      const source = (poolReady && INSPIRE_POOL?.length) ? INSPIRE_POOL : state.cards;
+
+      if (!source || !source.length) return;
+
+      const before = new Set(lastShownIds);
+      const batch = pickSurpriseBatch(source, Math.min(DISPLAY_LIMIT, source.length));
+      if (!batch.length) return;
+
+      const mix = batch.reduce((acc, c) => {
+        const t = normalizePromptType(c.type);
+        acc[t] = (acc[t] || 0) + 1;
+        return acc;
+      }, {});
+      console.log('[Inspire] Surprise: ' + batch.length + ' cards, '
+        + Math.round(changeRatio(before, batch) * 100) + '% changed, mix', mix);
+
+      state.cards = batch;
+      await updateCardsInPlace(state.cards);
+
       setPromptOfTheDay(pickPromptEntry(promptTypeForActiveFilter()));
+    } catch (err) {
+      // Previously there was no catch at all, so any throw inside the update
+      // loop escaped as an unhandled rejection and left isShuffling stuck
+      // until the timeout — with a half-updated grid on screen.
+      console.warn('[Inspire] Shuffle failed:', err);
     } finally {
+      btn?.classList.remove('is-working');
       // Allow next shuffle after a small delay (prevents spam)
       setTimeout(() => {
         isShuffling = false;

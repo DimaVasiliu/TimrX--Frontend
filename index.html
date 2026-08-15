@@ -57,7 +57,7 @@
   </script>
   <link rel="preload" href="/fonts/inter-subset.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="fonts/fonts.css">
-  <link rel="stylesheet" href="landing.css?v=14">
+  <link rel="stylesheet" href="landing.css?v=20260815recipes">
   <link rel="stylesheet" href="hero-assistant.css?v=21">
   <link rel="stylesheet" href="landing-widgets.css?v=20260813sync">
   <link rel="stylesheet" href="homepage-responsive.css?v=13">
@@ -228,6 +228,46 @@
               <a class="assistant-route" href="/3dprint" data-hero-route>Open Workspace <span>→</span></a>
             </div>
           </div>
+          <section class="prompt-recipes" aria-labelledby="promptRecipesTitle">
+            <div class="prompt-recipes__head">
+              <span class="prompt-recipes__kicker">Prompt recipes</span>
+              <h2 id="promptRecipesTitle">Start with a workflow-ready brief.</h2>
+            </div>
+            <div class="prompt-recipes__grid" aria-label="Prompt recipe starters">
+              <a class="prompt-recipe prompt-recipe--image is-active" href="/3dprint?panel=image&recipe=product-mockup" data-prompt-recipe data-recipe-panel="image" data-recipe-label="Product mockup" data-recipe-output="AI image" data-recipe-prompt="A clean ecommerce product mockup of a matte black smart desk lamp on a seamless white studio background, soft shadow, premium lighting, front three-quarter view" data-track="recipe_product_mockup">
+                <span class="prompt-recipe__icon" aria-hidden="true"><i class="fa-solid fa-image"></i></span>
+                <span class="prompt-recipe__copy">
+                  <strong>Product mockup</strong>
+                  <small>Open Image</small>
+                  <span>Studio ecommerce visual for ads, listings, and product pages.</span>
+                </span>
+              </a>
+              <a class="prompt-recipe prompt-recipe--model" href="/3dprint?panel=model&recipe=printable-miniature" data-prompt-recipe data-recipe-panel="model" data-recipe-label="Printable miniature" data-recipe-output="3D model" data-recipe-prompt="A heroic tabletop miniature with clean armor plates, stable pose, 32mm scale, thickened sword and base, readable silhouette, ready for resin or FDM printing" data-track="recipe_printable_miniature">
+                <span class="prompt-recipe__icon" aria-hidden="true"><i class="fa-solid fa-cube"></i></span>
+                <span class="prompt-recipe__copy">
+                  <strong>Printable miniature</strong>
+                  <small>Open Model</small>
+                  <span>Text-to-3D prompt tuned for scale, silhouette, and print checks.</span>
+                </span>
+              </a>
+              <a class="prompt-recipe prompt-recipe--video" href="/3dprint?panel=video&recipe=seedance-product-ad" data-prompt-recipe data-recipe-panel="video" data-recipe-label="Seedance product ad" data-recipe-output="AI video" data-recipe-prompt="Seedance product ad: cinematic 8 second reveal of a smart desk lamp switching on in a minimal studio, slow push-in camera, warm practical glow, clean shadows, 16:9" data-track="recipe_seedance_product_ad">
+                <span class="prompt-recipe__icon" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
+                <span class="prompt-recipe__copy">
+                  <strong>Seedance product ad</strong>
+                  <small>Open Video</small>
+                  <span>Short product reveal prompt with camera, duration, and format.</span>
+                </span>
+              </a>
+              <a class="prompt-recipe prompt-recipe--reference" href="/3dprint?panel=model&recipe=image-to-3d-reference" data-prompt-recipe data-recipe-panel="model" data-recipe-tab="image3d" data-recipe-label="Image to 3D reference" data-recipe-output="Reference 3D" data-recipe-prompt="Upload a clean front or three-quarter product reference image, then generate a 3D model with simple separated forms, preserved proportions, and material-ready surfaces" data-track="recipe_image_to_3d_reference">
+                <span class="prompt-recipe__icon" aria-hidden="true"><i class="fa-solid fa-camera-retro"></i></span>
+                <span class="prompt-recipe__copy">
+                  <strong>Image to 3D reference</strong>
+                  <small>Open Image to 3D</small>
+                  <span>Jump to the reference-image flow with a clear upload brief.</span>
+                </span>
+              </a>
+            </div>
+          </section>
           <ul class="hero-trust-line" aria-label="Highlights">
             <li>No installs</li>
             <li>Runs in your browser</li>
@@ -685,7 +725,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
   <script src="js/hero-feature-scenes.js?v=1" defer></script>
   <script src="landing-widgets.js?v=20260813sync" defer></script>
   <script src="js/shared/tx-menu.js?v=1" defer></script>
-  <script src="landing.js?v=8" defer></script>
+  <script src="landing.js?v=20260815recipes" defer></script>
   <script type="module" src="js/model-viewer-3.5.0.module.min.js"></script>
   <script src="js/cookie-consent.js" defer></script>
   <script>

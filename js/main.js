@@ -612,6 +612,21 @@ window.Viewer = window.TimrXViewer;
 window.loadGlbFromUrl = Viewer.loadGlbFromUrl;
 window.loadStlFromUrl = Viewer.loadStlFromUrl;
 
+/* State bridge for 3dprint-app.js, which is an IIFE and cannot import modules.
+   The rig and animate source pickers need to set which history item the
+   workspace is acting on: api.js:getActiveHistoryItem() — the thing
+   runRigPreflight() and startRig() actually read — resolves through
+   State.historyActiveModelId. Exposing the setter is what lets a picker drive
+   the existing pipeline instead of duplicating it.
+
+   getActiveModelId is a function, not a value: historyActiveModelId is a live
+   binding and snapshotting it here would freeze it at module-load time. */
+window.TimrXState = {
+  getHistory: State.getHistory,
+  setActiveModelId: State.setHistoryActiveModelId,
+  getActiveModelId: () => State.historyActiveModelId,
+};
+
 // ============================================================================
 // FILE HANDLERS
 // ============================================================================

@@ -2074,7 +2074,10 @@ export function getActiveHistoryItem() {
 function buildMeshySourceFromItem(item = {}) {
   if (!item) return {};
   const payload = item.payload || {};
-  const taskId = item.upstream_job_id
+  // A Meshy-native image carries its own provider task id, which Image-to-3D
+  // and Multi-Image-to-3D accept directly as input_task_id (Stage 7.3).
+  const taskId = item.meshy_task_id
+    || item.upstream_job_id
     || item.task_id
     || item.preview_task_id
     || item.preview_task
@@ -2447,11 +2450,15 @@ async function getTextureFormValues() {
   // first view is the primary/front one. Meshy rejects mixing multiview with
   // the text prompt or the single style image, so multiview wins outright.
   const supportsMultiview = ['latest', 'meshy-7'].includes(aiModel);
-  const multiviewSlotUrls = supportsMultiview
+  const multiviewSlots = supportsMultiview
     ? Array.from(document.querySelectorAll('#textureMultiviewGrid .multi-img-preview'))
-        .filter((img) => img.style.display !== 'none' && img.src)
-        .map((img) => img.src)
+        .map((img) => (img.style.display !== 'none' && img.src) ? img.src : null)
     : [];
+  // Slot 1 is the primary/front style view; refuse to silently promote slot 2.
+  if (supportsMultiview && multiviewSlots.some(Boolean) && !multiviewSlots[0]) {
+    throw new Error('Add the front style view to the Style 1 slot, or clear the other multiview slots.');
+  }
+  const multiviewSlotUrls = multiviewSlots.filter(Boolean);
   const multiviewPastedUrls = supportsMultiview
     ? (byId('textureMultiviewUrls')?.value || '')
         .split(/[\s,]+/).map((value) => value.trim()).filter(Boolean)
@@ -2729,7 +2736,12 @@ async function openRefineSettingsModal(item = {}) {
           textureResolution.value = '2k';
         }
       }
-      const cost = textureResolution?.value === '8k' ? 15 : 10;
+      // Same rule the backend reserves with: refine base + 8K surcharge.
+      const cost = window.WorkspaceCredits?.getMeshyActionCost
+        ? window.WorkspaceCredits.getMeshyActionCost('refine', {
+            texture_resolution: (textureResolution?.value || '2k').toLowerCase(),
+          }, 10)
+        : (textureResolution?.value === '8k' ? 15 : 10);
       if (refineCreditsDisplay) refineCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${cost}`;
       if (applyBtn) {
         const badge = applyBtn.querySelector('.btn-cost-badge');
@@ -7001,16 +7013,18 @@ async function startMultiImageTo3D() {
   const grid = byId('multiImageGrid');
   if (!grid) { alert('Multi-image panel not found.'); return; }
 
-  const previews = grid.querySelectorAll('.multi-img-preview');
-  const imageUrls = [];
-  previews.forEach(img => {
-    if (img.style.display !== 'none' && img.src) {
-      imageUrls.push(img.src);
-    }
-  });
+  const previews = Array.from(grid.querySelectorAll('.multi-img-preview'));
+  const filled = previews.map(img => (img.style.display !== 'none' && img.src) ? img.src : null);
+  const imageUrls = filled.filter(Boolean);
 
   if (imageUrls.length < 1 || imageUrls.length > 4) {
     alert(`Please upload 1–4 images. Currently ${imageUrls.length} selected.`);
+    return;
+  }
+  // Meshy 7 / latest treats the first image as the front view, and the panel
+  // labels slot 1 that way — so slot 1 must be the one we send first.
+  if (!filled[0]) {
+    alert('Add the front view to the Image 1 slot — Meshy builds the model around the first image.');
     return;
   }
 
@@ -8371,6 +8385,160 @@ export async function startViewerRemeshFromHistory(item, options = {}) {
 }
 
 // ============================================================================
+// MESHY CREATIVE LAB (prototype -> build)
+// ============================================================================
+
+/** Poll a Creative Lab stage until it reaches a terminal state. */
+async function pollCreativeLab(product, stage, jobId, onProgress) {
+  const url = `/api/_mod/creative-lab/${encodeURIComponent(product)}/${stage}/status/${encodeURIComponent(jobId)}`;
+  const maxAttempts = 80; // ~4 minutes at 3s
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    const res = await apiFetch(url);
+    if (!res.ok) throw new Error(res.error || `Status check failed (HTTP ${res.status})`);
+    const data = res.data || {};
+    if (data.status === 'done') return data;
+    if (data.status === 'failed') {
+      throw new Error(data.message || data.error || `${stage} failed.`);
+    }
+    if (typeof data.pct === 'number' && data.pct > 0) {
+      onProgress?.(`${stage === 'prototype' ? 'Designing' : 'Building'}... ${Math.min(99, data.pct)}%`);
+    }
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+  }
+  throw new Error(`${stage} timed out. Please try again.`);
+}
+
+/**
+ * Creative Lab stage 1: photo -> styled concept image.
+ * Cheap and image-only, so it is polled inline and creates no history entry.
+ */
+export async function startCreativeLabPrototype(product, { image_url, name = '', onProgress } = {}) {
+  if (!image_url) throw new Error('Choose a photo first.');
+  if (!checkCreditsFor(`creative-lab-${product}-prototype`)) {
+    throw new Error('Not enough credits for this prototype.');
+  }
+
+  const idempotencyKey = State.generateIdempotencyKey();
+  const started = await apiFetch(`/api/_mod/creative-lab/${encodeURIComponent(product)}/prototype`, {
+    method: 'POST',
+    body: { image_url, name },
+    headers: { 'Idempotency-Key': idempotencyKey },
+  });
+  if (!started.ok) throw new Error(started.error || `Prototype failed (HTTP ${started.status})`);
+
+  const jobId = started.data?.job_id;
+  if (!jobId) throw new Error('Meshy did not return a prototype task id.');
+  if (started.data?.new_balance !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
+    window.WorkspaceCredits.applyBackendBalance(started.data.new_balance, 'creative_lab_prototype');
+  }
+
+  onProgress?.('Designing your concept...');
+  const done = await pollCreativeLab(product, 'prototype', jobId, onProgress);
+  refreshCreditsInBackground();
+  return { ...done, job_id: jobId };
+}
+
+/**
+ * Creative Lab stage 2: prototype -> printable geometry.
+ * Produces a model, so it runs through the normal job pipeline and lands in
+ * history and the viewer like any other generation.
+ */
+export async function startCreativeLabBuild(product, { input_task_id, name = '', options = null } = {}) {
+  if (!input_task_id) throw new Error('Run the prototype step first.');
+  if (!checkCreditsFor(`creative-lab-${product}-build`)) {
+    throw new Error('Not enough credits for this build.');
+  }
+
+  const label = name || `${product.replace(/-/g, ' ')}`;
+  const idempotencyKey = State.generateIdempotencyKey();
+  const tempId = (crypto?.randomUUID ? crypto.randomUUID() : `cl-${Date.now()}`);
+  const meta = {
+    prompt: label,
+    root_prompt: label,
+    title: label,
+    stage: `creative_lab_${product.replace(/-/g, '_')}_build`,
+    creative_lab_product: product,
+    type: 'model',
+  };
+  addGeneratingPlaceholder(tempId, { ...meta, status_label: 'Building...' });
+  State.savePendingMeta(tempId, { ...meta, idempotency_key: idempotencyKey });
+
+  let started;
+  try {
+    const body = { input_task_id, name };
+    if (options && typeof options === 'object') body.options = options;
+    started = await apiFetch(`/api/_mod/creative-lab/${encodeURIComponent(product)}/build`, {
+      method: 'POST',
+      body,
+      headers: { 'Idempotency-Key': idempotencyKey },
+    });
+  } catch (err) {
+    State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
+    throw err;
+  }
+
+  State.deleteHistoryItem(tempId, { skipRemote: true });
+  State.deletePendingMeta(tempId);
+
+  if (!started.ok) throw new Error(started.error || `Build failed (HTTP ${started.status})`);
+  const jobId = started.data?.job_id;
+  if (!jobId) throw new Error('Meshy did not return a build task id.');
+
+  State.addActiveJob(jobId);
+  State.savePendingMeta(jobId, { ...meta, idempotency_key: idempotencyKey });
+  addGeneratingPlaceholder(jobId, { ...meta, status_label: 'Building...' });
+
+  // Own status route per product, so drive it here and hand the finished model
+  // to the shared history/viewer path.
+  (async () => {
+    try {
+      const done = await pollCreativeLab(product, 'build', jobId, null);
+      State.removeActiveJob(jobId);
+      const glbDirect = done.glb_url || done.model_urls?.glb || '';
+      const glbProxy = glbDirect ? getLoadableModelUrl(glbDirect) : '';
+      const historyData = {
+        id: jobId,
+        type: 'model',
+        status: 'finished',
+        created_at: normalizeEpochMs(done.created_at),
+        title: label,
+        prompt: label,
+        root_prompt: label,
+        progress_pct: 100,
+        stage: meta.stage,
+        creative_lab_product: product,
+        thumbnail_url: done.thumbnail_url || '',
+        glb_url: glbDirect,
+        glb_proxy: glbProxy,
+        model_urls: done.model_urls || {},
+      };
+      if (State.historyHasJobId(jobId)) State.updateHistoryItem(jobId, historyData);
+      else State.addHistoryItem(historyData);
+      State.setHistoryActiveModelId(jobId);
+      renderHistory();
+      if (glbDirect) {
+        await Viewer.presentAsset('model', glbProxy || glbDirect, {
+          fallbackUrl: glbDirect,
+          title: label,
+          hint: 'Creative Lab build complete.',
+        });
+      }
+      refreshCreditsInBackground();
+      if (window.showToast) window.showToast('Creative Lab build ready.', 'success');
+    } catch (err) {
+      State.removeActiveJob(jobId);
+      State.updateHistoryItem(jobId, { status: 'failed', status_label: err?.message || 'Build failed' });
+      renderHistory();
+      refreshCreditsInBackground();
+      if (window.showToast) window.showToast(err?.message || 'Creative Lab build failed.', 'error');
+    }
+  })();
+
+  return started.data;
+}
+
+// ============================================================================
 // MESHY PRINTABILITY (Analyze / Repair)
 // ============================================================================
 
@@ -9410,6 +9578,8 @@ window.startRemeshFromHistory = startRemeshFromHistory;
 window.startViewerRemeshFromHistory = startViewerRemeshFromHistory;
 window.startViewerRigFromHistory = startViewerRigFromHistory;
 window.startImageTo3DFromHistory = startImageTo3DFromHistory;
+window.startCreativeLabPrototype = startCreativeLabPrototype;
+window.startCreativeLabBuild = startCreativeLabBuild;
 window.onGenerateClick = onGenerateClick;
 window.startVideoGeneration = startVideoGeneration;
 window.getActiveHistoryItem = getActiveHistoryItem;

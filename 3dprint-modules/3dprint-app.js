@@ -800,7 +800,7 @@
             <div class="negative-prompt-field">
               <label for="image3dNegativePrompt">Avoid <span class="field-optional">(optional)</span></label>
               <textarea id="image3dNegativePrompt" class="negative-prompt-input negative-prompt-input--compact" maxlength="240" placeholder="unwanted text, logos, noisy surfaces, extra parts"></textarea>
-              <span class="field-hint">Used as an avoid instruction when the provider accepts text guidance.</span>
+              <span class="field-hint">Saved with the model for your reference. Meshy's Image-to-3D API takes no text prompt, so it does not steer this generation.</span>
             </div>
           </div>
 
@@ -1160,11 +1160,11 @@
               <label for="meshResizeValue">Target size (m)</label>
               <input type="number" id="meshResizeValue" min="0" step="0.01" value="0.1">
             </div>
-            <p class="field-hint texture-setting-note">Meshy Resize accepts exactly one sizing choice. Origin is set in Advanced Settings.</p>
+            <p class="field-hint texture-setting-note"><strong>Metres, not millimetres</strong> — a 150&nbsp;mm print is <code>0.15</code>. Meshy Resize accepts exactly one sizing choice; Origin is set in Advanced Settings.</p>
           </div>
 
           <div id="meshUvUnwrapModeFields" style="display:none">
-            <p class="field-hint texture-setting-note">UV Unwrap generates a clean UV layout for the source model above. It changes no geometry and takes no other settings — run it before texturing a model with poor UVs.</p>
+            <p class="field-hint texture-setting-note">UV Unwrap generates a clean UV layout for the source model above. It changes no geometry and takes no other settings — run it before texturing a model with poor UVs. Works best on models generated here; a freshly uploaded file may be rejected by Meshy.</p>
           </div>
 
           <button type="button" class="remesh-advanced-toggle" id="remeshAdvancedToggle">
@@ -1455,8 +1455,55 @@
       `,
 
       rig: `
+        <!-- Which model gets a skeleton. This step did not exist: the only
+             source control was a <select> reading "Current Model / Upload New
+             Model" buried on page 2, where "current" meant whatever happened
+             to be active in the workspace — so opening Rig with an empty
+             viewer gave you no way at all to choose something. -->
+        <div class="card" id="rigSourceCard" data-keep-block data-page="prompt">
+          <h3>Model to rig</h3>
+          <div id="rigSourceInfo" hidden>
+            <div class="ws-pick__chosen">
+              <img id="rigSourceThumb" src="" alt="" width="48" height="48" loading="lazy" decoding="async" hidden>
+              <div class="ws-pick__chosen-text">
+                <div class="ws-pick__chosen-title" id="rigSourceTitle">Model</div>
+                <div class="ws-pick__chosen-badge" id="rigSourceBadge">Ready to rig</div>
+              </div>
+            </div>
+            <div class="ws-pick__chosen-actions">
+              <button type="button" id="rigSourceViewBtn" class="gen-btn gen-btn--rail" title="Show this model in the 3D viewer">
+                <i class="fa-solid fa-eye" aria-hidden="true"></i> Show in viewer
+              </button>
+              <button type="button" id="rigSourceChangeBtn" class="gen-btn gen-btn--rail" title="Pick a different model">
+                <i class="fa-solid fa-repeat" aria-hidden="true"></i> Change
+              </button>
+            </div>
+          </div>
+          <div id="rigSourceEmpty">
+            <p class="ws-pick__lede" id="rigSourceLede">Pick the model you want to rig.</p>
+            <div class="ws-pick__strip" id="rigSourceStrip" role="listbox" aria-label="Your 3D models"></div>
+            <div class="ws-pick__actions">
+              <button type="button" id="rigSourceBrowseBtn" class="gen-btn gen-btn--rail ws-pick__action" hidden>
+                <i class="fa-solid fa-list" aria-hidden="true"></i> Browse all
+              </button>
+              <button type="button" id="rigSourceUploadBtn" class="gen-btn gen-btn--rail ws-pick__action">
+                <i class="fa-solid fa-upload" aria-hidden="true"></i> Upload a GLB
+              </button>
+              <button type="button" id="rigSourceRefreshBtn" class="gen-btn gen-btn--rail ws-pick__action" title="Re-check your history">
+                <i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh
+              </button>
+            </div>
+            <div class="ws-pick__none" id="rigSourceNone" hidden>
+              <p>Rigging adds a skeleton to a model you already have, and there are no 3D models in your history yet.</p>
+              <button type="button" id="rigGoModelBtn" class="gen-btn gen-btn--rail ws-pick__cta">
+                <i class="fa-solid fa-cube" aria-hidden="true"></i> Generate a model first
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- Preflight: Model readiness check -->
-        <div id="rigPreflightCard" class="card">
+        <div id="rigPreflightCard" class="card" data-page="prompt">
           <h3>Humanoid Rig</h3>
 
           <!-- Preflight status area (shown after check runs) -->
@@ -1496,7 +1543,11 @@
         </div>
 
         <!-- Step 1 — Alignment guidance -->
-        <div id="rigWizardStep1" class="card" style="display:none">
+        <!-- No longer hidden behind preflight. Preflight is advisory (it lets
+             you proceed on failure and on error), so gating the whole options
+             step on it only meant the panel looked empty until you pressed a
+             button whose purpose was not obvious. -->
+        <div id="rigWizardStep1" class="card">
           <h3>Alignment Guidance</h3>
           <div style="padding:8px 10px;background:rgba(100,180,255,.06);border-radius:6px;border-left:3px solid rgba(100,180,255,.3);margin-bottom:10px">
             <p style="margin:0;font-size:11px;color:#88b8ff;line-height:1.5">
@@ -1518,7 +1569,10 @@
           </div>
           <span class="field-hint">Height used for skeleton rigging only — does NOT affect print dimensions. Set print size in the Print Check panel.</span>
 
-          <div class="inline-field" style="margin-top:10px">
+          <!-- Kept because api.js:runRigPreflight/startRig read this value, but
+               it is no longer a control the user has to reason about: the
+               picker above sets it. -->
+          <div class="inline-field ws-pick__legacy-source" hidden>
             <label for="rigModelSelect">Source</label>
             <select id="rigModelSelect">
               <option value="current" selected>Current Model</option>
@@ -1538,7 +1592,7 @@
             <div id="rigModelFileName" style="display:none;margin-top:8px;padding:8px;background:rgba(255,255,255,.05);border-radius:6px;font-size:11px;color:#ccc"></div>
           </div>
 
-          <div class="texture-style-block" style="margin-top:12px">
+          <div class="texture-style-block" data-page="settings" style="margin-top:12px">
             <div class="image-upload-control">
               <input id="rigTextureImageUpload" class="visually-hidden image-upload-input" type="file" accept="image/png">
               <label class="image-upload-trigger" for="rigTextureImageUpload">
@@ -1596,7 +1650,7 @@
 
       animate: `
         <!-- Selected Model Card -->
-        <div class="card" id="animModelCard">
+        <div class="card" id="animModelCard" data-keep-block>
           <h3>Animate Model</h3>
           <div id="animModelInfo" style="display:none">
             <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
@@ -1607,22 +1661,40 @@
               </div>
             </div>
             <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <button type="button" id="animPreviewBtn" class="gen-btn gen-btn--rail" style="flex:1;padding:6px 10px;font-size:11px" title="Preview in viewer">
-                <i class="fa-solid fa-eye" style="font-size:10px"></i> Preview
+              <button type="button" id="animPreviewBtn" class="gen-btn gen-btn--rail" style="flex:1;padding:6px 10px;font-size:11px" title="Show this rig in the 3D viewer">
+                <i class="fa-solid fa-eye" style="font-size:10px"></i> Show in viewer
+              </button>
+              <button type="button" id="animChangeBtn" class="gen-btn gen-btn--rail" style="flex:1;padding:6px 10px;font-size:11px" title="Pick a different rigged model">
+                <i class="fa-solid fa-repeat" style="font-size:10px"></i> Change
               </button>
               <button type="button" id="animClearBtn" class="gen-btn gen-btn--rail" style="flex:0;padding:6px 10px;font-size:11px;opacity:.7" title="Clear selection">
                 <i class="fa-solid fa-xmark" style="font-size:10px"></i>
               </button>
             </div>
           </div>
+          <!-- Empty state. The old version offered "Load Latest Rigged Model"
+               and "Choose from History" — two buttons for one decision, where
+               the first is just the first row of the second, and neither shows
+               you what you are about to pick. It is a strip of real rigs
+               instead: newest first, click to select. -->
           <div id="animModelEmpty">
-            <p style="font-size:12px;color:#888;margin:0 0 12px;line-height:1.5">No rigged model selected. Choose a source:</p>
-            <div style="display:flex;flex-direction:column;gap:6px">
-              <button type="button" id="animLoadLatestBtn" class="gen-btn gen-btn--rail" style="width:100%;font-size:12px;padding:8px 12px">
-                <i class="fa-solid fa-clock-rotate-left" style="font-size:10px;margin-right:4px"></i> Load Latest Rigged Model
+            <p class="ws-pick__lede" id="animRigLede">Pick a rigged model to animate.</p>
+            <div class="ws-pick__strip" id="animRigStrip" role="listbox" aria-label="Your rigged models"></div>
+            <div class="ws-pick__actions">
+              <button type="button" id="animFromHistoryBtn" class="gen-btn gen-btn--rail ws-pick__action" hidden>
+                <i class="fa-solid fa-list" aria-hidden="true"></i> Browse all rigs
               </button>
-              <button type="button" id="animFromHistoryBtn" class="gen-btn gen-btn--rail" style="width:100%;font-size:12px;padding:8px 12px">
-                <i class="fa-solid fa-list" style="font-size:10px;margin-right:4px"></i> Choose from History
+              <button type="button" id="animRigRefreshBtn" class="gen-btn gen-btn--rail ws-pick__action" title="Re-check your history for new rigs">
+                <i class="fa-solid fa-rotate" aria-hidden="true"></i> Refresh
+              </button>
+            </div>
+            <!-- No rigs at all: a way forward, not a dead end. The old build
+                 fired a toast telling you to "use the RIG panel" and left you
+                 on a screen with no button that goes there. -->
+            <div class="ws-pick__none" id="animRigNone" hidden>
+              <p>Animation needs a skeleton to drive, and you have not rigged a model yet.</p>
+              <button type="button" id="animGoRigBtn" class="gen-btn gen-btn--rail ws-pick__cta">
+                <i class="fa-solid fa-child-reaching" aria-hidden="true"></i> Rig a model first
               </button>
             </div>
           </div>
@@ -1632,13 +1704,13 @@
         </div>
 
         <!-- Quick Animations -->
-        <div class="card" id="animQuickSection" style="display:none">
+        <div class="card" id="animQuickSection" data-keep-block style="display:none">
           <h3>Quick Animations</h3>
           <div id="animQuickChips" style="display:flex;gap:6px;flex-wrap:wrap"></div>
         </div>
 
         <!-- Animation Library -->
-        <div class="card" id="animLibrarySection" style="display:none">
+        <div class="card" id="animLibrarySection" data-keep-block style="display:none">
           <h3>Animation Library</h3>
           <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
             <input type="text" id="animLibrarySearch2" placeholder="Search animations..." style="flex:1;min-width:140px;padding:7px 10px;border-radius:6px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:#fff;font-size:12px">
@@ -1683,6 +1755,14 @@
           </div>
 
           <div class="gen-footer-card" style="margin-top:12px">
+            <!-- Recap line: which rig, which motion. A greyed-out Apply with
+                 nothing explaining why is the single most common complaint
+                 pattern in this panel — say what is missing instead. -->
+            <div class="anim-commit-recap" id="animCommitRecap">
+              <span class="anim-commit-recap__item" id="animRecapRig">No rig selected</span>
+              <span class="anim-commit-recap__sep">·</span>
+              <span class="anim-commit-recap__item" id="animRecapMotion">No motion chosen</span>
+            </div>
             <div class="gen-meta">
               <span class="gen-time">1 min</span>
               <span class="gen-divider">|</span>
@@ -1927,7 +2007,69 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           </button>
         </div>
       </div>
-    `
+    `,
+
+      creativeLab: `
+        <div class="card">
+          <h3>Creative Lab</h3>
+          <p class="card-desc" style="margin:0 0 10px;font-size:12px;color:rgba(255,255,255,.55);line-height:1.5">
+            Meshy's productized workflows: a photo becomes a printable object in two paid steps —
+            a cheap <strong>prototype</strong> concept image, then a <strong>build</strong> that turns it into 3D geometry.
+          </p>
+
+          <div class="field-group" style="margin-bottom:12px">
+            <span class="field-label-inline">Product</span>
+            <select id="creativeLabProduct" class="field-select-inline" style="width:100%">
+              <option value="keychain" selected>Keychain</option>
+              <option value="fridge-magnet">Fridge Magnet</option>
+              <option value="figure">Figure</option>
+              <option value="vinyl-figure">Vinyl Figure</option>
+              <option value="brick-figure">Brick Figure</option>
+              <option value="lamp">Lamp</option>
+              <option value="keycap">Keycap</option>
+            </select>
+            <p class="field-hint texture-setting-note" id="creativeLabProductNote">Prototype 6 cr, build 30 cr.</p>
+          </div>
+
+          <div class="inline-field" style="margin-bottom:10px">
+            <label for="creativeLabName">Name <span class="field-optional">(optional)</span></label>
+            <input type="text" id="creativeLabName" maxlength="100" placeholder="My keychain">
+          </div>
+
+          <label class="video-section-label">Source photo</label>
+          <div class="video-drop-zone" id="creativeLabDrop" style="padding:18px;text-align:center;cursor:pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width:26px;height:26px;opacity:.35"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+            <p style="margin:6px 0 3px;font-size:12px;color:#ccc">Click or drag a photo</p>
+            <span style="font-size:11px;color:#666">JPG, PNG or WEBP</span>
+            <input type="file" id="creativeLabUpload" accept="image/png,image/jpeg,image/webp" hidden />
+          </div>
+          <img id="creativeLabPreview" width="240" height="240" loading="lazy" decoding="async" style="display:none;width:100%;max-width:240px;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,.3);margin:10px auto 0" />
+
+          <div id="creativeLabPrototypeResult" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
+            <span class="field-label-inline">Prototype</span>
+            <img id="creativeLabPrototypeImage" width="240" height="240" loading="lazy" decoding="async" style="width:100%;max-width:240px;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,.3);margin:6px auto 0;display:block" />
+            <p class="field-hint texture-setting-note">Happy with the concept? Build it into printable 3D geometry.</p>
+          </div>
+
+          <p class="field-hint texture-setting-note" id="creativeLabStatus" style="margin-top:10px">Upload a photo to start.</p>
+        </div>
+
+        <div class="card gen-footer-card">
+          <div class="gen-meta">
+            <span class="gen-time">~2 min</span>
+            <span class="gen-divider">|</span>
+            <span class="gen-credits" id="creativeLabCreditsDisplay"><i class="fa-solid fa-coins"></i> 6</span>
+          </div>
+          <div class="gen-btn-row">
+            <button type="button" id="creativeLabPrototypeBtn" class="gen-btn" title="6 credits">
+              Prototype <span class="btn-cost-badge">6 cr</span>
+            </button>
+            <button type="button" id="creativeLabBuildBtn" class="gen-btn" title="30 credits" disabled>
+              Build <span class="btn-cost-badge">30 cr</span>
+            </button>
+          </div>
+        </div>
+      `
   };
 
     /**
@@ -2012,10 +2154,20 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         !!el.querySelector(commitSel + ', .texture-format-grid') ||
         COMMIT_IDS.includes(el.id);
 
-      // Flatten wrappers that exist only to group (cards, the video body).
+      /* Flatten wrappers that exist only to group (cards, the video body).
+         `data-keep-block` opts a card out. Panels that show and hide a whole
+         section at runtime need the section element to still exist: flattening
+         re-parents the children and drops the wrapper, so every
+         `querySelector('#thatSection').style.display = ...` afterwards was
+         addressing a node that had been removed from the document and silently
+         did nothing. The animate panel lost its model card, its quick-anims
+         section and its library section that way, which is why it rendered
+         "No rigged model selected" and a full animation library at the same
+         time (audit 2026-08-15). */
       const expand = (el) =>
-        (el.classList.contains('card') && !el.classList.contains('gen-footer-card')) ||
-        el.classList.contains('video-main-card')
+        ((el.classList.contains('card') && !el.classList.contains('gen-footer-card')) ||
+         el.classList.contains('video-main-card')) &&
+        !el.hasAttribute('data-keep-block') && !el.hasAttribute('data-page')
           ? Array.from(el.children).flatMap(expand)
           : [el];
 
@@ -2037,6 +2189,13 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           el.remove();
           return;
         }
+        /* An explicit data-page wins over every heuristic below. The rules are
+           structural guesses — `isPrompt` matches anything containing a file
+           input, which is why the rig panel's "Source" step was showing a
+           texture PNG uploader while the actual model chooser sat on page 2.
+           Blocks that know where they belong now say so. */
+        const forcedPage = el.getAttribute?.('data-page');
+        if (forcedPage && bucket[forcedPage]) { bucket[forcedPage].push(el); return; }
         if (isOutput(el))  { bucket.output.push(el);  return; }
         if (isPrompt(el))  { bucket.prompt.push(el);  return; }
         bucket.settings.push(el);
@@ -2080,6 +2239,27 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           !bucket.prompt.some((n) =>
             n.matches?.('textarea[id*="rompt" i]') || n.querySelector?.('textarea[id*="rompt" i]'))) {
         live[0] = { key: 'prompt', title: 'Source', hint: 'What this runs on' };
+      }
+
+      /* Per-panel step names. "Settings / How it gets made" then "Output /
+         Cost, formats and generate" is honest for a generator, but animate and
+         rig are two-decision flows — what you act on, then what you do to it —
+         and the generic labels made the pager read as configuration rather
+         than as steps. */
+      const PAGE_LABELS = {
+        animate: {
+          settings: { title: 'Rig', hint: 'What you are animating' },
+          output:   { title: 'Motion', hint: 'Pick a movement, then apply' },
+        },
+        rig: {
+          prompt:   { title: 'Model',   hint: 'What gets a skeleton' },
+          settings: { title: 'Options', hint: 'Height, pose and texture guidance' },
+          output:   { title: 'Rig it',  hint: 'Check the cost, then start' },
+        },
+      };
+      const labels = PAGE_LABELS[panelType];
+      if (labels) {
+        live.forEach((pg, i) => { if (labels[pg.key]) live[i] = { ...pg, ...labels[pg.key] }; });
       }
 
       const shell = make('div', 'ws-pages');
@@ -2676,14 +2856,21 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const getModelGenerationCost = () => {
         const activeTab = getActiveModelTab();
         const isImageFlow = activeTab === 'image3d' || activeTab === 'multiimage3d';
-        if (!isImageFlow) return 20;
+        const credits = window.WorkspaceCredits;
+        if (!isImageFlow) return credits?.getActionCost?.('text_to_3d_generate') || 20;
+        // Ultra is single-image only; both image flows carry the 8K surcharge.
+        // Mirrors backend expected_meshy_platform_cost().
+        const resolution = (leftStack.querySelector('#modelTextureResolution')?.value || '2k').toLowerCase();
+        const ultraMode = activeTab === 'image3d' && !!leftStack.querySelector('#modelUltraMode')?.checked;
+        if (credits?.getMeshyActionCost) {
+          return credits.getMeshyActionCost('image_to_3d_generate', {
+            texture_resolution: resolution,
+            ultra_mode: ultraMode,
+          });
+        }
         let cost = 30;
-        if ((leftStack.querySelector('#modelTextureResolution')?.value || '2k').toLowerCase() === '8k') {
-          cost += 5;
-        }
-        if (activeTab === 'image3d' && leftStack.querySelector('#modelUltraMode')?.checked) {
-          cost += 5;
-        }
+        if (resolution === '8k') cost += 5;
+        if (ultraMode) cost += 5;
         return cost;
       };
       const syncModelGenerationControls = () => {
@@ -2701,8 +2888,15 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         const generateBtn = leftStack.querySelector('#generateModelBtn');
         const smartTopology = isSingleImageFlow && (modelType?.value || '').toLowerCase() === 'smart-topology';
 
-        if (modelType && !isSingleImageFlow && modelType.value === 'smart-topology') {
-          modelType.value = 'standard';
+        // Multi-image supports neither smart-topology nor low-poly on Meshy.
+        const isMultiImageFlow = activeTab === 'multiimage3d';
+        if (modelType) {
+          modelType.querySelectorAll('option').forEach((option) => {
+            if (option.value === 'smart-topology') option.disabled = !isSingleImageFlow;
+            if (option.value === 'lowpoly') option.disabled = isMultiImageFlow;
+          });
+          if (!isSingleImageFlow && modelType.value === 'smart-topology') modelType.value = 'standard';
+          if (isMultiImageFlow && modelType.value === 'lowpoly') modelType.value = 'standard';
         }
 
         if (aiModel) {
@@ -6289,8 +6483,23 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       textureMultiviewUrls?.addEventListener('input', syncTextureMultiviewCount);
       syncTextureMultiviewCount();
 
+      // Retexture reserves base + 8K surcharge (backend
+      // expected_meshy_platform_cost), so the footer has to show the same.
+      const syncTextureCost = () => {
+        const btn = leftStack.querySelector('#generateTextureBtn');
+        if (!btn) return;
+        const resolution = (textureResolution?.value || '2k').toLowerCase();
+        const cost = window.WorkspaceCredits?.getMeshyActionCost
+          ? window.WorkspaceCredits.getMeshyActionCost('retexture', { texture_resolution: resolution })
+          : (resolution === '8k' ? 15 : 10);
+        // updateButtonCosts() reads this and renders footer + badge + tooltip.
+        btn.dataset.baseCredits = String(cost);
+        window.WorkspaceCredits?.updateButtonCosts?.();
+      };
+
       const syncTextureLightingSupport = () => {
         if (!textureAiModel) return;
+        syncTextureCost();
         const isMeshy5 = textureAiModel.value === 'meshy-5';
         const supportsRemoveLighting = textureAiModel.value === 'meshy-6';
         // Meshy documents multiview_image_urls for meshy-7 / latest only.
@@ -6413,6 +6622,54 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           if (!show && rigModelFileName) rigModelFileName.style.display = 'none';
         });
       }
+
+      /* ---- rig source picker ------------------------------------------- */
+      // Paint from whatever the workspace already considers active, so
+      // arriving from a just-generated model does not make you choose it again.
+      const rigActiveId = (() => {
+        try { return window.TimrXState?.getActiveModelId?.() || null; } catch (_) { return null; }
+      })();
+      _syncRigSourceUI(rigActiveId
+        ? _findAllRiggableFromHistory().find((i) => String(i.id) === String(rigActiveId)) || null
+        : null);
+
+      leftStack.querySelector('#rigSourceChangeBtn')?.addEventListener('click', () => {
+        try { window.TimrXState?.setActiveModelId?.(null); } catch (_) { /* state not booted */ }
+        _hideAnimateViewer();
+        _syncRigSourceUI(null);
+      });
+
+      leftStack.querySelector('#rigSourceViewBtn')?.addEventListener('click', () => {
+        const id = (() => { try { return window.TimrXState?.getActiveModelId?.(); } catch (_) { return null; } })();
+        const item = _findAllRiggableFromHistory().find((i) => String(i.id) === String(id));
+        if (item) _selectRiggableItem(item);
+        else _toast('That model is no longer in your history. Pick another one.');
+      });
+
+      leftStack.querySelector('#rigSourceRefreshBtn')?.addEventListener('click', () => {
+        const n = _renderRiggableStrip();
+        _toast(n
+          ? 'Up to date — ' + n + ' model' + (n === 1 ? '' : 's') + ' you can rig.'
+          : 'Still no 3D models in your history.');
+      });
+
+      // Upload is a source choice, not a separate mode: reveal the drop zone
+      // and flip the legacy select for api.js in one press.
+      leftStack.querySelector('#rigSourceUploadBtn')?.addEventListener('click', () => {
+        if (rigModelSelect) {
+          rigModelSelect.value = 'upload';
+          rigModelSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        rigUploadSection?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        rigModelUpload?.click();
+      });
+
+      // The old empty state had no exit. This one goes where models are made.
+      leftStack.querySelector('#rigGoModelBtn')?.addEventListener('click', () => {
+        const railBtn = document.querySelector('.rail-btn[data-panel="model"]');
+        if (railBtn) railBtn.click();
+        else _toast('Switch to 3D Model mode to generate something to rig.');
+      });
       if (rigModelDrop && rigModelUpload && rigModelFileName) {
         rigModelDrop.addEventListener('click', () => rigModelUpload.click());
         rigModelUpload.addEventListener('change', function () {
@@ -6481,9 +6738,16 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       const goToAnimateBtn = leftStack.querySelector('#goToAnimateBtn');
       if (goToAnimateBtn) {
         goToAnimateBtn.addEventListener('click', () => {
-          // Switch to animate panel via rail button click
+          /* Coming straight from a finished rig, the model you want is not in
+             question — carry it across instead of dropping the user on a
+             picker to choose the thing they just made. The panel is rebuilt by
+             the rail click, so the selection is applied after that. */
+          const justRigged = _findLatestRiggedFromHistory();
           const animRailBtn = document.querySelector('.rail-btn[data-panel="animate"]');
           if (animRailBtn) animRailBtn.click();
+          if (justRigged) {
+            requestAnimationFrame(() => _selectRiggedItem(justRigged, 'rig'));
+          }
         });
       }
 
@@ -6848,6 +7112,140 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       modelMultiViewThumbnails?.addEventListener('change', syncAllModelControls);
       syncPreviewAdvancedControls();
       syncModelGenerationControls();
+
+      // ── Creative Lab: photo -> prototype -> build ──────────────
+      const clProduct = leftStack.querySelector('#creativeLabProduct');
+      if (clProduct) {
+        const clUpload = leftStack.querySelector('#creativeLabUpload');
+        const clDrop = leftStack.querySelector('#creativeLabDrop');
+        const clPreview = leftStack.querySelector('#creativeLabPreview');
+        const clName = leftStack.querySelector('#creativeLabName');
+        const clStatus = leftStack.querySelector('#creativeLabStatus');
+        const clNote = leftStack.querySelector('#creativeLabProductNote');
+        const clCredits = leftStack.querySelector('#creativeLabCreditsDisplay');
+        const clPrototypeBtn = leftStack.querySelector('#creativeLabPrototypeBtn');
+        const clBuildBtn = leftStack.querySelector('#creativeLabBuildBtn');
+        const clResult = leftStack.querySelector('#creativeLabPrototypeResult');
+        const clResultImg = leftStack.querySelector('#creativeLabPrototypeImage');
+
+        let clSourceImage = '';
+        let clPrototypeTaskId = '';
+
+        const clCost = (stage) => {
+          const product = clProduct.value;
+          const action = `creative-lab-${product}-${stage}`;
+          const fallback = product === 'keycap'
+            ? (stage === 'prototype' ? 12 : 50)
+            : (stage === 'prototype' ? 6 : 30);
+          return window.WorkspaceCredits?.getActionCost?.(action) || fallback;
+        };
+
+        const syncCreativeLab = () => {
+          const prototypeCost = clCost('prototype');
+          const buildCost = clCost('build');
+          if (clNote) clNote.textContent = `Prototype ${prototypeCost} cr, build ${buildCost} cr.`;
+          if (clCredits) {
+            clCredits.innerHTML = `<i class="fa-solid fa-coins"></i> ${clPrototypeTaskId ? buildCost : prototypeCost}`;
+          }
+          if (clPrototypeBtn) {
+            clPrototypeBtn.title = `${prototypeCost} credits`;
+            const badge = clPrototypeBtn.querySelector('.btn-cost-badge');
+            if (badge) badge.textContent = `${prototypeCost} cr`;
+            clPrototypeBtn.disabled = !clSourceImage;
+          }
+          if (clBuildBtn) {
+            clBuildBtn.title = `${buildCost} credits`;
+            const badge = clBuildBtn.querySelector('.btn-cost-badge');
+            if (badge) badge.textContent = `${buildCost} cr`;
+            clBuildBtn.disabled = !clPrototypeTaskId;
+          }
+        };
+
+        // Switching product invalidates a prototype built from another product.
+        clProduct.addEventListener('change', () => {
+          clPrototypeTaskId = '';
+          if (clResult) clResult.style.display = 'none';
+          if (clStatus) clStatus.textContent = clSourceImage
+            ? 'Ready to prototype.'
+            : 'Upload a photo to start.';
+          syncCreativeLab();
+        });
+
+        if (clDrop && clUpload) {
+          clDrop.addEventListener('click', () => clUpload.click());
+          clDrop.addEventListener('dragover', (e) => { e.preventDefault(); clDrop.style.borderColor = 'rgba(255,255,255,.3)'; });
+          clDrop.addEventListener('dragleave', () => { clDrop.style.borderColor = ''; });
+          clDrop.addEventListener('drop', (e) => {
+            e.preventDefault();
+            clDrop.style.borderColor = '';
+            if (e.dataTransfer.files?.[0]) {
+              clUpload.files = e.dataTransfer.files;
+              clUpload.dispatchEvent(new Event('change'));
+            }
+          });
+          clUpload.addEventListener('change', async function () {
+            if (!this.files?.[0]) return;
+            try {
+              clSourceImage = await readFileAsDataUrl(this.files[0]);
+              if (clPreview) {
+                clPreview.src = clSourceImage;
+                clPreview.style.display = 'block';
+              }
+              clPrototypeTaskId = '';
+              if (clResult) clResult.style.display = 'none';
+              if (clStatus) clStatus.textContent = 'Ready to prototype.';
+            } catch (err) {
+              this.value = '';
+              clSourceImage = '';
+              showImageUploadError(err?.message || 'Invalid image file.');
+            }
+            syncCreativeLab();
+          });
+        }
+
+        clPrototypeBtn?.addEventListener('click', async () => {
+          if (!clSourceImage) return;
+          clPrototypeBtn.disabled = true;
+          if (clStatus) clStatus.textContent = 'Sending photo to Meshy...';
+          try {
+            const result = await window.startCreativeLabPrototype(clProduct.value, {
+              image_url: clSourceImage,
+              name: (clName?.value || '').trim(),
+              onProgress: (label) => { if (clStatus) clStatus.textContent = label; },
+            });
+            clPrototypeTaskId = result?.job_id || '';
+            const previewUrl = result?.image_urls?.[0] || result?.thumbnail_url || '';
+            if (previewUrl && clResultImg && clResult) {
+              clResultImg.src = previewUrl;
+              clResult.style.display = '';
+            }
+            if (clStatus) clStatus.textContent = 'Prototype ready — build it when you are happy.';
+          } catch (err) {
+            if (clStatus) clStatus.textContent = err?.message || 'Prototype failed.';
+          } finally {
+            syncCreativeLab();
+          }
+        });
+
+        clBuildBtn?.addEventListener('click', async () => {
+          if (!clPrototypeTaskId) return;
+          clBuildBtn.disabled = true;
+          if (clStatus) clStatus.textContent = 'Building 3D geometry...';
+          try {
+            await window.startCreativeLabBuild(clProduct.value, {
+              input_task_id: clPrototypeTaskId,
+              name: (clName?.value || '').trim(),
+            });
+            if (clStatus) clStatus.textContent = 'Build started — it will appear in your history.';
+          } catch (err) {
+            if (clStatus) clStatus.textContent = err?.message || 'Build failed.';
+          } finally {
+            syncCreativeLab();
+          }
+        });
+
+        syncCreativeLab();
+      }
 
       // ========================================
       // PROMPT ENHANCE: Bind enhance buttons
@@ -7234,6 +7632,8 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           if (applyAnimBtn && _timrxAnimState.is_rigged) {
             applyAnimBtn.classList.remove('anim-btn-inactive');
           }
+          // Refresh the commit recap so the footer names the chosen motion.
+          _syncAnimatePanelUI();
         });
 
         animGrid.appendChild(card);
@@ -7273,6 +7673,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           chip.style.background = 'rgba(100,180,255,.08)';
           // Also highlight in library grid if visible
           _renderAnimLibraryInPanel();
+          _syncAnimatePanelUI();
         });
         container.appendChild(chip);
       });
@@ -7294,6 +7695,35 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
 
       console.log('[Animate] syncUI: hasModel=' + hasModel + ' is_rigged=' + _timrxAnimState.is_rigged + ' rig_task_id=' + (_timrxAnimState.rig_task_id || 'none') + ' selected_action=' + (_timrxAnimState.selected_action_id || 'none') + ' applyBtn=' + (applyBtn ? 'found' : 'missing'));
 
+      /* Commit recap. The Apply button is disabled until BOTH a rig and a
+         motion are chosen, and previously said nothing about which one was
+         missing — you were left clicking a dead button. */
+      const recapRig = leftStack.querySelector('#animRecapRig');
+      const recapMotion = leftStack.querySelector('#animRecapMotion');
+      if (recapRig) {
+        recapRig.textContent = hasModel
+          ? (_timrxAnimState.title || 'Rigged model')
+          : 'No rig selected';
+        recapRig.classList.toggle('is-missing', !hasModel);
+      }
+      if (recapMotion) {
+        const motion = _timrxAnimState.selected_animation?.name;
+        recapMotion.textContent = motion || 'No motion chosen';
+        recapMotion.classList.toggle('is-missing', !motion);
+      }
+      if (applyBtn) {
+        const blocker = !hasModel ? 'Select a rigged model first'
+          : !_timrxAnimState.is_rigged ? 'This model has no rig'
+          : !_timrxAnimState.selected_action_id ? 'Choose a motion from the library'
+          : '';
+        applyBtn.title = blocker || 'Apply this animation — 3 credits';
+        applyBtn.setAttribute('aria-disabled', blocker ? 'true' : 'false');
+      }
+
+      // The strip is the source picker; keep it current whenever the empty
+      // state is the thing on screen.
+      if (!hasModel) _renderRigStrip();
+
       if (hasModel) {
         if (modelInfo) modelInfo.style.display = '';
         if (modelEmpty) modelEmpty.style.display = 'none';
@@ -7307,24 +7737,27 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         if (_timrxAnimState.is_rigged) {
           if (badgeEl) { badgeEl.textContent = 'Rigged model loaded'; badgeEl.style.color = '#50c878'; badgeEl.style.background = 'rgba(80,200,120,.12)'; }
           if (notRiggedWarning) notRiggedWarning.style.display = 'none';
-          if (quickSection) quickSection.style.display = '';
-          if (librarySection) librarySection.style.display = '';
           if (applyBtn) applyBtn.classList.toggle('anim-btn-inactive', !_timrxAnimState.selected_action_id);
         } else {
           if (badgeEl) { badgeEl.textContent = 'Not rigged'; badgeEl.style.color = '#cca030'; badgeEl.style.background = 'rgba(255,200,50,.08)'; }
           if (notRiggedWarning) notRiggedWarning.style.display = '';
-          if (quickSection) quickSection.style.display = 'none';
-          if (librarySection) librarySection.style.display = 'none';
           if (applyBtn) applyBtn.classList.add('anim-btn-inactive');
         }
       } else {
         if (modelInfo) modelInfo.style.display = 'none';
         if (modelEmpty) modelEmpty.style.display = '';
         if (notRiggedWarning) notRiggedWarning.style.display = 'none';
-        if (quickSection) quickSection.style.display = 'none';
-        if (librarySection) librarySection.style.display = 'none';
         if (applyBtn) applyBtn.classList.add('anim-btn-inactive');
       }
+
+      /* Quick anims and the library stay on screen in every state.
+         They used to be hidden until a rig was chosen, which meant the panel
+         you land on shows one card and two buttons and gives no hint that a
+         library of motions is what comes next. Browsing motions before
+         choosing a rig is a legitimate order to work in; only the commit is
+         gated, and the recap above says what is still missing. */
+      if (quickSection) quickSection.style.display = '';
+      if (librarySection) librarySection.style.display = '';
     }
 
     /** Simple toast/alert fallback — uses showToast if available, else alert */
@@ -7352,32 +7785,392 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       }
     }
 
-    /** Check if a history item is a finished rigged model */
+    /* ======================================================================
+       RIGGED-MODEL DISCOVERY
+       ----------------------------------------------------------------------
+       Three independent widenings, each for a case that made a real rig
+       invisible to this panel (audit 2026-08-15):
+
+       stage   history.js:normalizeHistoryStage() folds 'rigged' into 'rig'.
+               That mapping only exists because both spellings are in stored
+               rows, so matching 'rig' alone dropped half of them.
+       status  'finished' is what the frontend writes; rows completed by the
+               backend poller land as 'succeeded'.
+       url     the GLB is not always at item.glb_url. Same ladder as
+               api.js:modelUrlFromHistoryItem, including its blob:/data:
+               rejection — a browser-only URL cannot be sent to Meshy and is
+               dead after a reload, so an item carrying only one is not a
+               usable source and must not be offered.
+       ====================================================================== */
+    const _RIG_STAGES = new Set(['rig', 'rigged', 'rigging']);
+    const _DONE_STATUSES = new Set(['finished', 'succeeded', 'completed', 'ready', 'success', 'done']);
+    const _RIG_STRIP_LIMIT = 8;
+
+    function _isBrowserOnlyUrl(value) {
+      return /^(blob|data):/i.test(String(value || '').trim());
+    }
+
+    /** First durable http(s) model URL on a history item, or '' if none. */
+    function _riggedModelUrl(it = {}) {
+      const payload = it.payload || {};
+      const candidates = [
+        payload.rigged_character_glb_url,
+        it.glb_url,
+        it.glb_proxy,
+        it.model_url,
+        it.model_urls?.glb,
+        payload.glb_url,
+        payload.glb_proxy,
+        payload.model_url,
+        payload.model_urls?.glb,
+      ];
+      for (const raw of candidates) {
+        const url = String(raw || '').trim();
+        if (!url || _isBrowserOnlyUrl(url)) continue;
+        if (/^https?:\/\//i.test(url) || url.startsWith('/api/')) return url;
+      }
+      return '';
+    }
+
+    /** Milliseconds since epoch, tolerating ISO strings and second precision.
+     *  The old comparator did `(b.created_at || 0) - (a.created_at || 0)`,
+     *  which is NaN for ISO strings — so the sort was a no-op and "load the
+     *  latest rig" could hand back the oldest one. */
+    function _itemTimeMs(it = {}) {
+      let v = it.created_at ?? it.createdAt ?? it.updated_at ?? 0;
+      if (typeof v === 'string') v = /^\d+$/.test(v) ? Number(v) : Date.parse(v);
+      if (typeof v !== 'number' || Number.isNaN(v)) return 0;
+      if (v > 1e15) return Math.floor(v / 1000);  // microseconds
+      if (v > 0 && v < 1e12) return v * 1000;     // seconds
+      return v;
+    }
+
+    /** Check if a history item is a finished rigged model we can actually use */
     function _isRiggedItem(it) {
-      if (it.status !== 'finished') return false;
-      const stage = (it.stage || '').toLowerCase();
-      if (stage === 'rig') return true;
-      // Also check payload.stage for DB-synced items
-      const payloadStage = (it.payload?.stage || '').toLowerCase();
-      return payloadStage === 'rig';
+      if (!it || typeof it !== 'object') return false;
+      const status = String(it.status || '').toLowerCase();
+      // A row with no status at all was added locally and never round-tripped
+      // through the DB. Treat it as done rather than discarding it.
+      if (status && !_DONE_STATUSES.has(status)) return false;
+      const stage = String(it.stage || it.payload?.stage || '').toLowerCase();
+      if (!_RIG_STAGES.has(stage)) return false;
+      // Without a loadable model this row would select a card that opens
+      // nothing and only fails at submit time.
+      return !!_riggedModelUrl(it);
+    }
+
+    /** Rigged models from history, newest first. */
+    function _findAllRiggedFromHistory() {
+      const items = _getHistoryFromCache();
+      const rigged = items.filter(_isRiggedItem).sort((a, b) => _itemTimeMs(b) - _itemTimeMs(a));
+      if (!rigged.length && items.length) {
+        // Loud on purpose: "no rigs" alongside a populated history means this
+        // filter has met a stage/status spelling it does not know yet, and the
+        // console is the only place that will ever say so.
+        const seen = {};
+        items.forEach((i) => {
+          const k = String(i?.stage || i?.payload?.stage || '-') + '/' + String(i?.status || '-');
+          seen[k] = (seen[k] || 0) + 1;
+        });
+        console.warn('[Animate] No rigged items among ' + items.length + '. stage/status seen:', seen);
+      }
+      return rigged;
     }
 
     /** Find the most recent rigged model from history */
     function _findLatestRiggedFromHistory() {
-      const items = _getHistoryFromCache();
-      const rigged = items.filter(_isRiggedItem)
-        .sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
-      console.log('[Animate] findLatest: total=' + items.length + ' rigged=' + rigged.length);
-      return rigged[0] || null;
+      return _findAllRiggedFromHistory()[0] || null;
     }
 
-    /** Find ALL rigged models from history */
-    function _findAllRiggedFromHistory() {
+    /* ======================================================================
+       VIEWER BESIDE THE DRAWER
+       ----------------------------------------------------------------------
+       `ws-viewer-open` was built as a full-surface takeover: nav.css hides
+       .ws-left with !important and drops every .ws-grid child that is not the
+       viewer. Showing a model therefore meant closing the panel you were
+       working in, which is why nothing here ever revealed the viewer — the
+       GLB was being decoded into a display:none canvas.
+
+       `ws-viewer-split` (dock.css) is the state where both are on screen:
+       canvas on the left, tool drawer on the right.
+       ====================================================================== */
+    let _splitCleanupBound = false;
+    function _bindSplitCleanup() {
+      if (_splitCleanupBound) return;
+      _splitCleanupBound = true;
+      // 3dprint.html's inline closeViewer() only removes ws-viewer-open. Every
+      // split rule needs both classes so a leftover flag is inert, but it
+      // would change how the NEXT viewer open lays out. Clear it wherever the
+      // viewer can be dismissed from outside this module.
+      const drop = () => document.body.classList.remove('ws-viewer-split');
+      document.addEventListener('click', (e) => {
+        if (e.target.closest?.('[data-close-3d-viewer], [data-af-close-viewer]')) drop();
+      }, true);
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && document.body.classList.contains('ws-viewer-open')) drop();
+      }, true);
+    }
+
+    function _showAnimateViewer() {
+      _bindSplitCleanup();
+      document.body.classList.add('ws-viewer-open', 'ws-viewer-split');
+      document.body.classList.remove('assets-modal-open');
+      try { window.TimrXAssets?.close?.(); } catch (_) { /* assets not booted */ }
+      // Deliberately NOT TimrXViewer.revealWorkspaceViewer(): that helper
+      // closes the control sheet, which is the one thing to keep here.
+      requestAnimationFrame(() => {
+        try { window.TimrXViewer?.resizeViewerCanvas?.(); } catch (_) { /* no canvas yet */ }
+        window.dispatchEvent(new Event('resize'));
+      });
+    }
+
+    /** Leave split mode. Only touches state this module turned on. */
+    function _hideAnimateViewer() {
+      if (!document.body.classList.contains('ws-viewer-split')) return;
+      document.body.classList.remove('ws-viewer-open', 'ws-viewer-split');
+      window.dispatchEvent(new Event('resize'));
+    }
+
+    /** Load the selected rig into the workspace viewer and show it.
+     *  Returns false when there is nothing loadable, so callers can say why. */
+    function _presentAnimateModel() {
+      const url = _timrxAnimState.model_url;
+      if (!url || _isBrowserOnlyUrl(url)) return false;
+      const loader = window.TimrXViewer?.loadModelWithFallback;
+      if (typeof loader !== 'function') {
+        console.warn('[Animate] Viewer module unavailable; skipping preview.');
+        return false;
+      }
+      _showAnimateViewer();
+      try {
+        window.TimrXViewer?.setViewerHeader?.(_timrxAnimState.title || 'Rigged Model', 'Rigged model');
+      } catch (_) { /* header is cosmetic */ }
+      const proxy = window.TimrXApi?.getLoadableModelUrl?.(url) || url;
+      loader(proxy, url).catch((err) => {
+        console.warn('[Animate] Preview failed:', err);
+        _toast('Could not open that rig in the viewer — the file may have expired. Try another one.');
+      });
+      return true;
+    }
+
+    /** Adopt a history item as the animate source. One place, so the picker,
+     *  the strip and "latest" all store exactly the same fields. */
+    function _selectRiggedItem(item, sourceType = 'history') {
+      if (!item) return;
+      _timrxAnimState.source_type = sourceType;
+      _timrxAnimState.rig_task_id = item.id;
+      _timrxAnimState.model_id = item.id;
+      _timrxAnimState.is_rigged = true;
+      _timrxAnimState.title = item.title || item.prompt || 'Rigged Model';
+      _timrxAnimState.model_url = _riggedModelUrl(item);
+      _timrxAnimState.thumbnail_url = item.thumbnail_url || null;
+      _syncAnimatePanelUI();
+      _loadAnimLibraryGlobal();
+      _presentAnimateModel();
+    }
+
+    /** Human label for a history row. */
+    function _rigLabel(item = {}) {
+      return String(item.title || item.prompt || 'Untitled model').trim() || 'Untitled model';
+    }
+
+    /* ======================================================================
+       SHARED SOURCE PICKER
+       ----------------------------------------------------------------------
+       Rig and Animate ask the same question — "which of your models?" — and
+       answered it two different unhelpful ways: Animate offered a modal behind
+       two near-identical buttons, Rig offered a <select> whose only real
+       option meant "whatever is loaded in the viewer", which is nothing on a
+       fresh page. One component now serves both: a strip of real thumbnails,
+       newest first, click to choose.
+       ====================================================================== */
+    function _renderSourcePicker(cfg) {
+      const strip = leftStack.querySelector(cfg.strip);
+      if (!strip) return 0;
+      const lede    = cfg.lede    ? leftStack.querySelector(cfg.lede)    : null;
+      const none    = cfg.none    ? leftStack.querySelector(cfg.none)    : null;
+      const browse  = cfg.browse  ? leftStack.querySelector(cfg.browse)  : null;
+      const refresh = cfg.refresh ? leftStack.querySelector(cfg.refresh) : null;
+
+      const items = cfg.items();
+      strip.innerHTML = '';
+
+      if (!items.length) {
+        strip.hidden = true;
+        if (none) none.hidden = false;
+        if (browse) browse.hidden = true;
+        if (refresh) refresh.hidden = true;
+        if (lede) lede.textContent = cfg.emptyLede;
+        return 0;
+      }
+
+      strip.hidden = false;
+      if (none) none.hidden = true;
+      if (refresh) refresh.hidden = false;
+      if (browse) browse.hidden = items.length <= _RIG_STRIP_LIMIT;
+      if (lede) lede.textContent = cfg.ledeFor(items.length);
+
+      items.slice(0, _RIG_STRIP_LIMIT).forEach((item, idx) => {
+        const card = document.createElement('button');
+        card.type = 'button';
+        card.className = 'ws-pick__card';
+        card.setAttribute('role', 'option');
+        card.setAttribute('aria-selected', 'false');
+        card.dataset.pickId = String(item.id || '');
+        card.title = _rigLabel(item);
+
+        const thumb = document.createElement('span');
+        thumb.className = 'ws-pick__thumb';
+        if (item.thumbnail_url) {
+          const img = document.createElement('img');
+          img.src = item.thumbnail_url;
+          img.alt = '';
+          img.loading = 'lazy';
+          img.decoding = 'async';
+          img.onerror = () => { img.remove(); thumb.classList.add('is-blank'); };
+          thumb.appendChild(img);
+        } else {
+          thumb.classList.add('is-blank');
+        }
+        // Newest gets "Latest"; anything already rigged says so, because
+        // re-rigging a rig is legal but almost never what you meant.
+        const flagText = cfg.flagFor ? cfg.flagFor(item, idx) : (idx === 0 ? 'Latest' : '');
+        if (flagText) {
+          const flag = document.createElement('span');
+          flag.className = 'ws-pick__flag';
+          flag.textContent = flagText;
+          thumb.appendChild(flag);
+        }
+
+        const name = document.createElement('span');
+        name.className = 'ws-pick__name';
+        name.textContent = _rigLabel(item);
+
+        const when = document.createElement('span');
+        when.className = 'ws-pick__when';
+        const ms = _itemTimeMs(item);
+        when.textContent = ms ? new Date(ms).toLocaleDateString(undefined, { day: '2-digit', month: 'short' }) : '';
+
+        card.appendChild(thumb);
+        card.appendChild(name);
+        card.appendChild(when);
+        card.addEventListener('click', () => cfg.onPick(item));
+        strip.appendChild(card);
+      });
+      return items.length;
+    }
+
+    /* ---- Rig: which models can take a skeleton --------------------------
+       Anything finished that has a real GLB. Animations are excluded (their
+       output already carries motion, re-rigging one is never the intent);
+       existing rigs stay in the list because re-rigging is legal, but they are
+       flagged so you do not pick one by accident. */
+    const _ANIMATED_STAGES = new Set(['animate', 'animation', 'animated']);
+
+    function _isRiggableItem(it) {
+      if (!it || typeof it !== 'object') return false;
+      const status = String(it.status || '').toLowerCase();
+      if (status && !_DONE_STATUSES.has(status)) return false;
+      const stage = String(it.stage || it.payload?.stage || '').toLowerCase();
+      if (_ANIMATED_STAGES.has(stage)) return false;
+      const type = String(it.type || it.kind || '').toLowerCase();
+      if (type && type !== 'model') return false;   // images and videos are not riggable
+      return !!_riggedModelUrl(it);
+    }
+
+    function _findAllRiggableFromHistory() {
       const items = _getHistoryFromCache();
-      const rigged = items.filter(_isRiggedItem)
-        .sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
-      console.log('[Animate] findAll: total=' + items.length + ' rigged=' + rigged.length);
-      return rigged;
+      return items.filter(_isRiggableItem).sort((a, b) => _itemTimeMs(b) - _itemTimeMs(a));
+    }
+
+    /** Adopt a history item as the rig source.
+     *  Setting the workspace's active model is the whole integration: api.js's
+     *  runRigPreflight() and startRig() both read getActiveHistoryItem(), so
+     *  once this is set the existing pipeline needs no changes at all. */
+    function _selectRiggableItem(item) {
+      if (!item) return;
+      try { window.TimrXState?.setActiveModelId?.(item.id); } catch (_) { /* state not booted */ }
+      const select = leftStack.querySelector('#rigModelSelect');
+      if (select) {
+        select.value = 'current';
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      _syncRigSourceUI(item);
+      // Show it, so "is this the right model?" is answerable before spending
+      // 5 credits on a rig.
+      const url = _riggedModelUrl(item);
+      if (url && typeof window.TimrXViewer?.loadModelWithFallback === 'function') {
+        _showAnimateViewer();
+        try { window.TimrXViewer?.setViewerHeader?.(_rigLabel(item), 'Model to rig'); } catch (_) {}
+        const proxy = window.TimrXApi?.getLoadableModelUrl?.(url) || url;
+        window.TimrXViewer.loadModelWithFallback(proxy, url).catch((err) => {
+          console.warn('[Rig] Preview failed:', err);
+        });
+      }
+    }
+
+    /** Paint the rig source card for the given item, or the picker when null. */
+    function _syncRigSourceUI(item) {
+      const card = leftStack.querySelector('#rigSourceCard');
+      if (!card) return;   // rig panel not mounted
+      const info  = leftStack.querySelector('#rigSourceInfo');
+      const empty = leftStack.querySelector('#rigSourceEmpty');
+      const thumb = leftStack.querySelector('#rigSourceThumb');
+      const title = leftStack.querySelector('#rigSourceTitle');
+      const badge = leftStack.querySelector('#rigSourceBadge');
+
+      if (!item) {
+        if (info) info.hidden = true;
+        if (empty) empty.hidden = false;
+        _renderRiggableStrip();
+        return;
+      }
+      if (info) info.hidden = false;
+      if (empty) empty.hidden = true;
+      if (title) title.textContent = _rigLabel(item);
+      if (thumb) {
+        if (item.thumbnail_url) { thumb.src = item.thumbnail_url; thumb.hidden = false; }
+        else { thumb.hidden = true; }
+      }
+      if (badge) {
+        const stage = String(item.stage || item.payload?.stage || '').toLowerCase();
+        const rigged = _RIG_STAGES.has(stage);
+        badge.textContent = rigged ? 'Already rigged — re-rigging' : 'Ready to rig';
+        badge.classList.toggle('is-warn', rigged);
+      }
+    }
+
+    /** The rig source strip. */
+    function _renderRiggableStrip() {
+      return _renderSourcePicker({
+        strip: '#rigSourceStrip', lede: '#rigSourceLede', none: '#rigSourceNone',
+        browse: '#rigSourceBrowseBtn', refresh: '#rigSourceRefreshBtn',
+        items: _findAllRiggableFromHistory,
+        emptyLede: 'No 3D models in your history yet.',
+        ledeFor: (n) => n === 1
+          ? 'One model available. Select it to rig.'
+          : 'Select one of your ' + n + ' models.',
+        flagFor: (item, idx) => {
+          const stage = String(item.stage || item.payload?.stage || '').toLowerCase();
+          if (_RIG_STAGES.has(stage)) return 'Rigged';
+          return idx === 0 ? 'Latest' : '';
+        },
+        onPick: _selectRiggableItem,
+      });
+    }
+
+    /** Animate: the strip lists rigged models. */
+    function _renderRigStrip() {
+      return _renderSourcePicker({
+        strip: '#animRigStrip', lede: '#animRigLede', none: '#animRigNone',
+        browse: '#animFromHistoryBtn', refresh: '#animRigRefreshBtn',
+        items: _findAllRiggedFromHistory,
+        emptyLede: 'No rigged models yet.',
+        ledeFor: (n) => n === 1
+          ? 'One rigged model ready. Select it to animate.'
+          : 'Select one of your ' + n + ' rigged models.',
+        onPick: (item) => _selectRiggedItem(item, 'history'),
+      });
     }
 
     /** Show a picker modal/dropdown for rigged models from history */
@@ -7428,21 +8221,8 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         row.appendChild(info);
 
         row.addEventListener('click', () => {
-          _timrxAnimState.source_type = 'history';
-          _timrxAnimState.rig_task_id = item.id;
-          _timrxAnimState.model_id = item.id;
-          _timrxAnimState.is_rigged = true;
-          _timrxAnimState.title = item.title || item.prompt || 'Rigged Model';
-          _timrxAnimState.model_url = item.glb_url || item.glb_proxy || null;
-          _timrxAnimState.thumbnail_url = item.thumbnail_url || null;
           overlay.remove();
-          _syncAnimatePanelUI();
-          _loadAnimLibraryGlobal();
-          // Load in viewer
-          if (_timrxAnimState.model_url && window.TimrXViewer?.loadModelWithFallback) {
-            const proxy = window.TimrXApi?.getLoadableModelUrl?.(_timrxAnimState.model_url) || _timrxAnimState.model_url;
-            window.TimrXViewer.loadModelWithFallback(proxy, _timrxAnimState.model_url).catch(() => {});
-          }
+          _selectRiggedItem(item, 'history');
         });
 
         panel.appendChild(row);
@@ -7463,9 +8243,11 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
     function _wireAnimatePanel() {
       // Model card buttons
       const previewBtn = leftStack.querySelector('#animPreviewBtn');
+      const changeBtn = leftStack.querySelector('#animChangeBtn');
       const clearBtn = leftStack.querySelector('#animClearBtn');
-      const loadLatestBtn = leftStack.querySelector('#animLoadLatestBtn');
       const fromHistoryBtn = leftStack.querySelector('#animFromHistoryBtn');
+      const refreshRigsBtn = leftStack.querySelector('#animRigRefreshBtn');
+      const goRigBtn = leftStack.querySelector('#animGoRigBtn');
       const reanimateBtn = leftStack.querySelector('#animReanimateBtn');
       const animAdvancedToggle = leftStack.querySelector('#animAdvancedToggle');
       const animAdvanced = leftStack.querySelector('#animAdvanced');
@@ -7517,13 +8299,22 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
 
       if (previewBtn) {
         previewBtn.addEventListener('click', () => {
-          const url = _timrxAnimState.model_url;
-          if (url && window.TimrXViewer?.loadModelWithFallback) {
-            const proxy = window.TimrXApi?.getLoadableModelUrl?.(url) || url;
-            window.TimrXViewer.loadModelWithFallback(proxy, url).catch(err => {
-              console.warn('[Animate] Preview failed:', err);
-            });
+          if (!_presentAnimateModel()) {
+            _toast('This rig has no previewable model file. Pick another one.');
           }
+        });
+      }
+
+      // "Change" drops back to the strip without discarding the chosen motion,
+      // so swapping the rig does not cost you the animation you already picked.
+      if (changeBtn) {
+        changeBtn.addEventListener('click', () => {
+          Object.assign(_timrxAnimState, {
+            source_type: null, model_id: null, rig_task_id: null,
+            model_url: null, title: '', thumbnail_url: null, is_rigged: false,
+          });
+          _hideAnimateViewer();
+          _syncAnimatePanelUI();
         });
       }
 
@@ -7534,53 +8325,40 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             model_url: null, title: '', thumbnail_url: null,
             is_rigged: false, selected_action_id: null, selected_animation: null,
           });
+          _hideAnimateViewer();
           _syncAnimatePanelUI();
         });
       }
 
-      if (loadLatestBtn) {
-        loadLatestBtn.addEventListener('click', () => {
-          // Try session-level state first (set by _handleRigComplete)
-          if (window._lastRigTaskId) {
-            _timrxAnimState.source_type = 'rig';
-            _timrxAnimState.rig_task_id = window._lastRigTaskId;
-            _timrxAnimState.is_rigged = true;
-            _timrxAnimState.title = window._lastRigTitle || 'Latest Rigged Model';
-            _timrxAnimState.model_url = window._lastRigGlbUrl || null;
-            _timrxAnimState.thumbnail_url = window._lastRigThumbnail || null;
-            _syncAnimatePanelUI();
-            _loadAnimLibraryGlobal();
-            return;
-          }
-          // Fallback: scan localStorage history for most recent rigged model
-          const riggedItem = _findLatestRiggedFromHistory();
-          if (riggedItem) {
-            _timrxAnimState.source_type = 'history';
-            _timrxAnimState.rig_task_id = riggedItem.id;
-            _timrxAnimState.model_id = riggedItem.id;
-            _timrxAnimState.is_rigged = true;
-            _timrxAnimState.title = riggedItem.title || riggedItem.prompt || 'Rigged Model';
-            _timrxAnimState.model_url = riggedItem.glb_url || riggedItem.glb_proxy || null;
-            _timrxAnimState.thumbnail_url = riggedItem.thumbnail_url || null;
-            _syncAnimatePanelUI();
-            _loadAnimLibraryGlobal();
-            // Also load in viewer if possible
-            if (_timrxAnimState.model_url && window.TimrXViewer?.loadModelWithFallback) {
-              const proxy = window.TimrXApi?.getLoadableModelUrl?.(_timrxAnimState.model_url) || _timrxAnimState.model_url;
-              window.TimrXViewer.loadModelWithFallback(proxy, _timrxAnimState.model_url).catch(() => {});
-            }
-            return;
-          }
-          _toast('No rigged model found. Please rig a model first using the RIG panel.');
+      if (refreshRigsBtn) {
+        refreshRigsBtn.addEventListener('click', () => {
+          const before = _findAllRiggedFromHistory().length;
+          _renderRigStrip();
+          const after = _findAllRiggedFromHistory().length;
+          _toast(after > before
+            ? 'Found ' + (after - before) + ' new rigged model' + (after - before === 1 ? '' : 's') + '.'
+            : after
+              ? 'Up to date — ' + after + ' rigged model' + (after === 1 ? '' : 's') + ' available.'
+              : 'Still no rigged models in your history.');
+        });
+      }
+
+      // The old build's answer to "you have no rigs" was a toast naming the
+      // Rig panel, on a screen with no way to get there. This goes.
+      if (goRigBtn) {
+        goRigBtn.addEventListener('click', () => {
+          const railBtn = document.querySelector('.rail-btn[data-panel="rig"]')
+            || document.querySelector('[data-model-panel="rig"]');
+          if (railBtn) { railBtn.click(); return; }
+          _toast('Open the Rig panel from the mode switcher to rig a model.');
         });
       }
 
       if (fromHistoryBtn) {
         fromHistoryBtn.addEventListener('click', () => {
-          // Build a picker of rigged models from history
           const riggedItems = _findAllRiggedFromHistory();
           if (riggedItems.length === 0) {
-            _toast('No rigged models in history. Rig a model first using the RIG panel.');
+            _toast('No rigged models in your history yet.');
             return;
           }
           _showRiggedModelPicker(riggedItems);
@@ -7609,12 +8387,16 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       // Sync UI with current state (survives tab switch)
       _syncAnimatePanelUI();
 
-      // Render library if already loaded
+      /* Fetch the library on open, not on selection. It used to load only once
+         a rig was chosen, so the Animation Library page rendered as an empty
+         grid under a search box that filtered nothing — the panel looked
+         broken before you had done anything wrong. It is a small static list
+         and the request is cached by _animLibraryLoaded, so there is no reason
+         to make the user earn it. */
       if (_animLibraryLoaded) {
         _renderAnimLibraryInPanel();
         _renderQuickAnims();
-      } else if (_timrxAnimState.is_rigged) {
-        // Auto-load library when animate panel opened with a rigged model
+      } else {
         _loadAnimLibraryGlobal();
       }
     }
@@ -7877,6 +8659,20 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       isModelPanel: isModelPanel
     });
 
+    function consumePendingWorkspaceRecipe() {
+      try {
+        const raw = sessionStorage.getItem('timrx_pending_homepage_recipe');
+        if (!raw) return null;
+        sessionStorage.removeItem('timrx_pending_homepage_recipe');
+        const parsed = JSON.parse(raw);
+        if (!parsed || typeof parsed !== 'object') return null;
+        return parsed;
+      } catch (_) {
+        try { sessionStorage.removeItem('timrx_pending_homepage_recipe'); } catch (_) {}
+        return null;
+      }
+    }
+
     function consumePendingCommunityRemix() {
       try {
         const raw = sessionStorage.getItem('timrx_pending_community_remix');
@@ -7891,8 +8687,8 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       }
     }
 
-    function applyPendingCommunityRemix() {
-      const pending = consumePendingCommunityRemix();
+    function applyPendingWorkspaceEntry() {
+      const pending = consumePendingWorkspaceRecipe() || consumePendingCommunityRemix();
       if (!pending || !pending.prompt) return;
 
       const targetPanel = ['model', 'image', 'video'].includes(pending.panel) ? pending.panel : 'model';
@@ -7903,9 +8699,17 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       };
 
       const activatePanelAndFill = () => {
-        const textarea = document.getElementById(promptIdMap[targetPanel] || 'modelPrompt');
+        const targetTab = ['text3d', 'image3d', 'multiimage3d'].includes(pending.tab) ? pending.tab : '';
+        if (targetPanel === 'model' && targetTab) {
+          const tabBtn = document.querySelector('.tab-btn[data-tab="' + targetTab + '"]');
+          if (tabBtn && !tabBtn.classList.contains('active')) tabBtn.click();
+        }
+        const promptId = targetPanel === 'model' && pending.tab === 'image3d'
+          ? 'imageModelName'
+          : (promptIdMap[targetPanel] || 'modelPrompt');
+        const textarea = document.getElementById(promptId);
         if (!textarea) return;
-        textarea.value = pending.prompt;
+        textarea.value = pending.tab === 'image3d' ? (pending.label || 'Image to 3D reference') : pending.prompt;
         textarea.dispatchEvent(new Event('input', { bubbles: true }));
         textarea.focus();
         textarea.selectionStart = textarea.selectionEnd = textarea.value.length;
@@ -7952,7 +8756,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       var needsState = initialPanel !== 'model' && !isModelPanel(initialPanel);
       var activate = function () {
         activateWorkspacePanel(initialPanel, targetBtn);
-        applyPendingCommunityRemix();
+        applyPendingWorkspaceEntry();
       };
       if (needsState && !window.GenerationState) {
         var tries = 0;

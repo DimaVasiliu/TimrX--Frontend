@@ -43,6 +43,9 @@ const creditsState = {
   email: null,  // User's email (null if not attached)
   emailVerified: false,
   actionCosts: {},
+  // Provider-tier surcharges in credits, refreshed from /api/billing/action-costs.
+  // Defaults mirror backend MESHY_SURCHARGES so panels are right before it loads.
+  meshySurcharges: { texture_8k: 5, ultra_mode: 5 },
   loaded: false,
   loading: false,
   serverConfirmed: false,  // True only after server balance response received
@@ -351,7 +354,7 @@ async function _fetchRealWalletBalances() {
  */
 const _ACTION_COSTS_CACHE_KEY = 'timrx_action_costs';
 const _ACTION_COSTS_CACHE_TTL = 3600000; // 1 hour — costs are admin-configured, rarely change
-const _ACTION_COSTS_CACHE_VERSION = 2;   // Bump when pricing changes to invalidate stale caches
+const _ACTION_COSTS_CACHE_VERSION = 3;   // Bump when pricing changes to invalidate stale caches
 
 export async function fetchActionCosts() {
   // Fast path: use localStorage cache if fresh (avoids network call entirely on repeat loads)
@@ -421,6 +424,18 @@ export async function fetchActionCosts() {
         costsMap['multi-color-print'] = costsMap['multi_color_print'];
         costsMap['multicolor-print'] = costsMap['multi_color_print'];
       }
+      // Panels use 'rig'/'animate'; the backend returns canonical names.
+      if (costsMap['rigging']) costsMap['rig'] = costsMap['rigging'];
+      if (costsMap['animation']) costsMap['animate'] = costsMap['animation'];
+
+      // Provider-tier surcharges (8K texture, Ultra geometry). The backend
+      // adds these at reservation time, so panels must display them too.
+      if (data.meshy_surcharges && typeof data.meshy_surcharges === 'object') {
+        creditsState.meshySurcharges = {
+          ...creditsState.meshySurcharges,
+          ...data.meshy_surcharges,
+        };
+      }
 
       // If no costs were parsed, use defaults
       if (Object.keys(costsMap).length === 0) {
@@ -476,7 +491,7 @@ export async function fetchActionCosts() {
  * - piapi_image_generate_2k (12c) - Nano Banana 2K (premium)
  * - text_to_3d_generate  (20c) - Text to 3D preview generation
  * - image_to_3d_generate (30c) - Image to 3D conversion
- * - refine               (6c)  - Refine/upscale 3D model
+ * - refine               (10c) - Refine/upscale 3D model
  * - remesh               (5c)  - Remesh 3D model
  * - retexture            (10c) - Apply new texture to 3D model
  * - convert              (1c)  - Format-only conversion (Meshy Convert)
@@ -506,7 +521,7 @@ function getDefaultActionCosts() {
     'piapi_image_generate_4k': 18,
     'text_to_3d_generate': 20,    // Text to 3D preview
     'image_to_3d_generate': 30,   // Image to 3D
-    'refine': 6,                  // Refine 3D model
+    'refine': 10,                 // Refine 3D model
     'remesh': 5,                  // Remesh 3D model
     'retexture': 10,              // Retexture 3D model
     'convert': 1,                 // Meshy Convert (format-only remesh)
@@ -530,7 +545,7 @@ function getDefaultActionCosts() {
     // Old naming
     'preview': 20,                // -> text_to_3d_generate
     'texture': 10,                // -> retexture
-    'upscale': 6,                 // -> refine
+    'upscale': 10,                // -> refine
     'video': 96,                  // -> video_generate (base)
     'image_studio_generate': 4,   // -> image_generate (OpenAI tier)
 
@@ -544,7 +559,7 @@ function getDefaultActionCosts() {
     'MESHY_UV_UNWRAP': 5,
     'MESHY_PRINT_ANALYZE': 0,
     'MESHY_PRINT_REPAIR': 10,
-    'MESHY_REFINE': 6,
+    'MESHY_REFINE': 10,
     'MESHY_RIGGING': 5,
     'MESHY_ANIMATION': 3,
     'MESHY_MULTI_COLOR_PRINT': 10,
@@ -676,6 +691,35 @@ export function resolveCost(action) {
 export function getActionCost(action) {
   const cost = resolveCost(action);
   return cost !== null ? cost : 0;
+}
+
+/**
+ * Meshy provider-tier surcharge amount, in credits.
+ * @param {'texture_8k'|'ultra_mode'} key
+ */
+export function getMeshySurcharge(key) {
+  const value = creditsState.meshySurcharges?.[key];
+  return typeof value === 'number' ? value : 0;
+}
+
+/**
+ * Cost a Meshy action will actually reserve, including provider-tier
+ * surcharges. Mirrors backend expected_meshy_platform_cost(), which the
+ * reservation uses via max(base_cost, expected_cost).
+ *
+ * @param {string} action - canonical action key (e.g. 'retexture')
+ * @param {{ texture_resolution?: string, ultra_mode?: boolean }} opts
+ * @param {number} fallbackBase - base cost to use before costs have loaded
+ */
+export function getMeshyActionCost(action, opts = {}, fallbackBase = 0) {
+  // resolveCost() is null until costs load; fall back rather than showing 0.
+  const base = resolveCost(action);
+  let cost = base !== null ? base : fallbackBase;
+  if (String(opts.texture_resolution || '').toLowerCase() === '8k') {
+    cost += getMeshySurcharge('texture_8k');
+  }
+  if (opts.ultra_mode) cost += getMeshySurcharge('ultra_mode');
+  return cost;
 }
 
 /**
@@ -1547,7 +1591,7 @@ export function updateCreditsUI() {
  * - image_generate       (4c) - OpenAI/Gemini; piapi_image_generate (7c) - Nano Banana
  * - text_to_3d_generate  (20c) - Text to 3D preview
  * - image_to_3d_generate (30c) - Image to 3D
- * - refine               (6c)  - Refine 3D model
+ * - refine               (10c) - Refine 3D model
  * - remesh               (5c)  - Remesh 3D model / convert (1c) when format-only
  * - retexture            (10c) - Retexture 3D model
  * - multi_color_print   (10c) - Full-color 3MF print conversion
@@ -2227,6 +2271,8 @@ window.WorkspaceCredits = {
   updateWallet,
   updateUI: updateCreditsUI,
   updateButtonCosts: updateGenerateButtonCosts,
+  getMeshySurcharge,
+  getMeshyActionCost,
   setupBatchListeners: setupBatchCountListeners,
   showInsufficientCreditsMessage,
   isLoaded,

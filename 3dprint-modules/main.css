@@ -21,7 +21,7 @@
    ========================================================================== */
 
 /* 1. Root Variables & Body Styles */
-@import url('css/variables.css?v=20260811ah');
+@import url('css/variables.css?v=20260815animflow');
 @import url('media/variables-media.css?v=20260811ah');
 
 /* 2. Navigation & Brand */
@@ -29,7 +29,7 @@
 @import url('media/layout-media.css?v=20260811ah');
 
 /* 3. Buttons, Forms, Tabs, Chips */
-@import url('css/components.css?v=20260812toast');
+@import url('css/components.css?v=20260815animflow');
 @import url('media/components-media.css?v=20260811ah');
 
 /* 4. Workspace Grid & Cards */
@@ -45,7 +45,7 @@
 @import url('media/history-media.css?v=20260811ah');
 
 /* 10. Inspire Section */
-@import url('css/inspire.css?v=20260811ah');
+@import url('css/inspire.css?v=20260815inspire');
 @import url('media/inspire-media.css?v=20260814tiles');
 
 /* 11. Notification Center */
@@ -59,13 +59,13 @@
 @import url('css/nav.css?v=20260814cmdscroll');
 
 /* 14. Control sheet — the tool panel */
-@import url('css/panel.css?v=20260811ah');
+@import url('css/panel.css?v=20260815rigpick');
 
 /* 15. (neural background / showcase / thoughts removed 2026-08-11) */
 
 /* 15b. Bottom prompt dock — the redesigned primary creation surface.
    Imported before the responsive layer so stage-media.css can adjust it. */
-@import url('css/dock.css?v=20260811ai');
+@import url('css/dock.css?v=20260815animflow');
 
 /* 15c. Floating generation progress — reactor card + minimisable orb.
    Replaces the old .gen-track cards (markup retired; see generation-tracker.js). */

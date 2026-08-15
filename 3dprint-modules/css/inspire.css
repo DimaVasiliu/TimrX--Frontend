@@ -1144,3 +1144,79 @@ model-viewer.inspire-model::part(default-progress-mask) {
     font-size: 12px !important;
   }
 }
+
+/* ==========================================================================
+   MODEL THUMBNAILS — show the whole object
+   --------------------------------------------------------------------------
+   Every tile used object-fit: cover. For photographic content that is right —
+   filling the frame is what you want. For a 3D model render it is not: the
+   subject is a single object on a flat backdrop, so cropping to fill takes
+   the crop out of the model itself. Worst case is mobile, where
+   inspire-media.css forces `aspect-ratio: 1/1 !important` on every card: a
+   wide model render loses roughly 40% of its width, which is where the head
+   or the limbs live.
+
+   `contain` letterboxes instead. The gradient backdrop makes that read as a
+   deliberate frame rather than a broken image, and the model is whole at every
+   card ratio on every screen.
+   ========================================================================== */
+.inspire-card[data-type="model"] .inspire-card__media {
+  background:
+    radial-gradient(120% 100% at 50% 0%, rgba(var(--accent-blue-rgb, 127, 200, 194), 0.09), transparent 62%),
+    linear-gradient(180deg, #141a1c 0%, #0c1011 100%);
+}
+
+.inspire-card[data-type="model"] .inspire-card__image,
+.inspire-card[data-type="model"] .inspire-card__image-refined {
+  object-fit: contain;
+  /* Breathing room so the silhouette never touches the tile edge. */
+  padding: 6%;
+  box-sizing: border-box;
+}
+
+/* Ken Burns is a photo effect: on a contained model it pushes the object
+   out of its own box. Models get a gentle lift on hover instead. */
+.inspire-card[data-type="model"] .inspire-card__image {
+  animation: none;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.inspire-card[data-type="model"]:hover .inspire-card__image {
+  transform: scale(1.04);
+}
+/* The refine crossfade still runs — it swaps two contained images, which is
+   exactly the comparison it is there to show. */
+.inspire-card[data-type="model"].has-refine .inspire-card__image {
+  animation: modelCrossfade 4s ease-in-out infinite;
+}
+
+/* ==========================================================================
+   SURPRISE ME — make the change legible
+   --------------------------------------------------------------------------
+   The old feedback was opacity 0.7 -> 1 over 150ms with no stagger. Across 24
+   tiles that is invisible, so even a shuffle that worked looked like nothing
+   happened. This sweeps across the grid so the refresh is unmistakable.
+   ========================================================================== */
+.inspire-card.is-swapping {
+  animation: inspireSwap 0.42s cubic-bezier(0.22, 1, 0.36, 1) var(--swap-delay, 0ms) both;
+}
+
+@keyframes inspireSwap {
+  0%   { opacity: 0; transform: translateY(10px) scale(0.94); }
+  55%  { opacity: 1; }
+  100% { opacity: 1; transform: none; }
+}
+
+.inspire-shuffle-btn.is-working svg {
+  animation: inspireShuffleSpin 0.6s cubic-bezier(0.45, 0, 0.35, 1);
+}
+
+@keyframes inspireShuffleSpin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inspire-card.is-swapping { animation: none; }
+  .inspire-shuffle-btn.is-working svg { animation: none; }
+  .inspire-card[data-type="model"]:hover .inspire-card__image { transform: none; }
+}

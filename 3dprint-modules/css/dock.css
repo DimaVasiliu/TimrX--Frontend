@@ -533,10 +533,39 @@ body.ws-dock-on .sim-viewer-bg { background: none; }
   justify-content: center;
   align-items: center;
   text-align: center;
-  padding: 0 24px;
+  padding: calc(var(--header-height, 72px) + 28px) clamp(16px, 4vw, 48px) 172px;
   /* the stage layer is pointer-events:none; the hero re-enables events for
      its own content (it is the sole interactive thing on the stage) */
   pointer-events: auto;
+  overflow: auto;
+}
+.ws-starter {
+  width: min(1120px, 100%);
+  display: grid;
+  gap: 16px;
+  justify-items: center;
+}
+.ws-starter__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 6px 10px;
+  border: 1px solid rgba(var(--accent-blue-rgb), 0.18);
+  border-radius: 999px;
+  background: rgba(13, 16, 18, 0.42);
+  color: var(--accent-blue, #7fc8c2);
+  font: 700 11px/1 var(--font-ui, 'Inter', sans-serif);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.ws-starter__eyebrow::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: currentColor;
+  box-shadow: 0 0 16px rgba(var(--accent-blue-rgb), 0.7);
 }
 .ws-hero__title {
   font-family: var(--font-display, 'Space Grotesk', sans-serif);
@@ -567,6 +596,212 @@ body.ws-dock-on .sim-viewer-bg { background: none; }
   transition: border-color 0.18s ease, color 0.18s ease;
 }
 .ws-hero__hint:hover { border-color: rgba(var(--accent-blue-rgb), 0.5); color: var(--text, #f2f5f3); }
+.ws-starter__content {
+  width: min(1120px, 100%);
+  display: grid;
+  grid-template-columns: minmax(360px, 0.88fr) minmax(440px, 1.12fr);
+  gap: 14px;
+  align-items: stretch;
+  margin-top: 2px;
+}
+.workspace-feature-strip--starter {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+.workspace-feature-strip--starter .workspace-feature-strip__inner {
+  height: 100%;
+  grid-template-columns: 1fr;
+  gap: 13px;
+  align-items: center;
+  align-content: start;
+  padding: 16px;
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(var(--accent-blue-rgb), 0.12), transparent 30%),
+    linear-gradient(180deg, rgba(16, 22, 25, 0.58), rgba(9, 12, 14, 0.66));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 16px 42px rgba(0, 0, 0, 0.18);
+}
+.workspace-feature-strip--starter .workspace-feature-strip__eyebrow {
+  margin-bottom: 7px;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+}
+.workspace-feature-strip--starter .workspace-feature-strip__copy h2 {
+  margin: 0;
+  color: var(--text, #f2f5f3);
+  font: 650 clamp(17px, 1.55vw, 21px)/1.16 var(--font-display, 'Space Grotesk', sans-serif);
+  letter-spacing: 0;
+}
+.workspace-feature-strip--starter .workspace-feature-strip__copy p {
+  margin: 7px 0 0;
+  max-width: 58ch;
+  color: var(--text-soft, #c8d0d0);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.workspace-feature-strip--starter .workspace-feature-strip__grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.workspace-feature-strip--starter .workspace-feature-tile {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+  background: rgba(13, 16, 18, 0.36);
+}
+.workspace-feature-strip--starter .workspace-feature-tile strong {
+  color: var(--text, #f2f5f3);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+.workspace-feature-strip--starter .workspace-feature-tile span {
+  color: var(--muted, #a7b0b2);
+  font-size: 11.5px;
+  line-height: 1.35;
+}
+.ws-starter__grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 0;
+}
+.ws-starter-action {
+  position: relative;
+  min-width: 0;
+  min-height: 142px;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  align-content: start;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(var(--accent-blue-rgb), 0.13), transparent 36%),
+    linear-gradient(180deg, rgba(18, 24, 27, 0.68), rgba(10, 14, 16, 0.74));
+  color: var(--text, #f2f5f3);
+  text-align: left;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 18px 50px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(14px) saturate(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+.ws-starter-action:hover,
+.ws-starter-action:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(var(--accent-blue-rgb), 0.46);
+  background-color: rgba(var(--accent-blue-rgb), 0.04);
+}
+.ws-starter-action:focus-visible {
+  outline: 2px solid rgba(var(--accent-blue-rgb), 0.78);
+  outline-offset: 3px;
+}
+.ws-starter-action__icon {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 13px;
+  background: rgba(var(--accent-blue-rgb), 0.12);
+  color: var(--accent-blue, #7fc8c2);
+  font-size: 15px;
+}
+.ws-starter-action__body {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+.ws-starter-action__body strong {
+  color: var(--text, #f2f5f3);
+  font: 700 15px/1.15 var(--font-ui, 'Inter', sans-serif);
+  letter-spacing: 0;
+}
+.ws-starter-action__example {
+  color: var(--text-soft, #c8d0d0);
+  font: 500 13px/1.35 var(--font-ui, 'Inter', sans-serif);
+}
+.ws-starter-action__body small {
+  color: var(--muted, #a7b0b2);
+  font: 500 12px/1.45 var(--font-ui, 'Inter', sans-serif);
+}
+.ws-starter-action--image .ws-starter-action__icon { background: rgba(166, 122, 255, 0.13); color: #c8b5ff; }
+.ws-starter-action--video .ws-starter-action__icon { background: rgba(255, 197, 103, 0.13); color: #ffd391; }
+.ws-starter-action--upload .ws-starter-action__icon { background: rgba(145, 214, 174, 0.13); color: #9ce2b8; }
+
+@media (max-width: 980px) {
+  .ws-hero {
+    padding-top: calc(var(--header-height, 72px) + 20px);
+    padding-bottom: 164px;
+    justify-content: flex-start;
+  }
+  .ws-starter { gap: 14px; }
+  .ws-starter__content {
+    grid-template-columns: 1fr;
+    width: min(920px, 100%);
+  }
+  .workspace-feature-strip--starter .workspace-feature-strip__inner {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .ws-starter__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ws-starter-action { min-height: 134px; }
+}
+
+@media (max-width: 620px) {
+  .ws-dock__hint { display: none !important; }
+  .ws-hero {
+    padding: calc(var(--header-height, 72px) + 14px) 12px 150px;
+  }
+  .ws-starter { gap: 12px; }
+  .ws-starter__eyebrow { font-size: 9.5px; padding: 6px 9px; }
+  .ws-starter__content { gap: 9px; }
+  .workspace-feature-strip--starter { order: 5; }
+  .workspace-feature-strip--starter .workspace-feature-strip__inner {
+    padding: 13px;
+    gap: 10px;
+  }
+  .workspace-feature-strip--starter .workspace-feature-strip__copy h2 { font-size: 15px; }
+  .workspace-feature-strip--starter .workspace-feature-strip__copy p { font-size: 11.5px; line-height: 1.4; }
+  .workspace-feature-strip--starter .workspace-feature-strip__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .workspace-feature-strip--starter .workspace-feature-tile {
+    padding: 8px 9px;
+    border-radius: 10px;
+  }
+  .workspace-feature-strip--starter .workspace-feature-tile span { font-size: 11px; }
+  .ws-starter__grid {
+    order: 4;
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+  .ws-starter-action {
+    min-height: 0;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: 12px;
+    padding: 13px;
+    border-radius: 15px;
+  }
+  .ws-starter-action__icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 12px;
+  }
+  .ws-starter-action__body { gap: 5px; }
+  .ws-starter-action__body strong { font-size: 14px; }
+  .ws-starter-action__example { font-size: 12.5px; }
+  .ws-starter-action__body small { font-size: 11.5px; line-height: 1.35; }
+}
 
 body.ws-viewer-open .ws-hero,
 body.history-expanded .ws-hero,
@@ -806,4 +1041,69 @@ body.ws-dock-on .ws-prompt-guide {
     animation: none;
   }
   .ws-dock__hint { transition: opacity 0.2s ease; transform: none; }
+}
+
+/* ==========================================================================
+   SPLIT VIEWER — canvas on the left, tool drawer on the right.
+   --------------------------------------------------------------------------
+   `ws-viewer-open` was built as a full-surface takeover: nav.css (top level,
+   no media query) hides .ws-left, .ws-rail and .ws-right outright, drops every
+   .ws-grid child that is not the viewer, and this file blanks the dock. Any
+   flow that wanted to show a model WHILE a tool drawer stayed open had to pick
+   one or the other — so Animate never showed you the rig you selected.
+
+   `ws-viewer-split` opts that one pairing back in. Everything is scoped to
+   that class, so plain `ws-viewer-open` behaves exactly as before. !important
+   appears only where nav.css already used it; specificity alone cannot win.
+   ========================================================================== */
+@media (min-width: 769px) {
+  /* Same width as the Phase 3 drawer above — kept as a variable so the two
+     cannot drift apart. */
+  body.ws-viewer-split { --ws-split-drawer: min(400px, 94vw); }
+
+  /* 1. The drawer stays on screen. */
+  body.ws-viewer-open.ws-viewer-split .timrx-3dprint .ws-left {
+    /* .ws-left is a direct child of .ws-grid, so nav.css reaches it through
+       BOTH `.ws-grid > :not(.ws-viewer) { display: none !important }` and the
+       opacity/visibility blanket. Both have to be answered. */
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
+
+  /* 2. The canvas gives up the drawer's column instead of centring under it. */
+  body.ws-viewer-open.ws-viewer-split .timrx-3dprint .ws-grid {
+    padding-right: calc(var(--ws-split-drawer) + clamp(14px, 2.4vw, 34px));
+    justify-items: stretch;
+  }
+  body.ws-viewer-open.ws-viewer-split .timrx-3dprint .ws-viewer {
+    width: 100%;
+    max-width: none;
+    justify-self: stretch;
+    /* the dock is on screen in this mode — leave it clear air */
+    height: min(84vh, 1020px);
+    max-height: calc(100vh - clamp(32px, 5vh, 56px) - 96px);
+    min-height: min(460px, calc(100vh - 152px));
+  }
+
+  /* 3. The dock is the Generate control for whatever the drawer configures.
+        Hiding it would strand the user with settings and no way to commit. */
+  body.print3d-page.ws-viewer-open.ws-viewer-split .ws-dock {
+    opacity: 1;
+    pointer-events: auto;
+  }
+}
+
+/* Below the split breakpoint the drawer is a full-width sheet, so there is no
+   room to split — it overlays the canvas, which is the right phone behaviour.
+   It must still be visible, or entering split mode on a phone would hide the
+   panel with no way back. */
+@media (max-width: 768px) {
+  body.ws-viewer-open.ws-viewer-split .timrx-3dprint .ws-left {
+    display: flex !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+    pointer-events: auto !important;
+  }
 }

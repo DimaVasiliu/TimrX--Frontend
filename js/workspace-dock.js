@@ -469,7 +469,14 @@
 
   function initHeroHints() {
     document.addEventListener('click', function (e) {
-      var hint = e.target.closest && e.target.closest('.ws-hero__hint[data-hint]');
+      var uploadAction = e.target.closest && e.target.closest('.ws-starter-action[data-starter-action="upload"]');
+      if (uploadAction) {
+        var uploadBtn = $('openUploadModalTop');
+        if (uploadBtn) uploadBtn.click();
+        return;
+      }
+
+      var hint = e.target.closest && e.target.closest('.ws-hero__hint[data-hint], .ws-starter-action[data-hint]');
       if (!hint) return;
       var wantMode = hint.getAttribute('data-hint-mode');
       var st = activePanel();
