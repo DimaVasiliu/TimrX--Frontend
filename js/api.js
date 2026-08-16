@@ -92,19 +92,65 @@ function buildDerivedOperationKey(stage, parts = {}) {
   return `${stage}:${JSON.stringify(normalized)}`;
 }
 
-function hashOperationKey(value = '') {
-  let hash = 2166136261;
-  const input = String(value);
-  for (let i = 0; i < input.length; i += 1) {
-    hash ^= input.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  return (hash >>> 0).toString(36);
-}
+// NOTE: `hashOperationKey` / `operationIdempotencyKey` were removed here (AUDIT
+// P0-2). They derived an Idempotency-Key from a hash of the operation params,
+// which made the key immutable per (model, settings) and un-resettable. All
+// start flows now use per-attempt UUIDs via State.generateIdempotencyKey().
+// `buildDerivedOperationKey` above is retained — the *operation key* still
+// powers the "already exists, run again?" UX and job-meta lineage.
 
-function operationIdempotencyKey(stage, operationKey, forceNew = false) {
-  const salt = forceNew ? `:${Date.now()}:${Math.random().toString(36).slice(2)}` : '';
-  return `${stage}:${hashOperationKey(`${operationKey}${salt}`)}`;
+/**
+ * POST a derived-operation start request (rig / animate).
+ *
+ * AUDIT P0-2. These flows used to derive the Idempotency-Key from a hash of the
+ * operation parameters, so the same model at the same settings produced a
+ * byte-identical key forever, on every device. A submit that died before
+ * dispatch left a `queued` row with no upstream_job_id, and every later attempt
+ * matched that corpse and got 409 JOB_ALREADY_STARTING — permanently, with no
+ * client-side handling at all. Keys are now per-attempt UUIDs, matching every
+ * other generator in this file, and 409 is handled explicitly.
+ *
+ * The *operation key* still drives the "you already rigged this, run again?"
+ * UX — that is a different question with a different lifetime, and it stays
+ * in the job meta.
+ *
+ * @returns {Promise<object>} an apiFetch result
+ */
+async function postDerivedStart(endpoint, payload, initialKey, label = 'Operation') {
+  const attempt = async (key) => apiFetch(endpoint, {
+    method: 'POST',
+    body: { ...payload, idempotency_key: key },
+    headers: { 'Idempotency-Key': key },
+  });
+
+  let result = await attempt(initialKey);
+
+  const isAlreadyStarting = (res) => (
+    res?.status === 409 || res?.data?.error === 'JOB_ALREADY_STARTING'
+  );
+
+  if (isAlreadyStarting(result)) {
+    // If the server tells us which job it already has, adopt it rather than
+    // failing — the user's credits are already committed to that job.
+    const existingId = result.data?.job_id;
+    if (existingId) {
+      console.warn(`[${label}] 409 with existing job_id — adopting ${existingId}`);
+      return { ...result, ok: true, data: { ...result.data, ok: true, job_id: existingId, was_existing: true } };
+    }
+    console.warn(`[${label}] 409 JOB_ALREADY_STARTING — retrying once with a fresh idempotency key`);
+    result = await attempt(State.generateIdempotencyKey());
+    if (isAlreadyStarting(result)) {
+      return {
+        ...result,
+        data: {
+          ...(result.data || {}),
+          message: `${label} could not start: a previous attempt is still being registered. Wait about a minute and try again.`,
+        },
+      };
+    }
+  }
+
+  return result;
 }
 
 function isHttpUrl(value = '') {
@@ -7358,7 +7404,8 @@ export async function startRigFromPanel() {
     return;
   }
 
-  const idempotencyKey = operationIdempotencyKey('rig', operationKey, rigDecision.forceNew);
+  // AUDIT P0-2: per-attempt key, not a hash of the operation params.
+  const idempotencyKey = State.generateIdempotencyKey();
   const prog = UI.makeProgressDriver();
   const sourceThumbnail = baseItem?.thumbnail_url || '';
 
@@ -7389,6 +7436,10 @@ export async function startRigFromPanel() {
   const reservation = reserveCreditsForAction('rig', 1);
   if (reservation.insufficient) {
     State.deleteHistoryItem(tempId, { skipRemote: true });
+    // AUDIT P1-3: pending meta must go too. A leaked `*-temp-<ts>` entry keeps
+    // its operation_key in pendingJobs_v1 forever, and activeDerivedOperationJob()
+    // then blocks every future attempt with "already running for this model".
+    State.deletePendingMeta(tempId);
     renderHistory();
     startLock = false;
     return;
@@ -7400,14 +7451,11 @@ export async function startRigFromPanel() {
 
   let result;
   try {
-    result = await apiFetch('/api/_mod/rig/start', {
-      method: 'POST',
-      body: payload,
-      headers: { 'Idempotency-Key': idempotencyKey }
-    });
+    result = await postDerivedStart('/api/_mod/rig/start', payload, idempotencyKey, 'Rigging');
   } catch (err) {
     releaseCreditsReservation(reservation.reservationId);
     State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     renderHistory();
     const errMsg = err?.message || 'Rigging request failed';
     prog.fail(errMsg);
@@ -7419,6 +7467,7 @@ export async function startRigFromPanel() {
   if (!result.ok) {
     releaseCreditsReservation(reservation.reservationId);
     State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     renderHistory();
     const errMsg = result.data?.message || result.error || 'Rigging failed';
     prog.fail(errMsg);
@@ -7431,6 +7480,7 @@ export async function startRigFromPanel() {
   if (!job_id) {
     releaseCreditsReservation(reservation.reservationId);
     State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     renderHistory();
     prog.fail('No job ID returned');
     startLock = false;
@@ -7503,7 +7553,8 @@ export async function startViewerRigFromHistory(item, options = {}) {
     return;
   }
 
-  const idempotencyKey = operationIdempotencyKey('rig', operationKey, rigDecision.forceNew);
+  // AUDIT P0-2: per-attempt key, not a hash of the operation params.
+  const idempotencyKey = State.generateIdempotencyKey();
   const prog = UI.makeProgressDriver();
   const sourceThumbnail = item.thumbnail_url || '';
   const tempId = `rig-temp-${Date.now()}`;
@@ -7532,6 +7583,10 @@ export async function startViewerRigFromHistory(item, options = {}) {
   const reservation = reserveCreditsForAction('rig', 1);
   if (reservation.insufficient) {
     State.deleteHistoryItem(tempId, { skipRemote: true });
+    // AUDIT P1-3: pending meta must go too. A leaked `*-temp-<ts>` entry keeps
+    // its operation_key in pendingJobs_v1 forever, and activeDerivedOperationJob()
+    // then blocks every future attempt with "already running for this model".
+    State.deletePendingMeta(tempId);
     renderHistory();
     startLock = false;
     return;
@@ -7543,14 +7598,11 @@ export async function startViewerRigFromHistory(item, options = {}) {
 
   let result;
   try {
-    result = await apiFetch('/api/_mod/rig/start', {
-      method: 'POST',
-      body: payload,
-      headers: { 'Idempotency-Key': idempotencyKey }
-    });
+    result = await postDerivedStart('/api/_mod/rig/start', payload, idempotencyKey, 'Rigging');
   } catch (err) {
     releaseCreditsReservation(reservation.reservationId);
     State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     renderHistory();
     const errMsg = err?.message || 'Rigging request failed';
     prog.fail(errMsg);
@@ -7562,6 +7614,7 @@ export async function startViewerRigFromHistory(item, options = {}) {
   if (!result.ok) {
     releaseCreditsReservation(reservation.reservationId);
     State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     renderHistory();
     const errMsg = result.data?.message || result.error || 'Rigging failed';
     prog.fail(errMsg);
@@ -7574,6 +7627,7 @@ export async function startViewerRigFromHistory(item, options = {}) {
   if (!job_id) {
     releaseCreditsReservation(reservation.reservationId);
     State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     renderHistory();
     prog.fail('No job ID returned');
     startLock = false;
@@ -8011,7 +8065,8 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
     startLock = false;
     return;
   }
-  const idempotencyKey = operationIdempotencyKey('animate', operationKey, animDecision.forceNew);
+  // AUDIT P0-2: per-attempt key, not a hash of the operation params.
+  const idempotencyKey = State.generateIdempotencyKey();
   const prog = UI.makeProgressDriver();
 
   // Show placeholder card in history IMMEDIATELY
@@ -8039,6 +8094,10 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
   const reservation = reserveCreditsForAction('animate', 1);
   if (reservation.insufficient) {
     State.deleteHistoryItem(tempId, { skipRemote: true });
+    // AUDIT P1-3: pending meta must go too. A leaked `*-temp-<ts>` entry keeps
+    // its operation_key in pendingJobs_v1 forever, and activeDerivedOperationJob()
+    // then blocks every future attempt with "already running for this model".
+    State.deletePendingMeta(tempId);
     renderHistory();
     startLock = false;
     return;
@@ -8060,14 +8119,11 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
 
   let result;
   try {
-    result = await apiFetch('/api/_mod/rig/animate', {
-      method: 'POST',
-      body: payload,
-      headers: { 'Idempotency-Key': idempotencyKey }
-    });
+    result = await postDerivedStart('/api/_mod/rig/animate', payload, idempotencyKey, 'Animation');
   } catch (err) {
     releaseCreditsReservation(reservation.reservationId);
     State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     renderHistory();
     prog.fail('Animation request failed');
     startLock = false;
@@ -8077,9 +8133,12 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
   if (!result.ok) {
     releaseCreditsReservation(reservation.reservationId);
     State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     renderHistory();
-    prog.fail(result.error || 'Animation failed');
-    alert(result.error || `Animation failed (HTTP ${result.status})`);
+    // Prefer the server's user-facing message over the raw error code.
+    const errMsg = result.data?.message || result.error || `Animation failed (HTTP ${result.status})`;
+    prog.fail(errMsg);
+    showOperationError(errMsg, 'Animation failed');
     startLock = false;
     return;
   }
@@ -8088,6 +8147,7 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
   if (!job_id) {
     releaseCreditsReservation(reservation.reservationId);
     State.deleteHistoryItem(tempId, { skipRemote: true });
+    State.deletePendingMeta(tempId);
     renderHistory();
     prog.fail('No job ID returned');
     startLock = false;
@@ -8353,7 +8413,11 @@ async function startRemeshFromHistoryWithValues(item, remeshValues) {
     source_model_id: item.id,
     source_history_id: item.id,
     operation_key: operationKey,
-    idempotency_key: operationIdempotencyKey(operationMode, operationKey, remeshDecision.forceNew),
+    // AUDIT P0-2: per-attempt key. Remesh shared the derived-key scheme with
+    // rig/animate, so it had the same permanent-409 failure mode — and with the
+    // server-side 24h idempotency window it would otherwise hit the
+    // (identity_id, idempotency_key) unique index on any repeat past a day.
+    idempotency_key: State.generateIdempotencyKey(),
     thumbnail_url: item.thumbnail_url || '',
     operation_mode: operationMode,
     topology: remeshValues.topology,
