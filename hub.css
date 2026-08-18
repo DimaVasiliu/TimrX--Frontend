@@ -311,15 +311,6 @@
   grid-template-columns:repeat(3,minmax(0,1fr));
   gap:10px;
 }
-.dashboard-estimates>div{
-  display:grid;
-  gap:8px;
-  min-height:118px;
-  padding:16px;
-  border:1px solid rgba(255,255,255,.08);
-  border-radius:18px;
-  background:rgba(255,255,255,.035);
-}
 .dashboard-estimates i{
   color:#7dd3fc;
   font-size:17px;
@@ -6192,38 +6183,52 @@ body[data-shell-page="hub"] .dashboard-panel{
 }
 
 /* ==========================================================================
-   CREDIT PLANNER — rows are entry points, not read-outs
+   CREDIT PLANNER — tiles are entry points, not read-outs
    --------------------------------------------------------------------------
-   The three estimate rows told you how many images / models / videos your
-   balance buys and then left you to go find the generator yourself. They are
-   now links into the matching tool, so the number and the action live in the
-   same place. Markup: <a class="dashboard-estimate"> in hub.html.
+   The three estimate tiles tell you how many images / models / videos your
+   balance buys, and each tile is a link into the matching generator so the
+   number and the action live in the same place. Laid out as vertical tiles
+   (icon + label on top, big number at the bottom) so the label never
+   collides with the number. Markup: <a class="dashboard-estimate"> in
+   hub.html.
    ========================================================================== */
 .dashboard-estimates .dashboard-estimate {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px 10px;
-  margin: 0 -10px;
-  border: 1px solid transparent;
-  border-radius: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  min-height: 118px;
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.035);
   color: inherit;
   text-decoration: none;
   transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
 }
 .dashboard-estimates .dashboard-estimate:hover,
 .dashboard-estimates .dashboard-estimate:focus-visible {
-  background: rgba(255, 255, 255, 0.045);
-  border-color: rgba(255, 255, 255, 0.09);
-  transform: translateX(2px);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.14);
+  transform: translateY(-2px);
   outline: none;
 }
-.dashboard-estimates .dashboard-estimate > span:first-of-type { flex: 1 1 auto; min-width: 0; }
-.dashboard-estimates .dashboard-estimate strong { font-variant-numeric: tabular-nums; }
+.dashboard-estimates .dashboard-estimate > span:first-of-type {
+  min-width: 0;
+  padding-right: 26px; /* keeps the label clear of the hover arrow */
+}
+.dashboard-estimates .dashboard-estimate strong {
+  align-self: flex-start;
+  margin-top: auto;
+  font-variant-numeric: tabular-nums;
+}
 
-/* the arrow only announces itself on hover, so the row stays a read-out at rest */
+/* the arrow only announces itself on hover, so the tile stays a read-out at rest */
 .dashboard-estimate__go {
-  flex: none;
+  position: absolute;
+  top: 14px;
+  right: 14px;
   opacity: 0;
   transform: translateX(-4px);
   transition: opacity 0.16s ease, transform 0.16s ease;

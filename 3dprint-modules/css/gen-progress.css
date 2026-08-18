@@ -17,14 +17,15 @@
    ========================================================================== */
 
 /* body.print3d-page > * demotes positioned body children (variables.css) —
-   restore explicitly, same pattern as the dock. */
-html body.print3d-page > .gp { position: fixed; z-index: 61; }
+   restore explicitly. Keep this above workspace panels/dock, below global menus. */
+html body.print3d-page > .gp { position: fixed; z-index: 100002; }
 
 .gp {
   position: fixed;
-  right: clamp(18px, 2vw, 32px);
-  bottom: clamp(96px, 11vh, 132px); /* clears the dock card */
-  z-index: 61;
+  top: calc(var(--ws-navH, 64px) + max(14px, env(safe-area-inset-top, 0px)));
+  right: clamp(18px, 2.6vw, 46px);
+  bottom: auto;
+  z-index: 100002;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -207,6 +208,9 @@ body.print3d-page.print-panel-open .gp {
 .gp__cancel svg { width: 12px; height: 12px; }
 .gp__cancel:hover { color: #d98a8a; background: rgba(217, 138, 138, 0.12); }
 .gp__cancel.is-busy { opacity: 0.4; pointer-events: none; }
+.gp__cancel--ghost {
+  visibility: hidden;
+}
 
 /* ---- minimised orb ------------------------------------------------------ */
 .gp__orb {
@@ -305,16 +309,17 @@ body.print3d-page.print-panel-open .gp {
 /* ---- small screens ------------------------------------------------------ */
 @media (max-width: 768px) {
   .gp {
-    left: 50%;
-    right: auto;
-    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 126px);
-    transform: translateX(-50%);
-    align-items: center;
-    width: calc(100vw - 20px);
+    top: calc(var(--ws-navH, 56px) + max(10px, env(safe-area-inset-top, 0px)));
+    right: max(10px, env(safe-area-inset-right, 0px));
+    left: max(10px, env(safe-area-inset-left, 0px));
+    bottom: auto;
+    align-items: stretch;
+    width: auto;
   }
 
   body.print3d-page.ws-viewer-open .gp {
-    bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    top: calc(var(--ws-navH, 56px) + max(10px, env(safe-area-inset-top, 0px)));
+    bottom: auto;
   }
 
   .gp__card {
@@ -364,12 +369,15 @@ body.print3d-page.print-panel-open .gp {
 
 @media (max-width: 430px) {
   .gp {
-    width: calc(100vw - 16px);
-    bottom: calc(max(10px, env(safe-area-inset-bottom, 0px)) + 120px);
+    top: calc(var(--ws-navH, 56px) + max(8px, env(safe-area-inset-top, 0px)));
+    right: max(8px, env(safe-area-inset-right, 0px));
+    left: max(8px, env(safe-area-inset-left, 0px));
+    width: auto;
   }
 
   body.print3d-page.ws-viewer-open .gp {
-    bottom: max(14px, env(safe-area-inset-bottom, 0px));
+    top: calc(var(--ws-navH, 56px) + max(8px, env(safe-area-inset-top, 0px)));
+    bottom: auto;
   }
 
   .gp__card {

@@ -2011,6 +2011,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
 
       creativeLab: `
         <div class="card">
+          <div data-page="prompt">
           <h3>Creative Lab</h3>
           <p class="card-desc" style="margin:0 0 10px;font-size:12px;color:rgba(255,255,255,.55);line-height:1.5">
             Meshy's productized workflows: a photo becomes a printable object in two paid steps —
@@ -2044,14 +2045,15 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             <input type="file" id="creativeLabUpload" accept="image/png,image/jpeg,image/webp" hidden />
           </div>
           <img id="creativeLabPreview" width="240" height="240" loading="lazy" decoding="async" style="display:none;width:100%;max-width:240px;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,.3);margin:10px auto 0" />
+          </div>
 
-          <div id="creativeLabPrototypeResult" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
+          <div data-page="output" id="creativeLabPrototypeResult" style="display:none;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,.08)">
             <span class="field-label-inline">Prototype</span>
             <img id="creativeLabPrototypeImage" width="240" height="240" loading="lazy" decoding="async" style="width:100%;max-width:240px;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,.3);margin:6px auto 0;display:block" />
             <p class="field-hint texture-setting-note">Happy with the concept? Build it into printable 3D geometry.</p>
           </div>
 
-          <p class="field-hint texture-setting-note" id="creativeLabStatus" style="margin-top:10px">Upload a photo to start.</p>
+          <p class="field-hint texture-setting-note" id="creativeLabStatus" data-page="output" style="margin-top:10px">Upload a photo to start.</p>
         </div>
 
         <div class="card gen-footer-card">

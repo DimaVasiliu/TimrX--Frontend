@@ -57,10 +57,10 @@
   </script>
   <link rel="preload" href="/fonts/inter-subset.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="fonts/fonts.css">
-  <link rel="stylesheet" href="landing.css?v=20260815recipes">
-  <link rel="stylesheet" href="hero-assistant.css?v=21">
+  <link rel="stylesheet" href="landing.css?v=20260816workflows">
+  <link rel="stylesheet" href="hero-assistant.css?v=20260816stablehero">
   <link rel="stylesheet" href="landing-widgets.css?v=20260813sync">
-  <link rel="stylesheet" href="homepage-responsive.css?v=13">
+  <link rel="stylesheet" href="homepage-responsive.css?v=20260818footer">
   <link rel="stylesheet" href="tx-menu.css?v=1">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer"></noscript>
@@ -130,7 +130,11 @@
       <div class="shell hero-minimal-shell">
         <div class="hero-copy hero-minimal-copy reveal">
           <div class="eyebrow"><span></span> TimrX creative workspace</div>
-          <h1 id="hero-title">Create <span class="typed-phrase-wrap"><em data-hero-headline>Product Mockups.</em><i class="typed-cursor" aria-hidden="true"></i></span></h1>
+          <h1 id="hero-title">Create AI images, videos and 3D models</h1>
+          <div class="hero-workflow-strip" aria-label="Popular TimrX workflows">
+            <span>Start with</span>
+            <strong data-hero-workflow>Product mockups</strong>
+          </div>
           <p data-hero-subcopy>Generate images, videos and printable 3D models from prompts or uploads. Refine, convert, export or print from one guided workspace.</p>
         </div>
 
@@ -589,12 +593,49 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
       </div>
     </section>
 
-    <section class="section-pad pricing-preview" aria-labelledby="pricing-title"><div class="shell pricing-card reveal"><div class="pricing-main"><span class="section-index">05 / FLEXIBLE CREDITS</span><h2 id="pricing-title">Create when you need to.<br>Pay for what you use.</h2><p>TimrX uses credits for AI generation and selected refinement tools. Start small, then add more when your workflow grows. Billing still lives in the Dashboard.</p><a class="button button-primary" href="/hub#pricing" data-track="pricing_view">View Pricing <span>→</span></a></div><div class="pricing-uses"><span class="pricing-uses-cap">One balance, every tool</span><ul aria-label="What credits unlock"><li><span>Image generation</span><small>Concept art, characters and product visuals.</small></li><li><span>Video generation</span><small>Cinematic clips and animated assets.</small></li><li><span>3D generation</span><small>Text and image to printable 3D models.</small></li><li><span>Refinement</span><small>Remesh, retexture, rigging and print preparation.</small></li></ul></div></div></section>
+    <section class="section-pad ai-workflows" aria-labelledby="ai-workflows-title">
+      <div class="shell ai-workflows-layout reveal">
+        <div class="ai-workflows-copy">
+          <span class="section-index">05 / AI WORKFLOWS</span>
+          <h2 id="ai-workflows-title">Start with a prompt, reference image, or model file.</h2>
+          <p>TimrX connects AI image generation, image to video, prompt to 3D model creation, and print-ready STL export in one browser workspace. Pick the workflow that matches the asset you need, then keep refining without starting over in another tool.</p>
+          <a class="button button-primary" href="/3dprint" data-track="workflows_open_workspace">Open Workspace <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="ai-workflow-grid" aria-label="AI creative workflow examples">
+          <a class="ai-workflow-card" href="/3dprint?panel=model" data-track="workflow_prompt_to_3d">
+            <span class="ai-workflow-card__tag">Prompt to 3D model</span>
+            <h3>AI 3D model generator</h3>
+            <p>Describe a product, prop, character, miniature or environment and generate a textured 3D draft that can move into remesh, texture and export.</p>
+            <small>Expected output: GLB, OBJ, STL or 3MF path</small>
+          </a>
+          <a class="ai-workflow-card" href="/3dprint?panel=model&amp;tab=image3d" data-track="workflow_image_to_3d">
+            <span class="ai-workflow-card__tag">Image to 3D reference</span>
+            <h3>Turn reference images into 3D assets</h3>
+            <p>Upload a product image, concept sketch or front-view reference, then create a model with preserved proportions and material-ready surfaces.</p>
+            <small>Expected output: editable 3D preview</small>
+          </a>
+          <a class="ai-workflow-card" href="/3dprint?panel=video" data-track="workflow_image_to_video">
+            <span class="ai-workflow-card__tag">Image to video generator</span>
+            <h3>Animate product shots and campaign visuals</h3>
+            <p>Use a still image or text brief to make short video clips, Seedance product ads, transition shots, motion previews and social-ready scenes.</p>
+            <small>Expected output: short video clip</small>
+          </a>
+          <a class="ai-workflow-card" href="/3dprint?panel=remesh" data-track="workflow_print_ready_stl">
+            <span class="ai-workflow-card__tag">Print-ready STL export</span>
+            <h3>Prepare models for real-world printing</h3>
+            <p>Check scale, clean geometry, remesh, texture and convert models before exporting STL or 3MF files for slicers and print ordering.</p>
+            <small>Expected output: checked printable file</small>
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section-pad pricing-preview" aria-labelledby="pricing-title"><div class="shell pricing-card reveal"><div class="pricing-main"><span class="section-index">06 / FLEXIBLE CREDITS</span><h2 id="pricing-title">Create when you need to.<br>Pay for what you use.</h2><p>TimrX uses credits for AI generation and selected refinement tools. Start small, then add more when your workflow grows. Billing still lives in the Dashboard.</p><a class="button button-primary" href="/hub#pricing" data-track="pricing_view">View Pricing <span>→</span></a></div><div class="pricing-uses"><span class="pricing-uses-cap">One balance, every tool</span><ul aria-label="What credits unlock"><li><span>Image generation</span><small>Concept art, characters and product visuals.</small></li><li><span>Video generation</span><small>Cinematic clips and animated assets.</small></li><li><span>3D generation</span><small>Text and image to printable 3D models.</small></li><li><span>Refinement</span><small>Remesh, retexture, rigging and print preparation.</small></li></ul></div></div></section>
 
     <section class="section-pad platform" id="platform-overview" aria-labelledby="platform-title">
       <div class="shell platform-layout">
         <div class="platform-intro reveal">
-          <span class="section-index">06 / OVERVIEW</span>
+          <span class="section-index">07 / OVERVIEW</span>
           <h2 id="platform-title">AI image, video and 3D generation in one browser workspace.</h2>
           <p>TimrX is an AI creative platform for generating product visuals, cinematic video clips and printable 3D models from text prompts, image references or existing files. Create, refine, organize and export assets without moving between disconnected tools.</p>
           <dl class="platform-points">
@@ -630,7 +671,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
       <div class="shell">
         <div class="insight-head reveal">
           <div class="insight-head-left">
-            <span class="section-index">07 / BLOG</span>
+            <span class="section-index">08 / BLOG</span>
             <h2 id="insights-title">Latest TimrX insights.</h2>
             <p>Short product notes, workflow guides and practical articles for creators working with AI images, video and 3D assets.</p>
             <div class="insight-topics" aria-label="Topics"><span>AI generation</span><span>3D &amp; printing</span><span>Workflow</span><span>Web &amp; motion</span></div>
@@ -662,7 +703,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
       </div>
     </section>
 
-    <section class="section-pad faq" aria-labelledby="faq-title"><div class="shell faq-layout"><div class="section-heading reveal"><span class="section-index">08 / FAQ</span><h2 id="faq-title">Questions, answered.</h2><p>Everything you need before creating your first asset.</p></div><div class="faq-list">
+    <section class="section-pad faq" aria-labelledby="faq-title"><div class="shell faq-layout"><div class="section-heading reveal"><span class="section-index">09 / FAQ</span><h2 id="faq-title">Questions, answered.</h2><p>Everything you need before creating your first asset.</p></div><div class="faq-list">
       <details class="reveal"><summary>Is TimrX a 3D, image and video model generator?<span>＋</span></summary><p>Yes. TimrX is an AI model generator for 3D models, images and videos. It includes text-to-3D, image-to-3D, AI image generation, Seedance and Veo video generation, and export workflows for creator and print formats.</p></details>
       <details class="reveal"><summary>What can I create with TimrX?<span>＋</span></summary><p>Images, short videos, textured 3D models and printable assets from prompts, reference images or existing files.</p></details>
       <details class="reveal"><summary>Can I export models for 3D printing?<span>＋</span></summary><p>Yes. Use print checks and export workflows for STL and 3MF, then prepare the result for your slicer or print service.</p></details>
@@ -676,7 +717,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
     <section class="section-pad info-landing" id="info" aria-labelledby="info-title">
       <div class="shell info-landing-layout reveal">
         <div class="info-landing-copy">
-          <span class="section-index">09 / INFO</span>
+          <span class="section-index">10 / INFO</span>
           <h2 id="info-title">Learn more about the TimrX platform.</h2>
           <p>Explore the company behind TimrX, read product documentation, and find answers about AI generation, credits, exports, account access and supported workflows.</p>
         </div>
@@ -720,7 +761,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
     window.TIMRX_CHAT_WIDGET = {kicker:'Platform assistant',title:'Ask TimrX',subtitle:'Product guidance for images, video, 3D, exports and credits.',spotlightTitle:'Find the right workflow',spotlightCopy:'Ask what to create, which tool to open, what formats are supported, or how credits work.',welcomeTitle:'What do you want to create?',welcomeCopy:'I can point you to the right TimrX tool and explain the workflow before you open the workspace.',placeholder:'Ask about tools, exports, credits or workflows…',prompts:[{label:'Which tool should I use?',prompt:'Which TimrX tool should I use for my idea?'},{label:'Can I export STL?',prompt:'Can I export models for 3D printing as STL or 3MF?'},{label:'How do credits work?',prompt:'How do credits work on TimrX?'},{label:'Start creating',prompt:'Where should I start if I want to create an asset now?'}]};
   </script>
   <script src="app.js?v=20260813sync" defer></script>
-  <script src="hero-assistant.js?v=14" defer></script>
+  <script src="hero-assistant.js?v=20260816stablehero" defer></script>
   <script src="js/hero-card-media.js?v=1" defer></script>
   <script src="js/hero-feature-scenes.js?v=1" defer></script>
   <script src="landing-widgets.js?v=20260813sync" defer></script>

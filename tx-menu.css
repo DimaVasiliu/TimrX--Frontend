@@ -127,7 +127,7 @@ body.tx-menu-open{
 .tx-menu-backdrop{
   position:fixed;
   inset:0;
-  z-index:1090;
+  z-index:1000000;
   background:rgba(3,5,8,.64);
   opacity:0;
   visibility:hidden;
@@ -145,7 +145,7 @@ body.tx-menu-open{
 .tx-menu{
   position:fixed;
   inset:0 0 0 auto;
-  z-index:1100;
+  z-index:1000010;
   display:block;
   width:min(100%,430px);
   height:100dvh;

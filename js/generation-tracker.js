@@ -31,9 +31,12 @@
   var pollId = null, lastSig = null;
   var minimised = false;                    // per-session; a new job re-expands
   var knownIds = Object.create(null);
+  var transientJobs = Object.create(null);  // optimistic "starting" rows before the API returns an id
   var seen = Object.create(null);           // id -> last announced bucket
   var cancelling = Object.create(null);     // id -> true while cancel in flight
   var baseTitle = document.title;
+  var stateSubscribed = false;
+  var TRANSIENT_TTL = 18000;
 
   var ICONS = {
     model:   'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4',
@@ -68,14 +71,70 @@
     });
   }
 
-  function readJobs() {
-    var S = window.TimrXState || window;
-    var ids = [];
-    try { ids = (S.getActiveJobs && S.getActiveJobs()) || []; } catch (e) { ids = []; }
-    var meta = {};
-    try { meta = (S.getPendingMeta && S.getPendingMeta()) || {}; } catch (e) { meta = {}; }
+  function stateMethod(name) {
+    if (window.TimrXState && typeof window.TimrXState[name] === 'function') {
+      return window.TimrXState[name].bind(window.TimrXState);
+    }
+    if (typeof window[name] === 'function') return window[name].bind(window);
+    return null;
+  }
 
-    return ids.map(function (id) {
+  function normaliseKind(type) {
+    var t = String(type || '').toLowerCase();
+    if (t.indexOf('image') !== -1) return 'image';
+    if (t.indexOf('video') !== -1 || t.indexOf('seedance') !== -1 || t.indexOf('veo') !== -1) return 'video';
+    if (t.indexOf('texture') !== -1) return 'texture';
+    if (t.indexOf('remesh') !== -1 || t.indexOf('topology') !== -1) return 'remesh';
+    if (t.indexOf('rig') !== -1) return 'rig';
+    if (t.indexOf('anim') !== -1 || t.indexOf('evolve') !== -1) return 'animate';
+    return 'model';
+  }
+
+  function currentPromptForKind(kind, detail) {
+    if (detail && detail.prompt) return detail.prompt;
+    var ids = kind === 'video'
+      ? ['videoMotion', 'videoPrompt', 'modelPrompt']
+      : kind === 'image'
+        ? ['imagePrompt', 'modelPrompt']
+        : ['modelPrompt', 'imagePrompt', 'texturePrompt', 'videoMotion'];
+    for (var i = 0; i < ids.length; i++) {
+      var el = document.getElementById(ids[i]);
+      var value = el && String(el.value || '').trim();
+      if (value) return value;
+    }
+    return '';
+  }
+
+  function addTransientJob(detail) {
+    var kind = normaliseKind(detail && detail.type);
+    var prompt = currentPromptForKind(kind, detail);
+    if (!prompt) return;
+    var id = 'starting-' + kind + '-' + Date.now();
+    transientJobs[id] = {
+      id: id,
+      pct: null,
+      stage: 'starting',
+      label: 'Starting',
+      kind: kind,
+      prompt: prompt,
+      started: Date.now(),
+      transient: true,
+      expires: Date.now() + TRANSIENT_TTL
+    };
+    minimised = false;
+    lastSig = null;
+    render();
+  }
+
+  function readJobs() {
+    var ids = [];
+    var getActiveJobs = stateMethod('getActiveJobs');
+    var getPendingMeta = stateMethod('getPendingMeta');
+    try { ids = (getActiveJobs && getActiveJobs()) || []; } catch (e) { ids = []; }
+    var meta = {};
+    try { meta = (getPendingMeta && getPendingMeta()) || {}; } catch (e) { meta = {}; }
+
+    var jobs = ids.map(function (id) {
       var m = meta[id] || {};
       var pct = typeof m.progress === 'number' ? m.progress
               : typeof m.progress_pct === 'number' ? m.progress_pct : null;
@@ -90,6 +149,17 @@
         started: m.started_at || m.startedAt || m.created_at || null
       };
     });
+
+    var now = Date.now();
+    if (jobs.length) {
+      transientJobs = Object.create(null);
+      return jobs;
+    }
+
+    Object.keys(transientJobs).forEach(function (id) {
+      if (transientJobs[id].expires < now) delete transientJobs[id];
+    });
+    return Object.keys(transientJobs).map(function (id) { return transientJobs[id]; });
   }
 
   function elapsed(ts) {
@@ -147,9 +217,11 @@
       '    <span class="gp__row-bar"><span data-role="bar" style="width:' + (j.pct != null ? Math.max(2, Math.round(j.pct)) : 12) + '%"' +
              (j.pct == null ? ' class="is-indeterminate"' : '') + '></span></span>' +
       '  </span>' +
-      '  <button type="button" class="gp__cancel" data-cancel="' + esc(j.id) + '" title="Cancel this generation" aria-label="Cancel generation">' +
-      '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
-      '  </button>' +
+      (j.transient
+        ? '  <span class="gp__cancel gp__cancel--ghost" aria-hidden="true"></span>'
+        : '  <button type="button" class="gp__cancel" data-cancel="' + esc(j.id) + '" title="Cancel this generation" aria-label="Cancel generation">' +
+          '    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>' +
+          '  </button>') +
       '</div>'
     );
   }
@@ -242,6 +314,7 @@
 
   function cancelJob(id, btn) {
     if (!id || cancelling[id]) return;
+    if (String(id).indexOf('starting-') === 0) return;
     var api = window.TimrXApi;
     if (!api || !api.apiPost) { toast('Cancel is unavailable right now.'); return; }
     cancelling[id] = true;
@@ -255,8 +328,8 @@
         done();
         if (res && res.ok) {
           toast('Generation cancelled — credits refunded.');
-          var S = window.TimrXState || window;
-          try { S.removeActiveJob && S.removeActiveJob(id); } catch (e) {}
+          var removeActiveJob = stateMethod('removeActiveJob');
+          try { removeActiveJob && removeActiveJob(id); } catch (e) {}
           lastSig = null; render();
         } else {
           var code = res && res.data && res.data.error && res.data.error.code;
@@ -324,17 +397,28 @@
 
   function start() {
     if (pollId) return;
-    pollId = setInterval(render, POLL_MS);
+    pollId = setInterval(function () {
+      subscribeState();
+      render();
+    }, POLL_MS);
     render();
+  }
+
+  function subscribeState() {
+    if (stateSubscribed) return;
+    var onActiveJobsChange = stateMethod('onActiveJobsChange');
+    if (!onActiveJobsChange) return;
+    try {
+      onActiveJobsChange(function () { lastSig = null; render(); });
+      stateSubscribed = true;
+    } catch (e) {}
   }
 
   function boot() {
     ensureHost();
     start();
-    var S = window.TimrXState || window;
-    if (S.onActiveJobsChange) {
-      try { S.onActiveJobsChange(function () { lastSig = null; render(); }); } catch (e) {}
-    }
+    subscribeState();
+    window.addEventListener('generation:start', function (e) { addTransientJob((e && e.detail) || {}); });
     document.addEventListener('visibilitychange', function () {
       if (!document.hidden) { lastSig = null; render(); }
     });

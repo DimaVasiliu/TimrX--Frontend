@@ -4,7 +4,7 @@
   const form=document.getElementById('heroAssistantForm');
   const input=document.getElementById('heroAssistantInput');
   const answer=document.getElementById('heroAssistantAnswer');
-  const headline=document.querySelector('[data-hero-headline]');
+  const workflowPhrase=document.querySelector('[data-hero-workflow]');
   const subcopy=document.querySelector('[data-hero-subcopy]');
   if(!form||!input||!answer)return;
 
@@ -616,38 +616,39 @@
     input.setAttribute('placeholder',window.innerWidth<=760?mobilePlaceholder:desktopPlaceholder);
   }
   function initDynamicHeadline(){
-    if(!headline)return;
-    const desktopPhrases=['Product Mockups.','Printable 3D Models.','Cinematic Videos.','Game Assets.','Product Visuals.','Multi-Colour Models.','STL Files.','Anything.'];
-    const mobilePhrases=['Mockups.','3D Models.','Videos.','Game Assets.','Product Visuals.','STL Files.','Anything.'];
+    if(!workflowPhrase)return;
+    const desktopPhrases=['product mockups','print-ready STL files','Seedance product ads','image to 3D references','game assets','multi-colour 3MF models'];
+    const mobilePhrases=['mockups','STL files','product ads','image to 3D','game assets','3MF models'];
     const mobileQuery=window.matchMedia('(max-width: 599px)');
     const reducedQuery=window.matchMedia('(prefers-reduced-motion: reduce)');
     const getPhrases=()=>mobileQuery.matches?mobilePhrases:desktopPhrases;
-    if(reducedQuery.matches){headline.textContent=getPhrases()[0];return}
-    let index=0,text=getPhrases()[index],char=text.length,deleting=true,timer=0,runId=0;
-    const typeDelay=68,deleteDelay=34,holdDelay=1850,swapDelay=260;
+    if(reducedQuery.matches){workflowPhrase.textContent=getPhrases()[0];return}
+    let index=0,timer=0,runId=0;
+    const holdDelay=2300,fadeDelay=180;
     function queue(fn,delay){timer=window.setTimeout(fn,delay)}
+    function setPhrase(phrase){
+      workflowPhrase.classList.add('is-swapping');
+      queue(()=>{
+        workflowPhrase.textContent=phrase;
+        workflowPhrase.classList.remove('is-swapping');
+      },fadeDelay);
+    }
     function start(){
       runId+=1;
       window.clearTimeout(timer);
       const phrases=getPhrases();
-      index=0;text=phrases[index];char=text.length;deleting=true;
-      headline.textContent=text;
+      index=0;
+      workflowPhrase.textContent=phrases[index];
+      workflowPhrase.classList.remove('is-swapping');
       const id=runId;
       queue(()=>tick(id),holdDelay);
     }
     function tick(id){
       if(id!==runId)return;
       const phrases=getPhrases();
-      if(index>=phrases.length)index=0;
-      text=phrases[index];
-      if(deleting){
-        char=Math.max(0,char-1);headline.textContent=text.slice(0,char);
-        if(char===0){deleting=false;index=(index+1)%phrases.length;queue(()=>tick(id),swapDelay);return}
-        queue(()=>tick(id),deleteDelay);return;
-      }
-      text=phrases[index];char=Math.min(text.length,char+1);headline.textContent=text.slice(0,char);
-      if(char===text.length){deleting=true;queue(()=>tick(id),holdDelay);return}
-      queue(()=>tick(id),typeDelay);
+      index=(index+1)%phrases.length;
+      setPhrase(phrases[index]);
+      queue(()=>tick(id),holdDelay);
     }
     start();
     if(typeof mobileQuery.addEventListener==='function')mobileQuery.addEventListener('change',start);
@@ -655,26 +656,8 @@
   }
   function initDynamicSubcopy(){
     if(!subcopy)return;
-    const lines=[
-      'Generate images, videos and printable 3D models from prompts or uploads.',
-      'Refine, convert, export or print from one guided workspace.'
-    ];
-    const fullText=lines.join(' ');
-    if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){subcopy.textContent=fullText;return}
-    subcopy.classList.add('is-typing');
-    subcopy.textContent='';
-    let line=0,char=0;
-    function type(){
-      const current=lines[line]||'';
-      const before=lines.slice(0,line).join(' ');
-      char=Math.min(current.length,char+1);
-      subcopy.textContent=(before?before+' ':'')+current.slice(0,char);
-      if(char<current.length){window.setTimeout(type,22);return}
-      if(line<lines.length-1){line++;char=0;window.setTimeout(type,360);return}
-      subcopy.classList.remove('is-typing');
-      subcopy.classList.add('is-typed');
-    }
-    window.setTimeout(type,520);
+    subcopy.classList.remove('is-typing');
+    subcopy.classList.add('is-typed');
   }
 
   document.querySelectorAll('[data-hero-prompt]').forEach(button=>button.addEventListener('click',()=>{const prompt=button.dataset.heroPrompt||button.textContent;track('assistant_prompt_chip_click',{prompt_length:String(prompt||'').length});if(button.dataset.requiresUpload){guideUploadFlow(prompt);return}startGeneration(prompt)}));

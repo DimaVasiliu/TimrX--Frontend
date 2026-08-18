@@ -562,3 +562,63 @@ body.hero-command-docked .hero-promptbar{
     display:none;
   }
 }
+
+/* === Stable hero headline: keep the H1 readable; animate a smaller workflow line. === */
+.hero-minimal-copy h1{
+  display:block;
+  width:min(100%,1120px);
+  max-width:1120px;
+  min-height:auto;
+  white-space:normal;
+  text-wrap:balance;
+  letter-spacing:-.058em;
+}
+.hero-workflow-strip{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  max-width:min(100%,760px);
+  margin:16px auto 0;
+  padding:8px 11px 8px 14px;
+  border:1px solid rgba(244,241,234,.11);
+  border-radius:999px;
+  background:rgba(5,7,10,.46);
+  box-shadow:0 16px 48px rgba(0,0,0,.32),inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter:blur(14px) saturate(120%);
+  color:#b8afa2;
+  font-size:clamp(12px,1.05vw,15px);
+  font-weight:750;
+  line-height:1.25;
+}
+.hero-workflow-strip span{
+  color:#8f877b;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+}
+.hero-workflow-strip strong{
+  display:inline-block;
+  min-width:19ch;
+  color:#8fe7ee;
+  font-weight:850;
+  text-align:left;
+  transition:opacity .18s ease,transform .18s ease;
+}
+.hero-workflow-strip strong.is-swapping{
+  opacity:0;
+  transform:translateY(5px);
+}
+@media(max-width:760px){
+  .hero-workflow-strip{
+    justify-content:flex-start;
+    max-width:100%;
+    margin-top:12px;
+    border-radius:18px;
+    text-align:left;
+  }
+  .hero-workflow-strip strong{
+    min-width:0;
+  }
+}

@@ -223,6 +223,7 @@ function buildGroupedCardHTML(group, items) {
     : firstStage === 'resize' ? 'Resized'
     : firstStage === 'uv_unwrap' || firstStage === 'uv-unwrap' ? 'UV Unwrapped'
     : firstStage === 'print_repair' ? 'Print Repaired'
+    : firstStage.startsWith('creative_lab') ? 'Creative Lab'
     : firstStage === 'texture' || firstStage === 'textured' ? 'Textured'
     : firstStage === 'image3d' ? 'Image to 3D'
     : firstStage === 'multi_color_print' ? '3D Print'
@@ -1014,7 +1015,8 @@ function deriveBatchBundleKey(model = {}) {
  * then by created_at, so the same family renders identically before and after reload.
  */
 const _STAGE_ORDER = { preview: 0, image3d: 1, refine: 2, texture: 3, remesh: 4,
-  convert: 4, resize: 4, uv_unwrap: 4, 'uv-unwrap': 4, print_repair: 4, rig: 5, animate: 6, animation: 6 };
+  convert: 4, resize: 4, uv_unwrap: 4, 'uv-unwrap': 4, print_repair: 4, creative_lab_build: 4,
+  rig: 5, animate: 6, animation: 6 };
 
 function compareHistoryModels(a = {}, b = {}) {
   const stageA = (a?.stage || 'preview').toLowerCase();
@@ -1809,6 +1811,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     : stageVal === 'resize' ? 'Resize failed'
     : stageVal === 'uv_unwrap' || stageVal === 'uv-unwrap' ? 'UV unwrap failed'
     : stageVal === 'print_repair' ? 'Print repair failed'
+    : stageVal.startsWith('creative_lab') ? 'Creative Lab build failed'
     : stageVal === 'image3d' ? 'Image to 3D failed'
     : 'Generation failed';
   const previewMarkup = status === 'failed'
@@ -1841,6 +1844,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
     : stageVal === 'resize' ? 'Resized'
     : stageVal === 'uv_unwrap' || stageVal === 'uv-unwrap' ? 'UV Unwrapped'
     : stageVal === 'print_repair' ? 'Print Repaired'
+    : stageVal.startsWith('creative_lab') ? 'Creative Lab'
     : stageVal === 'texture' || stageVal === 'textured' ? 'Textured'
     : stageVal === 'image3d' ? 'Image to 3D'
     : stageVal === 'rig' || stageVal === 'rigged' ? 'Rigged'

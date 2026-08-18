@@ -8555,6 +8555,20 @@ export async function startCreativeLabBuild(product, { input_task_id, name = '',
 
   // Own status route per product, so drive it here and hand the finished model
   // to the shared history/viewer path.
+  watchCreativeLabBuild(product, jobId, { label, stage: meta.stage });
+
+  return started.data;
+}
+
+/**
+ * Poll a Creative Lab build to completion and land the model in history.
+ * Shared by the panel flow and by job recovery after a reload — without this,
+ * a reload would leave the finished build unsaved and its credits unfinalised.
+ */
+export function watchCreativeLabBuild(product, jobId, { label = '', stage = '', isRecovery = false } = {}) {
+  const title = label || `${String(product || '').replace(/-/g, ' ')} build`;
+  const historyStage = stage || `creative_lab_${String(product || '').replace(/-/g, '_')}_build`;
+
   (async () => {
     try {
       const done = await pollCreativeLab(product, 'build', jobId, null);
@@ -8566,11 +8580,11 @@ export async function startCreativeLabBuild(product, { input_task_id, name = '',
         type: 'model',
         status: 'finished',
         created_at: normalizeEpochMs(done.created_at),
-        title: label,
-        prompt: label,
-        root_prompt: label,
+        title,
+        prompt: title,
+        root_prompt: title,
         progress_pct: 100,
-        stage: meta.stage,
+        stage: historyStage,
         creative_lab_product: product,
         thumbnail_url: done.thumbnail_url || '',
         glb_url: glbDirect,
@@ -8581,10 +8595,10 @@ export async function startCreativeLabBuild(product, { input_task_id, name = '',
       else State.addHistoryItem(historyData);
       State.setHistoryActiveModelId(jobId);
       renderHistory();
-      if (glbDirect) {
+      if (glbDirect && !isRecovery) {
         await Viewer.presentAsset('model', glbProxy || glbDirect, {
           fallbackUrl: glbDirect,
-          title: label,
+          title,
           hint: 'Creative Lab build complete.',
         });
       }
@@ -8595,11 +8609,9 @@ export async function startCreativeLabBuild(product, { input_task_id, name = '',
       State.updateHistoryItem(jobId, { status: 'failed', status_label: err?.message || 'Build failed' });
       renderHistory();
       refreshCreditsInBackground();
-      if (window.showToast) window.showToast(err?.message || 'Creative Lab build failed.', 'error');
+      if (!isRecovery && window.showToast) window.showToast(err?.message || 'Creative Lab build failed.', 'error');
     }
   })();
-
-  return started.data;
 }
 
 // ============================================================================
@@ -9053,6 +9065,7 @@ const _STRATEGY_TO_CATEGORY = {
   meshy_resize:      'mesh',
   meshy_uv_unwrap:   'mesh',
   meshy_print_repair: 'mesh',
+  meshy_creative_lab_build: 'creativeLab',
   meshy_image_to_3d: 'mesh',
   meshy_multi_image_to_3d: 'mesh',
   meshy_text_to_3d:  'text',
@@ -9072,6 +9085,7 @@ const _STRATEGY_TO_STAGE = {
   meshy_resize:      'resize',
   meshy_uv_unwrap:   'uv_unwrap',
   meshy_print_repair: 'print_repair',
+  meshy_creative_lab_build: 'creative_lab_build',
   meshy_image_to_3d: 'image3d',
   // Multi-image shares the image3d stage for history/UI; only the poll route differs.
   meshy_multi_image_to_3d: 'image3d',
@@ -9089,6 +9103,7 @@ function _inferStrategyFromStage(stage) {
   const map = { texture: 'meshy_retexture', remesh: 'meshy_remesh', image3d: 'meshy_image_to_3d',
     convert: 'meshy_convert', resize: 'meshy_resize', uv_unwrap: 'meshy_uv_unwrap',
     print_repair: 'meshy_print_repair', print_analyze: 'skip',
+    creative_lab_build: 'meshy_creative_lab_build',
     multi_image3d: 'meshy_multi_image_to_3d',
     preview: 'meshy_text_to_3d', refine: 'meshy_refine', rig: 'meshy_rig',
     animate: 'meshy_animation', animation: 'meshy_animation', video: 'video', image: 'image',
@@ -9161,6 +9176,7 @@ async function _doResumePendingJobs(options = {}) {
         title: meta.title || job.title || '',
         job_type: job.job_type || '',
         provider: job.provider || '',
+        creative_lab_product: meta.creative_lab_product || null,
         internal_job_id: job.id,
         provider_job_id: job.provider_job_id || job.upstream_job_id || null,
         created_at: job.created_at || null,
@@ -9294,7 +9310,7 @@ async function _doResumePendingJobs(options = {}) {
   }
 
   // ── Step 6: Categorize by resume_strategy and start watchers ──
-  const buckets = { mesh: [], text: [], video: [], rig: [], animate: [], image: [], multiColor: [] };
+  const buckets = { mesh: [], text: [], video: [], rig: [], animate: [], image: [], multiColor: [], creativeLab: [] };
 
   for (const id of ids) {
     if (State.watchers.has(id)) {
@@ -9313,7 +9329,7 @@ async function _doResumePendingJobs(options = {}) {
     (buckets[category] || buckets.text).push(id);
   }
 
-  const allToResume = [...buckets.mesh, ...buckets.text, ...buckets.video, ...buckets.rig, ...buckets.animate, ...buckets.image, ...buckets.multiColor];
+  const allToResume = [...buckets.mesh, ...buckets.text, ...buckets.video, ...buckets.rig, ...buckets.animate, ...buckets.image, ...buckets.multiColor, ...buckets.creativeLab];
   if (!allToResume.length) {
     if (!skipEmptyUI) UI.showOutputEmpty();
     return;
@@ -9325,7 +9341,7 @@ async function _doResumePendingJobs(options = {}) {
   const STATUS_LABELS = {
     texture: 'Texturing...', remesh: 'Remeshing...', image3d: 'Generating 3D...',
     convert: 'Converting...', resize: 'Resizing...', uv_unwrap: 'Unwrapping UVs...',
-    print_repair: 'Repairing for print...',
+    print_repair: 'Repairing for print...', creative_lab_build: 'Building...',
     video: 'Generating video...', rig: 'Rigging...', animate: 'Animating...',
     animation: 'Animating...', refine: 'Refining...', preview: 'Generating...',
     image: 'Generating image...', multi_color_print: 'Preparing Meshy 3MF...',
@@ -9374,6 +9390,18 @@ async function _doResumePendingJobs(options = {}) {
   }
   for (const id of buckets.multiColor) {
     watchMultiColorPrintJob(id, { isRecovery: true });
+  }
+  for (const id of buckets.creativeLab) {
+    const meta = pendingMeta[id] || {};
+    const product = meta.creative_lab_product;
+    if (!product) {
+      // Without the product we cannot build the status URL; drop it rather
+      // than poll a wrong endpoint forever.
+      log(`[Recovery] Skipping Creative Lab job ${id} — product unknown`);
+      State.removeActiveJob(id);
+      continue;
+    }
+    watchCreativeLabBuild(product, id, { label: meta.title || meta.prompt || '', stage: meta.stage, isRecovery: true });
   }
 }
 
