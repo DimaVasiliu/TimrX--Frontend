@@ -93,7 +93,7 @@
   <!-- Self-hosted fonts -->
   <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts/fonts.css">
-  <link rel="stylesheet" href="footer.css">
+  <link rel="stylesheet" href="footer.css?v=20260818footer2">
   <link rel="stylesheet" href="trustpilot.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
@@ -559,20 +559,45 @@
       <div class="ft-main">
         <div class="ft-brand">
           <a href="/" class="ft-brand-mark" aria-label="TimrX home">
-            <img src="img/logo.png?v=20260815logo" alt="" class="ft-brand-icon" width="28" height="28">
-            <span class="ft-brand-name">TimrX</span>
+            <img src="/img/logo.png?v=20260815logo" alt="" class="ft-brand-icon" width="40" height="40">
+            <span class="ft-brand-name">Timr<span>X</span></span>
           </a>
-          <span class="ft-brand-tag">3D, image &amp; video generation</span>
-          <p class="ft-desc">TimrX is a browser-based platform to generate 3D models, images and video, then remesh, texture, animate and export print-ready STL, OBJ and GLB files.</p>
+          <p class="ft-desc">Images, video and 3D creation in one browser workspace.</p>
         </div>
         <nav class="ft-cols" aria-label="Footer navigation">
+          <div class="ft-col">
+            <h3 class="ft-heading">Product</h3>
+            <ul class="ft-links">
+              <li><a href="/3dprint">Create</a></li>
+              <li><a href="/ai-tools">Tools</a></li>
+              <li><a href="/converter">Converter</a></li>
+              <li><a href="/stl-library">STL Library</a></li>
+            </ul>
+          </div>
           <div class="ft-col">
             <h3 class="ft-heading">Explore</h3>
             <ul class="ft-links">
               <li><a href="/blogs">Blog</a></li>
-              <li><a href="/#works">Works</a></li>
-              <li><a href="/#services">Services</a></li>
-              <li><a href="/#contact">Contact</a></li>
+              <li><a href="/tutorials">Tutorials</a></li>
+              <li><a href="/community">Community</a></li>
+              <li><a href="/prompts">Prompts</a></li>
+              <li><a href="/company">Company</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Account</h3>
+            <ul class="ft-links">
+              <li><a href="/hub">Dashboard</a></li>
+              <li><a href="/hub#pricing">Pricing</a></li>
+              <li><a href="/docs">Docs</a></li>
+            </ul>
+          </div>
+          <div class="ft-col">
+            <h3 class="ft-heading">Connect</h3>
+            <ul class="ft-links">
+              <li><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a></li>
+              <li><a href="mailto:support@timrx.live">Support</a></li>
+              <li><a href="/llms.txt">LLM Summary</a></li>
             </ul>
           </div>
           <div class="ft-col">
@@ -583,29 +608,11 @@
               <li><a href="/cookies">Cookies</a></li>
             </ul>
           </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Connect</h3>
-            <ul class="ft-links">
-              <li><a href="/rss.xml">RSS</a></li>
-              <li><a href="mailto:admin@timrx.live">Email</a></li>
-              <li><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a></li>
-              <li><a href="https://www.linkedin.com/in/dumitru-vasiliu" target="_blank" rel="noopener noreferrer">LinkedIn</a></li>
-              <li><a href="https://github.com/DimaVasiliu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
-            </ul>
-          </div>
         </nav>
       </div>
-
-      <!-- Trustpilot -->
-      <div class="ft-trust">
-        <a data-tp="read" target="_blank" rel="noopener noreferrer">Read reviews on Trustpilot</a>
-        <span class="ft-trust-sep" aria-hidden="true">&middot;</span>
-        <a data-tp="write" target="_blank" rel="noopener noreferrer">Share your experience</a>
-      </div>
-
       <div class="ft-bottom">
-        <span class="ft-copy">&copy; <span id="year"></span> TimrX / Dima Vasiliu</span>
-        <span class="ft-meta">Built in London &middot; 3D, image &amp; video generation</span>
+        <span class="ft-copy">&copy; <span id="year" data-year></span> TimrX</span>
+        <a class="ft-meta" href="/dima-vasiliu">Built by Dima Vasiliu <span aria-hidden="true">↗</span></a>
       </div>
     </div>
   </footer>

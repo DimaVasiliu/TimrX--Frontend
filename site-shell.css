@@ -1463,9 +1463,38 @@ body.site-menu-open {
 }
 
 .site-shell-footer-main {
-  grid-template-columns: minmax(260px, .9fr) minmax(0, 2.1fr);
+  grid-template-columns: minmax(260px, .95fr) minmax(0, 5fr);
   align-items: start;
   gap: clamp(28px, 4vw, 82px);
+}
+
+.site-shell-footer-brand {
+  gap: 12px;
+}
+
+.site-shell-footer-mark {
+  gap: 10px;
+}
+
+.site-shell-footer-mark img {
+  width: 40px;
+  height: 40px;
+}
+
+.site-shell-footer-name {
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 26px;
+  font-weight: 850;
+  letter-spacing: -.03em;
+  text-transform: none;
+}
+
+.site-shell-footer-name-x {
+  color: #2db9ff;
+}
+
+.site-shell-footer-tag:empty {
+  display: none;
 }
 
 .site-shell-footer-cols {
@@ -1483,13 +1512,27 @@ body.site-menu-open {
 }
 
 .site-shell-footer-links a {
+  color: #aaa295;
   min-height: 26px;
+  line-height: 1.35;
 }
 
 .site-shell-footer-bottom {
+  align-items: center;
   margin-top: clamp(28px, 4vw, 46px);
   padding-top: 0;
   border-top: 0;
+  color: #7a7265;
+}
+
+.site-shell-footer-bottom a {
+  color: #968d80;
+  text-decoration: none;
+}
+
+.site-shell-footer-bottom a:hover,
+.site-shell-footer-bottom a:focus-visible {
+  color: #f4f1ea;
 }
 
 @media (max-width: 1120px) {

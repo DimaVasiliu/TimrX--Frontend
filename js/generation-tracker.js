@@ -30,6 +30,7 @@
   var host, cardEl, listEl, headCoreEl, headCountEl, orbEl, orbRingEl, orbBadgeEl, live;
   var pollId = null, lastSig = null;
   var minimised = false;                    // per-session; a new job re-expands
+  var minimising = false;                   // true while the fly-down runs
   var knownIds = Object.create(null);
   var transientJobs = Object.create(null);  // optimistic "starting" rows before the API returns an id
   var seen = Object.create(null);           // id -> last announced bucket
@@ -288,8 +289,25 @@
     orbBadgeEl = host.querySelector('.gp__orb-badge');
 
     host.querySelector('.gp__minimise').addEventListener('click', function () {
-      minimised = true;
-      applyMinimised();
+      if (minimising) return;
+      var reduceMotion = false;
+      try { reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+      if (reduceMotion) { minimised = true; applyMinimised(); return; }
+      // Two-phase choreography (gen-progress.css): the card flies down toward
+      // the orb's dock, then the orb bounces in with sonar pings — the user's
+      // eye follows the motion and learns where the progress now lives.
+      minimising = true;
+      host.classList.add('gp--minimising');
+      setTimeout(function () {
+        host.classList.remove('gp--minimising');
+        minimising = false;
+        minimised = true;
+        applyMinimised();
+        orbEl.classList.remove('is-arriving');
+        void orbEl.offsetWidth; // restart the arrival animation
+        orbEl.classList.add('is-arriving');
+        setTimeout(function () { orbEl.classList.remove('is-arriving'); }, 2200);
+      }, 360);
     });
     orbEl.addEventListener('click', function () {
       minimised = false;
