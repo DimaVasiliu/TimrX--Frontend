@@ -12,11 +12,21 @@
   var FOCUSABLE = 'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"])';
   /* Rows rise in DOM order; the index drives the stagger in CSS. */
   var ROWS = '.tx-menu-head,.tx-menu-extra,.tx-menu-links a,.tx-menu-links button,.tx-menu-cta,.tx-menu-foot';
+  var boundBurgers = window.__TIMRX_MENU_BOUND_BURGERS;
+  if (!boundBurgers && typeof WeakSet === 'function') {
+    boundBurgers = new WeakSet();
+    window.__TIMRX_MENU_BOUND_BURGERS = boundBurgers;
+  }
+  var observerStarted = false;
 
   function init() {
     var burger = document.querySelector('[data-tx-burger]');
     var menu = document.querySelector('[data-tx-menu]');
     if (!burger || !menu) return;
+    if (boundBurgers && boundBurgers.has(burger)) return;
+    if (!boundBurgers && burger.getAttribute('data-tx-menu-bound') === 'true') return;
+    if (boundBurgers) boundBurgers.add(burger);
+    burger.setAttribute('data-tx-menu-bound', 'true');
 
     var body = document.body;
     var closeButton = menu.querySelector('[data-tx-menu-close]');
@@ -116,10 +126,28 @@
     window.TIMRX_MENU = { open: open, close: close, isOpen: isOpen };
   }
 
+  function observeInjectedNav() {
+    if (observerStarted || !document.body || typeof MutationObserver !== 'function') return;
+    observerStarted = true;
+    var observer = new MutationObserver(function (mutations) {
+      for (var i = 0; i < mutations.length; i += 1) {
+        if (mutations[i].addedNodes && mutations[i].addedNodes.length) {
+          init();
+          break;
+        }
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function () {
+      init();
+      observeInjectedNav();
+    });
   } else {
     init();
+    observeInjectedNav();
   }
 
   window.TIMRX_MENU_INIT = init;

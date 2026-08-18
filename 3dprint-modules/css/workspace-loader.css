@@ -325,9 +325,6 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
   text-transform: uppercase;
 }
 
-/* The clip mask for the rise. The generous padding is not spacing — it is
-   headroom for the print tip's bloom, which would otherwise be cut off at the
-   mask edge; the matching negative margin keeps the layout where it was. */
 /* The mask for the rise. clip-path rather than overflow:hidden, and the
    difference matters twice: it clips the bottom ONLY, so a line set in a wider
    fallback face is never chopped mid-word, and it leaves the print tip's bloom

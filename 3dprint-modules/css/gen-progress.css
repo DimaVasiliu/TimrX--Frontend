@@ -17,22 +17,39 @@
    ========================================================================== */
 
 /* body.print3d-page > * demotes positioned body children (variables.css) —
-   restore explicitly. Keep this above workspace panels/dock, below global menus. */
-html body.print3d-page > .gp { position: fixed; z-index: 100002; }
+   restore explicitly. z-index 400000 puts the card above every modal layer
+   (lib-dialog 200300, ws-cmd 200500, components modals 300000) while staying
+   below toasts/notifications (999999): a new generation must be visible even
+   when it was started from inside a modal. */
+html body.print3d-page > .gp { position: fixed; z-index: 400000; }
 
+/* Expanded: centred on screen so a freshly started generation is unmissable,
+   on top of whichever modal launched it. */
 .gp {
   position: fixed;
-  top: calc(var(--ws-navH, 64px) + max(14px, env(safe-area-inset-top, 0px)));
-  right: clamp(18px, 2.6vw, 46px);
+  top: 50%;
+  left: 50%;
+  right: auto;
   bottom: auto;
-  z-index: 100002;
+  transform: translate(-50%, -50%);
+  z-index: 400000;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
+  align-items: center;
   pointer-events: none;
 }
 .gp[hidden] { display: none; }
 .gp > * { pointer-events: auto; }
+
+/* Minimised: dock the orb top-right under the nav so it stops covering the
+   viewer. generation-tracker.js toggles .gp--min alongside the orb/card. */
+.gp.gp--min {
+  top: calc(var(--ws-navH, 64px) + max(14px, env(safe-area-inset-top, 0px)));
+  left: auto;
+  right: clamp(18px, 2.6vw, 46px);
+  transform: none;
+  align-items: flex-end;
+}
 
 /* yield to full-surface states, same list as the dock */
 body.print3d-page.ws-cmd-open .gp,

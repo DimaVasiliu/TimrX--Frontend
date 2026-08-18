@@ -504,6 +504,62 @@ body.tx-menu-open{
   }
 }
 
+@media(max-width:520px){
+  .tx-menu{
+    inset:0;
+    width:100%;
+    max-width:none;
+    height:100svh;
+    min-height:100dvh;
+    border-left:0;
+    box-shadow:none;
+  }
+
+  .tx-menu-panel{
+    min-height:100svh;
+    padding:
+      calc(env(safe-area-inset-top,0px) + 14px)
+      max(18px,env(safe-area-inset-right,0px) + 18px)
+      calc(env(safe-area-inset-bottom,0px) + 18px)
+      max(18px,env(safe-area-inset-left,0px) + 18px);
+  }
+
+  .tx-menu-head{
+    min-height:50px;
+    padding-bottom:12px;
+  }
+
+  .tx-menu-close{
+    width:42px;
+    height:42px;
+    flex-basis:42px;
+  }
+
+  .tx-menu-links a,
+  .tx-menu-links button{
+    min-height:52px;
+    padding-left:42px;
+  }
+
+  .tx-menu-links a::after,
+  .tx-menu-links button::after{
+    left:27px;
+  }
+
+  .tx-menu-cta{
+    min-height:48px;
+    margin-top:12px;
+  }
+
+  .tx-menu-foot{
+    padding-top:14px;
+  }
+
+  .tx-menu-foot::after{
+    margin-top:10px;
+  }
+}
+
 @media(min-width:1024px){
   .tx-menu,
   .tx-menu-backdrop{

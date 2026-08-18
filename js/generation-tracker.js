@@ -305,6 +305,9 @@
     if (!cardEl) return;
     cardEl.hidden = minimised;
     orbEl.hidden = !minimised;
+    // gen-progress.css: expanded card sits centred above modals; the
+    // minimised orb docks top-right via this class.
+    if (host) host.classList.toggle('gp--min', minimised);
   }
 
   function toast(msg) {
