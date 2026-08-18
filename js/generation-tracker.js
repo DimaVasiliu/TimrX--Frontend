@@ -27,7 +27,7 @@
   var POLL_MS = 900;
   var RING_R = 19;                          // SVG ring radius
   var RING_C = 2 * Math.PI * RING_R;        // circumference for dashoffset
-  var host, cardEl, listEl, headCoreEl, headCountEl, orbEl, orbRingEl, orbBadgeEl, live;
+  var host, cardEl, listEl, headCoreEl, headCountEl, orbEl, orbRingEl, orbBadgeEl, orbPctEl, live;
   var pollId = null, lastSig = null;
   var minimised = false;                    // per-session; a new job re-expands
   var minimising = false;                   // true while the fly-down runs
@@ -270,6 +270,7 @@
       '</section>' +
       '<button type="button" class="gp__orb" aria-label="Show generation progress" hidden>' +
         coreSVG('gp-core gp-core--orb') +
+      '  <b class="gp__orb-pct"></b>' +
       '  <b class="gp__orb-badge" hidden></b>' +
       '</button>';
 
@@ -287,6 +288,7 @@
     orbEl = host.querySelector('.gp__orb');
     orbRingEl = host.querySelector('.gp-core--orb');
     orbBadgeEl = host.querySelector('.gp__orb-badge');
+    orbPctEl = host.querySelector('.gp__orb-pct');
 
     host.querySelector('.gp__minimise').addEventListener('click', function () {
       if (minimising) return;
@@ -297,6 +299,22 @@
       // the orb's dock, then the orb bounces in with sonar pings — the user's
       // eye follows the motion and learns where the progress now lives.
       minimising = true;
+      // Measure where the orb will dock (host + orb are repositioned by
+      // .gp--min) without painting that state, so the bubble can fly to the
+      // real spot instead of straight down. Both class flips happen in the
+      // same task — the browser never renders the probe state.
+      try {
+        var cardRect = cardEl.getBoundingClientRect();
+        host.classList.add('gp--min');
+        orbEl.hidden = false;
+        orbEl.style.visibility = 'hidden';
+        var orbRect = orbEl.getBoundingClientRect();
+        orbEl.style.visibility = '';
+        orbEl.hidden = true;
+        host.classList.remove('gp--min');
+        host.style.setProperty('--gp-dx', ((orbRect.left + orbRect.width / 2) - (cardRect.left + cardRect.width / 2)) + 'px');
+        host.style.setProperty('--gp-dy', ((orbRect.top + orbRect.height / 2) - (cardRect.top + cardRect.height / 2)) + 'px');
+      } catch (e) { /* CSS fallback: 40vh straight down */ }
       host.classList.add('gp--minimising');
       setTimeout(function () {
         host.classList.remove('gp--minimising');
@@ -307,7 +325,7 @@
         void orbEl.offsetWidth; // restart the arrival animation
         orbEl.classList.add('is-arriving');
         setTimeout(function () { orbEl.classList.remove('is-arriving'); }, 2200);
-      }, 360);
+      }, 600);
     });
     orbEl.addEventListener('click', function () {
       minimised = false;
@@ -396,6 +414,7 @@
     headCountEl.textContent = jobs.length > 1 ? ' ' + jobs.length : '';
     orbBadgeEl.hidden = jobs.length < 2;
     orbBadgeEl.textContent = jobs.length;
+    if (orbPctEl) orbPctEl.textContent = agg != null ? agg + '%' : '';
 
     if (sig === lastSig) {
       // refresh elapsed labels without a full re-render

@@ -69,7 +69,7 @@
 
 /* 15c. Floating generation progress — reactor card + minimisable orb.
    Replaces the old .gen-track cards (markup retired; see generation-tracker.js). */
-@import url('css/gen-progress.css?v=20260818orbdock');
+@import url('css/gen-progress.css?v=20260818orbdock2');
 
 /* 16. Responsive layer for the stage + bottom chrome — imported LAST on
    purpose: it corrects nav.css launcher geometry and stage safe areas

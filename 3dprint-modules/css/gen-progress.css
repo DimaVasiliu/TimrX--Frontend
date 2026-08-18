@@ -55,24 +55,54 @@ html body.print3d-page > .gp { position: fixed; z-index: 400000; }
 }
 
 /* Dock mode retires the command bar and moves the prompt-guide launcher to
-   the bottom-left (dock.css) — dock the orb directly above it there. */
+   the bottom-left (dock.css, left: max(16px, (100vw-1020px)/2 - 148px),
+   bottom: 30px) — the orb sits in the SAME row, just left of the launcher,
+   vertically centred against its ~44px height. */
 html body.print3d-page.ws-dock-on > .gp.gp--min {
-  left: max(16px, calc((100vw - 1020px) / 2 - 148px));
+  left: max(16px, calc((100vw - 1020px) / 2 - 210px));
   right: auto;
-  bottom: 88px;
+  bottom: 26px;
 }
 
 /* ---- minimise choreography ----------------------------------------------
-   The card visibly flies DOWN toward the orb's dock and the orb arrives with
-   a bounce + two sonar pings, so the user's eye follows the motion and knows
-   where the progress lives now. generation-tracker.js adds .gp--minimising
-   for the card's exit, then .is-arriving on the orb. */
+   The card condenses into a bubble and flies to the orb's REAL dock spot
+   (generation-tracker.js measures it and sets --gp-dx/--gp-dy on the host),
+   dropping first, then curving left toward the prompt-guide button. The orb
+   then arrives with a bounce + two sonar pings, so the user's eye follows
+   the motion and knows exactly where the progress lives now. */
 .gp.gp--minimising .gp__card {
-  animation: gpFlyDown 0.38s cubic-bezier(0.5, 0, 0.75, 0.4) forwards;
+  transform-origin: center;
+  animation: gpFlyToDock 0.62s cubic-bezier(0.5, 0.05, 0.45, 0.95) forwards;
 }
-@keyframes gpFlyDown {
-  0%   { opacity: 1; transform: none; }
-  100% { opacity: 0; transform: translateY(48vh) scale(0.12); }
+@keyframes gpFlyToDock {
+  0% {
+    opacity: 1;
+    transform: none;
+    border-radius: 18px;
+  }
+  /* drop first: mostly vertical, barely any x yet — reads as a falling bubble */
+  35% {
+    opacity: 1;
+    transform: translate(calc(var(--gp-dx, 0px) * 0.08), calc(var(--gp-dy, 40vh) * 0.42)) scale(0.62);
+    border-radius: 34px;
+  }
+  /* curve toward the dock: x catches up while it keeps sinking and rounds off */
+  70% {
+    opacity: 0.9;
+    transform: translate(calc(var(--gp-dx, 0px) * 0.62), calc(var(--gp-dy, 40vh) * 0.88)) scale(0.3);
+    border-radius: 50%;
+  }
+  /* tiny overshoot past the dock, like a bubble landing */
+  88% {
+    opacity: 0.7;
+    transform: translate(calc(var(--gp-dx, 0px) * 1.04), calc(var(--gp-dy, 40vh) * 1.03)) scale(0.14);
+    border-radius: 50%;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(var(--gp-dx, 0px), var(--gp-dy, 40vh)) scale(0.12);
+    border-radius: 50%;
+  }
 }
 .gp__orb.is-arriving {
   animation:
@@ -303,6 +333,18 @@ body.print3d-page.print-panel-open .gp {
   0%, 100% { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 18px rgba(var(--accent-blue-rgb), 0.12); }
   50%      { box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), 0 0 30px rgba(var(--accent-blue-rgb), 0.28); }
 }
+.gp__orb-pct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 700 9px/1 var(--font-ui, 'Inter', sans-serif);
+  color: var(--text-soft, #c8d0d0);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.01em;
+  pointer-events: none;
+}
+
 .gp__orb-badge {
   position: absolute;
   top: -3px;
