@@ -483,8 +483,6 @@ body.ws-panel-open .ws-dock__chip--adv .c-ico,
   }
 
   /* hero fits small screens */
-  .ws-hero__title { font-size: clamp(26px, 8vw, 36px); }
-  .ws-hero__sub { font-size: 13.5px; }
   .ws-hero__hint { font-size: 12px; padding: 6px 11px; }
 }
 
@@ -530,20 +528,14 @@ body.ws-dock-on .sim-viewer-bg { background: none; }
   inset: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   text-align: center;
-  padding: calc(var(--header-height, 72px) + 28px) clamp(16px, 4vw, 48px) 172px;
+  padding: calc(var(--header-height, 72px) + clamp(52px, 8vh, 96px)) clamp(16px, 4vw, 48px) 172px;
   /* the stage layer is pointer-events:none; the hero re-enables events for
      its own content (it is the sole interactive thing on the stage) */
   pointer-events: auto;
   overflow: auto;
-}
-.ws-starter {
-  width: min(1120px, 100%);
-  display: grid;
-  gap: 16px;
-  justify-items: center;
 }
 .ws-starter__eyebrow {
   display: inline-flex;
@@ -567,24 +559,6 @@ body.ws-dock-on .sim-viewer-bg { background: none; }
   background: currentColor;
   box-shadow: 0 0 16px rgba(var(--accent-blue-rgb), 0.7);
 }
-.ws-hero__title {
-  font-family: var(--font-display, 'Space Grotesk', sans-serif);
-  font-size: clamp(28px, 4.4vw, 46px);
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  line-height: 1.12;
-  color: var(--text, #f2f5f3);
-  margin: 0;
-}
-.ws-hero__title em { font-style: normal; color: var(--accent-blue); }
-.ws-hero__sub {
-  margin: 12px auto 0;
-  max-width: 620px;
-  color: var(--muted, #a7b0b2);
-  font-size: 15px;
-  line-height: 1.5;
-}
-.ws-hero__hints { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 22px; }
 .ws-hero__hint {
   padding: 7px 14px;
   border-radius: 999px;
@@ -596,211 +570,30 @@ body.ws-dock-on .sim-viewer-bg { background: none; }
   transition: border-color 0.18s ease, color 0.18s ease;
 }
 .ws-hero__hint:hover { border-color: rgba(var(--accent-blue-rgb), 0.5); color: var(--text, #f2f5f3); }
-.ws-starter__content {
-  width: min(1120px, 100%);
-  display: grid;
-  grid-template-columns: minmax(360px, 0.88fr) minmax(440px, 1.12fr);
-  gap: 14px;
-  align-items: stretch;
-  margin-top: 2px;
-}
-.workspace-feature-strip--starter {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  text-align: left;
-}
-.workspace-feature-strip--starter .workspace-feature-strip__inner {
-  height: 100%;
-  grid-template-columns: 1fr;
-  gap: 13px;
-  align-items: center;
-  align-content: start;
-  padding: 16px;
-  border-radius: 16px;
-  background:
-    radial-gradient(circle at 8% 0%, rgba(var(--accent-blue-rgb), 0.12), transparent 30%),
-    linear-gradient(180deg, rgba(16, 22, 25, 0.58), rgba(9, 12, 14, 0.66));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 16px 42px rgba(0, 0, 0, 0.18);
-}
-.workspace-feature-strip--starter .workspace-feature-strip__eyebrow {
-  margin-bottom: 7px;
-  font-size: 9.5px;
-  letter-spacing: 0.16em;
-}
-.workspace-feature-strip--starter .workspace-feature-strip__copy h2 {
-  margin: 0;
-  color: var(--text, #f2f5f3);
-  font: 650 clamp(17px, 1.55vw, 21px)/1.16 var(--font-display, 'Space Grotesk', sans-serif);
-  letter-spacing: 0;
-}
-.workspace-feature-strip--starter .workspace-feature-strip__copy p {
-  margin: 7px 0 0;
-  max-width: 58ch;
-  color: var(--text-soft, #c8d0d0);
-  font-size: 12.5px;
-  line-height: 1.45;
-}
-.workspace-feature-strip--starter .workspace-feature-strip__grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-.workspace-feature-strip--starter .workspace-feature-tile {
-  display: grid;
-  gap: 5px;
-  min-width: 0;
-  padding: 10px 11px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: 12px;
-  background: rgba(13, 16, 18, 0.36);
-}
-.workspace-feature-strip--starter .workspace-feature-tile strong {
-  color: var(--text, #f2f5f3);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-}
-.workspace-feature-strip--starter .workspace-feature-tile span {
-  color: var(--muted, #a7b0b2);
-  font-size: 11.5px;
-  line-height: 1.35;
-}
-.ws-starter__grid {
-  width: 100%;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-  margin-top: 0;
-}
-.ws-starter-action {
-  position: relative;
-  min-width: 0;
-  min-height: 142px;
-  display: grid;
-  grid-template-columns: 40px minmax(0, 1fr);
-  align-content: start;
-  gap: 12px;
-  padding: 15px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 18px;
-  background:
-    radial-gradient(circle at 18% 0%, rgba(var(--accent-blue-rgb), 0.13), transparent 36%),
-    linear-gradient(180deg, rgba(18, 24, 27, 0.68), rgba(10, 14, 16, 0.74));
-  color: var(--text, #f2f5f3);
-  text-align: left;
-  cursor: pointer;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.055), 0 18px 50px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(14px) saturate(1.05);
-  -webkit-backdrop-filter: blur(14px) saturate(1.05);
-  transition: transform 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
-}
-.ws-starter-action:hover,
-.ws-starter-action:focus-visible {
-  transform: translateY(-2px);
-  border-color: rgba(var(--accent-blue-rgb), 0.46);
-  background-color: rgba(var(--accent-blue-rgb), 0.04);
-}
-.ws-starter-action:focus-visible {
-  outline: 2px solid rgba(var(--accent-blue-rgb), 0.78);
-  outline-offset: 3px;
-}
-.ws-starter-action__icon {
-  width: 38px;
-  height: 38px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 13px;
-  background: rgba(var(--accent-blue-rgb), 0.12);
-  color: var(--accent-blue, #7fc8c2);
-  font-size: 15px;
-}
-.ws-starter-action__body {
-  display: grid;
-  gap: 6px;
-  min-width: 0;
-}
-.ws-starter-action__body strong {
-  color: var(--text, #f2f5f3);
-  font: 700 15px/1.15 var(--font-ui, 'Inter', sans-serif);
-  letter-spacing: 0;
-}
-.ws-starter-action__example {
-  color: var(--text-soft, #c8d0d0);
-  font: 500 13px/1.35 var(--font-ui, 'Inter', sans-serif);
-}
-.ws-starter-action__body small {
-  color: var(--muted, #a7b0b2);
-  font: 500 12px/1.45 var(--font-ui, 'Inter', sans-serif);
-}
-.ws-starter-action--image .ws-starter-action__icon { background: rgba(166, 122, 255, 0.13); color: #c8b5ff; }
-.ws-starter-action--video .ws-starter-action__icon { background: rgba(255, 197, 103, 0.13); color: #ffd391; }
-.ws-starter-action--upload .ws-starter-action__icon { background: rgba(145, 214, 174, 0.13); color: #9ce2b8; }
-
 @media (max-width: 980px) {
   .ws-hero {
-    padding-top: calc(var(--header-height, 72px) + 20px);
-    padding-bottom: 164px;
+    padding-top: calc(var(--header-height, 72px) + 16px);
+    padding-bottom: 158px;
     justify-content: flex-start;
   }
-  .ws-starter { gap: 14px; }
-  .ws-starter__content {
-    grid-template-columns: 1fr;
-    width: min(920px, 100%);
-  }
-  .workspace-feature-strip--starter .workspace-feature-strip__inner {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-  .ws-starter__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .ws-starter-action { min-height: 134px; }
+  .ws-hero2 { grid-template-columns: 1fr; gap: 14px; }
+  .ws-hero2__stage { min-height: 220px; }
+  .ws-hero2__track { display: none; }
+  .ws-hero2__steps { grid-template-columns: repeat(2, 1fr); }
+  .ws-hero2__step:last-child { display: none; }
 }
 
 @media (max-width: 620px) {
   .ws-dock__hint { display: none !important; }
   .ws-hero {
-    padding: calc(var(--header-height, 72px) + 14px) 12px 150px;
+    padding: calc(var(--header-height, 72px) + 10px) 12px 150px;
   }
-  .ws-starter { gap: 12px; }
   .ws-starter__eyebrow { font-size: 9.5px; padding: 6px 9px; }
-  .ws-starter__content { gap: 9px; }
-  .workspace-feature-strip--starter { order: 5; }
-  .workspace-feature-strip--starter .workspace-feature-strip__inner {
-    padding: 13px;
-    gap: 10px;
-  }
-  .workspace-feature-strip--starter .workspace-feature-strip__copy h2 { font-size: 15px; }
-  .workspace-feature-strip--starter .workspace-feature-strip__copy p { font-size: 11.5px; line-height: 1.4; }
-  .workspace-feature-strip--starter .workspace-feature-strip__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
-  }
-  .workspace-feature-strip--starter .workspace-feature-tile {
-    padding: 8px 9px;
-    border-radius: 10px;
-  }
-  .workspace-feature-strip--starter .workspace-feature-tile span { font-size: 11px; }
-  .ws-starter__grid {
-    order: 4;
-    grid-template-columns: 1fr;
-    gap: 9px;
-  }
-  .ws-starter-action {
-    min-height: 0;
-    grid-template-columns: 34px minmax(0, 1fr);
-    gap: 12px;
-    padding: 13px;
-    border-radius: 15px;
-  }
-  .ws-starter-action__icon {
-    width: 34px;
-    height: 34px;
-    border-radius: 12px;
-  }
-  .ws-starter-action__body { gap: 5px; }
-  .ws-starter-action__body strong { font-size: 14px; }
-  .ws-starter-action__example { font-size: 12.5px; }
-  .ws-starter-action__body small { font-size: 11.5px; line-height: 1.35; }
+  .ws-hero2__title { font-size: clamp(26px, 8vw, 34px); }
+  .ws-hero2__sub { font-size: 12.5px; }
+  .ws-hero2__stage { display: none; }
+  .ws-hero2__rail { display: none; }
+  .ws-hero2__proof { gap: 16px; }
 }
 
 body.ws-viewer-open .ws-hero,
@@ -1106,4 +899,438 @@ body.ws-dock-on .ws-prompt-guide {
     visibility: visible !important;
     pointer-events: auto !important;
   }
+}
+
+/* ==========================================================================
+   WS-HERO 2 (2026-08-18): "Type it. Hold it." empty state.
+   Replaces the feature-strip + starter-tile hero. Two-column: copy with a
+   self-typing prompt line and prefill chips (reuse .ws-hero__hint wiring in
+   workspace-dock.js), beside a live auto-rotating model-viewer stage. A
+   5-step pipeline rail replaces the old capability tiles. Everything is
+   sized to fit one viewport above the dock; the rail hides on short screens.
+   ========================================================================== */
+/* Hero-scoped palette (user's swatch set): Exotic Orange #F54F1B on
+   Masterpiece Red / Midnight Blue depths, Dirty White type. Overriding the
+   accent vars here retints the typed caret, chips, stats, rail nodes and
+   pulse in one move — the nav, dock and prompt guide outside stay teal. */
+.ws-hero {
+  --accent-blue: #F54F1B;
+  --accent-blue-rgb: 245, 79, 27;
+  --text: #EFE9E9;
+  --text-soft: #e3d5cf;
+}
+/* Reverted to the first hero backdrop (near-black with the page's own soft
+   radials) — the red-brown wash is gone; only a faint ember breath around
+   the globe remains so the scene still ties to the light bar. */
+.ws-hero2__ambience {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(900px 560px at 72% 32%, rgba(245, 79, 27, 0.07), transparent 60%),
+    transparent;
+}
+.ws-hero2__lightbar {
+  position: absolute;
+  top: calc(var(--header-height, 72px) + 2px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(920px, 72%);
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, #F54F1B 18%, #ffb27a 50%, #F54F1B 82%, transparent);
+  box-shadow:
+    0 6px 42px 8px rgba(245, 79, 27, 0.35),
+    0 22px 120px 30px rgba(245, 79, 27, 0.18);
+  opacity: 0.9;
+}
+.ws-hero2 {
+  width: min(1340px, 100%);
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+  gap: clamp(18px, 3vw, 44px);
+  align-items: center;
+  text-align: left;
+}
+.ws-hero2__copy .ws-starter__eyebrow { margin-bottom: 14px; }
+.ws-hero2__title {
+  margin: 0 0 10px;
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  font-size: clamp(30px, 3.6vw, 52px);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.06;
+  color: var(--text, #f2f5f3);
+}
+.ws-hero2__title em { font-style: normal; color: var(--accent-blue, #7fc8c2); }
+.ws-hero2__typed {
+  display: block;
+  margin-top: 6px;
+  /* fixed slot: the line types/deletes constantly, so it must never reflow
+     the copy below it — one reserved line, no wrap, clip any overflow */
+  height: 1.35em;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 100%;
+  font-size: 0.55em;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--text-soft, #c8d0d0);
+}
+.ws-hero2__typed .ws-hero2__caret {
+  display: inline-block;
+  width: 2px;
+  height: 0.95em;
+  margin-left: 2px;
+  vertical-align: -2px;
+  background: var(--accent-blue, #7fc8c2);
+  animation: wsHeroCaret 1s steps(1) infinite;
+}
+@keyframes wsHeroCaret { 50% { opacity: 0; } }
+.ws-hero2__sub {
+  margin: 0;
+  max-width: 54ch;
+  color: var(--muted, #a7b0b2);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+.ws-hero2__sub b { color: var(--text-soft, #c8d0d0); font-weight: 600; }
+.ws-hero2__chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.ws-hero2__chips .ws-hero__hint i {
+  font-style: normal;
+  color: var(--accent-blue, #7fc8c2);
+  margin-right: 5px;
+}
+/* the upload chip carries .ws-starter-action purely as a JS hook — make sure
+   it renders exactly like the other chips */
+.ws-hero2__chips .ws-starter-action {
+  display: inline-flex;
+  align-items: center;
+  min-height: 0;
+}
+.ws-hero2__proof { display: flex; gap: 24px; margin-top: 20px; }
+.ws-hero2__proof div { display: flex; flex-direction: column; gap: 2px; }
+.ws-hero2__proof strong {
+  font: 800 18px/1 var(--font-display, 'Space Grotesk', sans-serif);
+  letter-spacing: -0.01em;
+  color: var(--text, #f2f5f3);
+}
+.ws-hero2__proof strong em { font-style: normal; color: var(--accent-blue, #7fc8c2); }
+.ws-hero2__proof span {
+  color: var(--text-dim, #6d7779);
+  font-size: 10.5px;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+/* ---- scene stage: particle globe ---- */
+.ws-hero2__stage {
+  position: relative;
+  min-height: clamp(260px, 38vh, 420px);
+  border: 1px solid var(--line, rgba(255, 255, 255, 0.08));
+  border-radius: 24px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.01));
+  overflow: hidden;
+}
+.ws-hero2__stage--scene {
+  border: 0;
+  border-radius: 0;
+  background: none;
+  overflow: visible;
+}
+.ws-hero2__stage--scene #wsHeroGlobe {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  top: 30%;
+  transform: translate(-50%, -50%);
+  width: min(62%, 330px);
+  aspect-ratio: 1;
+  filter: drop-shadow(0 0 46px rgba(245, 79, 27, 0.45));
+  animation: wsGlobeFloat 7s ease-in-out infinite;
+}
+@keyframes wsGlobeFloat {
+  50% { transform: translate(-50%, -54%); }
+}
+.ws-hero2__stage model-viewer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  --poster-color: transparent;
+}
+
+/* ---- pipeline rail: living conveyor -----------------------------------
+   Numbered nodes on a shared track; an ambient light-pulse streams along it
+   and the active step breathes in a 01->05 cycle (workspace-dock.js).
+   Hover pins a step and pauses the cycle. -------------------------------- */
+.ws-hero2__rail {
+  position: relative;
+  width: min(1340px, 100%);
+  margin-top: clamp(14px, 2.2vh, 24px);
+  text-align: left;
+  padding-top: 6px;
+}
+.ws-hero2__track {
+  position: absolute;
+  left: 3%;
+  right: 3%;
+  top: 25px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg,
+    transparent,
+    rgba(var(--accent-blue-rgb), 0.18) 12%,
+    rgba(var(--accent-blue-rgb), 0.18) 88%,
+    transparent);
+  overflow: visible;
+}
+.ws-hero2__pulse {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 60px;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, transparent, var(--accent-blue, #7fc8c2), transparent);
+  box-shadow: 0 0 14px rgba(var(--accent-blue-rgb), 0.55);
+  animation: wsRailPulse 6s linear infinite;
+}
+@keyframes wsRailPulse {
+  0%   { left: 0; opacity: 0; }
+  6%   { opacity: 1; }
+  94%  { opacity: 1; }
+  100% { left: calc(100% - 60px); opacity: 0; }
+}
+.ws-hero2__steps {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 10px;
+}
+.ws-hero2__step {
+  appearance: none;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 16px;
+  padding: 8px 14px 12px;
+  text-align: left;
+  cursor: default;
+  font: inherit;
+  color: inherit;
+  transition: background 0.35s ease, border-color 0.35s ease, transform 0.35s ease;
+}
+.ws-hero2__node {
+  position: relative;
+  z-index: 1;
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(var(--accent-blue-rgb), 0.35);
+  background: var(--surface-0, #07090a);
+  font: 800 9.5px/1 ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  color: var(--accent-blue, #7fc8c2);
+  transition: all 0.35s ease;
+}
+.ws-hero2__step strong {
+  display: block;
+  margin: 9px 0 3px;
+  font: 700 13px/1.2 var(--font-ui, 'Inter', sans-serif);
+  color: var(--text-dim, #6d7779);
+  transition: color 0.35s ease;
+}
+.ws-hero2__step small {
+  display: block;
+  color: transparent;
+  font-size: 11px;
+  line-height: 1.45;
+  transition: color 0.35s ease;
+}
+.ws-hero2__step.is-active {
+  background: rgba(var(--accent-blue-rgb), 0.055);
+  border-color: rgba(var(--accent-blue-rgb), 0.22);
+  transform: translateY(-3px);
+}
+.ws-hero2__step.is-active .ws-hero2__node {
+  background: var(--accent-blue, #7fc8c2);
+  color: #062120;
+  border-color: transparent;
+  box-shadow: 0 0 18px rgba(var(--accent-blue-rgb), 0.55), 0 0 0 5px rgba(var(--accent-blue-rgb), 0.12);
+  animation: wsNodeBreathe 2.4s ease-in-out infinite;
+}
+@keyframes wsNodeBreathe {
+  50% { box-shadow: 0 0 26px rgba(var(--accent-blue-rgb), 0.75), 0 0 0 8px rgba(var(--accent-blue-rgb), 0.08); }
+}
+.ws-hero2__step.is-active strong { color: var(--text, #f2f5f3); }
+.ws-hero2__step.is-active small { color: var(--text-soft, #c8d0d0); }
+.ws-hero2__step:hover strong { color: var(--text, #f2f5f3); }
+
+/* short screens: drop the rail so the hero + dock always fit one viewport */
+@media (max-height: 760px) {
+  .ws-hero2__rail { display: none; }
+  .ws-hero2__stage { min-height: clamp(220px, 34vh, 320px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ws-hero2__typed .ws-hero2__caret { animation: none; }
+  .ws-hero2__pulse { animation: none; display: none; }
+  .ws-hero2__step.is-active .ws-hero2__node { animation: none; }
+  .ws-hero2__step small { color: var(--text-dim, #6d7779); }
+}
+
+
+/* ==========================================================================
+   WARM ACCENTS (2026-08-18): the hero's HorizonX palette bleeds into the
+   workspace chrome — modal overlays, sheet header, dialogs, gen-progress —
+   so the page reads as one lit scene. Colors only: no layout, no behavior.
+   The command bar, prompt guide and navbar are deliberately untouched.
+   ========================================================================== */
+:root {
+  --hx-orange: #F54F1B;
+  --hx-orange-rgb: 245, 79, 27;
+  --hx-red: #5A2132;
+  --hx-blue: #1E223D;
+  --hx-cream: #EFE9E9;
+  --hx-yellow: #F3E8BC;
+  --hx-teal: #035352;
+}
+
+/* modal overlays: deep red-black depth instead of flat black */
+body.print3d-page .workspace-modal-overlay {
+  background: linear-gradient(180deg, rgba(22, 6, 11, 0.6), rgba(7, 3, 5, 0.68));
+}
+
+/* modal chrome: warm hairline, ember glow, cream titles, orange eyebrows */
+body.print3d-page .workspace-modal {
+  position: relative;
+  border-color: rgba(var(--hx-orange-rgb), 0.16);
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.6),
+    0 0 46px rgba(var(--hx-orange-rgb), 0.07);
+}
+body.print3d-page .workspace-modal::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, rgba(var(--hx-orange-rgb), 0.55), transparent);
+  pointer-events: none;
+}
+body.print3d-page .workspace-modal__eyebrow { color: var(--hx-orange); }
+body.print3d-page .workspace-modal__title { color: var(--hx-cream); }
+body.print3d-page .viewer-action-current span { color: var(--hx-orange); }
+body.print3d-page .viewer-action-note strong { color: var(--hx-yellow); }
+
+/* history / library dialogs pick up the same warm frame */
+body.print3d-page .lib-dialog__panel {
+  border-color: rgba(var(--hx-orange-rgb), 0.18);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.6), 0 0 36px rgba(var(--hx-orange-rgb), 0.06);
+}
+body.print3d-page .lib-bulk {
+  border-color: rgba(var(--hx-orange-rgb), 0.18);
+}
+
+/* control sheet: ember underline on the header, orange active mode pill */
+body.print3d-page .ws-sheet__head { position: relative; }
+body.print3d-page .ws-sheet__head::after {
+  content: '';
+  position: absolute;
+  left: 14px;
+  right: 30%;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(var(--hx-orange-rgb), 0.45), transparent);
+  pointer-events: none;
+}
+body.print3d-page .ws-sheet__mode.is-active {
+  background: rgba(var(--hx-orange-rgb), 0.16);
+  color: #ffd9c6;
+  box-shadow: inset 0 0 0 1px rgba(var(--hx-orange-rgb), 0.28);
+}
+body.print3d-page .ws-sect__tab.is-active {
+  color: #ffd9c6;
+  border-color: rgba(var(--hx-orange-rgb), 0.4);
+}
+
+/* gen-progress joins the warm scene (it floats centred over the hero) */
+.gp {
+  --accent-blue: #F54F1B;
+  --accent-blue-rgb: 245, 79, 27;
+}
+
+/* consistent warm focus ring inside modals and the sheet */
+body.print3d-page .workspace-modal button:focus-visible,
+body.print3d-page .lib-dialog__panel button:focus-visible,
+body.print3d-page .ws-left button:focus-visible {
+  outline: 2px solid rgba(var(--hx-orange-rgb), 0.55);
+  outline-offset: 2px;
+}
+
+
+/* ---- subtle warm tints: header cluster + command bar + prompt guide ----
+   Requested follow-up: gentle palette bleed into the chrome that was
+   previously left untouched. Tints only — same layouts, same behaviors. */
+
+/* header chips: warm hairline borders, ember hover */
+body.print3d-page .ws-header .inspire-trigger-btn,
+body.print3d-page .ws-header .ws-header-assets-btn {
+  border-color: rgba(var(--hx-orange-rgb), 0.14);
+}
+body.print3d-page .ws-header .inspire-trigger-btn:hover,
+body.print3d-page .ws-header .ws-header-assets-btn:hover {
+  border-color: rgba(var(--hx-orange-rgb), 0.4);
+}
+body.print3d-page .ws-header .inspire-trigger-btn svg { color: var(--hx-yellow); }
+body.print3d-page .ws-header .ws-credits-pill {
+  border-color: rgba(var(--hx-orange-rgb), 0.22);
+}
+/* BUY: Dirty White pill with Masterpiece Red type */
+body.print3d-page .ws-header .credits-buy-btn {
+  background: var(--hx-cream);
+  color: var(--hx-red);
+}
+body.print3d-page .ws-header .credits-buy-btn:hover {
+  background: #ffffff;
+  color: #47172a;
+}
+
+/* command bar: warm frame + warmed Generate CTA (teal chips stay teal) */
+body.print3d-page .ws-dock__card {
+  border-color: rgba(var(--hx-orange-rgb), 0.2);
+  box-shadow:
+    0 18px 50px rgba(0, 0, 0, 0.55),
+    0 0 30px rgba(var(--hx-orange-rgb), 0.06);
+}
+body.print3d-page .ws-dock__generate {
+  background: linear-gradient(180deg, #ffffff, #f3ded1);
+  color: var(--hx-blue);
+  box-shadow:
+    0 10px 26px rgba(255, 255, 255, 0.1),
+    0 2px 14px rgba(var(--hx-orange-rgb), 0.28);
+}
+body.print3d-page .ws-dock__chip:hover {
+  border-color: rgba(var(--hx-orange-rgb), 0.42);
+}
+
+/* prompt guide launcher: cream label, ember hover */
+body.print3d-page .ws-corner-launcher__guide { color: rgba(239, 233, 233, 0.72); }
+body.print3d-page .ws-corner-launcher__guide:hover { color: var(--hx-cream); }
+body.print3d-page .ws-prompt-guide-launcher.guide-open .ws-corner-launcher__guide {
+  filter: drop-shadow(0 8px 16px rgba(var(--hx-orange-rgb), 0.2));
+}
+
+
+/* workspace floor grid: warmed to match the boot veil's orange floor, so the
+   loader->workspace handoff no longer shifts orange->teal underfoot. Same
+   line weight, spacing, drift and opacity — only the line color moves from
+   grey-teal to a warm putty drawn from the palette. */
+body.print3d-page .sim-viewer-bg::before {
+  background-image:
+    linear-gradient(rgba(216, 168, 143, 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(216, 168, 143, 0.15) 1px, transparent 1px);
 }

@@ -1,13 +1,25 @@
 :root {
-  --site-shell-bg: rgba(7, 7, 9, 0.82);
-  --site-shell-bg-solid: #09090b;
-  --site-shell-surface: rgba(255, 255, 255, 0.04);
-  --site-shell-line: rgba(255, 255, 255, 0.1);
-  --site-shell-line-strong: rgba(255, 255, 255, 0.18);
-  --site-shell-text: #f5f7fb;
+  --tx-masterpiece-red: #5A2132;
+  --tx-masterpiece-red-rgb: 90, 33, 50;
+  --tx-dirty-white: #EFE9E9;
+  --tx-dirty-white-rgb: 239, 233, 233;
+  --tx-authentic-teal: #035352;
+  --tx-authentic-teal-rgb: 3, 83, 82;
+  --tx-sidecar-yellow: #F3E8BC;
+  --tx-sidecar-yellow-rgb: 243, 232, 188;
+  --tx-midnight-blue: #1E223D;
+  --tx-midnight-blue-rgb: 30, 34, 61;
+  --tx-exotic-orange: #F54F1B;
+  --tx-exotic-orange-rgb: 245, 79, 27;
+  --site-shell-bg: rgba(9, 8, 12, 0.84);
+  --site-shell-bg-solid: #09080c;
+  --site-shell-surface: rgba(var(--tx-dirty-white-rgb), 0.045);
+  --site-shell-line: rgba(var(--tx-dirty-white-rgb), 0.1);
+  --site-shell-line-strong: rgba(var(--tx-sidecar-yellow-rgb), 0.2);
+  --site-shell-text: var(--tx-dirty-white);
   --site-shell-muted: rgba(226, 232, 240, 0.72);
-  --site-shell-accent: #7dd3fc;
-  --site-shell-accent-strong: #0ea5e9;
+  --site-shell-accent: var(--tx-sidecar-yellow);
+  --site-shell-accent-strong: var(--tx-authentic-teal);
   --site-shell-shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
   --site-shell-radius: 20px;
   --site-shell-nav-height: 64px;
@@ -216,7 +228,8 @@ body.tx-menu-open {
   z-index: 1000;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   background:
-    linear-gradient(180deg, rgba(10, 12, 16, 0.92) 0%, rgba(10, 12, 16, 0.74) 100%);
+    radial-gradient(720px 160px at 72% 0%, rgba(var(--tx-masterpiece-red-rgb), 0.22), transparent 62%),
+    linear-gradient(180deg, rgba(9, 8, 12, 0.94) 0%, rgba(9, 8, 12, 0.76) 100%);
   -webkit-backdrop-filter: blur(18px) saturate(130%);
   backdrop-filter: blur(18px) saturate(130%);
 }
@@ -226,7 +239,7 @@ body.tx-menu-open {
   position: absolute;
   inset: auto 0 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(125, 211, 252, 0.38), transparent);
+  background: linear-gradient(90deg, transparent, rgba(var(--tx-exotic-orange-rgb), 0.36), rgba(var(--tx-sidecar-yellow-rgb), 0.3), transparent);
 }
 
 .site-shell-nav-inner {
@@ -1716,3 +1729,54 @@ body[data-shell-page="hub"] .site-shell-context-nav {
     gap: 16px;
   }
 }
+
+/* Shell-page palette balance for hub/docs/community surfaces. */
+body.has-site-shell{
+  background:
+    radial-gradient(900px 540px at 8% -8%,rgba(var(--tx-midnight-blue-rgb),.34),transparent 62%),
+    radial-gradient(760px 520px at 92% 8%,rgba(var(--tx-masterpiece-red-rgb),.16),transparent 64%),
+    #09080c;
+  color:var(--tx-dirty-white);
+}
+.site-shell-brand-wordmark span,
+.site-shell-brand-wordmark b,
+.site-shell-nav-link.is-active,
+.site-shell-nav-link:hover{
+  color:var(--tx-sidecar-yellow);
+}
+.site-shell-nav-link.is-accent,
+.site-shell-buy-btn{
+  background:linear-gradient(135deg,var(--tx-dirty-white),var(--tx-sidecar-yellow));
+  border-color:rgba(var(--tx-sidecar-yellow-rgb),.75);
+  color:#14110c;
+}
+.site-shell-account-btn,
+.site-shell-credits-pill,
+.site-shell-subscription-pill{
+  border-color:rgba(var(--tx-sidecar-yellow-rgb),.12);
+  background:rgba(var(--tx-midnight-blue-rgb),.16);
+}
+.site-shell-context-nav{
+  border-color:rgba(var(--tx-sidecar-yellow-rgb),.09);
+  background:
+    radial-gradient(circle at 10% 0%,rgba(var(--tx-authentic-teal-rgb),.12),transparent 42%),
+    rgba(var(--tx-dirty-white-rgb),.028);
+}
+.site-shell-context-link:hover,
+.site-shell-context-link.is-active{
+  color:var(--tx-sidecar-yellow);
+  background:rgba(var(--tx-authentic-teal-rgb),.12);
+}
+.site-shell-nav a:focus-visible,
+.site-shell-nav button:focus-visible{
+  outline:2px solid var(--tx-exotic-orange);
+  outline-offset:4px;
+}
+
+/* WARM PALETTE ACCENTS (2026-08-19): shell chrome — Masterpiece Red hairline
+   above the footer, Exotic Orange link hovers, Sidecar Yellow active marks. */
+[data-site-shell="footer"] { border-top: 1px solid rgba(90, 33, 50, 0.55); }
+[data-site-shell="nav"] a:hover,
+[data-site-shell="subnav"] a:hover { color: #F54F1B; }
+[data-site-shell="subnav"] a[aria-current="page"],
+[data-site-shell="subnav"] .is-active { color: #F3E8BC; }

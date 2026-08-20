@@ -385,3 +385,43 @@ footer .foot-legal a:hover {
   .nav-cta-desktop{display:inline-flex}
 }
 /* ========== END MOBILE NAVIGATION ========== */
+
+/* Full swatch palette for legal pages. */
+:root{
+  --tx-masterpiece-red:#5A2132;
+  --tx-masterpiece-red-rgb:90,33,50;
+  --tx-dirty-white:#EFE9E9;
+  --tx-dirty-white-rgb:239,233,233;
+  --tx-authentic-teal:#035352;
+  --tx-authentic-teal-rgb:3,83,82;
+  --tx-sidecar-yellow:#F3E8BC;
+  --tx-sidecar-yellow-rgb:243,232,188;
+  --tx-midnight-blue:#1E223D;
+  --tx-midnight-blue-rgb:30,34,61;
+  --tx-exotic-orange:#F54F1B;
+  --tx-exotic-orange-rgb:245,79,27;
+}
+.legal-hero{
+  background:
+    radial-gradient(760px 300px at 10% 0%,rgba(var(--tx-midnight-blue-rgb),.28),transparent 64%),
+    radial-gradient(620px 260px at 88% 14%,rgba(var(--tx-masterpiece-red-rgb),.16),transparent 64%),
+    linear-gradient(180deg,rgba(var(--tx-dirty-white-rgb),.024),transparent 64%);
+  border-bottom-color:rgba(var(--tx-sidecar-yellow-rgb),.1);
+}
+.legal-hero h1,.legal-content h2,.legal-content h3,.legal-content strong,.legal-info p,.legal-warning p,.legal-contact h3{color:var(--tx-dirty-white)}
+.legal-hero .last-updated strong,.legal-content li::marker,.legal-content a,.legal-toc a:hover{color:var(--tx-sidecar-yellow)}
+.legal-info,.legal-toc,.legal-contact{
+  border-color:rgba(var(--tx-sidecar-yellow-rgb),.1);
+  background:
+    radial-gradient(circle at 10% 0%,rgba(var(--tx-authentic-teal-rgb),.1),transparent 40%),
+    rgba(var(--tx-dirty-white-rgb),.028);
+}
+.legal-warning{
+  border-color:rgba(var(--tx-masterpiece-red-rgb),.34);
+  background:rgba(var(--tx-masterpiece-red-rgb),.12);
+}
+.legal-toc a::before{background:var(--tx-authentic-teal)}
+.legal-contact .btn{
+  background:linear-gradient(135deg,var(--tx-dirty-white),var(--tx-sidecar-yellow));
+  border-color:var(--tx-sidecar-yellow);
+}

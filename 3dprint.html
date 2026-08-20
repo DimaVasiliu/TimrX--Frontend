@@ -144,11 +144,12 @@
   <link rel="preload" href="/fonts/bebas-neue-400.woff2" as="font" type="font/woff2" crossorigin="anonymous">
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260814ground">
-  <link rel="stylesheet" href="3dprint-modules/css/workspace-loader-grid.css?v=20260814grid4">
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260818orbdock2">
+  <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260818warmboot">
+  <link rel="stylesheet" href="3dprint-modules/css/workspace-loader-grid.css?v=20260818warmboot">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260818herolab11">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
-  <link rel="stylesheet" href="tx-menu.css?v=20260818mobile">
+  <link rel="stylesheet" href="tx-menu.css?v=20260819palette2">
+  <link rel="stylesheet" href="assets-modal-palette.css?v=20260820assets-modal-palette">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
   <script defer src="3dprint-modules/3dprint-app.js?v=20260815recipes"></script>
   <script defer src="3dprint-modules/inspire.js?v=20260815inspire"></script>
@@ -651,72 +652,39 @@
     <div class="ws-stage" id="wsStage" role="region" aria-label="Workspace">
       <div class="ws-stage__inner">
         <div class="ws-hero" id="wsHero">
-          <div class="ws-starter">
-            <p class="ws-starter__eyebrow">Start a creative workflow</p>
-            <h1 class="ws-hero__title">What will you <em>create</em>?</h1>
-            <p class="ws-hero__sub">Choose a starter action to load the right workspace mode, fill an example brief, or bring in your own model.</p>
-            <div class="ws-starter__content">
-              <section class="workspace-feature-strip workspace-feature-strip--starter" aria-labelledby="workspaceIntroTitle">
-                <div class="workspace-feature-strip__inner">
-                  <div class="workspace-feature-strip__copy">
-                    <span class="workspace-feature-strip__eyebrow">Workspace overview</span>
-                    <h2 id="workspaceIntroTitle">Generate, refine, animate, and export from one browser workspace</h2>
-                    <p>TimrX combines image, video, and 3D creation with remesh, PBR texture, rigging, animation, AR preview, print checks, and export in one continuous flow.</p>
-                  </div>
-                  <div class="workspace-feature-strip__grid" aria-label="Workspace capabilities">
-                    <article class="workspace-feature-tile">
-                      <strong>Create</strong>
-                      <span>Prompt or reference inputs for image, video, and 3D output.</span>
-                    </article>
-                    <article class="workspace-feature-tile">
-                      <strong>Refine</strong>
-                      <span>Draft picks, remesh presets, PBR textures, and print checks.</span>
-                    </article>
-                    <article class="workspace-feature-tile">
-                      <strong>Animate</strong>
-                      <span>Rig characters, open the motion library, and reuse history.</span>
-                    </article>
-                    <article class="workspace-feature-tile">
-                      <strong>Deliver</strong>
-                      <span>AR preview, community remix, and STL, 3MF, or GLB export.</span>
-                    </article>
-                  </div>
-                </div>
-              </section>
-              <div class="ws-starter__grid" aria-label="Workspace starter actions">
-                <button type="button" class="ws-starter-action ws-starter-action--model" data-hint-mode="model" data-hint="A modular desk organizer with cable channels, rounded edges, matte black plastic, ready for FDM printing">
-                  <span class="ws-starter-action__icon" aria-hidden="true"><i class="fa-solid fa-cube"></i></span>
-                  <span class="ws-starter-action__body">
-                    <strong>Generate 3D model</strong>
-                    <span class="ws-starter-action__example">Example: modular desk organizer with cable channels</span>
-                    <small>Expected: textured GLB, then remesh, print check, STL or 3MF export.</small>
-                  </span>
-                </button>
-                <button type="button" class="ws-starter-action ws-starter-action--image" data-hint-mode="image" data-hint="A clean product mockup of a matte black smart desk lamp on a white studio background, soft shadows, premium ecommerce style">
-                  <span class="ws-starter-action__icon" aria-hidden="true"><i class="fa-solid fa-image"></i></span>
-                  <span class="ws-starter-action__body">
-                    <strong>Create image</strong>
-                    <span class="ws-starter-action__example">Example: premium ecommerce product mockup</span>
-                    <small>Expected: image concept for ads, references, thumbnails, or image-to-3D input.</small>
-                  </span>
-                </button>
-                <button type="button" class="ws-starter-action ws-starter-action--video" data-hint-mode="video" data-hint="Cinematic 8 second product video of a desk lamp switching on in a minimal studio, slow push-in camera, warm practical light, 16:9">
-                  <span class="ws-starter-action__icon" aria-hidden="true"><i class="fa-solid fa-play"></i></span>
-                  <span class="ws-starter-action__body">
-                    <strong>Make video</strong>
-                    <span class="ws-starter-action__example">Example: 8 second product reveal shot</span>
-                    <small>Expected: short clip from text or image for social, ads, or motion previews.</small>
-                  </span>
-                </button>
-                <button type="button" class="ws-starter-action ws-starter-action--upload" data-starter-action="upload">
-                  <span class="ws-starter-action__icon" aria-hidden="true"><i class="fa-solid fa-upload"></i></span>
-                  <span class="ws-starter-action__body">
-                    <strong>Upload model</strong>
-                    <span class="ws-starter-action__example">Example: bring in a GLB, GLTF, or STL file</span>
-                    <small>Expected: live 3D preview with scale, rotate, inspect, refine, and export tools.</small>
-                  </span>
-                </button>
+          <div class="ws-hero2__ambience" aria-hidden="true"><i class="ws-hero2__lightbar"></i></div>
+          <div class="ws-hero2">
+            <div class="ws-hero2__copy">
+              <p class="ws-starter__eyebrow">Live workspace &middot; 3D &middot; Image &middot; Video</p>
+              <h1 class="ws-hero2__title">Type it. <em>Hold it.</em>
+                <span class="ws-hero2__typed" id="wsHeroTyped" aria-hidden="true"></span>
+              </h1>
+              <p class="ws-hero2__sub">AI 3D model generator with image and video creation built in. One prompt becomes a textured GLB in under a minute &mdash; then remesh, PBR texture, rig, animate, print-check, and export <b>STL, 3MF or GLB</b>.</p>
+              <div class="ws-hero2__chips" aria-label="Prompt starters">
+                <button type="button" class="ws-hero__hint" data-hint-mode="model" data-hint="An articulated dragon that prints in place, hinged segments, FDM friendly"><i aria-hidden="true">&#9670;</i> Articulated dragon</button>
+                <button type="button" class="ws-hero__hint" data-hint-mode="model" data-hint="A modular desk organizer with cable channels, rounded edges, matte black plastic, ready for FDM printing"><i aria-hidden="true">&#9670;</i> Desk organizer</button>
+                <button type="button" class="ws-hero__hint" data-hint-mode="image" data-hint="A clean product mockup of a matte black smart desk lamp on a white studio background, soft shadows, premium ecommerce style"><i aria-hidden="true">&#9635;</i> Ecommerce image</button>
+                <button type="button" class="ws-hero__hint" data-hint-mode="video" data-hint="Cinematic 8 second product video of a desk lamp switching on in a minimal studio, slow push-in camera, warm practical light, 16:9"><i aria-hidden="true">&#9654;</i> 8s reveal video</button>
+                <button type="button" class="ws-hero__hint ws-starter-action" data-starter-action="upload"><i aria-hidden="true">&#8686;</i> Upload GLB / STL</button>
               </div>
+              <div class="ws-hero2__proof" aria-label="Workspace facts">
+                <div><strong>&lt;60<em>s</em></strong><span>Prompt &rarr; model</span></div>
+                <div><strong>Rig + Motion</strong><span>Auto-rig &amp; animate</span></div>
+                <div><strong>STL &middot; 3MF &middot; GLB</strong><span>Print-ready export</span></div>
+              </div>
+            </div>
+            <div class="ws-hero2__stage ws-hero2__stage--scene" aria-hidden="true">
+              <canvas id="wsHeroGlobe"></canvas>
+            </div>
+          </div>
+          <div class="ws-hero2__rail" aria-label="How the workspace flows">
+            <div class="ws-hero2__track" aria-hidden="true"><i class="ws-hero2__pulse"></i></div>
+            <div class="ws-hero2__steps" id="wsHeroRail">
+              <button type="button" class="ws-hero2__step is-active"><span class="ws-hero2__node">01</span><strong>Prompt</strong><small>Text or image in. One line is enough.</small></button>
+              <button type="button" class="ws-hero2__step"><span class="ws-hero2__node">02</span><strong>Generate</strong><small>Textured GLB in under a minute.</small></button>
+              <button type="button" class="ws-hero2__step"><span class="ws-hero2__node">03</span><strong>Refine</strong><small>Remesh, PBR texture, print check.</small></button>
+              <button type="button" class="ws-hero2__step"><span class="ws-hero2__node">04</span><strong>Animate</strong><small>Auto-rig + motion library.</small></button>
+              <button type="button" class="ws-hero2__step"><span class="ws-hero2__node">05</span><strong>Deliver</strong><small>STL, 3MF, GLB, AR preview.</small></button>
             </div>
           </div>
         </div>
@@ -2232,6 +2200,6 @@
   </script>
   <script src="js/shared/tx-menu.js?v=20260818mobile" defer></script>
   <!-- Bottom prompt dock (adapter over the legacy panels — see file header) -->
-  <script src="js/workspace-dock.js?v=20260815starter" defer></script>
+  <script src="js/workspace-dock.js?v=20260818herolab6" defer></script>
 </body>
 </html>

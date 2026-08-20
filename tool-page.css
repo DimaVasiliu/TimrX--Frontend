@@ -28,6 +28,10 @@
   font-size:clamp(2rem,5vw,3.2rem);
   font-weight:400;letter-spacing:.03em;
   line-height:1.1;margin:0 0 16px;color:var(--text);
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:normal;
+  hyphens:auto;
 }
 .tool-hero .tool-subtitle{
   font-size:clamp(14px,1.4vw,17px);
@@ -201,6 +205,10 @@
   .tool-comparison-table th,
   .tool-comparison-table td{padding:10px 10px;}
   .tool-comparison-table thead th{font-size:12px;}
+  .tool-hero h1{
+    font-size:clamp(1.72rem,8.2vw,2.2rem);
+    line-height:1.08;
+  }
 }
 /* Small tablets: slightly tighter */
 @media(min-width:481px) and (max-width:768px){
@@ -390,3 +398,63 @@
   font-size:12px;color:var(--muted);line-height:1.5;margin:0;
 }
 
+/* Supplied swatch palette for shared tool pages. */
+:root{
+  --tx-masterpiece-red:#5A2132;
+  --tx-masterpiece-red-rgb:90,33,50;
+  --tx-dirty-white:#EFE9E9;
+  --tx-dirty-white-rgb:239,233,233;
+  --tx-authentic-teal:#035352;
+  --tx-authentic-teal-rgb:3,83,82;
+  --tx-sidecar-yellow:#F3E8BC;
+  --tx-sidecar-yellow-rgb:243,232,188;
+  --tx-midnight-blue:#1E223D;
+  --tx-midnight-blue-rgb:30,34,61;
+  --tx-exotic-orange:#F54F1B;
+  --tx-exotic-orange-rgb:245,79,27;
+}
+.tool-hero{
+  background:
+    radial-gradient(780px 300px at 12% 0%,rgba(var(--tx-midnight-blue-rgb),.28),transparent 64%),
+    radial-gradient(620px 260px at 88% 12%,rgba(var(--tx-masterpiece-red-rgb),.15),transparent 64%),
+    linear-gradient(180deg,rgba(var(--tx-dirty-white-rgb),.024),transparent 64%);
+  border-bottom-color:rgba(var(--tx-sidecar-yellow-rgb),.09);
+}
+.tool-hero h1,.tool-steps-title,.tool-usecases-title,.tool-examples-title,.tool-comparison-title,.tool-faq-title,.tool-cta h2,.tool-cross-links-title,.tools-cat-title,.knowledge-cat-title{color:var(--tx-dirty-white)}
+.tool-step,.tool-usecase,.tool-example-card,.tool-cross-link,.knowledge-item a{
+  border-color:rgba(var(--tx-sidecar-yellow-rgb),.09);
+  background:
+    radial-gradient(circle at 10% 0%,rgba(var(--tx-authentic-teal-rgb),.1),transparent 38%),
+    linear-gradient(180deg,rgba(var(--tx-dirty-white-rgb),.035),rgba(var(--tx-dirty-white-rgb),.014)),
+    #0f0f13;
+}
+.tool-step:nth-child(2),.tool-usecase:nth-child(3n),.tool-example-card:nth-child(3n+2),.tool-cross-link:nth-child(3n+2),.knowledge-item:nth-child(3n+2) a{
+  background:
+    radial-gradient(circle at 14% 0%,rgba(var(--tx-masterpiece-red-rgb),.14),transparent 40%),
+    linear-gradient(180deg,rgba(var(--tx-dirty-white-rgb),.035),rgba(var(--tx-dirty-white-rgb),.014)),
+    #100d12;
+}
+.tool-step:nth-child(3),.tool-usecase:nth-child(4n),.tool-example-card:nth-child(3n),.tool-cross-link:nth-child(3n),.knowledge-item:nth-child(3n) a{
+  background:
+    radial-gradient(circle at 14% 0%,rgba(var(--tx-midnight-blue-rgb),.22),transparent 42%),
+    linear-gradient(180deg,rgba(var(--tx-dirty-white-rgb),.035),rgba(var(--tx-dirty-white-rgb),.014)),
+    #0d0f18;
+}
+.tool-step-num,.tool-example-card .tool-example-prompt,.tool-faq-item summary::after,.tool-cross-links-footer a{color:var(--tx-sidecar-yellow)}
+.tool-example-card:hover,.tool-cross-link:hover,.knowledge-item a:hover{
+  border-color:rgba(var(--tx-sidecar-yellow-rgb),.28);
+  box-shadow:0 18px 36px rgba(var(--tx-masterpiece-red-rgb),.1);
+}
+.tool-comparison-wrapper,.tool-comparison-table-wrap{
+  border-color:rgba(var(--tx-sidecar-yellow-rgb),.1);
+  background:#09080c;
+}
+.tool-comparison-table thead th{background:var(--tx-midnight-blue);color:var(--tx-sidecar-yellow)}
+.tool-comparison-table tbody tr:hover{background:rgba(var(--tx-authentic-teal-rgb),.08)}
+.tool-comparison-table td:first-child{color:var(--tx-dirty-white)}
+.tool-faq-item summary:hover{color:var(--tx-sidecar-yellow)}
+.tool-cta{
+  background:
+    radial-gradient(680px 260px at 50% 0%,rgba(var(--tx-authentic-teal-rgb),.18),transparent 62%),
+    radial-gradient(680px 260px at 82% 100%,rgba(var(--tx-exotic-orange-rgb),.1),transparent 66%);
+}

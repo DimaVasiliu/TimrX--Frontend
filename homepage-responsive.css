@@ -487,25 +487,33 @@ body.hero-command-docked .hero-command{
   word-break:break-word;
 }
 
-.demo-result{
-  height:clamp(260px,72vw,340px);
+/* phones only — desktop height comes from landing.css's flex-fill. This
+   used to sit at top level and silently capped the desktop viewer too. */
+@media(max-width:760px){
+  .demo-result{
+    min-height:clamp(280px,76vw,380px);
+    height:auto;
+  }
 }
 
+/* 2026-08-20: the horizontal chip scroller clipped the 3rd/4th examples
+   behind the viewer on small screens — a 2x2 grid shows all four, no
+   scrolling, with breathing room below the prompt card. */
 .demo-examples{
   width:100%;
-  flex-wrap:nowrap;
-  overflow-x:auto;
-  overflow-y:hidden;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:9px;
+  margin-top:10px;
+  overflow:visible;
   padding-bottom:4px;
-  scroll-snap-type:x proximity;
-  -webkit-overflow-scrolling:touch;
 }
 
 .demo-chip{
-  flex:0 0 auto;
-  max-width:min(240px,calc(100vw - var(--page-gutter) * 2 - 40px));
+  width:100%;
+  max-width:none;
   white-space:normal;
-  scroll-snap-align:start;
+  text-align:center;
 }
 
 .tools-layout{

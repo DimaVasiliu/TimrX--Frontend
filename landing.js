@@ -63,15 +63,17 @@
       timer=window.setInterval(()=>setActive(activeIndex+1,true),4200);
     }
     function stop(){if(timer){window.clearInterval(timer);timer=null;}}
+    /* 2026-08-20: auto-rotation retired — the bloom is hover/focus only.
+       No card starts active, nothing cycles; leaving a card clears it. */
+    function clearActive(){recipes.forEach(card=>card.classList.remove('is-active'));}
     recipes.forEach((card,index)=>{
       card.addEventListener('mouseenter',()=>{stop();setActive(index,true)});
       card.addEventListener('focus',()=>{stop();setActive(index,true)});
-      card.addEventListener('mouseleave',start);
-      card.addEventListener('blur',start);
+      card.addEventListener('mouseleave',clearActive);
+      card.addEventListener('blur',clearActive);
       card.addEventListener('click',()=>{setActive(index,true);storeRecipe(card);});
     });
-    setActive(activeIndex,true);
-    start();
+    clearActive();
   })();
 
 	  const communityGrid=document.getElementById('homeCommunityGrid');
@@ -246,3 +248,26 @@
 	    });
 	  }
 	})();
+
+/* CORNER RECIPES (2026-08-20): on wide screens the recipe cards pin to the
+   hero's four corners (index-palette.css). They can only anchor to .hero if
+   the section is its direct child — the markup nests it inside
+   .hero-command-wrap (position:relative), which would hijack the absolute
+   positioning. Re-parent at runtime instead of editing markup; listeners on
+   the cards survive the move. Reversible on resize. */
+(function(){
+  var sec = document.querySelector('.prompt-recipes');
+  var hero = document.querySelector('.hero-minimal') || document.querySelector('.hero');
+  if (!sec || !hero) return;
+  var home = sec.parentElement, marker = document.createComment('prompt-recipes-home');
+  home.insertBefore(marker, sec);
+  function place(){
+    if (window.innerWidth >= 1240) {
+      if (sec.parentElement !== hero) hero.appendChild(sec);
+    } else if (sec.parentElement !== home) {
+      home.insertBefore(sec, marker.nextSibling);
+    }
+  }
+  place();
+  window.addEventListener('resize', place, { passive: true });
+})();

@@ -358,8 +358,8 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
     var(--accent-blue, #7fc8c2) 0%,
     var(--accent-purple, #b8a77a) calc(var(--p) * 0.72),
     #f4fffd calc(var(--p) - 0.6%),
-    rgba(214, 230, 228, 0.13) calc(var(--p) + 0.4%),
-    rgba(214, 230, 228, 0.13) 100%);
+    rgba(230, 219, 214, 0.13) calc(var(--p) + 0.4%),
+    rgba(230, 219, 214, 0.13) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -375,7 +375,7 @@ html body.print3d-page > .workspace-loader { position: fixed; z-index: 214748000
   width: 2px;
   margin-left: -1px;
   background: linear-gradient(180deg,
-    transparent, #eafffb 20%, #eafffb 80%, transparent);
+    transparent, #ffe9d9 20%, #ffe9d9 80%, transparent);
   box-shadow:
     0 0 10px 1px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.7),
     0 0 26px 5px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.28);
@@ -740,3 +740,19 @@ body.print3d-page.ws-intro-go .ws-hero {
     filter: blur(10px);
   }
 }
+
+
+/* ==========================================================================
+   WARM PALETTE (2026-08-18): the boot veil joins the hero's HorizonX scheme.
+   The loader paints everything through --accent-blue/-rgb, so one scoped
+   override retints the halo, floor grid, orbit, meter bar and brand mark to
+   Exotic Orange. The hardcoded teal-white highlight moves to Dirty White and
+   the purple fallback to Sidecar Yellow. Colors only.
+   ========================================================================== */
+.workspace-loader {
+  --accent-blue: #F54F1B;
+  --accent-blue-rgb: 245, 79, 27;
+  --accent-purple-rgb: 243, 232, 188;
+}
+.workspace-loader .wsl-hero__head,
+.workspace-loader [data-loader-percent] { color: #EFE9E9; }

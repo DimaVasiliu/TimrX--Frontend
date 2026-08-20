@@ -16,7 +16,7 @@
   <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-logo-192.png?v=20260815logo">
   <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-logo-180.png?v=20260815logo">
   <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-logo-16.png?v=20260815logo">
-  
+
   <link rel="manifest" href="site.webmanifest">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="TimrX">
@@ -57,11 +57,12 @@
   </script>
   <link rel="preload" href="/fonts/inter-subset.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="fonts/fonts.css">
-  <link rel="stylesheet" href="landing.css?v=20260816workflows">
+  <link rel="stylesheet" href="landing.css?v=20260820viewerfill3">
   <link rel="stylesheet" href="hero-assistant.css?v=20260816stablehero">
   <link rel="stylesheet" href="landing-widgets.css?v=20260813sync">
-  <link rel="stylesheet" href="homepage-responsive.css?v=20260818footer">
-  <link rel="stylesheet" href="tx-menu.css?v=20260818mobile">
+  <link rel="stylesheet" href="homepage-responsive.css?v=20260820viewerfill2">
+  <link rel="stylesheet" href="tx-menu.css?v=20260819palette2">
+  <link rel="stylesheet" href="index-palette.css?v=20260820communitycards">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer"></noscript>
   <script>window.dataLayer=window.dataLayer||[];</script>
@@ -135,12 +136,10 @@
             <span>Start with</span>
             <strong data-hero-workflow>Product mockups</strong>
           </div>
-          <p data-hero-subcopy>Generate images, videos and printable 3D models from prompts or uploads. Refine, convert, export or print from one guided workspace.</p>
-        </div>
 
-        <div class="hero-card-deck reveal" data-hero-card-deck>
-          <button class="hero-card-arrow hero-card-arrow--prev" type="button" aria-label="Show previous generation cards" data-hero-card-prev>←</button>
-          <div class="hero-product-surface" aria-label="TimrX generation possibilities" tabindex="0">
+          <div class="hero-card-deck reveal" data-hero-card-deck>
+            <button class="hero-card-arrow hero-card-arrow--prev" type="button" aria-label="Show previous generation cards" data-hero-card-prev>←</button>
+            <div class="hero-product-surface" aria-label="TimrX generation possibilities" tabindex="0">
             <a class="hero-cap-card hero-cap-card--feature hero-cap-card--video" href="/ai-video-generator" data-track="hero_capability_video">
               <span class="hero-card-media hero-video-stage" aria-hidden="true" data-hero-media="video">
                 <video muted autoplay loop playsinline preload="metadata" poster="img/video-posters/hero-2.jpg">
@@ -214,8 +213,10 @@
               <strong>Export and convert</strong>
               <p>Move between STL, OBJ, GLB, GLTF, USDZ, and 3MF formats.</p>
             </a>
+            </div>
+            <button class="hero-card-arrow hero-card-arrow--next" type="button" aria-label="Show next generation cards" data-hero-card-next>→</button>
           </div>
-          <button class="hero-card-arrow hero-card-arrow--next" type="button" aria-label="Show next generation cards" data-hero-card-next>→</button>
+          <p data-hero-subcopy>Generate images, videos and printable 3D models from prompts or uploads. Refine, convert, export or print from one guided workspace.</p>
         </div>
 
         <div class="hero-command-wrap reveal" data-hero-command-wrap>
@@ -238,7 +239,7 @@
               <h2 id="promptRecipesTitle">Start with a workflow-ready brief.</h2>
             </div>
             <div class="prompt-recipes__grid" aria-label="Prompt recipe starters">
-              <a class="prompt-recipe prompt-recipe--image is-active" href="/3dprint?panel=image&recipe=product-mockup" data-prompt-recipe data-recipe-panel="image" data-recipe-label="Product mockup" data-recipe-output="AI image" data-recipe-prompt="A clean ecommerce product mockup of a matte black smart desk lamp on a seamless white studio background, soft shadow, premium lighting, front three-quarter view" data-track="recipe_product_mockup">
+              <a class="prompt-recipe prompt-recipe--image" href="/3dprint?panel=image&recipe=product-mockup" data-prompt-recipe data-recipe-panel="image" data-recipe-label="Product mockup" data-recipe-output="AI image" data-recipe-prompt="A clean ecommerce product mockup of a matte black smart desk lamp on a seamless white studio background, soft shadow, premium lighting, front three-quarter view" data-track="recipe_product_mockup">
                 <span class="prompt-recipe__icon" aria-hidden="true"><i class="fa-solid fa-image"></i></span>
                 <span class="prompt-recipe__copy">
                   <strong>Product mockup</strong>
@@ -630,7 +631,7 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
       </div>
     </section>
 
-    <section class="section-pad pricing-preview" aria-labelledby="pricing-title"><div class="shell pricing-card reveal"><div class="pricing-main"><span class="section-index">06 / FLEXIBLE CREDITS</span><h2 id="pricing-title">Create when you need to.<br>Pay for what you use.</h2><p>TimrX uses credits for AI generation and selected refinement tools. Start small, then add more when your workflow grows. Billing still lives in the Dashboard.</p><a class="button button-primary" href="/hub#pricing" data-track="pricing_view">View Pricing <span>→</span></a></div><div class="pricing-uses"><span class="pricing-uses-cap">One balance, every tool</span><ul aria-label="What credits unlock"><li><span>Image generation</span><small>Concept art, characters and product visuals.</small></li><li><span>Video generation</span><small>Cinematic clips and animated assets.</small></li><li><span>3D generation</span><small>Text and image to printable 3D models.</small></li><li><span>Refinement</span><small>Remesh, retexture, rigging and print preparation.</small></li></ul></div></div></section>
+    <section class="section-pad pricing-preview" aria-labelledby="pricing-title"><div class="shell pricing-card reveal"><div class="pricing-main"><span class="section-index">06 / FLEXIBLE CREDITS</span><h2 id="pricing-title">Create on demand.<br>Pay only for what you use.</h2><p>Credits power AI generation and selected refinement tools. Start with a small pack, then add more as your workflow grows. Billing stays in your Dashboard.</p><a class="button button-primary" href="/hub#pricing" data-track="pricing_view">View Pricing <span>→</span></a></div><div class="pricing-uses"><span class="pricing-uses-cap">One balance for every tool</span><ul aria-label="What credits unlock"><li><span>Image creation</span><small>Concept art, characters, and product visuals.</small></li><li><span>Video creation</span><small>Cinematic clips, product motion, and animated assets.</small></li><li><span>3D model creation</span><small>Text or image prompts into printable 3D models.</small></li><li><span>Model refinement</span><small>Remesh, retexture, rig, and prepare files for print.</small></li></ul></div></div></section>
 
     <section class="section-pad platform" id="platform-overview" aria-labelledby="platform-title">
       <div class="shell platform-layout">
@@ -763,10 +764,10 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
   <script src="app.js?v=20260813sync" defer></script>
   <script src="hero-assistant.js?v=20260816stablehero" defer></script>
   <script src="js/hero-card-media.js?v=1" defer></script>
-  <script src="js/hero-feature-scenes.js?v=1" defer></script>
+  <script src="js/hero-feature-scenes.js?v=20260820fxc-shapes" defer></script>
   <script src="landing-widgets.js?v=20260813sync" defer></script>
   <script src="js/shared/tx-menu.js?v=20260818mobile" defer></script>
-  <script src="landing.js?v=20260815recipes" defer></script>
+  <script src="landing.js?v=20260820corners2" defer></script>
   <script type="module" src="js/model-viewer-3.5.0.module.min.js"></script>
   <script src="js/cookie-consent.js" defer></script>
   <script>

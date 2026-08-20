@@ -234,8 +234,8 @@
       window onto the ground rather than an object sitting on it */
 .workspace-loader .wsl-orbit--orb .wsl-orbit__skin {
   background:
-    linear-gradient(rgba(151, 170, 171, 0.30) 1px, transparent 1px) 0 0 / 22% 22%,
-    linear-gradient(90deg, rgba(151, 170, 171, 0.26) 1px, transparent 1px) 0 0 / 22% 22%,
+    linear-gradient(rgba(216, 168, 143, 0.30) 1px, transparent 1px) 0 0 / 22% 22%,
+    linear-gradient(90deg, rgba(216, 168, 143, 0.26) 1px, transparent 1px) 0 0 / 22% 22%,
     radial-gradient(circle at 42% 34%,
       rgba(var(--accent-blue-rgb, 127, 200, 194), 0.20),
       rgba(var(--accent-blue-rgb, 127, 200, 194), 0.05) 46%,
@@ -301,4 +301,13 @@
     transform: none;
     filter: none;
   }
+}
+
+
+/* WARM PALETTE (2026-08-18): belt-and-braces — the orbit reads the accent
+   vars with teal fallbacks; pin them warm here too in case this sheet is
+   ever used outside the .workspace-loader scope. */
+.workspace-loader, .wsl-orbit {
+  --accent-blue: #F54F1B;
+  --accent-blue-rgb: 245, 79, 27;
 }

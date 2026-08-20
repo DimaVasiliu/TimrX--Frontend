@@ -600,3 +600,170 @@
     init(0);
   }
 })();
+
+/* ==========================================================================
+   WS-HERO 2 (2026-08-18): self-typing prompt line + lazy model-viewer stage.
+   Chip prefill needs no code here — the chips carry .ws-hero__hint[data-hint]
+   and the existing delegate above handles them.
+   ========================================================================== */
+(function () {
+  'use strict';
+  var typedEl = document.getElementById('wsHeroTyped');
+  if (typedEl) {
+    var reduce = false;
+    try { reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    var prompts = [
+      '"an articulated dragon that prints in place"',
+      '"a modular desk organizer with cable channels"',
+      '"a chess knight, hollowed for resin printing"',
+      '"a goblin warrior, rigged and walking"'
+    ];
+    if (reduce) {
+      typedEl.textContent = prompts[0];
+    } else {
+      var pi = 0, ci = 0, deleting = false;
+      (function tick() {
+        var p = prompts[pi];
+        ci += deleting ? -1 : 1;
+        typedEl.innerHTML = '';
+        typedEl.appendChild(document.createTextNode(p.slice(0, ci)));
+        var caret = document.createElement('span');
+        caret.className = 'ws-hero2__caret';
+        typedEl.appendChild(caret);
+        var delay = deleting ? 20 : 44;
+        if (!deleting && ci === p.length) { delay = 2200; deleting = true; }
+        if (deleting && ci === 0) { deleting = false; pi = (pi + 1) % prompts.length; delay = 320; }
+        setTimeout(tick, delay);
+      })();
+    }
+  }
+  /* pipeline rail: the active step walks 01->05; hovering pins a step and
+     pauses the walk. Reduced-motion users get all steps readable, no cycle. */
+  var rail = document.getElementById('wsHeroRail');
+  if (rail) {
+    var steps = Array.prototype.slice.call(rail.querySelectorAll('.ws-hero2__step'));
+    var reduceRail = false;
+    try { reduceRail = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    if (!reduceRail && steps.length) {
+      var railIdx = 0, railTimer = null;
+      var setActive = function (i) {
+        railIdx = i;
+        steps.forEach(function (st, k) { st.classList.toggle('is-active', k === i); });
+      };
+      var startWalk = function () {
+        if (railTimer) return;
+        railTimer = setInterval(function () { setActive((railIdx + 1) % steps.length); }, 2400);
+      };
+      var stopWalk = function () { clearInterval(railTimer); railTimer = null; };
+      steps.forEach(function (st, k) {
+        st.addEventListener('mouseenter', function () { stopWalk(); setActive(k); });
+        st.addEventListener('focus', function () { stopWalk(); setActive(k); });
+      });
+      rail.addEventListener('mouseleave', startWalk);
+      startWalk();
+    } else if (steps.length) {
+      steps.forEach(function (st) { st.classList.add('is-active'); });
+    }
+  }
+
+  /* particle globe: ~1100 fibonacci-distributed points on a rotating sphere,
+     Exotic Orange with warm highlights, additive glow. Static frame under
+     prefers-reduced-motion; pauses when the tab is hidden. */
+  var globe = document.getElementById('wsHeroGlobe');
+  if (globe && globe.getContext) {
+    var gtx = globe.getContext('2d');
+    var reduceGlobe = false;
+    try { reduceGlobe = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
+    var N = 2400, pts = [];
+    var GA = Math.PI * (3 - Math.sqrt(5));
+    for (var gi = 0; gi < N; gi++) {
+      var gy = 1 - (gi / (N - 1)) * 2;
+      var gr = Math.sqrt(1 - gy * gy);
+      var gth = GA * gi;
+      pts.push([Math.cos(gth) * gr, gy, Math.sin(gth) * gr]);
+    }
+    /* hover state: cursor repels nearby dots, spin quickens, glow brightens.
+       Everything eased so enter/leave feel organic. */
+    var rot = 0, speed = 0.0032, targetSpeed = 0.0032;
+    var boost = 0, targetBoost = 0;           /* 0 rest .. 1 hovered */
+    var mx = -1e4, my = -1e4;                 /* cursor in canvas px */
+    var scene = globe.closest('.ws-hero2__stage--scene') || globe;
+    scene.addEventListener('pointermove', function (e) {
+      var rect = globe.getBoundingClientRect();
+      mx = (e.clientX - rect.left) * (globe.width / Math.max(1, rect.width));
+      my = (e.clientY - rect.top) * (globe.height / Math.max(1, rect.height));
+      targetSpeed = 0.010;
+      targetBoost = 1;
+    });
+    scene.addEventListener('pointerleave', function () {
+      mx = -1e4; my = -1e4;
+      targetSpeed = 0.0032;
+      targetBoost = 0;
+    });
+    var drawGlobe = function () {
+      var side = globe.clientWidth || 340;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (globe.width !== Math.round(side * dpr)) { globe.width = Math.round(side * dpr); globe.height = Math.round(side * dpr); }
+      var c = globe.width, R = c * 0.46, cx = c / 2, cy = c / 2;
+      gtx.clearRect(0, 0, c, c);
+      gtx.globalCompositeOperation = 'lighter';
+      var sinR = Math.sin(rot), cosR = Math.cos(rot);
+      var repelR = c * 0.22, repelR2 = repelR * repelR;
+      for (var i = 0; i < N; i++) {
+        var x = pts[i][0], y = pts[i][1], z = pts[i][2];
+        var rx = x * cosR - z * sinR;
+        var rz = x * sinR + z * cosR;
+        if (rz < -0.2) continue;
+        var depth = (rz + 1) / 2;
+        var px = cx + rx * R, py = cy + y * R;
+        /* cursor repulsion with smooth falloff (front dots react hardest) */
+        if (boost > 0.01) {
+          var dx = px - mx, dy = py - my;
+          var d2 = dx * dx + dy * dy;
+          if (d2 < repelR2 && d2 > 0.01) {
+            var d = Math.sqrt(d2);
+            var f = (1 - d / repelR); f = f * f * boost * depth * (c * 0.09);
+            px += (dx / d) * f; py += (dy / d) * f;
+          }
+        }
+        var lum = 0.22 + depth * (0.55 + boost * 0.3);
+        var top = Math.max(0, -y);
+        gtx.beginPath();
+        gtx.arc(px, py, (0.45 + depth * 1.25) * (c / 340), 0, 6.2832);
+        gtx.fillStyle = 'rgba(' + Math.round(245 + top * 10) + ',' + Math.round(79 + top * 100 + depth * 40 + boost * 25) + ',' + Math.round(27 + top * 70 + boost * 20) + ',' + (0.14 + lum * 0.5) + ')';
+        gtx.fill();
+      }
+      gtx.globalCompositeOperation = 'source-over';
+    };
+    if (reduceGlobe) {
+      setTimeout(drawGlobe, 60);
+    } else {
+      (function loop() {
+        if (!document.hidden && globe.isConnected) {
+          speed += (targetSpeed - speed) * 0.05;
+          boost += (targetBoost - boost) * 0.08;
+          rot += speed;
+          drawGlobe();
+        }
+        requestAnimationFrame(loop);
+      })();
+    }
+  }
+
+  /* model-viewer: load the local module only if nothing registered it yet,
+     and only once the stage is near the viewport (it is, on load — but this
+     also covers prerender/bfcache paths cheaply). */
+  var stageModel = document.getElementById('wsHeroModel');
+  if (stageModel && !window.customElements.get('model-viewer')) {
+    var loadMV = function () {
+      try {
+        if (typeof window.loadModelViewer === 'function') { window.loadModelViewer(); return; }
+        import('/js/model-viewer-3.5.0.module.min.js').catch(function () {
+          import('https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js').catch(function () {});
+        });
+      } catch (e) { /* dynamic import unsupported — stage stays a styled panel */ }
+    };
+    if ('requestIdleCallback' in window) { requestIdleCallback(loadMV, { timeout: 2500 }); }
+    else { setTimeout(loadMV, 400); }
+  }
+})();
