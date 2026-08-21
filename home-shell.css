@@ -1,0 +1,292 @@
+/* ==========================================================================
+   HOME-SHELL.CSS (2026-08-21)
+   The homepage header (.site-header) and footer (.site-footer / .footer-grid)
+   EXACTLY as index.html renders them — rules machine-extracted from
+   landing.css -> homepage-responsive.css -> index-palette.css in the
+   homepage's own cascade order. Do not hand-edit the extracted section:
+   re-extract after homepage changes so the shells cannot drift.
+   Custom properties the rules reference are scoped onto the two shell roots.
+   ========================================================================== */
+.site-header,.site-footer{
+  --tx-authentic-teal:#035352;
+  --content-width-wide:1620px;
+  --cyan:var(--tx-authentic-teal);
+  --gutter:clamp(18px,4vw,56px);
+  --header:66px;
+  --header-height:calc(var(--header,66px) + env(safe-area-inset-top,0px));
+  --line:rgba(var(--tx-dirty-white-rgb),.09);
+  --page-gutter:56px;
+  --shell:1480px;
+  --tx-blue-rgb:30,34,61;
+  --tx-dirty-white:#EFE9E9;
+  --tx-dirty-white-rgb:239,233,233;
+  --tx-exotic-orange:#F54F1B;
+  --tx-masterpiece-red-rgb:90,33,50;
+  --tx-orange:#F54F1B;
+  --tx-orange-rgb:245,79,27;
+  --tx-red:#5A2132;
+  --tx-red-rgb:90,33,50;
+  --tx-sidecar-yellow:#F3E8BC;
+  --tx-sidecar-yellow-rgb:243,232,188;
+  --tx-teal:#035352;
+  --tx-teal-rgb:3,83,82;
+  --tx-white:#EFE9E9;
+  --tx-white-rgb:239,233,233;
+  --tx-yellow:#F3E8BC;
+  --tx-yellow-rgb:243,232,188;
+  --z-header:1000;
+}
+/* pages that adopt this shell offset fixed-header layouts with --navH */
+body.home-shell{--navH:66px}
+/* ======== extracted from landing.css ======== */
+.shell{width:min(100%,calc(var(--shell) + var(--gutter)*2));margin:auto;padding-inline:var(--gutter)}
+.site-header{position:fixed;inset:0 0 auto;z-index:1000;height:var(--header);border-bottom:1px solid transparent;background:linear-gradient(180deg,rgba(10,10,10,.9),rgba(10,10,10,.72));backdrop-filter:blur(18px);transition:border-color .25s,background .25s}
+.site-header.is-scrolled{border-color:var(--line);background:rgba(10,10,10,.94)}
+.nav-shell{height:100%;display:flex;align-items:center;gap:30px}
+.brand{display:inline-flex;align-items:center;gap:10px;text-decoration:none;font-family:"Space Grotesk",Inter,sans-serif;font-size:20px;font-weight:800;letter-spacing:-.04em}
+.brand img{display:block}
+.brand>span>span{color:#55b7ea}
+.desktop-nav{display:flex;align-items:center;gap:30px;margin-left:auto}
+.desktop-nav a{color:#b7afa2;text-decoration:none;font-size:13px;font-weight:650;transition:color .2s}
+.desktop-nav a:hover{color:#f6f2ea}
+.button{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:50px;padding:0 22px;border:1px solid var(--line);border-radius:999px;text-decoration:none;font-size:13px;font-weight:750;letter-spacing:.01em;transition:transform .2s,border-color .2s,background .2s,box-shadow .2s}
+.button:hover{transform:translateY(-2px)}
+.button:focus-visible,.desktop-nav a:focus-visible,.tool-links a:focus-visible,.feature-link:focus-visible,.site-footer a:focus-visible{outline:2px solid var(--cyan);outline-offset:4px}
+.button-small{min-height:42px;padding:0 18px;background:#f4f1ea;color:#14110c}
+.site-footer{padding:58px 0 24px;border-top:1px solid rgba(244,241,234,.1);background:linear-gradient(180deg,#0d0c0a 0%,#070706 100%)}
+.footer-grid{display:grid;grid-template-columns:1.08fr repeat(5,minmax(108px,auto));gap:clamp(24px,4vw,58px);padding-bottom:46px}
+.footer-grid>div p{max-width:330px;color:#8f877b;font-size:13px;line-height:1.65}
+.footer-grid nav{display:flex;flex-direction:column;gap:12px;min-width:0}
+.footer-grid nav h2{margin:0 0 7px;color:#7a7265;font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.footer-grid nav a{color:#aaa295;text-decoration:none;font-size:13px}
+.footer-grid nav a:hover,.footer-bottom a:hover{color:#f4f1ea}
+.footer-bottom{display:flex;justify-content:space-between;padding-top:24px;border-top:1px solid var(--line);color:#7a7265;font-size:11px}
+.footer-bottom a{color:#968d80;text-decoration:none}
+@media(max-width:760px){
+.desktop-nav,.desktop-cta{display:none}
+.footer-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding-bottom:30px}
+.footer-grid>div{grid-column:1/-1}
+.footer-grid nav{min-height:100%;padding:14px;border:1px solid rgba(244,241,234,.08);border-radius:12px;background:rgba(244,241,234,.025);gap:8px}
+.footer-grid nav h2{margin-bottom:3px;font-size:9.5px}
+.footer-grid nav a{min-height:24px;font-size:12px;line-height:1.35}
+.footer-bottom{gap:10px;flex-direction:column}
+}
+@media(max-width:430px){
+.footer-grid{gap:12px}
+.footer-grid nav{padding:12px}
+.footer-grid nav a{font-size:11.5px}
+}
+@media(prefers-reduced-motion:reduce){
+.button,.float-card,.capability-card{transition:none}
+}
+@media(max-width:760px){
+.site-header{height:var(--header);background:linear-gradient(180deg,rgba(7,8,11,.94),rgba(7,8,11,.78));border-bottom-color:rgba(244,241,234,.07)}
+.brand img{width:40px;height:40px}
+.brand{font-size:19px}
+.nav-shell{gap:14px}
+.button{-webkit-tap-highlight-color:transparent}
+}
+@media(min-width:761px){
+.footer-grid{grid-template-columns:minmax(220px,1.15fr) repeat(5,minmax(104px,auto));gap:clamp(22px,3.2vw,54px)}
+}
+@media(max-width:1180px){
+.nav-shell{gap:20px}
+.desktop-nav{gap:20px}
+}
+@media(max-width:1000px){
+.nav-shell{gap:14px}
+.desktop-nav{gap:14px}
+.desktop-nav a{font-size:12px}
+}
+@media(max-width:860px){
+.desktop-nav{gap:11px}
+.desktop-nav a{font-size:11.5px;letter-spacing:0}
+}
+.site-header{background:
+    radial-gradient(680px 160px at 72% 0%,rgba(var(--tx-masterpiece-red-rgb),.2),transparent 64%),
+    linear-gradient(180deg,rgba(9,8,12,.92),rgba(9,8,12,.76));}
+.site-header.is-scrolled{background:rgba(9,8,12,.95)}
+.brand>span>span{color:var(--tx-sidecar-yellow)}
+.desktop-nav a:hover{color:var(--tx-sidecar-yellow)}
+.button-primary,.button-small{background:linear-gradient(135deg,var(--tx-dirty-white),var(--tx-sidecar-yellow));border-color:var(--tx-sidecar-yellow);color:#14110c}
+.button:focus-visible,.desktop-nav a:focus-visible,.tool-links a:focus-visible,.feature-link:focus-visible,.site-footer a:focus-visible{outline-color:var(--tx-exotic-orange)}
+.site-footer{background:linear-gradient(180deg,#0d0b0e 0%,#070706 100%)}
+@media(max-width:760px){
+.footer-grid nav:last-child{grid-column:1 / -1;}
+}
+
+/* ======== extracted from homepage-responsive.css ======== */
+.shell{width:min(100%,calc(var(--content-width-wide) + var(--page-gutter) * 2));
+  padding-inline:var(--page-gutter);}
+.button,
+.feature-link,
+.tool-links a,
+.resource-tab,
+.demo-chip,
+.faq-list summary{min-height:44px;}
+.button:focus-visible,
+.prompt-ask:focus-visible,
+.prompt-generate:focus-visible,
+.faq-list summary:focus-visible,
+.chat-close:focus-visible,
+.chat-send:focus-visible,
+.chat-inputbar textarea:focus-visible{outline:2px solid var(--cyan);
+  outline-offset:4px;}
+.site-header{z-index:var(--z-header);
+  height:var(--header-height);
+  padding-top:env(safe-area-inset-top,0px);}
+.nav-shell{gap:14px;}
+.brand img{width:38px;
+  height:38px;}
+.footer-grid{grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;}
+.footer-grid > div{grid-column:1 / -1;}
+.footer-grid nav{min-width:0;
+  min-height:100%;
+  padding:14px;
+  border:1px solid rgba(244,241,234,.08);
+  border-radius:12px;
+  background:rgba(244,241,234,.025);
+  gap:8px;}
+.footer-grid nav h2{margin-bottom:3px;
+  font-size:9.5px;}
+.footer-grid nav a{min-height:24px;
+  font-size:12px;
+  line-height:1.35;}
+.footer-grid nav:last-child{grid-column:1 / -1;}
+.footer-bottom{flex-direction:column;
+  gap:10px;}
+@media(min-width:600px){
+.footer-grid{grid-template-columns:1.2fr repeat(3,minmax(0,1fr));}
+.footer-grid > div{grid-column:1 / -1;}
+}
+@media(min-width:768px){
+.desktop-nav,
+  .desktop-cta{display:none;}
+.footer-grid{grid-template-columns:minmax(180px,1.2fr) repeat(5,minmax(96px,auto));}
+.footer-grid > div{grid-column:auto;}
+.footer-grid nav:last-child{grid-column:auto;}
+}
+@media(min-width:1024px){
+.desktop-nav,
+  .desktop-cta{display:flex;}
+.desktop-nav{gap:clamp(14px,1.7vw,28px);}
+.footer-bottom{flex-direction:row;}
+}
+@media(min-width:1280px){
+.shell{width:min(100%,calc(var(--content-width-wide) + var(--page-gutter) * 2));}
+}
+@media(max-height:520px) and (orientation:landscape){
+.site-header{height:58px;}
+}
+@media(prefers-reduced-motion:reduce){
+.button,
+  .feature-card,
+  .demo-chip,
+  .resource-modal,
+  .generation-modal-panel,
+  .chat-panel{transition:none;}
+}
+.site-footer{border-top:0;
+  background:linear-gradient(180deg,#0d0c0a 0%,#070706 100%);
+  padding:clamp(46px,5vw,70px) 0 clamp(24px,3vw,34px);}
+.site-footer .shell{width:min(calc(100% - clamp(36px,8vw,240px)),3000px);
+  padding-inline:0;}
+.footer-grid{display:grid;
+  grid-template-columns:minmax(260px,.95fr) repeat(5,minmax(112px,1fr));
+  align-items:start;
+  gap:clamp(28px,4vw,82px);
+  padding-bottom:clamp(28px,4vw,46px);}
+.footer-grid > div{grid-column:auto;
+  min-width:0;}
+.footer-grid > div p{max-width:380px;}
+.footer-grid nav{min-width:0;
+  min-height:auto;
+  gap:10px;
+  padding:0;
+  border:0;
+  border-radius:0;
+  background:none;}
+.footer-grid nav h2{margin:0 0 9px;}
+.footer-grid nav a{min-height:26px;
+  line-height:1.35;}
+.footer-grid nav:last-child{grid-column:auto;}
+.footer-bottom{display:flex;
+  justify-content:space-between;
+  gap:18px;
+  padding-top:0;
+  border-top:0;}
+@media(max-width:1100px){
+.footer-grid{grid-template-columns:minmax(0,1fr) repeat(3,minmax(0,1fr));
+    gap:28px 34px;}
+.footer-grid > div{grid-column:1 / -1;}
+}
+@media(max-width:760px){
+.site-footer{padding:34px 0 22px;}
+.footer-grid{grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:22px 26px;
+    padding-bottom:28px;}
+.footer-grid > div{grid-column:1 / -1;}
+.footer-grid nav,
+  .footer-grid nav:last-child{grid-column:auto;
+    padding:0;
+    border:0;
+    border-radius:0;
+    background:none;}
+.footer-bottom{align-items:flex-start;
+    flex-direction:column;
+    gap:8px;}
+}
+@media(max-width:430px){
+.footer-grid{gap:20px 22px;}
+}
+
+/* ======== extracted from index-palette.css ======== */
+.site-header{border-bottom-color:rgba(var(--tx-yellow-rgb),.12);
+  background:linear-gradient(180deg,rgba(var(--tx-blue-rgb),.88),rgba(8,9,12,.76));}
+.site-header::after{content:"";
+  position:absolute;
+  left:50%;
+  bottom:-1px;
+  width:min(1120px,88vw);
+  height:1px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,rgba(var(--tx-red-rgb),.5),rgba(var(--tx-yellow-rgb),.42),rgba(var(--tx-teal-rgb),.5),transparent);
+  pointer-events:none;}
+.brand span span,
+.desktop-nav a[aria-current="page"],
+.tx-menu-brand span span{color:var(--tx-orange);}
+.desktop-nav a:hover,
+.footer-grid a:hover,
+.footer-bottom a:hover{color:var(--tx-yellow);}
+.desktop-nav a[aria-current="page"]::after{background:linear-gradient(90deg,var(--tx-orange),var(--tx-yellow));}
+.button-ghost,
+.desktop-cta{border-color:rgba(var(--tx-yellow-rgb),.22);
+  background:rgba(var(--tx-white-rgb),.045);
+  color:var(--tx-white);}
+.button-ghost:hover,
+.desktop-cta:hover{border-color:rgba(var(--tx-yellow-rgb),.4);
+  background:rgba(var(--tx-teal-rgb),.16);}
+.site-footer{background:
+    radial-gradient(circle at 12% 0%,rgba(var(--tx-red-rgb),.2),transparent 30%),
+    radial-gradient(circle at 88% 20%,rgba(var(--tx-teal-rgb),.16),transparent 34%),
+    #07080b;}
+.footer-grid nav{border-color:rgba(var(--tx-yellow-rgb),.11);}
+
+/* ---- host-page guards ----------------------------------------------------
+   The shells land on pages whose body color is dark ink on a light surface;
+   the homepage brand/wordmark inherits body color there and vanishes.
+   Pin the inherited colors to the homepage values. */
+.site-header .brand,
+.site-footer .brand{color:var(--tx-white)}
+.site-header .desktop-nav a{color:rgba(var(--tx-white-rgb),.78)}
+.site-footer{color:rgba(var(--tx-white-rgb),.62)}
+.site-footer .footer-grid>div p{color:rgba(var(--tx-white-rgb),.45)}
+
+/* Pages whose old header bar was in normal flow (blog family) opt into a
+   flow spacer so the fixed homepage header doesn't overlap their hero. */
+body.home-shell-offset::before{
+  content:"";
+  display:block;
+  height:var(--header-height,66px);
+}

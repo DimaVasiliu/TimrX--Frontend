@@ -7,9 +7,9 @@
   <title>AI Video Generator — Seedance, Veo &amp; Image to Video | TimrX</title>
   <meta name="description" content="Generate AI videos from text prompts, images or references with Seedance and Veo in TimrX. Create clips, transitions, product motion and source frames, then save them to My Assets." />
   <link rel="canonical" href="https://timrx.live/ai-video-generator" />
-  <link rel="icon" type="image/png" href="/img/logo.png?v=20260815logo" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-logo-192.png?v=20260815logo">
-  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-logo-180.png?v=20260815logo">
+  <link rel="icon" type="image/png" href="img/logo.png?v=20260815logo" />
+  <link rel="icon" type="image/png" sizes="192x192" href="img/favicon-logo-192.png?v=20260815logo">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/favicon-logo-180.png?v=20260815logo">
   
   <meta name="theme-color" content="#0b0b0b" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
@@ -41,6 +41,8 @@
   <link rel="stylesheet" href="tool-page.css?v=20260819palette">
   <link rel="stylesheet" href="footer.css?v=20260819palette2">
   <link rel="stylesheet" href="tx-menu.css?v=20260819palette2">
+  <link rel="stylesheet" href="tool-page-palette.css?v=20260821cards">
+  <link rel="stylesheet" href="tool-rich-palette.css?v=20260821rich">
   <style>
     .tool-example-card video{
       display:block;
@@ -186,31 +188,25 @@
   </script>
   <!-- End Google Tag Manager -->
   <script src="js/console-shield.js?v=1"></script>
+  <link rel="stylesheet" href="home-shell.css?v=20260821shell">
 </head>
-<body>
+<body class="tool-rich-page home-shell">
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <!-- NAV -->
-  <nav class="nav divider" aria-label="Main">
-    <div class="container nav-inner">
-      <div class="brand-group">
-        <img src="img/logo.png?v=20260815logo" alt="TimrX" class="idx-nav-logo" width="50" height="50">
-        <a class="brand" href="/" aria-label="Home">
-          <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
-        </a>
-      </div>
-      <div class="nav-links" role="navigation" aria-label="Primary">
-        <a href="/3dprint">3D Print Hub</a>
-        <a href="/hub">PRODUCT</a>
-        <a href="/ai-tools">TOOLS</a>
-        <a href="/blogs">BLOGS</a>
-      </div>
-      <a class="nav-cta nav-cta-desktop" href="/3dprint" aria-label="Open TimrX workspace">OPEN WORKSPACE</a>
+  <!-- Site header: homepage shell -->
+  <header class="site-header" data-header>
+    <div class="shell nav-shell">
+      <a class="brand" href="/" aria-label="TimrX home"><img src="img/logo.png?v=20260815logo" width="44" height="44" alt=""><span>Timr<span>X</span></span></a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="/">Home</a><a href="/3dprint" data-track="nav_create">Create</a><a href="/community" data-track="nav_community">Community</a><a href="/tutorials" data-track="nav_tutorials">Tutorials</a><a href="/docs" data-track="nav_docs">Docs</a><a href="/hub#pricing" data-track="nav_pricing">Pricing</a><a href="/blogs" data-track="nav_blog">Blog</a><a href="/hub" data-track="nav_dashboard">Dashboard</a>
+      </nav>
+      <a class="button button-small desktop-cta" href="/3dprint" data-track="nav_open_workspace">Open Workspace <span aria-hidden="true">↗</span></a>
       <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
     </div>
-  </nav>
+  </header>
 
   <!-- Mobile menu: shared component (tx-menu) -->
   <div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>
@@ -594,70 +590,12 @@
   </section>
 
   <!-- Footer -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="ft-main">
-        <div class="ft-brand">
-          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
-            <img src="/img/logo.png?v=20260815logo" alt="" class="ft-brand-icon" width="40" height="40">
-            <span class="ft-brand-name">Timr<span>X</span></span>
-          </a>
-          <p class="ft-desc">Images, video and 3D creation in one browser workspace.</p>
-        </div>
-        <nav class="ft-cols" aria-label="Footer navigation">
-          <div class="ft-col">
-            <h3 class="ft-heading">Product</h3>
-            <ul class="ft-links">
-              <li><a href="/3dprint">Create</a></li>
-              <li><a href="/ai-tools">Tools</a></li>
-              <li><a href="/converter">Converter</a></li>
-              <li><a href="/stl-library">STL Library</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Explore</h3>
-            <ul class="ft-links">
-              <li><a href="/blogs">Blog</a></li>
-              <li><a href="/tutorials">Tutorials</a></li>
-              <li><a href="/community">Community</a></li>
-              <li><a href="/prompts">Prompts</a></li>
-              <li><a href="/company">Company</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Account</h3>
-            <ul class="ft-links">
-              <li><a href="/hub">Dashboard</a></li>
-              <li><a href="/hub#pricing">Pricing</a></li>
-              <li><a href="/docs">Docs</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Connect</h3>
-            <ul class="ft-links">
-              <li><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a></li>
-              <li><a href="mailto:support@timrx.live">Support</a></li>
-              <li><a href="/llms.txt">LLM Summary</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Legal</h3>
-            <ul class="ft-links">
-              <li><a href="/terms">Terms</a></li>
-              <li><a href="/privacy">Privacy</a></li>
-              <li><a href="/cookies">Cookies</a></li>
-            </ul>
-          </div>
-        </nav>
-      </div>
-      <div class="ft-bottom">
-        <span class="ft-copy">&copy; <span id="year" data-year></span> TimrX</span>
-        <a class="ft-meta" href="/dima-vasiliu">Built by Dima Vasiliu <span aria-hidden="true">↗</span></a>
-      </div>
-    </div>
-  </footer>
+  <footer class="site-footer"><div class="shell footer-grid"><div><a class="brand" href="/"><img src="img/logo.png?v=20260815logo" width="40" height="40" alt=""><span>Timr<span>X</span></span></a><p>Images, video and 3D creation in one browser workspace.</p></div><nav aria-label="Product"><h2>Product</h2><a href="/3dprint">Create</a><a href="/ai-tools">Tools</a><a href="/converter">Converter</a><a href="/stl-library">STL Library</a></nav><nav aria-label="Explore"><h2>Explore</h2><a href="/blogs">Blog</a><a href="/tutorials">Tutorials</a><a href="/community">Community</a><a href="/prompts">Prompts</a><a href="/company">Company</a></nav><nav aria-label="Account"><h2>Account</h2><a href="/hub">Dashboard</a><a href="/hub#pricing">Pricing</a><a href="/docs">Docs</a></nav><nav aria-label="Connect"><h2>Connect</h2><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a><a href="mailto:support@timrx.live">Support</a><a href="/llms.txt">LLM Summary</a></nav><nav aria-label="Legal"><h2>Legal</h2><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></nav></div><div class="shell footer-bottom"><span>© <span id="year" data-year>2026</span> TimrX</span><a href="/dima-vasiliu">Built by Dima Vasiliu <span>↗</span></a></div></footer>
 
-  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){var h=document.querySelector('.site-header[data-header]');if(h){var s=function(){h.classList.toggle('is-scrolled',window.scrollY>8);};s();window.addEventListener('scroll',s,{passive:true});}
+  var y=document.querySelector('[data-year]');if(y)y.textContent=new Date().getFullYear();})();
+  </script>
   <script>
   (function(){
     var path = window.location.pathname || '';

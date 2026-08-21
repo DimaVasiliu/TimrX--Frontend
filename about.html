@@ -7,9 +7,9 @@
   <meta name="description" content="Dima Vasiliu — founder and full-stack developer of TimrX, a browser-based platform for generating 3D models, images and video." />
   <link rel="canonical" href="https://timrx.live/about" />
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="/img/logo.png?v=20260815logo" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-logo-192.png?v=20260815logo">
-  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-logo-180.png?v=20260815logo">
+  <link rel="icon" type="image/png" href="img/logo.png?v=20260815logo" />
+  <link rel="icon" type="image/png" sizes="192x192" href="img/favicon-logo-192.png?v=20260815logo">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/favicon-logo-180.png?v=20260815logo">
   
   <meta name="theme-color" content="#0b0b0b"/>
   <meta name="robots" content="index, follow" />
@@ -94,6 +94,7 @@
   <link rel="preload" href="/fonts/inter-variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts/fonts.css">
   <link rel="stylesheet" href="footer.css?v=20260819palette2">
+  <link rel="stylesheet" href="tx-menu.css?v=20260819palette2">
   <link rel="stylesheet" href="trustpilot.css">
   <style>
     *, *::before, *::after { box-sizing: border-box; }
@@ -430,20 +431,45 @@
   </script>
   <!-- End Google Tag Manager -->
   <script src="js/console-shield.js?v=1"></script>
+  <link rel="stylesheet" href="home-shell.css?v=20260821shell">
 </head>
-<body>
+<body class="home-shell home-shell-offset">
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <!-- Header -->
-  <header class="about-header" aria-label="Site header">
-    <a class="about-brand" href="/" aria-label="Home">
-      <img src="img/blogs.png?v=20260815logo" alt="TimrX" class="about-nav-logo" width="52" height="52">
-      <span><span class="b-tim">Timr</span><span class="b-x">X</span></span>
-    </a>
-    <a class="about-nav-link" href="/blogs">Read the Blog</a>
+  <!-- Site header: homepage shell -->
+  <header class="site-header" data-header>
+    <div class="shell nav-shell">
+      <a class="brand" href="/" aria-label="TimrX home"><img src="img/logo.png?v=20260815logo" width="44" height="44" alt=""><span>Timr<span>X</span></span></a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="/">Home</a><a href="/3dprint" data-track="nav_create">Create</a><a href="/community" data-track="nav_community">Community</a><a href="/tutorials" data-track="nav_tutorials">Tutorials</a><a href="/docs" data-track="nav_docs">Docs</a><a href="/hub#pricing" data-track="nav_pricing">Pricing</a><a href="/blogs" data-track="nav_blog">Blog</a><a href="/hub" data-track="nav_dashboard">Dashboard</a>
+      </nav>
+      <a class="button button-small desktop-cta" href="/3dprint" data-track="nav_open_workspace">Open Workspace <span aria-hidden="true">↗</span></a>
+      <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
+    </div>
   </header>
+  <!-- Mobile menu: shared component (tx-menu) -->
+  <div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>
+    <div class="tx-menu-panel">
+      <div class="tx-menu-head">
+        <span class="tx-menu-brand" aria-hidden="true">
+          <img src="img/logo.png?v=20260815logo" width="34" height="34" alt="">
+          <span>T<span>X</span></span>
+        </span>
+        <button class="tx-menu-close" type="button" aria-label="Close menu" data-tx-menu-close><span></span><span></span></button>
+      </div>
+      <nav class="tx-menu-links" aria-label="Mobile navigation">
+        <a href="/3dprint"><span>3D Print Hub</span><small>Explore the hub</small></a>
+        <a href="/ai-tools"><span>Generation Tools</span><small>All tools</small></a>
+        <a href="/blogs"><span>Blogs</span><small>Latest writing</small></a>
+        <a href="/3dprint"><span>Workspace</span><small>Start creating</small></a>
+      </nav>
+      <a class="tx-menu-cta" href="/3dprint">Open Workspace <span aria-hidden="true">&#8599;</span></a>
+      <div class="tx-menu-foot" data-tx-menu-watermark="TimrX creative platform"></div>
+    </div>
+  </div>
 
   <!-- Hero -->
   <section class="about-hero" role="banner">
@@ -554,68 +580,7 @@
   </main>
 
   <!-- Footer -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="ft-main">
-        <div class="ft-brand">
-          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
-            <img src="/img/logo.png?v=20260815logo" alt="" class="ft-brand-icon" width="40" height="40">
-            <span class="ft-brand-name">Timr<span>X</span></span>
-          </a>
-          <p class="ft-desc">Images, video and 3D creation in one browser workspace.</p>
-        </div>
-        <nav class="ft-cols" aria-label="Footer navigation">
-          <div class="ft-col">
-            <h3 class="ft-heading">Product</h3>
-            <ul class="ft-links">
-              <li><a href="/3dprint">Create</a></li>
-              <li><a href="/ai-tools">Tools</a></li>
-              <li><a href="/converter">Converter</a></li>
-              <li><a href="/stl-library">STL Library</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Explore</h3>
-            <ul class="ft-links">
-              <li><a href="/blogs">Blog</a></li>
-              <li><a href="/tutorials">Tutorials</a></li>
-              <li><a href="/community">Community</a></li>
-              <li><a href="/prompts">Prompts</a></li>
-              <li><a href="/company">Company</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Account</h3>
-            <ul class="ft-links">
-              <li><a href="/hub">Dashboard</a></li>
-              <li><a href="/hub#pricing">Pricing</a></li>
-              <li><a href="/docs">Docs</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Connect</h3>
-            <ul class="ft-links">
-              <li><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a></li>
-              <li><a href="mailto:support@timrx.live">Support</a></li>
-              <li><a href="/llms.txt">LLM Summary</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Legal</h3>
-            <ul class="ft-links">
-              <li><a href="/terms">Terms</a></li>
-              <li><a href="/privacy">Privacy</a></li>
-              <li><a href="/cookies">Cookies</a></li>
-            </ul>
-          </div>
-        </nav>
-      </div>
-      <div class="ft-bottom">
-        <span class="ft-copy">&copy; <span id="year" data-year></span> TimrX</span>
-        <a class="ft-meta" href="/dima-vasiliu">Built by Dima Vasiliu <span aria-hidden="true">↗</span></a>
-      </div>
-    </div>
-  </footer>
+  <footer class="site-footer"><div class="shell footer-grid"><div><a class="brand" href="/"><img src="img/logo.png?v=20260815logo" width="40" height="40" alt=""><span>Timr<span>X</span></span></a><p>Images, video and 3D creation in one browser workspace.</p></div><nav aria-label="Product"><h2>Product</h2><a href="/3dprint">Create</a><a href="/ai-tools">Tools</a><a href="/converter">Converter</a><a href="/stl-library">STL Library</a></nav><nav aria-label="Explore"><h2>Explore</h2><a href="/blogs">Blog</a><a href="/tutorials">Tutorials</a><a href="/community">Community</a><a href="/prompts">Prompts</a><a href="/company">Company</a></nav><nav aria-label="Account"><h2>Account</h2><a href="/hub">Dashboard</a><a href="/hub#pricing">Pricing</a><a href="/docs">Docs</a></nav><nav aria-label="Connect"><h2>Connect</h2><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a><a href="mailto:support@timrx.live">Support</a><a href="/llms.txt">LLM Summary</a></nav><nav aria-label="Legal"><h2>Legal</h2><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></nav></div><div class="shell footer-bottom"><span>© <span id="year" data-year>2026</span> TimrX</span><a href="/dima-vasiliu">Built by Dima Vasiliu <span>↗</span></a></div></footer>
 
   <script>
     document.getElementById('year').textContent = new Date().getFullYear();
@@ -635,5 +600,10 @@
   <script src="js/trustpilot.js" defer></script>
   <script src="js/cookie-consent.js" defer></script>
   <script type="module" src="js/analytics.js"></script>
+  <script src="js/shared/tx-menu.js?v=20260818mobile" defer></script>
+  <script>
+  (function(){var h=document.querySelector('.site-header[data-header]');if(h){var s=function(){h.classList.toggle('is-scrolled',window.scrollY>8);};s();window.addEventListener('scroll',s,{passive:true});}
+  var y=document.querySelector('[data-year]');if(y)y.textContent=new Date().getFullYear();})();
+  </script>
 </body>
 </html>

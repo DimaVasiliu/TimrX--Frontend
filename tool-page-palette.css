@@ -1,0 +1,939 @@
+/* ==========================================================================
+   TOOL-PAGE-PALETTE.CSS  (v2 — 2026-08-21b)
+   --------------------------------------------------------------------------
+   One layer, ~22 SEO / tool landing pages. Loads after
+   styles.css + tool-page.css + footer.css + tx-menu.css.
+
+     3d-model-cleanup · 3d-print-model-generator · ai-3d-generator ·
+     ai-animation-generator · ai-game-assets · ai-image-generator ·
+     ai-knowledge · ai-texture-generator · ai-tools · ai-video-generator ·
+     gallery · image-to-3d · imagen-image-generator · meshy-3d-generator ·
+     multi-color-3d-printing · pricing · print-check · print-on-demand ·
+     seedance-video-generator · stl-generator · text-to-3d ·
+     veo-3-video-generator
+
+   v2 notes — why the selectors look heavier than v1:
+   tool-page.css ends with a dark-theme block whose selectors are MORE
+   specific than the plain class selectors v1 used, so the dark surfaces
+   survived the re-skin on every card except the first of each grid:
+
+       .tool-step:nth-child(2)                      (0,2,0)  beat  .tool-step
+       .tool-usecase:nth-child(3n)                  (0,2,0)  beat  .tool-usecase
+       .tool-example-card:nth-child(3n+2)           (0,2,0)
+       .knowledge-item:nth-child(3n+2) a            (0,2,1)
+       .tool-example-card .tool-example-prompt      (0,2,0)
+       .tool-comparison-table td:first-child        (0,2,1)
+
+   Every card rule here is therefore written child-combinator-first
+   (`.tool-steps-grid > .tool-step`) so it ties or beats those and wins on
+   source order. Same reason the h4 / cross-link h3 rules exist at all:
+   tool-page.css paints them `var(--text)`, which resolves to Dirty White
+   (#EFE9E9) — invisible once the card surface became white.
+
+   Also fixed here: the FAQ. No page in the family ever used `.tool-faq-item`
+   — the markup is a bare `<details>` inside `.tool-faq-list` — so both the
+   base FAQ styles and v1's FAQ styles were dead code. Styled on the real
+   element now.
+
+     page   = Dirty White  #EFE9E9   (one flat colour, no gradients)
+     hero   = Midnight Blue #1E223D  (one flat colour)
+     cards  = white, hairline, accent rotating through the six-colour palette
+   ========================================================================== */
+
+:root{
+  --tp-orange:#F54F1B;  --tp-orange-rgb:245,79,27;
+  --tp-yellow:#F3E8BC;  --tp-yellow-rgb:243,232,188;
+  --tp-blue:#1E223D;    --tp-blue-rgb:30,34,61;
+  --tp-red:#5A2132;     --tp-red-rgb:90,33,50;
+  --tp-teal:#035352;    --tp-teal-rgb:3,83,82;
+  --tp-white:#EFE9E9;   --tp-white-rgb:239,233,233;
+  --tp-ink:#141726;
+  --tp-body:#454a5b;
+  --tp-mute:#697084;
+  --tp-line:rgba(30,34,61,.12);
+  --tp-line-soft:rgba(30,34,61,.08);
+  --tp-surface:#ffffff;
+  --tp-shadow:0 12px 30px rgba(30,34,61,.055);
+  --tp-shadow-lift:0 22px 48px rgba(var(--tp-red-rgb),.15);
+}
+
+*,
+*::before,
+*::after{
+  box-sizing:border-box;
+}
+
+/* ---- 1. one flat page surface ---- */
+body{
+  background:var(--tp-white)!important;
+  color:var(--tp-ink);
+}
+main,.container{background:transparent}
+
+/* ---- 2. nav: homepage-style dark glass, matching the homepage header ---- */
+.nav,
+.nav.divider{
+  background:
+    radial-gradient(780px 120px at 18% 0%,rgba(var(--tp-red-rgb),.22),transparent 64%),
+    radial-gradient(720px 130px at 84% 0%,rgba(var(--tp-teal-rgb),.16),transparent 66%),
+    linear-gradient(180deg,rgba(8,8,10,.96),rgba(11,10,12,.88));
+  border-bottom:1px solid rgba(var(--tp-white-rgb),.08);
+  box-shadow:0 12px 34px rgba(0,0,0,.2);
+  backdrop-filter:blur(18px) saturate(130%);
+}
+.nav .brand,
+.nav .b-tim{color:var(--tp-white)}
+.nav .b-x{color:var(--tp-orange)}
+.nav-links a{color:rgba(var(--tp-white-rgb),.72);transition:color .2s}
+.nav-links a:hover{color:var(--tp-yellow)}
+.nav-links a[aria-current="page"]{color:var(--tp-orange)}
+.nav-cta,
+.nav-cta-desktop{
+  background:var(--tp-orange);
+  border-color:transparent;
+  color:#fff;
+  transition:transform .2s,box-shadow .2s;
+}
+.nav-cta:hover,
+.nav-cta-desktop:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 26px rgba(var(--tp-orange-rgb),.3);
+}
+
+/* brand mark in the bar: small plate so the PNG reads on the blue */
+.nav .idx-nav-logo{
+  width:40px;
+  height:40px;
+  padding:5px;
+  border:1px solid rgba(var(--tp-yellow-rgb),.18);
+  border-radius:12px;
+  background:rgba(var(--tp-yellow-rgb),.07);
+  object-fit:contain;
+  transition:border-color .22s,background .22s,transform .22s;
+}
+.brand-group:hover .idx-nav-logo{
+  border-color:rgba(var(--tp-orange-rgb),.5);
+  background:rgba(var(--tp-orange-rgb),.12);
+  transform:translateY(-1px);
+}
+
+/* ---- 3. hero: flat Midnight Blue (nav is fixed — keep the offset) ---- */
+.tool-hero,
+.hero-plate{
+  position:relative;
+  padding:calc(var(--navH,72px) + 54px) 0 64px;
+  border:0;
+  border-radius:0;
+  background:
+    linear-gradient(rgba(var(--tp-white-rgb),.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(var(--tp-white-rgb),.028) 1px,transparent 1px),
+    radial-gradient(760px 360px at 16% 10%,rgba(var(--tp-red-rgb),.26),transparent 68%),
+    radial-gradient(740px 380px at 84% 18%,rgba(var(--tp-teal-rgb),.24),transparent 70%),
+    var(--tp-blue);
+  background-size:52px 52px,52px 52px,auto,auto,auto;
+  color:var(--tp-white);
+}
+.tool-hero .container,
+.hero-plate .container{
+  display:grid;
+  justify-items:center;
+  text-align:center;
+}
+.tool-hero::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(var(--tp-orange-rgb),.5),transparent);
+}
+.tool-hero h1,
+.hero-title{
+  max-width:min(32ch,1120px);
+  margin:0 auto;
+  color:var(--tp-white);
+  font-size:clamp(46px,5.6vw,74px);
+  line-height:1.04;
+  letter-spacing:0;
+  text-wrap:balance;
+  white-space:normal;
+  overflow-wrap:normal;
+}
+.tool-hero p,
+.tool-hero .tool-subtitle{
+  margin-inline:auto;
+  color:rgba(var(--tp-white-rgb),.7);
+  font-size:17px;
+  line-height:1.68;
+  max-width:66ch;
+}
+.hero-eyebrow,
+.tool-hero .eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  margin-bottom:14px;
+  padding:7px 15px;
+  border:1px solid rgba(var(--tp-orange-rgb),.3);
+  border-radius:999px;
+  background:rgba(var(--tp-orange-rgb),.09);
+  color:var(--tp-yellow);
+  font-size:10.5px;
+  font-weight:800;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+.hero-eyebrow::before,
+.tool-hero .eyebrow::before{
+  content:"";
+  width:6px;
+  height:6px;
+  border-radius:999px;
+  background:var(--tp-orange);
+  flex:none;
+}
+
+/* ---- 4. section rhythm + visible dividers on a light page ---- */
+.tool-examples,
+.tool-steps,
+.tool-usecases,
+.tool-faq,
+.tool-related,
+.tool-cross-links,
+.tool-comparison,
+.tools-category,
+.knowledge-category{
+  padding-block:clamp(46px,6.5vh,84px);
+  border-top:1px solid var(--tp-line-soft);
+  background:transparent;
+}
+.tool-intro{padding-block:clamp(40px,6vh,68px);border-top:0}
+.tool-examples-title,
+.tool-steps-title,
+.tool-usecases-title,
+.tool-faq-title,
+.tool-related-title,
+.tool-cross-links-title,
+.tool-comparison-title,
+.tools-cat-title,
+.knowledge-cat-title{
+  margin-bottom:clamp(22px,3vh,34px);
+  color:var(--tp-ink);
+  letter-spacing:.02em;
+}
+
+/* section titles get a short accent rule underneath */
+.tool-steps-title,
+.tool-usecases-title,
+.tool-examples-title,
+.tool-faq-title,
+.tool-related-title,
+.tool-cross-links-title,
+.tool-comparison-title,
+.tools-cat-title,
+.knowledge-cat-title{position:relative;padding-bottom:14px}
+.tool-steps-title::after,
+.tool-usecases-title::after,
+.tool-examples-title::after,
+.tool-faq-title::after,
+.tool-related-title::after,
+.tool-cross-links-title::after,
+.tool-comparison-title::after,
+.tools-cat-title::after,
+.knowledge-cat-title::after{
+  content:"";
+  position:absolute;
+  left:0;
+  bottom:0;
+  width:52px;
+  height:3px;
+  border-radius:999px;
+  background:var(--tp-orange);
+}
+.tool-usecases-title::after{background:var(--tp-teal)}
+.tool-faq-title::after{background:var(--tp-red)}
+.tool-related-title::after{background:var(--tp-teal)}
+.tools-cat-grid,
+.knowledge-list{--k:var(--tp-orange-rgb)}
+.tools-category:nth-of-type(3n+2) .tools-cat-title::after,
+.knowledge-category:nth-of-type(3n+2) .knowledge-cat-title::after{background:var(--tp-teal)}
+.tools-category:nth-of-type(3n+3) .tools-cat-title::after,
+.knowledge-category:nth-of-type(3n+3) .knowledge-cat-title::after{background:var(--tp-red)}
+
+/* body copy: tool-page.css uses --muted (#9ca3af), unreadable on Dirty White */
+.tool-intro p,
+.tool-examples-intro,
+.tool-comparison-intro,
+.tool-comparison-note{
+  max-width:76ch;
+  color:var(--tp-body);
+  font-size:15.5px;
+  line-height:1.74;
+}
+.tool-intro h2,
+.tool-intro h3{
+  color:var(--tp-ink);
+  letter-spacing:.02em;
+}
+.tool-intro a{
+  color:var(--tp-red);
+  text-decoration:underline;
+  text-underline-offset:3px;
+  text-decoration-thickness:1px;
+  transition:color .2s;
+}
+.tool-intro a:hover{color:var(--tp-orange)}
+
+/* lead paragraph carries a little more weight than the rest of the intro */
+.tool-intro > .container > p:first-of-type{
+  color:var(--tp-ink);
+  font-size:16.5px;
+}
+/* an intro block that brings its own <h2> is a callout, not body copy */
+.tool-intro:has(h2){padding-block:clamp(10px,1.6vh,20px)}
+/* the card is painted on a ::before inset by the container gutter, so its
+   edges line up with every other section's content line */
+.tool-intro:has(h2) > .container{
+  position:relative;
+  padding-block:clamp(26px,3vw,36px);
+  padding-inline:calc(var(--gutter,28px) + clamp(22px,2.2vw,30px));
+}
+.tool-intro:has(h2) > .container::before{
+  content:"";
+  position:absolute;
+  inset:0 var(--gutter,28px);
+  border:1px solid var(--tp-line);
+  border-left:3px solid var(--tp-teal);
+  border-radius:8px 22px 22px 8px;
+  background:var(--tp-surface);
+  box-shadow:var(--tp-shadow);
+}
+.tool-intro:has(h2) > .container > *{position:relative}
+.tool-intro:has(h2) h2{margin:0 0 8px;font-size:clamp(19px,2vw,25px)}
+.tool-intro:has(h2) p{margin:0;max-width:84ch;font-size:15px}
+
+/* ==========================================================================
+   5. CARDS
+   Child-combinator selectors so the dark nth-child rules in tool-page.css
+   cannot win. Accent colour rides on --k and rotates per grid position.
+   ========================================================================== */
+.tool-steps-grid > .tool-step,
+.tool-usecases-grid > .tool-usecase,
+.tool-examples-grid > .tool-example-card,
+.tool-related-grid > .tool-link-card,
+.tool-cross-links-grid > .tool-cross-link,
+.tools-cat-grid > .tool-link-card,
+.knowledge-list > .knowledge-item > a,
+.tool-faq-list > details{
+  --k:var(--tp-orange-rgb);
+  position:relative;
+  border:1px solid var(--tp-line);
+  border-radius:18px;
+  background:var(--tp-surface);
+  box-shadow:var(--tp-shadow);
+  transition:transform .26s cubic-bezier(.16,1,.3,1),box-shadow .26s,border-color .26s;
+}
+
+/* rotate the accent so a grid never reads as one flat colour.
+   knowledge-list carries the var on the <li>; its <a> inherits it below. */
+.knowledge-list > .knowledge-item{--k:var(--tp-orange-rgb)}
+.tool-steps-grid > *:nth-child(3n+2),
+.tool-usecases-grid > *:nth-child(3n+2),
+.tool-examples-grid > *:nth-child(3n+2),
+.tool-related-grid > *:nth-child(3n+2),
+.tool-cross-links-grid > *:nth-child(3n+2),
+.tools-cat-grid > *:nth-child(3n+2),
+.knowledge-list > *:nth-child(3n+2),
+.tool-faq-list > *:nth-child(3n+2){--k:var(--tp-teal-rgb)}
+.tool-steps-grid > *:nth-child(3n+3),
+.tool-usecases-grid > *:nth-child(3n+3),
+.tool-examples-grid > *:nth-child(3n+3),
+.tool-related-grid > *:nth-child(3n+3),
+.tool-cross-links-grid > *:nth-child(3n+3),
+.tools-cat-grid > *:nth-child(3n+3),
+.knowledge-list > *:nth-child(3n+3),
+.tool-faq-list > *:nth-child(3n+3){--k:var(--tp-red-rgb)}
+/* the nth-child sets the var on the <li>; the surface lives on its <a> */
+.knowledge-list > .knowledge-item > a{--k:inherit}
+
+.tool-steps-grid > .tool-step:hover,
+.tool-usecases-grid > .tool-usecase:hover,
+.tool-examples-grid > .tool-example-card:hover,
+.tool-related-grid > .tool-link-card:hover,
+.tool-cross-links-grid > .tool-cross-link:hover,
+.tools-cat-grid > .tool-link-card:hover,
+.knowledge-list > .knowledge-item > a:hover,
+.tool-faq-list > details:hover{
+  transform:translateY(-5px);
+  border-color:rgba(var(--k),.34);
+  box-shadow:var(--tp-shadow-lift);
+}
+
+/* ---- 5a. steps: number chip + ghost numeral + top accent rail ---- */
+.tool-steps-grid{gap:clamp(16px,2vw,22px)}
+.tool-steps-grid > .tool-step{
+  overflow:hidden;
+  padding:clamp(24px,2.4vw,30px) clamp(22px,2.2vw,26px) clamp(22px,2.2vw,26px);
+}
+.tool-steps-grid > .tool-step::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto;
+  height:3px;
+  background:linear-gradient(90deg,rgb(var(--k)),rgba(var(--k),0));
+  opacity:.55;
+  transition:opacity .26s;
+}
+.tool-steps-grid > .tool-step:hover::before{opacity:1}
+.tool-steps-grid > .tool-step .tool-step-num{
+  display:grid;
+  place-items:center;
+  width:44px;
+  height:44px;
+  margin:0 0 14px;
+  border:1px solid rgba(var(--k),.26);
+  border-radius:14px;
+  background:rgba(var(--k),.09);
+  color:rgb(var(--k));
+  font:800 15px/1 ui-monospace,SFMono-Regular,monospace;
+  letter-spacing:.02em;
+}
+.tool-steps-grid > .tool-step::after{
+  content:"";
+  position:absolute;
+  right:-14px;
+  bottom:-30px;
+  width:110px;
+  height:110px;
+  border:14px solid rgba(var(--k),.05);
+  border-radius:50%;
+  pointer-events:none;
+}
+.tool-steps-grid > .tool-step h3{
+  margin:0 0 8px;
+  color:var(--tp-ink);
+  font-size:16.5px;
+  font-weight:750;
+  letter-spacing:-.01em;
+}
+.tool-steps-grid > .tool-step p{
+  margin:0;
+  color:var(--tp-body);
+  font-size:14px;
+  line-height:1.66;
+}
+
+/* ---- 5b. use cases: left accent bar, always on ---- */
+.tool-usecases-grid{gap:clamp(14px,1.6vw,18px)}
+.tool-usecases-grid > .tool-usecase{
+  padding:clamp(20px,2vw,24px);
+  border-left:3px solid rgb(var(--k));
+  border-radius:6px 18px 18px 6px;
+}
+.tool-usecases-grid > .tool-usecase h4{
+  margin:0 0 7px;
+  color:var(--tp-ink);
+  font-size:14.5px;
+  font-weight:750;
+  letter-spacing:-.01em;
+}
+.tool-usecases-grid > .tool-usecase p{
+  margin:0;
+  color:var(--tp-body);
+  font-size:13px;
+  line-height:1.62;
+}
+
+/* ---- 5c. related / directory link cards: title + arrow affordance ---- */
+.tool-related-grid{gap:clamp(14px,1.6vw,18px)}
+.tool-related-grid > .tool-link-card,
+.tools-cat-grid > .tool-link-card{
+  display:block;
+  min-height:128px;
+  padding:23px 46px 22px 24px;
+  text-decoration:none;
+  background:
+    radial-gradient(340px 180px at 0% 0%,rgba(var(--k),.09),transparent 72%),
+    var(--tp-surface);
+}
+.tool-related-grid > .tool-link-card::after,
+.tools-cat-grid > .tool-link-card::after{
+  content:"\2197";
+  position:absolute;
+  top:clamp(18px,1.9vw,22px);
+  right:clamp(16px,1.7vw,20px);
+  color:rgb(var(--k));
+  font-size:15px;
+  font-weight:700;
+  opacity:.45;
+  transition:opacity .24s,transform .24s;
+}
+.tool-related-grid > .tool-link-card:hover::after,
+.tools-cat-grid > .tool-link-card:hover::after{opacity:1;transform:translate(2px,-2px)}
+.tool-link-card h3,
+.tool-link-card h4{
+  margin:0 0 5px;
+  color:var(--tp-ink);
+  font-size:14.5px;
+  font-weight:750;
+  letter-spacing:-.01em;
+}
+.tool-link-card p{
+  margin:0;
+  color:var(--tp-body);
+  font-size:13px;
+  line-height:1.55;
+}
+
+/* ---- 5d. cross links ---- */
+.tool-cross-links-grid{gap:12px}
+.tool-cross-links-grid > .tool-cross-link{
+  padding:16px 18px;
+  border-left:3px solid rgb(var(--k));
+  border-radius:6px 16px 16px 6px;
+  text-decoration:none;
+}
+.tool-cross-link h3,
+.tool-cross-link strong{
+  margin:0 0 4px;
+  color:var(--tp-ink);
+  font-size:14px;
+  font-weight:750;
+}
+.tool-cross-link p,
+.tool-cross-link span{margin:0;color:var(--tp-body);font-size:12.5px;line-height:1.55}
+.tool-cross-links-footer a{
+  color:var(--tp-red);
+  font-weight:700;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.tool-cross-links-footer a:hover{color:var(--tp-orange)}
+
+/* ---- 5e. knowledge list ---- */
+.knowledge-list{gap:14px}
+.knowledge-list > .knowledge-item > a{
+  display:block;
+  padding:clamp(18px,2vw,22px);
+  text-decoration:none;
+}
+.knowledge-item h4{margin:0 0 5px;color:var(--tp-ink);font-size:14.5px;font-weight:750}
+.knowledge-item p{margin:0;color:var(--tp-body);font-size:13px;line-height:1.55}
+
+/* ---- 5f. example cards ---- */
+.tool-examples-grid > .tool-example-card{overflow:hidden}
+.tool-examples-grid > .tool-example-card img{background:rgba(var(--tp-blue-rgb),.06)}
+.tool-example-card h3{color:var(--tp-ink);font-weight:750}
+.tool-example-card p,
+.tool-example-desc{color:var(--tp-body);line-height:1.62}
+/* the prompt sample reads as code — beats `.tool-example-card .tool-example-prompt` */
+.tool-example-card > .tool-example-prompt,
+.tool-examples-grid .tool-example-prompt{
+  display:block;
+  margin:10px clamp(14px,2vw,20px) 12px;
+  padding:12px 14px;
+  border:1px solid rgba(var(--tp-blue-rgb),.14);
+  border-left:3px solid rgb(var(--k));
+  border-radius:6px 12px 12px 6px;
+  background:rgba(var(--tp-yellow-rgb),.32);
+  color:var(--tp-ink);
+  font-family:ui-monospace,SFMono-Regular,monospace;
+  font-size:12px;
+  font-style:normal;
+  line-height:1.6;
+  opacity:1;
+}
+
+/* ==========================================================================
+   6. FAQ — the markup is a bare <details>, never `.tool-faq-item`
+   ========================================================================== */
+.tool-faq-list{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+  max-width:min(1240px,100%);
+}
+.tool-faq-list > details{
+  min-height:74px;
+  padding:0 18px;
+  overflow:hidden;
+}
+.tool-faq-list > details[open]{
+  border-color:rgba(var(--k),.3);
+  background:linear-gradient(180deg,rgba(var(--k),.045),var(--tp-surface) 62%);
+  box-shadow:var(--tp-shadow-lift);
+}
+.tool-faq-list > details > summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  min-height:72px;
+  padding:14px 0;
+  color:var(--tp-ink);
+  font-family:"Space Grotesk",Inter,system-ui,sans-serif;
+  font-size:14.5px;
+  font-weight:700;
+  letter-spacing:-.01em;
+  line-height:1.4;
+  cursor:pointer;
+  list-style:none;
+  transition:color .2s;
+}
+.tool-faq-list > details > summary::-webkit-details-marker{display:none}
+.tool-faq-list > details > summary::marker{content:""}
+.tool-faq-list > details > summary:hover{color:rgb(var(--k))}
+.tool-faq-list > details > summary::after{
+  content:"+";
+  display:grid;
+  place-items:center;
+  flex:none;
+  width:24px;
+  height:24px;
+  border:1px solid rgba(var(--k),.28);
+  border-radius:9px;
+  background:rgba(var(--k),.09);
+  color:rgb(var(--k));
+  font:700 15px/1 ui-monospace,SFMono-Regular,monospace;
+  transition:transform .25s,background .25s;
+}
+.tool-faq-list > details[open] > summary::after{
+  content:"\2212";
+  background:rgb(var(--k));
+  color:#fff;
+  transform:rotate(180deg);
+}
+.tool-faq-list > details > p,
+.tool-faq-list > details > div{
+  margin:0 0 16px;
+  padding-top:2px;
+  border-top:1px solid var(--tp-line-soft);
+  color:var(--tp-body);
+  font-size:13.5px;
+  line-height:1.66;
+}
+.tool-faq-list > details > p{padding-top:12px}
+.tool-faq-list > details a{color:var(--tp-red);text-decoration:underline;text-underline-offset:3px}
+.tool-faq-list > details a:hover{color:var(--tp-orange)}
+
+/* Older pages place FAQ details directly inside the container. Give them the
+   same compact card grid without requiring page-by-page markup edits. */
+.tool-faq > .container:not(:has(.tool-faq-list)){
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+.tool-faq > .container:not(:has(.tool-faq-list)) > h2,
+.tool-faq > .container:not(:has(.tool-faq-list)) > p{
+  grid-column:1 / -1;
+}
+.tool-faq > .container:not(:has(.tool-faq-list)) > h2{
+  margin-bottom:2px;
+}
+.tool-faq > .container:not(:has(.tool-faq-list)) > p{
+  max-width:72ch;
+  margin:0 0 12px;
+  color:var(--tp-body);
+  font-size:15px;
+  line-height:1.7;
+}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details{
+  --k:var(--tp-teal-rgb);
+  min-height:74px;
+  padding:0 18px;
+  overflow:hidden;
+}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details:nth-of-type(3n+1){--k:var(--tp-orange-rgb)}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details:nth-of-type(3n+2){--k:var(--tp-teal-rgb)}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details:nth-of-type(3n+3){--k:var(--tp-red-rgb)}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details[open]{
+  border-color:rgba(var(--k),.3);
+  background:linear-gradient(180deg,rgba(var(--k),.045),var(--tp-surface) 62%);
+  box-shadow:var(--tp-shadow-lift);
+}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details > summary{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:16px;
+  min-height:72px;
+  padding:14px 0;
+  color:var(--tp-ink);
+  font-family:"Space Grotesk",Inter,system-ui,sans-serif;
+  font-size:14.5px;
+  font-weight:700;
+  letter-spacing:-.01em;
+  line-height:1.4;
+  cursor:pointer;
+  list-style:none;
+  transition:color .2s;
+}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details > summary::-webkit-details-marker{display:none}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details > summary::marker{content:""}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details > summary:hover{color:rgb(var(--k))}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details > summary::after{
+  content:"+";
+  display:grid;
+  place-items:center;
+  flex:none;
+  width:24px;
+  height:24px;
+  border:1px solid rgba(var(--k),.28);
+  border-radius:9px;
+  background:rgba(var(--k),.09);
+  color:rgb(var(--k));
+  font:700 15px/1 ui-monospace,SFMono-Regular,monospace;
+  transition:transform .25s,background .25s;
+}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details[open] > summary::after{
+  content:"\2212";
+  background:rgb(var(--k));
+  color:#fff;
+  transform:rotate(180deg);
+}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details > p,
+.tool-faq > .container:not(:has(.tool-faq-list)) > details > div{
+  margin:0 0 16px;
+  padding-top:12px;
+  border-top:1px solid var(--tp-line-soft);
+  color:var(--tp-body);
+  font-size:13.5px;
+  line-height:1.66;
+}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details a{
+  color:var(--tp-red);
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+.tool-faq > .container:not(:has(.tool-faq-list)) > details a:hover{color:var(--tp-orange)}
+
+/* ==========================================================================
+   7. comparison table
+   ========================================================================== */
+.tool-comparison-wrapper,
+.tool-comparison-table-wrap{
+  border:1px solid var(--tp-line);
+  border-radius:18px;
+  background:var(--tp-surface);
+  box-shadow:var(--tp-shadow);
+  overflow:auto;
+}
+.tool-comparison-table{color:var(--tp-body)}
+.tool-comparison-table thead th{
+  padding:14px 16px;
+  border-bottom:1px solid var(--tp-line);
+  background:var(--tp-blue);
+  color:var(--tp-yellow);
+  font-size:12px;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  text-align:left;
+}
+.tool-comparison-table th,
+.tool-comparison-table td{border-bottom:1px solid var(--tp-line-soft)}
+.tool-comparison-table tbody td{padding:14px 16px;font-size:13.5px}
+.tool-comparison-table tbody td:first-child{color:var(--tp-ink);font-weight:700}
+.tool-comparison-table tbody tr:last-child td{border-bottom:0}
+.tool-comparison-table tbody tr:hover{background:rgba(var(--tp-orange-rgb),.045)}
+
+/* ==========================================================================
+   8. closing CTA: flat Midnight Blue band
+   ========================================================================== */
+.tool-cta{
+  width:min(1240px,calc(100% - 2 * var(--gutter,28px)));
+  margin-inline:auto;
+  margin-block:clamp(30px,4vh,54px);
+  padding:clamp(34px,5vw,60px) clamp(24px,4vw,48px);
+  border:0;
+  border-radius:26px;
+  background:var(--tp-blue);
+  color:var(--tp-white);
+  text-align:center;
+}
+.tool-cta-title,
+.tool-cta h2{color:var(--tp-white)}
+.tool-cta p{color:rgba(var(--tp-white-rgb),.66)}
+.tool-cta-buttons{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:20px}
+.tool-cta-buttons a{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  padding:13px 24px;
+  border-radius:999px;
+  font-size:13.5px;
+  font-weight:800;
+  transition:transform .2s,box-shadow .2s,background .2s,border-color .2s;
+}
+.tool-cta-buttons a:first-child{
+  background:var(--tp-orange);
+  border:0;
+  color:#fff;
+  box-shadow:0 12px 30px rgba(var(--tp-orange-rgb),.3);
+}
+.tool-cta-buttons a:first-child:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(var(--tp-orange-rgb),.42)}
+/* second button carries an inline style on several pages — match it, don't fight it */
+.tool-cta-buttons a + a{
+  background:rgba(255,255,255,.05);
+  color:var(--tp-white);
+}
+.tool-cta-buttons a + a:hover{
+  transform:translateY(-2px);
+  border-color:rgba(var(--tp-yellow-rgb),.55)!important;
+  background:rgba(var(--tp-yellow-rgb),.1);
+}
+
+/* ==========================================================================
+   9. footer on the light page
+   ========================================================================== */
+.site-footer{
+  background:var(--tp-blue);
+  color:rgba(var(--tp-white-rgb),.62);
+  border-top:1px solid rgba(var(--tp-red-rgb),.6);
+}
+.site-footer .ft-heading{color:var(--tp-yellow)}
+.site-footer .ft-links a{color:rgba(var(--tp-white-rgb),.6);transition:color .2s}
+.site-footer .ft-links a:hover{color:var(--tp-orange)}
+.site-footer .ft-brand-name{color:var(--tp-white)}
+.site-footer .ft-brand-name span{color:var(--tp-orange)}
+.site-footer .ft-desc,
+.site-footer .ft-meta,
+.site-footer .ft-copy{color:rgba(var(--tp-white-rgb),.45)}
+.site-footer .ft-brand-mark{display:inline-flex;align-items:center;gap:10px;text-decoration:none}
+.site-footer .ft-brand-icon{
+  width:38px;
+  height:38px;
+  padding:5px;
+  border:1px solid rgba(var(--tp-yellow-rgb),.18);
+  border-radius:12px;
+  background:rgba(var(--tp-yellow-rgb),.07);
+  object-fit:contain;
+  transition:border-color .22s,background .22s;
+}
+.site-footer .ft-brand-mark:hover{opacity:1}
+.site-footer .ft-brand-mark:hover .ft-brand-icon{
+  border-color:rgba(var(--tp-orange-rgb),.5);
+  background:rgba(var(--tp-orange-rgb),.12);
+}
+
+/* ==========================================================================
+   10. widths scale with the display
+   ========================================================================== */
+.container{width:min(1240px,calc(100% - 40px))}
+.tool-hero .container{max-width:none;width:min(1240px,calc(100% - 40px))}
+.tool-intro .container{max-width:none;width:min(1240px,calc(100% - 40px))}
+@media(min-width:1600px){
+  .container,
+  .tool-hero .container,
+  .tool-intro .container{width:min(1480px,94vw)}
+  .tool-hero h1,
+  .hero-title{font-size:clamp(58px,4.8vw,82px)}
+  .tool-examples-grid,
+  .tool-related-grid{grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}
+}
+@media(min-width:2000px){
+  .container,
+  .tool-hero .container,
+  .tool-intro .container{width:min(1720px,92vw)}
+}
+@media(max-width:760px){
+  html,
+  body{overflow-x:hidden}
+  .container,
+  .tool-hero .container,
+  .tool-intro .container{
+    width:100%!important;
+    max-width:100%!important;
+    padding-inline:22px!important;
+  }
+  .tool-hero,
+  .hero-plate{padding:calc(var(--navH,72px) + 34px) 0 44px}
+  .tool-hero h1,
+  .hero-title{
+    max-width:100%;
+    font-size:36px;
+    line-height:1.08;
+    white-space:normal!important;
+    overflow-wrap:anywhere;
+  }
+  .tool-hero p,
+  .tool-hero .tool-subtitle{
+    max-width:100%;
+    font-size:15px;
+    white-space:normal!important;
+    overflow-wrap:anywhere;
+  }
+  .tool-intro p:first-child,
+  .tool-intro > .container > p:first-of-type,
+  .tool-examples-intro,
+  .tool-comparison-intro,
+  .tool-comparison-note{
+    max-width:100%;
+    min-width:0;
+    white-space:normal!important;
+    overflow-wrap:anywhere;
+  }
+  .tool-steps-grid,
+  .tool-usecases-grid,
+  .tool-examples-grid,
+  .tool-related-grid,
+  .tool-cross-links-grid,
+  .tools-cat-grid,
+  .knowledge-list,
+  .tool-faq-list,
+  .tool-faq > .container:not(:has(.tool-faq-list)){
+    width:100%;
+    min-width:0;
+  }
+  .tool-steps-grid > .tool-step,
+  .tool-usecases-grid > .tool-usecase,
+  .tool-examples-grid > .tool-example-card,
+  .tool-related-grid > .tool-link-card,
+  .tool-cross-links-grid > .tool-cross-link,
+  .tools-cat-grid > .tool-link-card,
+  .knowledge-list > .knowledge-item,
+  .tool-faq-list > details,
+  .tool-faq > .container:not(:has(.tool-faq-list)) > details{
+    min-width:0;
+    max-width:100%;
+  }
+  .tool-cta{padding:26px 20px;border-radius:20px}
+  .tool-cta-buttons a{width:100%;justify-content:center}
+  .tool-usecases-grid{grid-template-columns:1fr}
+  .tool-faq-list,
+  .tool-faq > .container:not(:has(.tool-faq-list)){grid-template-columns:1fr}
+  .tool-faq-list > details,
+  .tool-faq > .container:not(:has(.tool-faq-list)) > details{min-height:62px;padding:0 14px}
+  .tool-faq-list > details > summary,
+  .tool-faq > .container:not(:has(.tool-faq-list)) > details > summary{min-height:60px;padding:12px 0;font-size:13.5px}
+  .nav .idx-nav-logo{width:34px;height:34px;border-radius:10px}
+}
+@media(max-width:480px){
+  .tool-hero h1,
+  .hero-title{font-size:32px}
+  .container,
+  .tool-hero .container,
+  .tool-intro .container{padding-inline:18px!important}
+  .tool-related-grid > .tool-link-card,
+  .tools-cat-grid > .tool-link-card{min-height:0;padding:20px 42px 20px 20px}
+}
+@media(prefers-reduced-motion:reduce){
+  .tool-steps-grid > .tool-step,
+  .tool-usecases-grid > .tool-usecase,
+  .tool-examples-grid > .tool-example-card,
+  .tool-related-grid > .tool-link-card,
+  .tool-cross-links-grid > .tool-cross-link,
+  .tools-cat-grid > .tool-link-card,
+  .knowledge-list > .knowledge-item > a,
+  .tool-faq-list > details,
+  .tool-faq > .container:not(:has(.tool-faq-list)) > details{transition:none}
+  .tool-steps-grid > .tool-step:hover,
+  .tool-usecases-grid > .tool-usecase:hover,
+  .tool-examples-grid > .tool-example-card:hover,
+  .tool-related-grid > .tool-link-card:hover,
+  .tool-cross-links-grid > .tool-cross-link:hover,
+  .tools-cat-grid > .tool-link-card:hover,
+  .knowledge-list > .knowledge-item > a:hover,
+  .tool-faq-list > details:hover,
+  .tool-faq > .container:not(:has(.tool-faq-list)) > details:hover{transform:none}
+}

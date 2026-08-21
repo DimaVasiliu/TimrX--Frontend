@@ -20,8 +20,8 @@
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="img/logo.png?v=20260815logo" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-logo-192.png?v=20260815logo">
-  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-logo-180.png?v=20260815logo">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/favicon-logo-192.png?v=20260815logo">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/favicon-logo-180.png?v=20260815logo">
   
   <link rel="manifest" href="site.webmanifest" />
   <meta name="theme-color" content="#0b0b0b" />
@@ -149,6 +149,7 @@
   <link rel="stylesheet" href="site-shell.css?v=20260819palette2">
   <link rel="stylesheet" href="tx-menu.css?v=20260819palette2">
   <link rel="stylesheet" href="standalone-expansions.css">
+  <link rel="stylesheet" href="tutorials-palette.css?v=20260821pill">
 
   <style>
     /* Minimal resets — component styles come from tutorials.css + standalone-expansions.css */
@@ -183,7 +184,46 @@
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
-  <div data-site-shell="nav"></div>
+  <header class="site-header" data-header>
+    <div class="shell nav-shell">
+      <a class="brand" href="/" aria-label="TimrX home"><img src="img/logo.png?v=20260815logo" width="44" height="44" alt=""><span>Timr<span>X</span></span></a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="/">Home</a><a href="/3dprint" data-track="nav_create">Create</a><a href="/community" data-track="nav_community">Community</a><a href="/tutorials" aria-current="page" data-track="nav_tutorials">Tutorials</a><a href="/docs" data-track="nav_docs">Docs</a><a href="/hub#pricing" data-track="nav_pricing">Pricing</a><a href="/blogs" data-track="nav_blog">Blog</a><a href="/hub" data-track="nav_dashboard">Dashboard</a>
+      </nav>
+      <a class="button button-small desktop-cta" href="/3dprint" data-track="nav_open_workspace">Open Workspace <span aria-hidden="true">↗</span></a>
+      <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <!-- Mobile menu — shared component (tx-menu.css / js/shared/tx-menu.js) -->
+  <div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>
+    <div class="tx-menu-panel">
+      <div class="tx-menu-head">
+        <span class="tx-menu-brand" aria-hidden="true">
+          <img src="img/logo.png?v=20260815logo" width="34" height="34" alt="">
+          <span>T<span>X</span></span>
+        </span>
+        <button class="tx-menu-close" type="button" aria-label="Close menu" data-tx-menu-close><span></span><span></span></button>
+      </div>
+      <nav class="tx-menu-links" aria-label="Mobile navigation">
+        <a href="/"><span>Home</span><small>Product overview and free trial</small></a>
+        <a href="/3dprint" data-track="mobile_create"><span>Create</span><small>Open the TimrX workspace</small></a>
+        <a href="/community"><span>Community</span><small>Showcase, creators and discovery</small></a>
+        <a href="/tutorials" aria-current="page"><span>Tutorials</span><small>Guides, flows and walkthroughs</small></a>
+        <a href="/docs"><span>Docs</span><small>Reference, support and how-tos</small></a>
+        <a href="/hub#pricing"><span>Pricing</span><small>Credits, packs and subscriptions</small></a>
+        <a href="/blogs"><span>Blog</span><small>Guides, updates and product notes</small></a>
+        <a href="/hub"><span>Dashboard</span><small>Account, credits and billing</small></a>
+      </nav>
+      <a class="tx-menu-cta" href="/3dprint" data-track="mobile_open_workspace">Open Workspace <span aria-hidden="true">↗</span></a>
+      <div class="tx-menu-foot" data-tx-menu-watermark="TimrX creative platform">
+        <a href="/ai-tools">Tools</a>
+        <a href="/converter">Converter</a>
+        <a href="/stl-library">STL Library</a>
+        <a href="/company">Company</a>
+      </div>
+    </div>
+  </div>
 
   <main>
     <section class="tutorials-expanded-view" aria-labelledby="tutorialsTitle">
@@ -193,12 +233,19 @@
         <header class="tutorials-hero">
           <div class="tutorials-hero-text" id="tutorialsFocus" tabindex="-1">
             <span class="tutorials-pill">Tutorial Library · TimrX</span>
-            <h1 class="tutorials-title" id="tutorialsTitle">Tutorials — Generate, Prepare and Export 3D Models</h1>
+            <h1 class="tutorials-title" id="tutorialsTitle">TimrX 3D Tutorials</h1>
             <p>Follow curated walkthroughs, see real projects, and learn the exact prompts our community uses to turn ideas into printable assets. From beginners to advanced creators, we've got everything you need to create stunning 3D prints.</p>
             <div class="tutorials-hero-actions">
-              <a href="/3dprint" class="tutorials-primary-btn">Open Workspace</a>
-              <a href="#tutorialsVideos" class="tutorials-secondary-btn">Jump to Videos</a>
-              <a href="/prompts" class="tutorials-secondary-btn">Browse Prompts</a>
+              <a href="/3dprint" class="tutorials-primary-btn">Open Workspace <span aria-hidden="true">&#8599;</span></a>
+              <a href="#tutorialsVideos" class="tutorials-secondary-btn">Watch videos</a>
+              <a href="/prompts" class="tutorials-secondary-btn">Browse prompts</a>
+            </div>
+            <div class="tut-hero-tracks" aria-label="Learning tracks">
+              <a class="tut-hero-track tut-hero-track--basics" href="#get-started"><span class="tut-hero-track__k">Start here</span><strong>Basics</strong><small>Your first model, end to end</small></a>
+              <a class="tut-hero-track tut-hero-track--image" href="#text-to-image"><span class="tut-hero-track__k">Track 01</span><strong>Image</strong><small>Prompts, references, 4K</small></a>
+              <a class="tut-hero-track tut-hero-track--model" href="#text-to-3d"><span class="tut-hero-track__k">Track 02</span><strong>3D</strong><small>Text &amp; image to mesh</small></a>
+              <a class="tut-hero-track tut-hero-track--animate" href="#rig-animate"><span class="tut-hero-track__k">Track 03</span><strong>Animate</strong><small>Rig, motion, video</small></a>
+              <a class="tut-hero-track tut-hero-track--print" href="#remesh"><span class="tut-hero-track__k">Track 04</span><strong>Print</strong><small>Remesh, checks, export</small></a>
             </div>
             <ul class="tutorials-hero-stats">
               <li><span>05 min</span><small>Avg tutorial</small></li>
@@ -210,8 +257,45 @@
           <span class="tutorials-watermark">LEARN</span>
         </header>
 
+      <div class="tut-layout">
+      <aside class="tut-sidebar" aria-label="Tutorial sections">
+        <div class="tut-sidebar__inner">
+          <p class="tut-sidebar__eyebrow">On this page</p>
+          <div class="tut-tracks" role="group" aria-label="Filter by track">
+            <button type="button" class="tut-track is-active" data-tut-track="all">All</button>
+            <button type="button" class="tut-track" data-tut-track="basics">Basics</button>
+            <button type="button" class="tut-track" data-tut-track="image">Image</button>
+            <button type="button" class="tut-track" data-tut-track="model">3D</button>
+            <button type="button" class="tut-track" data-tut-track="animate">Animate</button>
+            <button type="button" class="tut-track" data-tut-track="print">Print</button>
+          </div>
+          <nav aria-label="Tutorial contents">
+            <ol class="tut-toc">
+            <li><a class="tut-toc__link" href="#get-started" data-tut-toc="get-started" data-track-group="basics"><span class="tut-toc__num">01</span><span class="tut-toc__label">How to generate a 3D model in TimrX</span></a></li>
+            <li><a class="tut-toc__link" href="#input-checklist" data-tut-toc="input-checklist" data-track-group="basics"><span class="tut-toc__num">02</span><span class="tut-toc__label">Input checklist</span></a></li>
+            <li><a class="tut-toc__link" href="#text-to-image" data-tut-toc="text-to-image" data-track-group="image"><span class="tut-toc__num">03</span><span class="tut-toc__label">Text to Image</span></a></li>
+            <li><a class="tut-toc__link" href="#text-to-3d" data-tut-toc="text-to-3d" data-track-group="model"><span class="tut-toc__num">04</span><span class="tut-toc__label">Text to 3D</span></a></li>
+            <li><a class="tut-toc__link" href="#image-to-3d" data-tut-toc="image-to-3d" data-track-group="model"><span class="tut-toc__num">05</span><span class="tut-toc__label">Image to 3D</span></a></li>
+            <li><a class="tut-toc__link" href="#remesh" data-tut-toc="remesh" data-track-group="print"><span class="tut-toc__num">06</span><span class="tut-toc__label">Remesh</span></a></li>
+            <li><a class="tut-toc__link" href="#refine" data-tut-toc="refine" data-track-group="model"><span class="tut-toc__num">07</span><span class="tut-toc__label">Refine</span></a></li>
+            <li><a class="tut-toc__link" href="#texture" data-tut-toc="texture" data-track-group="model"><span class="tut-toc__num">08</span><span class="tut-toc__label">Texture</span></a></li>
+            <li><a class="tut-toc__link" href="#rig-animate" data-tut-toc="rig-animate" data-track-group="animate"><span class="tut-toc__num">09</span><span class="tut-toc__label">Rig & Animate</span></a></li>
+            <li><a class="tut-toc__link" href="#video-generation" data-tut-toc="video-generation" data-track-group="animate"><span class="tut-toc__num">10</span><span class="tut-toc__label">Video Generation</span></a></li>
+            <li><a class="tut-toc__link" href="#viewer-history-export" data-tut-toc="viewer-history-export" data-track-group="print"><span class="tut-toc__num">11</span><span class="tut-toc__label">Viewer, History & Export</span></a></li>
+            <li><a class="tut-toc__link" href="#pro-tips" data-tut-toc="pro-tips" data-track-group="basics"><span class="tut-toc__num">12</span><span class="tut-toc__label">Pro Tips & Best Practices</span></a></li>
+            <li><a class="tut-toc__link" href="#tutorialsVideos" data-tut-toc="tutorialsVideos" data-track-group="basics"><span class="tut-toc__num">13</span><span class="tut-toc__label">Watch creators build in real time</span></a></li>
+            <li><a class="tut-toc__link" href="#faq" data-tut-toc="faq" data-track-group="basics"><span class="tut-toc__num">14</span><span class="tut-toc__label">Frequently Asked Questions</span></a></li>
+            <li><a class="tut-toc__link" href="#tips-resources" data-tut-toc="tips-resources" data-track-group="print"><span class="tut-toc__num">15</span><span class="tut-toc__label">Tips & resources</span></a></li>
+            </ol>
+          </nav>
+          <a class="tut-sidebar__cta" href="/3dprint">Open Workspace <span aria-hidden="true">&#8599;</span></a>
+        </div>
+      </aside>
+      <div class="tut-content">
+
+
         <!-- ===== WORKFLOW ESSENTIALS ===== -->
-        <section class="tutorials-section">
+        <section class="tutorials-section" id="get-started" data-track-group="basics">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>How to generate a 3D model in TimrX</h2>
@@ -254,7 +338,7 @@
         </section>
 
         <!-- ===== INPUT CHECKLIST ===== -->
-        <section class="tutorials-section">
+        <section class="tutorials-section" id="input-checklist" data-track-group="basics">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Input checklist</h2>
@@ -286,7 +370,7 @@
         </section>
 
         <!-- ===== TEXT TO IMAGE ===== -->
-        <section class="tutorials-section" id="text-to-image">
+        <section class="tutorials-section" id="text-to-image" data-track-group="image">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Text to Image</h2>
@@ -329,7 +413,7 @@
         </section>
 
         <!-- ===== TEXT TO 3D (with interactive 3D viewer) ===== -->
-        <section class="tutorials-section tutorials-section--with-model" id="text-to-3d">
+        <section class="tutorials-section tutorials-section--with-model" id="text-to-3d" data-track-group="model">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Text to 3D</h2>
@@ -383,7 +467,7 @@
         </section>
 
         <!-- ===== IMAGE TO 3D (with reference image + 3D viewer) ===== -->
-        <section class="tutorials-section tutorials-section--with-model tutorials-section--model-right" id="image-to-3d">
+        <section class="tutorials-section tutorials-section--with-model tutorials-section--model-right" id="image-to-3d" data-track-group="model">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Image to 3D</h2>
@@ -442,7 +526,7 @@
         </section>
 
         <!-- ===== REMESH (with interactive 3D comparison) ===== -->
-        <section class="tutorials-section tutorials-section--with-model" id="remesh">
+        <section class="tutorials-section tutorials-section--with-model" id="remesh" data-track-group="print">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Remesh</h2>
@@ -521,7 +605,7 @@
         </section>
 
         <!-- ===== REFINE ===== -->
-        <section class="tutorials-section" id="refine">
+        <section class="tutorials-section" id="refine" data-track-group="model">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Refine</h2>
@@ -564,7 +648,7 @@
         </section>
 
         <!-- ===== TEXTURE ===== -->
-        <section class="tutorials-section" id="texture">
+        <section class="tutorials-section" id="texture" data-track-group="model">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Texture</h2>
@@ -607,7 +691,7 @@
         </section>
 
         <!-- ===== RIG & ANIMATE ===== -->
-        <section class="tutorials-section" id="rig-animate">
+        <section class="tutorials-section" id="rig-animate" data-track-group="animate">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Rig & Animate</h2>
@@ -651,7 +735,7 @@
         </section>
 
         <!-- ===== VIDEO GENERATION ===== -->
-        <section class="tutorials-section" id="video-generation">
+        <section class="tutorials-section" id="video-generation" data-track-group="animate">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Video Generation</h2>
@@ -704,7 +788,7 @@
         </section>
 
         <!-- ===== VIEWER, HISTORY & EXPORT ===== -->
-        <section class="tutorials-section" id="viewer-history-export">
+        <section class="tutorials-section" id="viewer-history-export" data-track-group="print">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Viewer, History & Export</h2>
@@ -747,7 +831,7 @@
         </section>
 
         <!-- ===== PRO TIPS & BEST PRACTICES ===== -->
-        <section class="tutorials-section">
+        <section class="tutorials-section" id="pro-tips" data-track-group="basics">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Pro Tips & Best Practices</h2>
@@ -820,7 +904,7 @@
         </section>
 
         <!-- ===== VIDEO WALKTHROUGHS ===== -->
-        <section class="tutorials-section" id="tutorialsVideos" aria-label="Video walkthroughs">
+        <section class="tutorials-section" id="tutorialsVideos" data-track-group="basics" aria-label="Video walkthroughs">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Watch creators build in real time</h2>
@@ -860,7 +944,7 @@
         </section>
 
         <!-- ===== FAQ ===== -->
-        <section class="tutorials-section">
+        <section class="tutorials-section" id="faq" data-track-group="basics">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Frequently Asked Questions</h2>
@@ -897,7 +981,7 @@
         </section>
 
         <!-- ===== TIPS & RESOURCES ===== -->
-        <section class="tutorials-section">
+        <section class="tutorials-section" id="tips-resources" data-track-group="print">
           <div class="tutorials-section-header">
             <div class="tutorials-section-content">
               <h2>Tips & resources</h2>
@@ -942,6 +1026,9 @@
             </article>
           </div>
         </section>
+      </div>
+      </div>
+
 
       </div>
     </section>
@@ -962,5 +1049,6 @@
   <script src="js/cookie-consent.js" defer></script>
 
   <script type="module" src="js/analytics.js"></script>
+  <script src="js/tutorials-enhance.js?v=20260821tutorials" defer></script>
 </body>
 </html>

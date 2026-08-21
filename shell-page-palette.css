@@ -1,0 +1,749 @@
+/* ==========================================================================
+   SHELL-PAGE-PALETTE.CSS (2026-08-21)
+   --------------------------------------------------------------------------
+   One layer for the site-shell family — pages that inject nav/footer via
+   js/site-shell.js and carry their own component prefix:
+     community (.ccg-*) · converter (.converter-*) · prompts (.card-/.filter-)
+     stl-library (.stl-*) · avi-tomp4 (.video-convert-*) · company (.about-*)
+
+   Same system as /tutorials, /docs and the tool pages:
+     page = Dirty White #EFE9E9 flat · hero = Midnight Blue #1E223D flat
+     cards = white surface, rotating six-colour accent, lift on hover
+   ========================================================================== */
+
+:root{
+  --sp-orange:#F54F1B;  --sp-orange-rgb:245,79,27;
+  --sp-yellow:#F3E8BC;  --sp-yellow-rgb:243,232,188;
+  --sp-blue:#1E223D;    --sp-blue-rgb:30,34,61;
+  --sp-red:#5A2132;     --sp-red-rgb:90,33,50;
+  --sp-teal:#035352;    --sp-teal-rgb:3,83,82;
+  --sp-white:#EFE9E9;   --sp-white-rgb:239,233,233;
+  --sp-ink:#141726;
+  --sp-body:#4a4f60;
+  --sp-mute:#6b7184;
+  --sp-line:rgba(30,34,61,.12);
+  --sp-surface:#ffffff;
+}
+
+/* ---- 1. one flat page for every shell page ---- */
+body.has-site-shell[data-shell-page="community"],
+body.has-site-shell[data-shell-page="converter"],
+body.has-site-shell[data-shell-page="prompts"],
+body.has-site-shell[data-shell-page="stl-library"],
+body.has-site-shell[data-shell-page="avi-to-mp4"],
+body.has-site-shell[data-shell-page="company"],
+body.has-site-shell[data-shell-page="about"]{
+  background:var(--sp-white)!important;
+  color:var(--sp-ink);
+}
+body[data-shell-page] .converter-expanded-view,
+body[data-shell-page] .about-expanded-view,
+body[data-shell-page] .video-convert-page{background:transparent}
+body[data-shell-page] .converter-expanded-shell,
+body[data-shell-page] .about-expanded-shell,
+body[data-shell-page] .video-convert-shell{
+  max-width:none;
+  background:transparent;
+  border:0;
+  border-radius:0;
+}
+
+/* ---- 2. heroes: flat Midnight Blue ---- */
+body[data-shell-page] .converter-hero,
+body[data-shell-page] .about-hero,
+body[data-shell-page] .video-convert-header,
+body[data-shell-page] .hero-content,
+body[data-shell-page] .ccg-featured,
+body[data-shell-page] .stl-hero{
+  position:relative;
+  border:0;
+  border-radius:0;
+  background:var(--sp-blue);
+  color:var(--sp-white);
+}
+body[data-shell-page] .converter-hero,
+body[data-shell-page] .about-hero,
+body[data-shell-page] .video-convert-header{
+  padding:clamp(52px,8vh,96px) clamp(20px,5vw,64px) clamp(44px,6vh,80px);
+}
+body[data-shell-page] .converter-hero::after,
+body[data-shell-page] .about-hero::after,
+body[data-shell-page] .video-convert-header::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(var(--sp-orange-rgb),.5),transparent);
+}
+body[data-shell-page] .converter-hero h1,
+body[data-shell-page] .about-hero h1,
+body[data-shell-page] .video-convert-header h1,
+body[data-shell-page] .hero-h1{
+  color:var(--sp-white);
+  font-family:"Space Grotesk",Inter,sans-serif;
+  font-weight:800;
+  letter-spacing:-.04em;
+  line-height:1.04;
+}
+body[data-shell-page] .converter-hero p,
+body[data-shell-page] .about-hero p,
+body[data-shell-page] .video-convert-header p,
+body[data-shell-page] .hero-content p,
+body[data-shell-page] .lead,
+body[data-shell-page] .blurb{color:rgba(var(--sp-white-rgb),.66);line-height:1.7}
+
+/* kickers / eyebrows as pills */
+body[data-shell-page] .video-convert-kicker,
+body[data-shell-page] .converter-kicker,
+body[data-shell-page] .about-kicker,
+body[data-shell-page] .hero-eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:7px 15px;
+  border:1px solid rgba(var(--sp-orange-rgb),.3);
+  border-radius:999px;
+  background:rgba(var(--sp-orange-rgb),.09);
+  color:var(--sp-yellow);
+  font-size:10.5px;
+  font-weight:800;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+body[data-shell-page] .video-convert-kicker::before,
+body[data-shell-page] .hero-eyebrow::before{
+  content:"";
+  width:6px;
+  height:6px;
+  border-radius:999px;
+  background:var(--sp-orange);
+  flex:none;
+}
+
+/* ---- 3. section headings on the light surface ---- */
+body[data-shell-page] .converter-section,
+body[data-shell-page] .about-features-grid,
+body[data-shell-page] .ccg-grid{background:transparent}
+body[data-shell-page] .converter-section-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:20px;
+  padding-bottom:16px;
+  border-bottom:1px solid var(--sp-line);
+}
+body[data-shell-page] .converter-section-content h2,
+body[data-shell-page] .about-section h2,
+body[data-shell-page] section > h2{
+  color:var(--sp-ink);
+  font-family:"Space Grotesk",Inter,sans-serif;
+  font-weight:750;
+  letter-spacing:-.03em;
+}
+body[data-shell-page] .converter-section-content p{color:var(--sp-body);line-height:1.7;max-width:74ch}
+body[data-shell-page] .converter-highlight{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:7px 15px;
+  border:1px solid rgba(var(--sp-teal-rgb),.3);
+  border-radius:999px;
+  background:rgba(var(--sp-teal-rgb),.08);
+  color:#0b4d4c;
+  font-size:10.5px;
+  font-weight:800;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  white-space:nowrap;
+}
+body[data-shell-page] .converter-highlight::before{
+  content:"";
+  width:6px;
+  height:6px;
+  border-radius:999px;
+  background:var(--sp-teal);
+  flex:none;
+}
+
+/* ---- 4. cards: one treatment across every prefix ---- */
+body[data-shell-page] .ccg-card,
+body[data-shell-page] .converter-format-card,
+body[data-shell-page] .converter-usecase,
+body[data-shell-page] .converter-faq,
+body[data-shell-page] .converter-step,
+body[data-shell-page] .stl-card,
+body[data-shell-page] .about-feature,
+body[data-shell-page] .about-community-card,
+body[data-shell-page] .card,
+body[data-shell-page] .video-convert-tool{
+  --k:var(--sp-orange-rgb);
+  position:relative;
+  border:1px solid var(--sp-line);
+  border-radius:18px;
+  background:var(--sp-surface);
+  box-shadow:0 12px 30px rgba(30,34,61,.05);
+  overflow:hidden;
+  transition:transform .26s cubic-bezier(.16,1,.3,1),box-shadow .26s,border-color .26s;
+}
+body[data-shell-page] .converter-format-card,
+body[data-shell-page] .converter-usecase,
+body[data-shell-page] .converter-faq,
+body[data-shell-page] .converter-step,
+body[data-shell-page] .about-feature,
+body[data-shell-page] .about-community-card{padding:22px 20px 20px}
+body[data-shell-page] .ccg-card::before,
+body[data-shell-page] .converter-format-card::before,
+body[data-shell-page] .converter-usecase::before,
+body[data-shell-page] .stl-card::before,
+body[data-shell-page] .about-feature::before,
+body[data-shell-page] .card::before{
+  content:"";
+  position:absolute;
+  inset:0 0 auto;
+  height:3px;
+  background:linear-gradient(90deg,rgb(var(--k)),transparent);
+  opacity:0;
+  transition:opacity .26s;
+  z-index:2;
+}
+body[data-shell-page] .ccg-card:hover,
+body[data-shell-page] .converter-format-card:hover,
+body[data-shell-page] .converter-usecase:hover,
+body[data-shell-page] .converter-faq:hover,
+body[data-shell-page] .converter-step:hover,
+body[data-shell-page] .stl-card:hover,
+body[data-shell-page] .about-feature:hover,
+body[data-shell-page] .about-community-card:hover,
+body[data-shell-page] .card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(var(--k),.35);
+  box-shadow:0 22px 48px rgba(var(--sp-red-rgb),.14);
+}
+body[data-shell-page] .ccg-card:hover::before,
+body[data-shell-page] .converter-format-card:hover::before,
+body[data-shell-page] .converter-usecase:hover::before,
+body[data-shell-page] .stl-card:hover::before,
+body[data-shell-page] .about-feature:hover::before,
+body[data-shell-page] .card:hover::before{opacity:1}
+
+/* rotate accents through the palette */
+body[data-shell-page] .ccg-grid > *:nth-child(4n+2),
+body[data-shell-page] .converter-format-grid > *:nth-child(3n+2),
+body[data-shell-page] .about-features-grid > *:nth-child(3n+2),
+body[data-shell-page] .stl-grid > *:nth-child(3n+2),
+body[data-shell-page] .cards > *:nth-child(3n+2){--k:var(--sp-teal-rgb)}
+body[data-shell-page] .ccg-grid > *:nth-child(4n+3),
+body[data-shell-page] .converter-format-grid > *:nth-child(3n+3),
+body[data-shell-page] .about-features-grid > *:nth-child(3n+3),
+body[data-shell-page] .stl-grid > *:nth-child(3n+3),
+body[data-shell-page] .cards > *:nth-child(3n+3){--k:var(--sp-red-rgb)}
+body[data-shell-page] .ccg-grid > *:nth-child(4n+4){--k:var(--sp-yellow-rgb)}
+
+/* card typography */
+body[data-shell-page] .ccg-card h3,
+body[data-shell-page] .converter-format-card h3,
+body[data-shell-page] .converter-usecase h3,
+body[data-shell-page] .converter-faq h3,
+body[data-shell-page] .converter-step h3,
+body[data-shell-page] .stl-card-body h3,
+body[data-shell-page] .about-feature h3,
+body[data-shell-page] .card h3,
+body[data-shell-page] .card-header strong{
+  color:var(--sp-ink);
+  font-family:"Space Grotesk",Inter,sans-serif;
+  font-weight:750;
+  letter-spacing:-.02em;
+}
+body[data-shell-page] .ccg-card p,
+body[data-shell-page] .converter-format-card p,
+body[data-shell-page] .converter-usecase p,
+body[data-shell-page] .converter-faq p,
+body[data-shell-page] .converter-step p,
+body[data-shell-page] .stl-card-body p,
+body[data-shell-page] .about-feature p,
+body[data-shell-page] .card p{color:var(--sp-body);line-height:1.62}
+
+/* icon chips */
+body[data-shell-page] .format-icon,
+body[data-shell-page] .usecase-icon,
+body[data-shell-page] .about-feature-icon{
+  display:grid;
+  place-items:center;
+  width:48px;
+  min-width:48px;
+  height:42px;
+  border:1px solid rgba(var(--k),.24);
+  border-radius:13px;
+  background:rgba(var(--k),.1);
+  color:rgb(var(--k));
+  font-size:18px;
+  line-height:1;
+}
+
+/* ---- 5. filter pills / tabs ---- */
+body[data-shell-page] .ccg-filter-tab,
+body[data-shell-page] .filter-pill,
+body[data-shell-page] .stl-card-cat{
+  border:1px solid var(--sp-line);
+  border-radius:999px;
+  background:#fff;
+  color:var(--sp-body);
+  font-weight:700;
+  transition:all .18s ease;
+}
+body[data-shell-page] .ccg-filter-tab:hover,
+body[data-shell-page] .filter-pill:hover{
+  border-color:rgba(var(--sp-orange-rgb),.45);
+  color:var(--sp-ink);
+}
+body[data-shell-page] .ccg-filter-tab.is-active,
+body[data-shell-page] .ccg-filter-tab[aria-selected="true"],
+body[data-shell-page] .filter-pill.is-active,
+body[data-shell-page] .filter-pill.active{
+  border-color:transparent;
+  background:var(--sp-blue);
+  color:var(--sp-yellow);
+}
+body[data-shell-page] .ccg-search input,
+body[data-shell-page] .converter-field input,
+body[data-shell-page] .converter-field select,
+body[data-shell-page] input[type="search"],
+body[data-shell-page] input[type="text"]{
+  border:1px solid var(--sp-line);
+  border-radius:12px;
+  background:#fff;
+  color:var(--sp-ink);
+}
+body[data-shell-page] .ccg-search input:focus,
+body[data-shell-page] input:focus-visible{
+  outline:2px solid rgba(var(--sp-orange-rgb),.5);
+  outline-offset:2px;
+}
+
+/* ---- 6. buttons ---- */
+body[data-shell-page] .btn,
+body[data-shell-page] .converter-export-btn,
+body[data-shell-page] .video-convert-btn,
+body[data-shell-page] .stl-buy,
+body[data-shell-page] .about-community-btn,
+body[data-shell-page] .ccg-load-more-btn{
+  border-radius:999px;
+  font-weight:800;
+  transition:transform .2s,box-shadow .2s,background .2s,border-color .2s;
+}
+body[data-shell-page] .btn.primary,
+body[data-shell-page] .converter-export-btn,
+body[data-shell-page] .video-convert-btn,
+body[data-shell-page] .stl-buy,
+body[data-shell-page] .stl-allaccess-buy{
+  border:0;
+  background:var(--sp-orange);
+  color:#fff;
+  box-shadow:0 12px 28px rgba(var(--sp-orange-rgb),.28);
+}
+body[data-shell-page] .btn.primary:hover,
+body[data-shell-page] .converter-export-btn:hover,
+body[data-shell-page] .video-convert-btn:hover,
+body[data-shell-page] .stl-buy:hover{
+  transform:translateY(-2px);
+  box-shadow:0 18px 40px rgba(var(--sp-orange-rgb),.4);
+}
+body[data-shell-page] .ccg-fab{
+  background:var(--sp-orange);
+  color:#fff;
+  box-shadow:0 16px 34px rgba(var(--sp-orange-rgb),.36);
+}
+
+/* ---- 7. drop zone (avi-to-mp4 / converter) ---- */
+body[data-shell-page] .video-drop,
+body[data-shell-page] .converter-drop{
+  border:2px dashed rgba(var(--sp-orange-rgb),.34);
+  border-radius:20px;
+  background:rgba(var(--sp-yellow-rgb),.3);
+  color:var(--sp-body);
+  transition:border-color .2s,background .2s;
+}
+body[data-shell-page] .video-drop:hover,
+body[data-shell-page] .converter-drop:hover{
+  border-color:rgba(var(--sp-orange-rgb),.6);
+  background:rgba(var(--sp-yellow-rgb),.5);
+}
+
+/* ---- 8. empty / loading states ---- */
+body[data-shell-page] .ccg-empty,
+body[data-shell-page] .ccg-loading-state{
+  border:1px dashed var(--sp-line);
+  border-radius:18px;
+  background:rgba(255,255,255,.6);
+  color:var(--sp-mute);
+}
+
+/* ---- 9. breadcrumbs ---- */
+body[data-shell-page] .breadcrumbs{color:var(--sp-mute);font-size:12.5px}
+body[data-shell-page] .breadcrumbs a{color:var(--sp-body);text-decoration:none}
+body[data-shell-page] .breadcrumbs a:hover{color:var(--sp-orange)}
+body[data-shell-page] .breadcrumbs-sep{color:rgba(var(--sp-blue-rgb),.3)}
+
+/* ---- 10. scale with the display ---- */
+body[data-shell-page] .container,
+body[data-shell-page] .converter-expanded-shell,
+body[data-shell-page] .about-expanded-shell,
+body[data-shell-page] .video-convert-shell{width:min(1320px,calc(100% - 40px));margin-inline:auto}
+@media(min-width:1600px){
+  body[data-shell-page] .container,
+  body[data-shell-page] .converter-expanded-shell,
+  body[data-shell-page] .about-expanded-shell,
+  body[data-shell-page] .video-convert-shell{width:min(1560px,94vw)}
+}
+@media(min-width:2000px){
+  body[data-shell-page] .container,
+  body[data-shell-page] .converter-expanded-shell,
+  body[data-shell-page] .about-expanded-shell,
+  body[data-shell-page] .video-convert-shell{width:min(1800px,92vw)}
+}
+@media(max-width:760px){
+  body[data-shell-page] .converter-section-header{flex-direction:column;gap:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  body[data-shell-page] .ccg-card,
+  body[data-shell-page] .converter-format-card,
+  body[data-shell-page] .stl-card,
+  body[data-shell-page] .about-feature,
+  body[data-shell-page] .card{transition:none}
+  body[data-shell-page] .ccg-card:hover,
+  body[data-shell-page] .converter-format-card:hover,
+  body[data-shell-page] .stl-card:hover,
+  body[data-shell-page] .about-feature:hover,
+  body[data-shell-page] .card:hover{transform:none}
+}
+
+/* ==========================================================================
+   CONTRAST FIX (2026-08-21b)
+   --------------------------------------------------------------------------
+   a) community.css paints .ccg-card__* text white (title .94, name .75,
+      status/metric .62, badges) because those cards were dark. Giving them a
+      white surface made them white-on-white. Media cards read better dark
+      anyway, so the community grid keeps a Midnight Blue surface and its
+      original light type — it now matches the homepage community row.
+   b) standalone-expansions.css pins #fff on a few converter/company headings
+      that now sit on the light page.
+   ========================================================================== */
+
+/* ---- a) community: dark media cards, light type ---- */
+body[data-shell-page="community"] .ccg-card,
+body[data-shell-page="community"] .ccg-featured,
+body[data-shell-page="community"] .ccg-detail{
+  background:var(--sp-blue);
+  border-color:rgba(var(--sp-yellow-rgb),.14);
+  color:rgba(var(--sp-white-rgb),.9);
+}
+body[data-shell-page="community"] .ccg-card:hover{
+  border-color:rgba(var(--k),.5);
+  box-shadow:0 22px 48px rgba(0,0,0,.4);
+}
+body[data-shell-page="community"] .ccg-card h3,
+body[data-shell-page="community"] .ccg-card__title{color:rgba(var(--sp-white-rgb),.94)}
+body[data-shell-page="community"] .ccg-card p,
+body[data-shell-page="community"] .ccg-card__name,
+body[data-shell-page="community"] .ccg-card__status,
+body[data-shell-page="community"] .ccg-card__metric{color:rgba(var(--sp-white-rgb),.66)}
+body[data-shell-page="community"] .ccg-search__input{
+  background:rgba(255,255,255,.06);
+  border-color:rgba(var(--sp-yellow-rgb),.18);
+  color:var(--sp-white);
+}
+body[data-shell-page="community"] .ccg-search__input::placeholder{color:rgba(var(--sp-white-rgb),.42)}
+body[data-shell-page="community"] .ccg-filter-tab{
+  background:#fff;
+  color:var(--sp-body);
+  border-color:var(--sp-line);
+}
+body[data-shell-page="community"] .ccg-filter-tab--active,
+body[data-shell-page="community"] .ccg-filter-tab.is-active{
+  background:var(--sp-orange);
+  border-color:transparent;
+  color:#fff;
+}
+body[data-shell-page="community"] .ccg-empty,
+body[data-shell-page="community"] .ccg-loading-state{color:var(--sp-mute)}
+
+/* ---- b) converter / company headings stranded on the light page ---- */
+body.converter-page .converter-format-card strong,
+body[data-shell-page="converter"] .converter-format-card strong,
+body.converter-page .converter-preview-note,
+body[data-shell-page="converter"] .converter-preview-note{
+  color:var(--sp-ink)!important;
+}
+body.converter-page .converter-preview-note,
+body[data-shell-page="converter"] .converter-preview-note{color:var(--sp-body)!important}
+
+/* these two sit inside their own dark CTA/upload panels — keep them light but
+   make sure the panel really is dark so the white type has something to sit on */
+body.converter-page .converter-upload-content,
+body[data-shell-page="converter"] .converter-upload-content,
+body.company-page .about-cta-content,
+body[data-shell-page="company"] .about-cta-content{
+  background:var(--sp-blue);
+  border-radius:24px;
+  padding:clamp(28px,4vw,52px);
+  color:rgba(var(--sp-white-rgb),.7);
+}
+body.converter-page .converter-upload-content h2,
+body[data-shell-page="converter"] .converter-upload-content h2,
+body.company-page .about-cta-content h2,
+body[data-shell-page="company"] .about-cta-content h2{color:var(--sp-white)!important}
+
+/* watermarks were near-white at 3% for a dark page — invert for the light one */
+body.company-page .about-watermark,
+body.converter-page .converter-watermark,
+body[data-shell-page="company"] .about-watermark,
+body[data-shell-page="converter"] .converter-watermark{
+  color:rgba(var(--sp-blue-rgb),.05)!important;
+}
+
+/* ---- c) blanket guard: any card I gave a white surface gets readable type ---- */
+body[data-shell-page="converter"] .converter-format-card,
+body[data-shell-page="converter"] .converter-usecase,
+body[data-shell-page="converter"] .converter-faq,
+body[data-shell-page="converter"] .converter-step,
+body[data-shell-page="stl-library"] .stl-card,
+body[data-shell-page="company"] .about-feature,
+body[data-shell-page="company"] .about-community-card,
+body[data-shell-page="prompts"] .card{color:var(--sp-body)}
+body[data-shell-page="converter"] .converter-format-card *,
+body[data-shell-page="stl-library"] .stl-card-body *,
+body[data-shell-page="company"] .about-feature *,
+body[data-shell-page="prompts"] .card *{color:inherit}
+body[data-shell-page="converter"] .converter-format-card h3,
+body[data-shell-page="converter"] .converter-format-card strong,
+body[data-shell-page="stl-library"] .stl-card-body h3,
+body[data-shell-page="company"] .about-feature h3,
+body[data-shell-page="prompts"] .card h3{color:var(--sp-ink)}
+
+/* ==========================================================================
+   PROMPTS PAGE REBALANCE (2026-08-21)
+   --------------------------------------------------------------------------
+   The prompt library carries older inline dark-page CSS. Keep its structure,
+   but make the hero, filters, cards and nav read like the updated tool pages.
+   ========================================================================== */
+body.has-site-shell[data-shell-page="prompts"]{
+  background:
+    radial-gradient(900px 420px at 0% 8%,rgba(var(--sp-yellow-rgb),.28),transparent 70%),
+    radial-gradient(820px 480px at 100% 28%,rgba(var(--sp-teal-rgb),.08),transparent 72%),
+    var(--sp-white)!important;
+}
+body[data-shell-page="prompts"] .site-shell-header,
+body[data-shell-page="prompts"] .site-shell-nav{
+  background:
+    radial-gradient(760px 120px at 18% 0%,rgba(var(--sp-red-rgb),.22),transparent 64%),
+    radial-gradient(700px 130px at 86% 0%,rgba(var(--sp-teal-rgb),.16),transparent 66%),
+    linear-gradient(180deg,rgba(8,8,10,.96),rgba(11,10,12,.88))!important;
+  border-bottom:1px solid rgba(var(--sp-white-rgb),.08)!important;
+  box-shadow:0 12px 34px rgba(0,0,0,.2);
+  backdrop-filter:blur(18px) saturate(130%);
+}
+body[data-shell-page="prompts"] .breadcrumbs{
+  width:min(1320px,calc(100% - 40px));
+  margin:0 auto;
+  padding:22px 0 0!important;
+  border:0!important;
+  background:transparent!important;
+  color:var(--sp-body)!important;
+}
+body[data-shell-page="prompts"] .hero-section{
+  padding:46px 0 60px!important;
+  background:transparent!important;
+  border:0!important;
+}
+body[data-shell-page="prompts"] .hero-section .container{
+  width:min(1320px,calc(100% - 40px));
+  max-width:none;
+}
+body[data-shell-page="prompts"] .hero-content{
+  max-width:none!important;
+  min-height:0!important;
+  padding:58px 38px 54px!important;
+  border-radius:28px!important;
+  overflow:hidden;
+  background:
+    linear-gradient(rgba(var(--sp-white-rgb),.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(var(--sp-white-rgb),.028) 1px,transparent 1px),
+    radial-gradient(720px 360px at 8% 10%,rgba(var(--sp-red-rgb),.34),transparent 68%),
+    radial-gradient(760px 380px at 92% 16%,rgba(var(--sp-teal-rgb),.28),transparent 70%),
+    var(--sp-blue)!important;
+  background-size:50px 50px,50px 50px,auto,auto,auto!important;
+  box-shadow:0 26px 70px rgba(var(--sp-blue-rgb),.16);
+}
+body[data-shell-page="prompts"] .hero-watermark{
+  color:rgba(var(--sp-white-rgb),.035)!important;
+  font-size:150px!important;
+}
+body[data-shell-page="prompts"] .hero-pill{
+  margin-bottom:22px!important;
+  border-color:rgba(var(--sp-yellow-rgb),.22)!important;
+  background:rgba(var(--sp-yellow-rgb),.1)!important;
+  color:var(--sp-yellow)!important;
+}
+body[data-shell-page="prompts"] .hero-h1{
+  max-width:1040px;
+  margin-inline:auto;
+  color:var(--sp-white)!important;
+  font-size:64px!important;
+  line-height:1.03!important;
+  letter-spacing:0!important;
+  text-wrap:balance;
+}
+body[data-shell-page="prompts"] .hero-subtitle{
+  max-width:860px!important;
+  color:rgba(var(--sp-white-rgb),.68)!important;
+  font-size:17px!important;
+  line-height:1.62!important;
+}
+body[data-shell-page="prompts"] .hero-stat-num{color:var(--sp-white)!important}
+body[data-shell-page="prompts"] .hero-stat-label{color:rgba(var(--sp-white-rgb),.62)!important}
+body[data-shell-page="prompts"] .filter-bar{
+  width:min(1320px,calc(100% - 40px));
+  margin:0 auto;
+  padding:22px 0 42px!important;
+  justify-content:center;
+  border:0!important;
+  background:transparent!important;
+}
+body[data-shell-page="prompts"] .filter-pill{
+  min-height:42px;
+  padding:10px 20px!important;
+  border:1px solid var(--sp-line)!important;
+  border-radius:999px!important;
+  background:#fff!important;
+  color:var(--sp-body)!important;
+  box-shadow:0 10px 26px rgba(var(--sp-blue-rgb),.04);
+}
+body[data-shell-page="prompts"] .filter-pill.active,
+body[data-shell-page="prompts"] .filter-pill.is-active{
+  border-color:transparent!important;
+  background:var(--sp-blue)!important;
+  color:var(--sp-yellow)!important;
+}
+body[data-shell-page="prompts"] .prompts-section{
+  padding:18px 0 70px!important;
+  background:transparent!important;
+}
+body[data-shell-page="prompts"] .prompts-grid{
+  width:min(1320px,calc(100% - 40px));
+  max-width:none!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:18px!important;
+  margin-inline:auto;
+}
+body[data-shell-page="prompts"] .prompt-card,
+body[data-shell-page="prompts"] .card{
+  --k:var(--sp-orange-rgb);
+  min-height:0!important;
+  padding:24px!important;
+  border:1px solid var(--sp-line)!important;
+  border-left:4px solid rgb(var(--k))!important;
+  border-radius:8px 22px 22px 8px!important;
+  background:
+    radial-gradient(420px 220px at 0% 0%,rgba(var(--k),.1),transparent 72%),
+    #fff!important;
+  color:var(--sp-body)!important;
+  box-shadow:0 18px 42px rgba(var(--sp-blue-rgb),.06)!important;
+}
+body[data-shell-page="prompts"] .prompts-grid > *:nth-child(3n+2){--k:var(--sp-teal-rgb)}
+body[data-shell-page="prompts"] .prompts-grid > *:nth-child(3n+3){--k:var(--sp-red-rgb)}
+body[data-shell-page="prompts"] .prompt-card:hover,
+body[data-shell-page="prompts"] .card:hover{
+  transform:translateY(-4px)!important;
+  border-color:rgba(var(--k),.34)!important;
+  box-shadow:0 24px 54px rgba(var(--sp-red-rgb),.12)!important;
+}
+body[data-shell-page="prompts"] .prompt-card h3,
+body[data-shell-page="prompts"] .card h3,
+body[data-shell-page="prompts"] .prompt-text{
+  color:var(--sp-ink)!important;
+}
+body[data-shell-page="prompts"] .category-badge,
+body[data-shell-page="prompts"] .type-indicator{
+  border-color:rgba(var(--k),.24)!important;
+  background:rgba(var(--k),.08)!important;
+  color:rgb(var(--k))!important;
+}
+body[data-shell-page="prompts"] .action-btn.try-btn{
+  background:var(--sp-orange)!important;
+  color:#fff!important;
+}
+body[data-shell-page="prompts"] .action-btn.copy-btn{
+  background:rgba(var(--sp-teal-rgb),.08)!important;
+  border-color:rgba(var(--sp-teal-rgb),.18)!important;
+  color:var(--sp-teal)!important;
+}
+body[data-shell-page="prompts"] .tips-section{
+  border-top:1px solid var(--sp-line)!important;
+  background:rgba(255,255,255,.42)!important;
+}
+body[data-shell-page="prompts"] .tip-card{
+  border-color:var(--sp-line)!important;
+  background:#fff!important;
+  box-shadow:0 14px 34px rgba(var(--sp-blue-rgb),.05);
+}
+@media(max-width:1180px){
+  body[data-shell-page="prompts"] .prompts-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body[data-shell-page="prompts"] .hero-h1{font-size:52px!important}
+}
+@media(max-width:760px){
+  body[data-shell-page="prompts"] .hero-section{padding:30px 0 42px!important}
+  body[data-shell-page="prompts"] .hero-section .container,
+  body[data-shell-page="prompts"] .breadcrumbs,
+  body[data-shell-page="prompts"] .filter-bar,
+  body[data-shell-page="prompts"] .prompts-grid{width:min(100% - 32px,720px)}
+  body[data-shell-page="prompts"] .hero-content{padding:38px 22px 34px!important;border-radius:22px!important}
+  body[data-shell-page="prompts"] .hero-h1{font-size:38px!important}
+  body[data-shell-page="prompts"] .hero-subtitle{font-size:15px!important}
+  body[data-shell-page="prompts"] .prompts-grid{grid-template-columns:1fr!important}
+  body[data-shell-page="prompts"] .hero-watermark{display:none!important}
+}
+
+/* ==========================================================================
+   HOMEPAGE SHELL PARITY (2026-08-21)
+   The six shell pages keep their JS-injected nav (it carries the credits
+   pill, account status and Buy — functional UI the static homepage header
+   doesn't have) but the injected bar and footer are repainted to the exact
+   homepage shell surfaces from home-shell.css / index-palette.css.
+   ========================================================================== */
+.site-shell-nav{
+  position:relative;
+  background:
+    linear-gradient(180deg,rgba(30,34,61,.88),rgba(8,9,12,.76))!important;
+  border-bottom:1px solid rgba(243,232,188,.12)!important;
+  backdrop-filter:blur(18px);
+  box-shadow:none;
+}
+.site-shell-nav::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:-1px;
+  width:min(1120px,88vw);
+  height:1px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,rgba(245,79,27,.55),transparent);
+  pointer-events:none;
+}
+.site-shell-footer{
+  background:
+    radial-gradient(circle at 12% 0%,rgba(90,33,50,.2),transparent 30%),
+    radial-gradient(circle at 88% 20%,rgba(3,83,82,.16),transparent 34%),
+    #07080b!important;
+  border-top:1px solid rgba(244,241,234,.1)!important;
+}
+.site-shell-footer-heading{color:#F3E8BC!important}
+.site-shell-footer-links a{color:rgba(239,233,233,.6)!important;transition:color .2s}
+.site-shell-footer-links a:hover{color:#F54F1B!important}
+.site-shell-footer-name{color:#EFE9E9!important}
+.site-shell-footer-name-x{color:#F54F1B!important}
+.site-shell-footer-desc,.site-shell-footer-tag{color:rgba(239,233,233,.45)!important}
+.site-shell-footer-bottom,.site-shell-footer-bottom a{color:rgba(239,233,233,.5)}
+.site-shell-footer-bottom a:hover{color:#F54F1B}

@@ -1,0 +1,282 @@
+/* ==========================================================================
+   LEGAL-PALETTE.CSS (2026-08-21)
+   --------------------------------------------------------------------------
+   One layer, 7 pages: terms · privacy · cookies · legal/nia/{terms,privacy,
+   eula,refunds} · nia/support. Loads after styles.css + legal.css.
+
+   Legal copy is the longest-form reading on the site, so this leans harder on
+   readability than decoration: flat Dirty White page, flat Midnight Blue hero,
+   a sticky table-of-contents card (the tutorials rail pattern), and generous
+   measure/leading. Palette accents mark structure, never body text.
+   ========================================================================== */
+
+:root{
+  --lg-orange:#F54F1B;  --lg-orange-rgb:245,79,27;
+  --lg-yellow:#F3E8BC;  --lg-yellow-rgb:243,232,188;
+  --lg-blue:#1E223D;    --lg-blue-rgb:30,34,61;
+  --lg-red:#5A2132;     --lg-red-rgb:90,33,50;
+  --lg-teal:#035352;    --lg-teal-rgb:3,83,82;
+  --lg-white:#EFE9E9;   --lg-white-rgb:239,233,233;
+  --lg-ink:#141726;
+  --lg-body:#454a5b;
+  --lg-mute:#6b7184;
+  --lg-line:rgba(30,34,61,.12);
+  --lg-surface:#ffffff;
+}
+
+/* ---- one flat page ---- */
+body{background:var(--lg-white)!important;color:var(--lg-ink)}
+
+/* ---- nav ---- */
+.nav{background:var(--lg-blue);border-bottom:1px solid rgba(var(--lg-yellow-rgb),.14)}
+.nav .brand,.nav .b-tim{color:var(--lg-white)}
+.nav .b-x{color:var(--lg-orange)}
+.nav-links a{color:rgba(var(--lg-white-rgb),.72);transition:color .2s}
+.nav-links a:hover{color:var(--lg-yellow)}
+.nav-cta,.nav-cta-desktop{background:var(--lg-orange);border-color:transparent;color:#fff}
+.nav-cta:hover,.nav-cta-desktop:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(var(--lg-orange-rgb),.3)}
+
+/* ---- hero: flat Midnight Blue ---- */
+.legal-hero{
+  position:relative;
+  margin:0;
+  padding:clamp(58px,9vh,110px) clamp(20px,5vw,64px) clamp(46px,7vh,84px);
+  border:0;
+  border-radius:0;
+  background:var(--lg-blue);
+  color:var(--lg-white);
+  text-align:left;
+}
+.legal-hero::after{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(var(--lg-orange-rgb),.5),transparent);
+}
+.legal-hero > *{width:min(1080px,100%);margin-inline:auto}
+.legal-hero h1{
+  color:var(--lg-white);
+  font-family:"Space Grotesk",Inter,sans-serif;
+  font-size:clamp(34px,4.4vw,58px);
+  font-weight:800;
+  line-height:1.04;
+  letter-spacing:-.04em;
+}
+.legal-hero p{
+  max-width:64ch;
+  color:rgba(var(--lg-white-rgb),.66);
+  font-size:15.5px;
+  line-height:1.7;
+}
+.legal-hero .eyebrow,
+.legal-hero .legal-kicker{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  margin-bottom:14px;
+  padding:7px 15px;
+  border:1px solid rgba(var(--lg-orange-rgb),.3);
+  border-radius:999px;
+  background:rgba(var(--lg-orange-rgb),.09);
+  color:var(--lg-yellow);
+  font-size:10.5px;
+  font-weight:800;
+  letter-spacing:.16em;
+  text-transform:uppercase;
+}
+
+/* ---- reading column ---- */
+.legal-content{
+  width:min(1080px,calc(100% - 40px));
+  margin:clamp(30px,4.5vh,58px) auto clamp(70px,10vh,130px);
+  padding:clamp(28px,4vw,52px);
+  border:1px solid var(--lg-line);
+  border-radius:24px;
+  background:var(--lg-surface);
+  box-shadow:0 16px 40px rgba(30,34,61,.05);
+  color:var(--lg-body);
+  font-size:15px;
+  line-height:1.78;
+}
+.legal-content h2{
+  margin:38px 0 12px;
+  padding-top:22px;
+  border-top:1px solid var(--lg-line);
+  color:var(--lg-ink);
+  font-family:"Space Grotesk",Inter,sans-serif;
+  font-size:clamp(20px,2vw,27px);
+  font-weight:750;
+  letter-spacing:-.025em;
+  scroll-margin-top:90px;
+}
+.legal-content h2:first-of-type{margin-top:0;padding-top:0;border-top:0}
+.legal-content h3{
+  margin:24px 0 8px;
+  color:var(--lg-ink);
+  font-size:16px;
+  font-weight:750;
+}
+.legal-content p{margin:0 0 14px;max-width:78ch}
+.legal-content ul,
+.legal-content ol{margin:0 0 16px;padding-left:20px}
+.legal-content li{margin-bottom:7px}
+.legal-content li::marker{color:var(--lg-orange)}
+.legal-content a{
+  color:var(--lg-red);
+  text-decoration:underline;
+  text-underline-offset:3px;
+  text-decoration-thickness:1px;
+  transition:color .2s;
+}
+.legal-content a:hover{color:var(--lg-orange)}
+.legal-content strong{color:var(--lg-ink)}
+
+/* ---- table of contents: the tutorials rail, sticky ---- */
+.legal-toc{
+  position:sticky;
+  top:88px;
+  align-self:start;
+  margin:0 0 26px;
+  padding:18px 16px;
+  border:1px solid var(--lg-line);
+  border-radius:20px;
+  background:rgba(var(--lg-yellow-rgb),.26);
+  box-shadow:0 14px 34px rgba(30,34,61,.05);
+}
+.legal-toc h2,
+.legal-toc strong{
+  margin:0 0 10px;
+  padding:0;
+  border:0;
+  color:var(--lg-mute);
+  font-size:9.5px;
+  font-weight:800;
+  letter-spacing:.18em;
+  text-transform:uppercase;
+}
+.legal-toc ul,
+.legal-toc ol{display:flex;flex-direction:column;gap:1px;margin:0;padding:0;list-style:none}
+.legal-toc li{margin:0}
+.legal-toc a{
+  display:block;
+  padding:7px 11px;
+  border-radius:10px;
+  color:var(--lg-body);
+  text-decoration:none;
+  font-size:12.5px;
+  font-weight:650;
+  transition:background .18s,color .18s;
+}
+.legal-toc a:hover{background:rgba(255,255,255,.7);color:var(--lg-ink)}
+
+/* ---- callouts ---- */
+.legal-warning,
+.legal-info,
+.legal-contact{
+  margin:22px 0;
+  padding:18px 20px 18px 22px;
+  border:1px solid var(--lg-line);
+  border-left:3px solid var(--lg-teal);
+  border-radius:6px 16px 16px 6px;
+  background:rgba(var(--lg-teal-rgb),.055);
+  color:var(--lg-body);
+  font-size:14px;
+  line-height:1.7;
+}
+.legal-warning{
+  border-left-color:var(--lg-orange);
+  background:rgba(var(--lg-orange-rgb),.06);
+}
+.legal-contact{
+  border-left-color:var(--lg-red);
+  background:rgba(var(--lg-red-rgb),.05);
+}
+.legal-warning strong,
+.legal-info strong,
+.legal-contact strong{display:block;margin-bottom:5px;color:var(--lg-ink)}
+
+/* ---- back to top ---- */
+.back-to-top{
+  border:0;
+  border-radius:999px;
+  background:var(--lg-orange);
+  color:#fff;
+  box-shadow:0 14px 30px rgba(var(--lg-orange-rgb),.32);
+  transition:transform .2s,box-shadow .2s;
+}
+.back-to-top:hover{transform:translateY(-3px);box-shadow:0 20px 40px rgba(var(--lg-orange-rgb),.42)}
+
+/* ---- footer ---- */
+.site-footer{
+  background:var(--lg-blue);
+  color:rgba(var(--lg-white-rgb),.62);
+  border-top:1px solid rgba(var(--lg-red-rgb),.6);
+}
+.site-footer .ft-heading{color:var(--lg-yellow)}
+.site-footer .ft-links a{color:rgba(var(--lg-white-rgb),.6)}
+.site-footer .ft-links a:hover{color:var(--lg-orange)}
+.site-footer .ft-brand-name{color:var(--lg-white)}
+.site-footer .ft-desc,.site-footer .ft-meta,.site-footer .ft-copy{color:rgba(var(--lg-white-rgb),.45)}
+
+/* ---- scale ---- */
+@media(min-width:1600px){
+  .legal-content{width:min(1180px,92vw)}
+  .legal-hero > *{width:min(1180px,92vw)}
+}
+@media(max-width:760px){
+  .legal-content{padding:22px 18px;border-radius:18px}
+  .legal-toc{position:static}
+}
+@media(prefers-reduced-motion:reduce){
+  .back-to-top,.nav-cta,.nav-cta-desktop{transition:none}
+  .back-to-top:hover,.nav-cta:hover{transform:none}
+}
+
+/* ==========================================================================
+   CONTRAST FIX (2026-08-21b)
+   legal.css sets `color: var(--tx-dirty-white)` on the callout text — correct
+   when these pages were dark, invisible now that the reading card is white.
+   Every text node inside the callouts is pinned explicitly.
+   ========================================================================== */
+.legal-info p,
+.legal-info li,
+.legal-info span,
+.legal-warning p,
+.legal-warning li,
+.legal-warning span,
+.legal-contact p,
+.legal-contact li,
+.legal-contact span,
+.legal-contact h3{
+  color:var(--lg-body)!important;
+}
+.legal-info strong,
+.legal-warning strong,
+.legal-contact strong,
+.legal-contact h3{color:var(--lg-ink)!important}
+.legal-info a,
+.legal-warning a,
+.legal-contact a{color:var(--lg-red)!important;text-decoration:underline;text-underline-offset:3px}
+.legal-info a:hover,
+.legal-warning a:hover,
+.legal-contact a:hover{color:var(--lg-orange)!important}
+
+/* the reading card itself: guard against any other pale inheritance */
+.legal-content,
+.legal-content p,
+.legal-content li,
+.legal-content td,
+.legal-content dd{color:var(--lg-body)}
+.legal-content h2,
+.legal-content h3,
+.legal-content h4,
+.legal-content strong,
+.legal-content th,
+.legal-content dt{color:var(--lg-ink)}
+.legal-toc a{color:var(--lg-body)}
+
+/* footer bits legal.css still paints for a dark page — the footer IS dark, so
+   these stay light; only the ones that moved onto the light card are changed. */

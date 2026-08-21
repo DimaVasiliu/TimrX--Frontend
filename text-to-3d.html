@@ -7,9 +7,9 @@
   <title>Text to 3D — Generate, Refine, Print-Check &amp; Export | TimrX</title>
   <meta name="description" content="Turn text prompts into 3D models. Generate draft picks, refine, remesh, texture, rig, animate, print-check and export GLB, STL, OBJ, USDZ or full-color 3MF." />
   <link rel="canonical" href="https://timrx.live/text-to-3d" />
-  <link rel="icon" type="image/png" href="/img/logo.png?v=20260815logo" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-logo-192.png?v=20260815logo">
-  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-logo-180.png?v=20260815logo">
+  <link rel="icon" type="image/png" href="img/logo.png?v=20260815logo" />
+  <link rel="icon" type="image/png" sizes="192x192" href="img/favicon-logo-192.png?v=20260815logo">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/favicon-logo-180.png?v=20260815logo">
   
   <meta name="theme-color" content="#0b0b0b" />
   <meta name="robots" content="index, follow" />
@@ -41,15 +41,24 @@
   <link rel="stylesheet" href="tool-page.css?v=20260819palette">
   <link rel="stylesheet" href="footer.css?v=20260819palette2">
   <link rel="stylesheet" href="tx-menu.css?v=20260819palette2">
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.5.0/model-viewer.min.js" integrity="sha384-Ftcjj/GNLxPvzNDftO/oryXB9aGxsGZY9JGqsXG0uUKgQDl9RfDgsx9NJ/4IVNPe" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="tool-page-palette.css?v=20260821cards">
+  <link rel="stylesheet" href="tool-rich-palette.css?v=20260821rich">
+  <script type="module" src="js/model-viewer-3.5.0.module.min.js"></script>
+  <script type="module">
+    /* Draco decoder is self-hosted: the default is fetched from Google's CDN
+       at model load time, so an ad-blocker / blocked CDN silently breaks every
+       compressed GLB on the page. */
+    import { ModelViewerElement } from './js/model-viewer-3.5.0.module.min.js';
+    ModelViewerElement.dracoDecoderLocation = new URL('js/draco/', location.href).toString();
+  </script>
   <style>
     .tool-example-card model-viewer {
       display: block;
       width: 100%;
       aspect-ratio: 4 / 3;
       min-height: 280px;
-      background: #0a0a0a;
-      border-bottom: 1px solid rgba(255,255,255,.08);
+      background: transparent;
+      border-bottom: 1px solid rgba(30,34,61,.08);
       --poster-color: transparent;
     }
     .tool-example-card model-viewer::part(default-ar-button) {
@@ -178,31 +187,25 @@
   </script>
   <!-- End Google Tag Manager -->
   <script src="js/console-shield.js?v=1"></script>
+  <link rel="stylesheet" href="home-shell.css?v=20260821shell">
 </head>
-<body>
+<body class="text-to-3d-page tool-rich-page">
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
   <!-- NAV -->
-  <nav class="nav divider" aria-label="Main">
-    <div class="container nav-inner">
-      <div class="brand-group">
-        <img src="img/logo.png?v=20260815logo" alt="TimrX" class="idx-nav-logo" width="50" height="50">
-        <a class="brand" href="/" aria-label="Home">
-          <span class="swap"><span class="b-tim">Timr</span><span class="b-x">X</span></span>
-        </a>
-      </div>
-      <div class="nav-links" role="navigation" aria-label="Primary">
-        <a href="/3dprint">3D Print Hub</a>
-        <a href="/hub">PRODUCT</a>
-        <a href="/ai-tools">TOOLS</a>
-        <a href="/blogs">BLOGS</a>
-      </div>
-      <a class="nav-cta nav-cta-desktop" href="/3dprint" aria-label="Open TimrX workspace">OPEN WORKSPACE</a>
+  <!-- Site header: homepage shell -->
+  <header class="site-header" data-header>
+    <div class="shell nav-shell">
+      <a class="brand" href="/" aria-label="TimrX home"><img src="img/logo.png?v=20260815logo" width="44" height="44" alt=""><span>Timr<span>X</span></span></a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="/">Home</a><a href="/3dprint" data-track="nav_create">Create</a><a href="/community" data-track="nav_community">Community</a><a href="/tutorials" data-track="nav_tutorials">Tutorials</a><a href="/docs" data-track="nav_docs">Docs</a><a href="/hub#pricing" data-track="nav_pricing">Pricing</a><a href="/blogs" data-track="nav_blog">Blog</a><a href="/hub" data-track="nav_dashboard">Dashboard</a>
+      </nav>
+      <a class="button button-small desktop-cta" href="/3dprint" data-track="nav_open_workspace">Open Workspace <span aria-hidden="true">↗</span></a>
       <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
     </div>
-  </nav>
+  </header>
 
   <!-- Mobile menu: shared component (tx-menu) -->
   <div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>
@@ -228,7 +231,7 @@
   <!-- Hero -->
   <section class="tool-hero">
     <div class="container">
-      <h1>Text to 3D — Generate, refine and export 3D models from text</h1>
+      <h1>Text to 3D model generation</h1>
       <p class="tool-subtitle">Describe any object in plain text and get editable 3D drafts. No modeling experience needed — TimrX handles geometry, surfaces, refinement, remesh, texture, print checks, My Assets storage and export.</p>
     </div>
   </section>
@@ -298,37 +301,37 @@
       <p class="tool-examples-intro">From quick concept models to print-ready figurines, text-to-3D handles a wide range of creative tasks. Below are six examples generated entirely from text prompts, each demonstrating a different use case and style. Every model was exported as a GLB and required no manual modeling.</p>
       <div class="tool-examples-grid">
         <article class="tool-example-card">
-          <model-viewer data-src="/vid/text-to-3d/low-poly-castle.glb" alt="Low-poly medieval castle generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
+          <model-viewer class="t3d-preview t3d-preview--castle" data-preview-label="Castle preview" src="vid/text-to-3d/low-poly-castle.glb" data-src="vid/text-to-3d/low-poly-castle.glb" alt="Low-poly medieval castle generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.45" exposure="1.15" environment-image="neutral" interaction-prompt="none" reveal="auto" camera-orbit="35deg 62deg auto" field-of-view="32deg" poster-color="#F3E8BC"><div class="t3d-model-fallback t3d-model-fallback--castle" slot="poster" aria-hidden="true"><span>GLB</span><strong>Castle preview</strong></div></model-viewer>
           <h3>Low-Poly Medieval Castle</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "A low-poly medieval stone castle with four towers, a drawbridge, and a blue flag on the tallest tower."</p>
           <p class="tool-example-desc">Ideal for game environments and tabletop terrain. The low-poly style keeps the file lightweight while retaining recognisable architectural details. Exported as GLB for Unity integration.</p>
         </article>
         <article class="tool-example-card">
-          <model-viewer data-src="/vid/text-to-3d/steampunk-robot.glb" alt="Steampunk robot figurine generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
+          <model-viewer class="t3d-preview t3d-preview--robot" data-preview-label="Robot preview" src="vid/text-to-3d/steampunk-robot.glb" data-src="vid/text-to-3d/steampunk-robot.glb" alt="Steampunk robot figurine generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.45" exposure="1.15" environment-image="neutral" interaction-prompt="none" reveal="auto" camera-orbit="20deg 68deg auto" field-of-view="28deg" poster-color="#EFE9E9"><div class="t3d-model-fallback t3d-model-fallback--robot" slot="poster" aria-hidden="true"><span>GLB</span><strong>Robot preview</strong></div></model-viewer>
           <h3>Steampunk Robot Figurine</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "A steampunk robot with brass gears, copper pipes, a top hat, and glowing green eyes. Display pose."</p>
           <p class="tool-example-desc">A collectible-style figurine with rich surface detail. After remeshing, this model was 3D printed on a resin printer at 50-micron layer height with excellent results.</p>
         </article>
         <article class="tool-example-card">
-          <model-viewer data-src="/vid/text-to-3d/terracotta-succulent.glb" alt="Realistic succulent plant generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
+          <model-viewer class="t3d-preview t3d-preview--plant" data-preview-label="Plant preview" src="vid/text-to-3d/terracotta-succulent.glb" data-src="vid/text-to-3d/terracotta-succulent.glb" alt="Realistic succulent plant generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.45" exposure="1.15" environment-image="neutral" interaction-prompt="none" reveal="auto" camera-orbit="-25deg 62deg auto" field-of-view="30deg" poster-color="#F3E8BC"><div class="t3d-model-fallback t3d-model-fallback--plant" slot="poster" aria-hidden="true"><span>GLB</span><strong>Plant preview</strong></div></model-viewer>
           <h3>Realistic Succulent Plant</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "A realistic potted succulent in a terracotta pot. Soft green leaves with slightly pink tips. Studio lighting."</p>
           <p class="tool-example-desc">Perfect for architectural visualisation and product rendering. The PBR textures capture the waxy leaf surface and matte terracotta accurately, making it ready for interior scenes.</p>
         </article>
         <article class="tool-example-card">
-          <model-viewer data-src="/vid/text-to-3d/sci-fi-blaster.glb" alt="Sci-fi blaster weapon generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
+          <model-viewer class="t3d-preview t3d-preview--prop" data-preview-label="Prop preview" src="vid/text-to-3d/sci-fi-blaster.glb" data-src="vid/text-to-3d/sci-fi-blaster.glb" alt="Sci-fi blaster weapon generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.45" exposure="1.18" environment-image="neutral" interaction-prompt="none" reveal="auto" camera-orbit="-45deg 65deg auto" field-of-view="30deg" poster-color="#EFE9E9"><div class="t3d-model-fallback t3d-model-fallback--prop" slot="poster" aria-hidden="true"><span>GLB</span><strong>Prop preview</strong></div></model-viewer>
           <h3>Sci-Fi Blaster Prop</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "A futuristic sci-fi blaster pistol with neon blue energy cells, matte black grip, and chrome barrel."</p>
           <p class="tool-example-desc">Game-ready weapon prop with clean topology. The model was imported into Blender for minor UV adjustments before being used as an in-game asset for a first-person shooter prototype.</p>
         </article>
         <article class="tool-example-card">
-          <model-viewer data-src="/vid/text-to-3d/cartoon-fox-figurine.glb" alt="Cartoon fox character generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
-          <h3>Cartoon Fox Character</h3>
-          <p class="tool-example-prompt"><strong>Prompt:</strong> "A cute cartoon fox sitting upright with a fluffy tail, big round eyes, and an orange-and-white colour scheme."</p>
-          <p class="tool-example-desc">Stylised character suitable for animation or 3D printing as a desk toy. The exaggerated proportions and smooth surfaces translated well to both FDM and resin printing workflows.</p>
+          <model-viewer class="t3d-preview t3d-preview--character" data-preview-label="Character preview" src="img/rabbit-web.glb" data-src="img/rabbit-web.glb" alt="Cartoon rabbit character generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.45" exposure="1.15" environment-image="neutral" interaction-prompt="none" reveal="auto" camera-orbit="30deg 62deg auto" field-of-view="28deg" poster-color="#F3E8BC"><div class="t3d-model-fallback t3d-model-fallback--character" slot="poster" aria-hidden="true"><span>GLB</span><strong>Character preview</strong></div></model-viewer>
+          <h3>Cartoon Rabbit Character</h3>
+          <p class="tool-example-prompt"><strong>Prompt:</strong> "A cute cartoon rabbit sitting upright with soft rounded ears, big round eyes, and a toy-like finish."</p>
+          <p class="tool-example-desc">Stylised character suitable for animation or 3D printing as a desk toy. The rounded proportions and smooth surfaces translate well to both FDM and resin printing workflows.</p>
         </article>
         <article class="tool-example-card">
-          <model-viewer data-src="/vid/text-to-3d/mini-city-diorama.glb" alt="Miniature cityscape generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.55" exposure="1.05" environment-image="neutral" interaction-prompt="none" reveal="auto"></model-viewer>
+          <model-viewer class="t3d-preview t3d-preview--city" data-preview-label="City preview" src="vid/text-to-3d/mini-city-diorama.glb" data-src="vid/text-to-3d/mini-city-diorama.glb" alt="Miniature cityscape generated from a text prompt" auto-rotate rotation-per-second="20deg" camera-controls touch-action="pan-y" shadow-intensity="0.45" exposure="1.12" environment-image="neutral" interaction-prompt="none" reveal="auto" camera-orbit="35deg 58deg auto" field-of-view="30deg" poster-color="#EFE9E9"><div class="t3d-model-fallback t3d-model-fallback--city" slot="poster" aria-hidden="true"><span>GLB</span><strong>City preview</strong></div></model-viewer>
           <h3>Miniature Cityscape</h3>
           <p class="tool-example-prompt"><strong>Prompt:</strong> "A miniature modern cityscape with skyscrapers, a park, roads, and tiny cars. Isometric diorama style."</p>
           <p class="tool-example-desc">An isometric diorama that works as both a digital render piece and a physical 3D print. The compact composition makes it a great desk ornament when printed at 150 percent scale.</p>
@@ -533,74 +536,20 @@
   </section>
 
   <!-- Footer -->
-  <footer class="site-footer">
-    <div class="container">
-      <div class="ft-main">
-        <div class="ft-brand">
-          <a href="/" class="ft-brand-mark" aria-label="TimrX home">
-            <img src="/img/logo.png?v=20260815logo" alt="" class="ft-brand-icon" width="40" height="40">
-            <span class="ft-brand-name">Timr<span>X</span></span>
-          </a>
-          <p class="ft-desc">Images, video and 3D creation in one browser workspace.</p>
-        </div>
-        <nav class="ft-cols" aria-label="Footer navigation">
-          <div class="ft-col">
-            <h3 class="ft-heading">Product</h3>
-            <ul class="ft-links">
-              <li><a href="/3dprint">Create</a></li>
-              <li><a href="/ai-tools">Tools</a></li>
-              <li><a href="/converter">Converter</a></li>
-              <li><a href="/stl-library">STL Library</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Explore</h3>
-            <ul class="ft-links">
-              <li><a href="/blogs">Blog</a></li>
-              <li><a href="/tutorials">Tutorials</a></li>
-              <li><a href="/community">Community</a></li>
-              <li><a href="/prompts">Prompts</a></li>
-              <li><a href="/company">Company</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Account</h3>
-            <ul class="ft-links">
-              <li><a href="/hub">Dashboard</a></li>
-              <li><a href="/hub#pricing">Pricing</a></li>
-              <li><a href="/docs">Docs</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Connect</h3>
-            <ul class="ft-links">
-              <li><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a></li>
-              <li><a href="mailto:support@timrx.live">Support</a></li>
-              <li><a href="/llms.txt">LLM Summary</a></li>
-            </ul>
-          </div>
-          <div class="ft-col">
-            <h3 class="ft-heading">Legal</h3>
-            <ul class="ft-links">
-              <li><a href="/terms">Terms</a></li>
-              <li><a href="/privacy">Privacy</a></li>
-              <li><a href="/cookies">Cookies</a></li>
-            </ul>
-          </div>
-        </nav>
-      </div>
-      <div class="ft-bottom">
-        <span class="ft-copy">&copy; <span id="year" data-year></span> TimrX</span>
-        <a class="ft-meta" href="/dima-vasiliu">Built by Dima Vasiliu <span aria-hidden="true">↗</span></a>
-      </div>
-    </div>
-  </footer>
+  <footer class="site-footer"><div class="shell footer-grid"><div><a class="brand" href="/"><img src="img/logo.png?v=20260815logo" width="40" height="40" alt=""><span>Timr<span>X</span></span></a><p>Images, video and 3D creation in one browser workspace.</p></div><nav aria-label="Product"><h2>Product</h2><a href="/3dprint">Create</a><a href="/ai-tools">Tools</a><a href="/converter">Converter</a><a href="/stl-library">STL Library</a></nav><nav aria-label="Explore"><h2>Explore</h2><a href="/blogs">Blog</a><a href="/tutorials">Tutorials</a><a href="/community">Community</a><a href="/prompts">Prompts</a><a href="/company">Company</a></nav><nav aria-label="Account"><h2>Account</h2><a href="/hub">Dashboard</a><a href="/hub#pricing">Pricing</a><a href="/docs">Docs</a></nav><nav aria-label="Connect"><h2>Connect</h2><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a><a href="mailto:support@timrx.live">Support</a><a href="/llms.txt">LLM Summary</a></nav><nav aria-label="Legal"><h2>Legal</h2><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></nav></div><div class="shell footer-bottom"><span>© <span id="year" data-year>2026</span> TimrX</span><a href="/dima-vasiliu">Built by Dima Vasiliu <span>↗</span></a></div></footer>
 
-  <script>document.getElementById('year').textContent=new Date().getFullYear();</script>
+  <script>
+  (function(){var h=document.querySelector('.site-header[data-header]');if(h){var s=function(){h.classList.toggle('is-scrolled',window.scrollY>8);};s();window.addEventListener('scroll',s,{passive:true});}
+  var y=document.querySelector('[data-year]');if(y)y.textContent=new Date().getFullYear();})();
+  </script>
   <script>
   (function(){
     var viewers = document.querySelectorAll('model-viewer[data-src]');
     if(!viewers.length) return;
+    viewers.forEach(function(mv){
+      mv.addEventListener('load', function(){ mv.classList.add('is-loaded'); });
+      mv.addEventListener('error', function(){ mv.classList.add('is-unavailable'); });
+    });
     if(!('IntersectionObserver' in window)){
       viewers.forEach(function(mv){ mv.setAttribute('src', mv.dataset.src); });
       return;

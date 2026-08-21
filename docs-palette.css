@@ -1,0 +1,1101 @@
+/* Docs page palette upgrade. Screenshots are color references only. */
+:root{
+  --docs-red:#5A2132;
+  --docs-red-rgb:90,33,50;
+  --docs-white:#EFE9E9;
+  --docs-white-rgb:239,233,233;
+  --docs-teal:#035352;
+  --docs-teal-rgb:3,83,82;
+  --docs-yellow:#F3E8BC;
+  --docs-yellow-rgb:243,232,188;
+  --docs-blue:#1E223D;
+  --docs-blue-rgb:30,34,61;
+  --docs-orange:#F54F1B;
+  --docs-orange-rgb:245,79,27;
+  --docs-ink:#151111;
+  --docs-muted:#656372;
+  --docs-line:rgba(var(--docs-blue-rgb),.12);
+}
+
+body.has-site-shell[data-shell-page="docs"]{
+  background:
+    radial-gradient(900px 680px at 4% 8%,rgba(var(--docs-red-rgb),.2),transparent 62%),
+    radial-gradient(880px 620px at 96% 10%,rgba(var(--docs-teal-rgb),.22),transparent 64%),
+    radial-gradient(860px 680px at 52% 100%,rgba(var(--docs-yellow-rgb),.28),transparent 66%),
+    linear-gradient(180deg,#07080b 0%,#0a0b0d 34%,#dfd8d1 34%,var(--docs-white) 100%);
+  color:var(--docs-muted);
+}
+
+body[data-shell-page="docs"]::before,
+body[data-shell-page="docs"]::after{
+  content:"";
+  position:fixed;
+  z-index:-1;
+  pointer-events:none;
+}
+
+body[data-shell-page="docs"]::before{
+  inset:var(--site-shell-nav-height) 0 auto;
+  height:420px;
+  background:
+    linear-gradient(rgba(var(--docs-white-rgb),.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(var(--docs-white-rgb),.026) 1px,transparent 1px);
+  background-size:86px 86px;
+  opacity:.72;
+}
+
+body[data-shell-page="docs"]::after{
+  top:120px;
+  right:9vw;
+  width:420px;
+  aspect-ratio:1;
+  border:1px solid rgba(var(--docs-yellow-rgb),.12);
+  border-radius:34px;
+  transform:rotate(45deg);
+  background:
+    linear-gradient(135deg,rgba(var(--docs-red-rgb),.11),transparent 42%),
+    linear-gradient(315deg,rgba(var(--docs-teal-rgb),.13),transparent 52%);
+  animation:docsGeometryDrift 16s ease-in-out infinite alternate;
+}
+
+@keyframes docsGeometryDrift{
+  from{transform:translate3d(0,0,0) rotate(45deg)}
+  to{transform:translate3d(-34px,22px,0) rotate(52deg)}
+}
+
+/* Shared navbar: match the homepage palette treatment on docs. */
+body[data-shell-page="docs"] .site-shell-nav{
+  border-bottom-color:rgba(var(--docs-yellow-rgb),.12);
+  background:
+    radial-gradient(720px 160px at 72% 0%,rgba(var(--docs-red-rgb),.22),transparent 62%),
+    linear-gradient(180deg,rgba(var(--docs-blue-rgb),.88),rgba(8,9,12,.76));
+}
+
+body[data-shell-page="docs"] .site-shell-nav::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  right:auto;
+  bottom:-1px;
+  width:min(1120px,88vw);
+  height:1px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,rgba(var(--docs-red-rgb),.5),rgba(var(--docs-yellow-rgb),.42),rgba(var(--docs-teal-rgb),.5),transparent);
+  pointer-events:none;
+}
+
+body[data-shell-page="docs"] .site-shell-brand-wordmark .site-shell-brand-x,
+body[data-shell-page="docs"] .tx-menu-brand span span{
+  background:none;
+  color:var(--docs-orange);
+}
+
+body[data-shell-page="docs"] .site-shell-brand{
+  gap:8px;
+}
+
+body[data-shell-page="docs"] .site-shell-brand img{
+  width:44px;
+  height:44px;
+  border-radius:10px;
+}
+
+body[data-shell-page="docs"] .site-shell-brand-wordmark{
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:clamp(16px,1.25rem,22px);
+  font-weight:900;
+  letter-spacing:0;
+  text-transform:none;
+}
+
+body[data-shell-page="docs"] .site-shell-nav-link{
+  position:relative;
+  min-height:36px;
+  border-color:transparent;
+  background:transparent;
+  color:rgba(var(--docs-white-rgb),.72);
+  letter-spacing:0;
+  text-transform:none;
+}
+
+body[data-shell-page="docs"] .site-shell-nav-link:hover,
+body[data-shell-page="docs"] .site-shell-nav-link:focus-visible{
+  color:var(--docs-yellow);
+  border-color:transparent;
+  background:transparent;
+}
+
+body[data-shell-page="docs"] .site-shell-nav-link.is-active{
+  border-color:transparent;
+  background:transparent;
+  color:var(--docs-orange);
+  box-shadow:none;
+}
+
+body[data-shell-page="docs"] .site-shell-nav-link.is-active::after{
+  content:"";
+  position:absolute;
+  left:14px;
+  right:14px;
+  bottom:2px;
+  height:2px;
+  border-radius:999px;
+  background:linear-gradient(90deg,var(--docs-orange),var(--docs-yellow));
+}
+
+body[data-shell-page="docs"] .site-shell-nav-link.is-accent,
+body[data-shell-page="docs"] .site-shell-buy-btn{
+  border-color:rgba(var(--docs-yellow-rgb),.22);
+  background:rgba(var(--docs-white-rgb),.045);
+  color:var(--docs-white);
+}
+
+body[data-shell-page="docs"] .site-shell-nav-link.is-accent:hover,
+body[data-shell-page="docs"] .site-shell-nav-link.is-accent:focus-visible,
+body[data-shell-page="docs"] .site-shell-buy-btn:hover,
+body[data-shell-page="docs"] .site-shell-buy-btn:focus-visible{
+  border-color:rgba(var(--docs-yellow-rgb),.4);
+  background:rgba(var(--docs-teal-rgb),.16);
+  color:var(--docs-yellow);
+}
+
+body[data-shell-page="docs"] .site-shell-account-btn,
+body[data-shell-page="docs"] .site-shell-credits-pill,
+body[data-shell-page="docs"] .site-shell-subscription-pill{
+  border-color:rgba(var(--docs-yellow-rgb),.14);
+  background:rgba(var(--docs-white-rgb),.045);
+}
+
+body[data-shell-page="docs"] .tx-burger{
+  color:var(--docs-white);
+}
+
+body[data-shell-page="docs"] .tx-burger:hover span,
+body[data-shell-page="docs"] .tx-burger[aria-expanded="true"] span{
+  background:var(--docs-yellow);
+}
+
+body[data-shell-page="docs"] .tx-menu-backdrop{
+  background:rgba(var(--docs-blue-rgb),.72);
+}
+
+body[data-shell-page="docs"] .tx-menu{
+  border-left-color:rgba(var(--docs-yellow-rgb),.18);
+  background:
+    radial-gradient(circle at 14% 8%,rgba(var(--docs-red-rgb),.28),transparent 34%),
+    radial-gradient(circle at 92% 20%,rgba(var(--docs-teal-rgb),.18),transparent 32%),
+    linear-gradient(180deg,rgba(var(--docs-blue-rgb),.985),rgba(6,7,10,.99));
+}
+
+body[data-shell-page="docs"] .tx-menu-links a{
+  border-color:rgba(var(--docs-yellow-rgb),.11);
+  background:rgba(var(--docs-white-rgb),.035);
+}
+
+body[data-shell-page="docs"] .tx-menu-links a:hover,
+body[data-shell-page="docs"] .tx-menu-links a:focus-visible{
+  border-color:rgba(var(--docs-yellow-rgb),.3);
+  background:rgba(var(--docs-teal-rgb),.13);
+}
+
+body[data-shell-page="docs"] .tx-menu-cta{
+  background:linear-gradient(135deg,var(--docs-orange),var(--docs-yellow));
+  color:#140c08;
+}
+
+.docs-page{
+  max-width:none;
+  padding:0;
+  animation:none;
+}
+
+.docs-breadcrumb{
+  width:min(1580px,calc(100% - 48px));
+  margin:34px auto 18px !important;
+  color:rgba(var(--docs-white-rgb),.56) !important;
+}
+
+.docs-breadcrumb a,
+.docs-breadcrumb span{
+  color:inherit !important;
+}
+
+.docs-breadcrumb a:hover{
+  color:var(--docs-yellow) !important;
+}
+
+.docs-expanded-shell{
+  width:min(1580px,calc(100% - 48px));
+  max-width:none;
+  border:1px solid rgba(var(--docs-white-rgb),.1);
+  border-radius:32px;
+  background:
+    radial-gradient(900px 560px at 0% 0%,rgba(var(--docs-red-rgb),.19),transparent 62%),
+    radial-gradient(900px 560px at 100% 0%,rgba(var(--docs-teal-rgb),.18),transparent 62%),
+    linear-gradient(180deg,rgba(8,9,12,.96),rgba(var(--docs-blue-rgb),.72) 28%,rgba(var(--docs-white-rgb),.94) 28.1%,rgba(var(--docs-white-rgb),.98));
+  box-shadow:0 34px 110px rgba(0,0,0,.3);
+  overflow:hidden;
+}
+
+.docs-hero{
+  min-height:440px;
+  align-items:flex-start;
+  border-bottom:1px solid rgba(var(--docs-yellow-rgb),.12);
+  padding:0;
+  opacity:1;
+  animation:none;
+}
+
+.docs-hero::before{
+  background:
+    linear-gradient(rgba(var(--docs-white-rgb),.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(var(--docs-white-rgb),.034) 1px,transparent 1px);
+  background-size:84px 84px;
+  opacity:.58;
+  mix-blend-mode:normal;
+}
+
+.docs-hero::after{
+  content:"";
+  position:absolute;
+  right:-120px;
+  bottom:-210px;
+  width:520px;
+  aspect-ratio:1;
+  border:1px solid rgba(var(--docs-teal-rgb),.28);
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(var(--docs-teal-rgb),.14),transparent 64%);
+}
+
+.docs-hero-text{
+  max-width:1120px;
+  min-width:0;
+  padding:64px clamp(34px,5vw,86px);
+  gap:22px;
+}
+
+.docs-pill{
+  color:var(--docs-yellow);
+  font-weight:820;
+  letter-spacing:0;
+}
+
+.docs-pill::before{
+  background:linear-gradient(90deg,var(--docs-orange),var(--docs-yellow));
+}
+
+.docs-title{
+  max-width:980px;
+  color:var(--docs-white);
+  font-size:5.4rem;
+  font-weight:860;
+  line-height:.98;
+  letter-spacing:0;
+  overflow-wrap:normal;
+}
+
+.docs-hero p{
+  max-width:780px;
+  color:rgba(var(--docs-white-rgb),.72);
+  font-size:1.08rem;
+}
+
+.docs-watermark{
+  top:auto;
+  right:clamp(24px,5vw,84px);
+  bottom:20px;
+  color:rgba(var(--docs-yellow-rgb),.045);
+  -webkit-text-stroke:1px rgba(var(--docs-yellow-rgb),.11);
+  opacity:1;
+  animation:none;
+}
+
+.docs-back-link{
+  position:absolute;
+  top:28px;
+  right:28px;
+  border:1px solid rgba(var(--docs-yellow-rgb),.22);
+  background:rgba(var(--docs-white-rgb),.055);
+  color:var(--docs-white);
+  box-shadow:none;
+}
+
+.docs-back-link:hover{
+  border-color:rgba(var(--docs-yellow-rgb),.42);
+  background:rgba(var(--docs-teal-rgb),.16);
+  color:var(--docs-yellow);
+  transform:translateY(-1px);
+}
+
+.docs-hero-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  margin-top:4px;
+}
+
+.docs-hero-actions a{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  min-height:48px;
+  padding:0 20px;
+  border:1px solid rgba(var(--docs-yellow-rgb),.2);
+  border-radius:999px;
+  background:rgba(var(--docs-white-rgb),.06);
+  color:var(--docs-white);
+  font-weight:820;
+}
+
+.docs-hero-actions a:first-child{
+  border-color:rgba(var(--docs-orange-rgb),.5);
+  background:linear-gradient(135deg,var(--docs-orange),#d94018 58%,var(--docs-red));
+  color:#130908;
+}
+
+.docs-hero-actions a:hover{
+  transform:translateY(-1px);
+}
+
+.docs-hero-metrics{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,160px));
+  gap:12px;
+  margin-top:12px;
+}
+
+.docs-hero-metrics div{
+  min-height:88px;
+  padding:16px;
+  border:1px solid rgba(var(--docs-yellow-rgb),.13);
+  border-radius:18px;
+  background:rgba(var(--docs-white-rgb),.055);
+}
+
+.docs-hero-metrics strong{
+  display:block;
+  color:var(--docs-white);
+  font-size:1.45rem;
+  line-height:1;
+}
+
+.docs-hero-metrics span{
+  display:block;
+  margin-top:8px;
+  color:rgba(var(--docs-white-rgb),.58);
+  font-size:.76rem;
+  font-weight:760;
+  letter-spacing:0;
+  text-transform:uppercase;
+}
+
+.docs-layout{
+  grid-template-columns:310px minmax(0,1fr);
+  min-width:0;
+  min-height:70vh;
+  background:
+    radial-gradient(720px 460px at 7% 8%,rgba(var(--docs-yellow-rgb),.2),transparent 62%),
+    radial-gradient(760px 460px at 98% 18%,rgba(var(--docs-teal-rgb),.13),transparent 60%),
+    rgba(var(--docs-white-rgb),.96);
+}
+
+.docs-sidebar{
+  top:calc(var(--site-shell-nav-height) + 18px);
+  height:calc(100vh - var(--site-shell-nav-height) - 36px);
+  border-right:1px solid rgba(var(--docs-blue-rgb),.11);
+  padding:30px 0;
+  background:linear-gradient(180deg,rgba(var(--docs-white-rgb),.65),rgba(var(--docs-yellow-rgb),.18));
+  scrollbar-color:rgba(var(--docs-teal-rgb),.45) transparent;
+}
+
+.docs-sidebar-label{
+  color:rgba(var(--docs-red-rgb),.72);
+  font-weight:850;
+}
+
+.docs-sidebar-link{
+  margin:0 14px 4px;
+  padding:9px 14px;
+  border-left:0;
+  border-radius:12px;
+  color:rgba(var(--docs-blue-rgb),.62);
+  font-weight:720;
+}
+
+.docs-sidebar-link:hover{
+  background:rgba(var(--docs-teal-rgb),.08);
+  color:var(--docs-teal);
+}
+
+.docs-sidebar-link.is-active{
+  border-left-color:transparent;
+  background:linear-gradient(90deg,rgba(var(--docs-teal-rgb),.16),rgba(var(--docs-yellow-rgb),.18));
+  color:var(--docs-teal);
+  box-shadow:inset 3px 0 0 var(--docs-teal);
+}
+
+.docs-content{
+  width:100%;
+  max-width:none;
+  min-width:0;
+  padding:48px clamp(32px,5vw,76px) 76px;
+}
+
+.docs-article{
+  position:relative;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  padding:30px clamp(22px,3vw,36px);
+  margin:0 0 24px;
+  border:1px solid rgba(var(--docs-blue-rgb),.1);
+  border-radius:26px;
+  background:
+    radial-gradient(620px 240px at 0% 0%,rgba(var(--article-accent,var(--docs-teal-rgb)),.1),transparent 58%),
+    rgba(255,255,255,.62);
+  box-shadow:0 18px 50px rgba(var(--docs-blue-rgb),.08);
+  opacity:1;
+  animation:none;
+}
+
+.docs-article:nth-child(6n+1){--article-accent:var(--docs-teal-rgb)}
+.docs-article:nth-child(6n+2){--article-accent:var(--docs-red-rgb)}
+.docs-article:nth-child(6n+3){--article-accent:var(--docs-orange-rgb)}
+.docs-article:nth-child(6n+4){--article-accent:var(--docs-blue-rgb)}
+.docs-article:nth-child(6n+5){--article-accent:var(--docs-yellow-rgb)}
+.docs-article:nth-child(6n){--article-accent:var(--docs-teal-rgb)}
+
+.docs-article::before{
+  content:"";
+  position:absolute;
+  top:26px;
+  left:0;
+  width:4px;
+  height:54px;
+  border-radius:0 999px 999px 0;
+  background:rgb(var(--article-accent,var(--docs-teal-rgb)));
+}
+
+.docs-article h2{
+  max-width:100%;
+  color:var(--docs-ink);
+  font-size:2.25rem;
+  font-weight:850;
+  line-height:1.05;
+  letter-spacing:0;
+  overflow-wrap:break-word;
+}
+
+.docs-article h3{
+  color:var(--docs-red);
+  font-size:1rem;
+  font-weight:840;
+}
+
+.docs-article p,
+.docs-article ul li,
+.docs-template-list{
+  color:rgba(var(--docs-blue-rgb),.68);
+  font-size:1rem;
+}
+
+.docs-article strong{
+  color:var(--docs-red);
+}
+
+.docs-article ul li::before{
+  color:var(--docs-orange);
+}
+
+.docs-tip{
+  border:1px solid rgba(var(--article-accent,var(--docs-teal-rgb)),.18);
+  border-left:4px solid rgb(var(--article-accent,var(--docs-teal-rgb)));
+  border-radius:16px;
+  background:rgba(var(--docs-yellow-rgb),.22);
+  color:rgba(var(--docs-blue-rgb),.72);
+}
+
+.docs-option-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:14px;
+}
+
+.docs-option-card,
+.docs-code-card,
+.docs-channel-card{
+  border:1px solid rgba(var(--article-accent,var(--docs-teal-rgb)),.14);
+  border-radius:18px;
+  background:rgba(255,255,255,.56);
+  box-shadow:none;
+}
+
+.docs-option-card dt{
+  color:rgb(var(--article-accent,var(--docs-teal-rgb)));
+  font-weight:850;
+}
+
+.docs-option-card dd,
+.docs-channel-card p{
+  color:rgba(var(--docs-blue-rgb),.68);
+}
+
+.docs-table-wrap{
+  border:1px solid rgba(var(--article-accent,var(--docs-teal-rgb)),.16);
+  border-radius:18px;
+  background:rgba(255,255,255,.66);
+  max-width:100%;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
+}
+
+.docs-table th{
+  background:rgba(var(--docs-blue-rgb),.06);
+  color:var(--docs-red);
+  font-weight:850;
+}
+
+.docs-table td{
+  color:rgba(var(--docs-blue-rgb),.72);
+  border-bottom:1px solid rgba(var(--docs-blue-rgb),.08);
+}
+
+.docs-table tr:hover td{
+  background:rgba(var(--docs-yellow-rgb),.22);
+}
+
+.docs-code-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+
+.docs-code-card{
+  display:grid;
+  grid-template-rows:auto auto 1fr;
+  overflow:hidden;
+  background:linear-gradient(180deg,#141524,var(--docs-blue));
+}
+
+.docs-code-card h3,
+.docs-code-card p{
+  color:var(--docs-white);
+}
+
+.docs-code-card p{
+  color:rgba(var(--docs-white-rgb),.62);
+}
+
+.docs-code-block{
+  border-top:1px solid rgba(var(--docs-yellow-rgb),.15);
+  background:rgba(0,0,0,.18);
+  color:rgba(var(--docs-white-rgb),.86);
+  max-width:100%;
+  overflow-x:auto;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+
+.docs-code-block code{
+  display:block;
+  min-width:0;
+  max-width:100%;
+  color:inherit;
+}
+
+.docs-channel-grid{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+}
+
+.docs-channel-card{
+  padding-bottom:14px;
+}
+
+.docs-channel-card a{
+  color:var(--docs-orange);
+  text-decoration:none;
+  font-weight:820;
+}
+
+.docs-back-to-top{
+  border:1px solid rgba(var(--docs-teal-rgb),.22);
+  background:var(--docs-blue);
+  color:var(--docs-yellow);
+  box-shadow:0 18px 44px rgba(var(--docs-blue-rgb),.28);
+}
+
+.docs-back-to-top:hover{
+  background:var(--docs-teal);
+  color:var(--docs-white);
+}
+
+body[data-shell-page="docs"] .site-shell-footer{
+  background:
+    radial-gradient(circle at 12% 0%,rgba(var(--docs-red-rgb),.2),transparent 30%),
+    radial-gradient(circle at 88% 20%,rgba(var(--docs-teal-rgb),.16),transparent 34%),
+    #07080b;
+}
+
+body[data-shell-page="docs"] .site-shell-footer-links a:hover,
+body[data-shell-page="docs"] .site-shell-footer-bottom a:hover{
+  color:var(--docs-yellow);
+}
+
+@media(max-width:1100px){
+  .docs-expanded-shell,
+  .docs-breadcrumb{
+    width:min(100% - 28px,1580px);
+  }
+
+  .docs-title{
+    font-size:4rem;
+  }
+
+  .docs-layout{
+    grid-template-columns:260px minmax(0,1fr);
+  }
+
+  .docs-code-grid,
+  .docs-channel-grid{
+    grid-template-columns:1fr;
+  }
+}
+
+@media(max-width:820px){
+  .docs-expanded-shell,
+  .docs-breadcrumb{
+    width:min(100% - 20px,1580px);
+  }
+
+  .docs-hero{
+    min-height:auto;
+  }
+
+  .docs-hero-text{
+    padding:70px 22px 28px;
+  }
+
+  .docs-title{
+    font-size:2.75rem;
+    max-width:100%;
+    overflow-wrap:break-word;
+    word-break:normal;
+  }
+
+  .docs-hero p{
+    font-size:1rem;
+  }
+
+  .docs-hero-metrics,
+  .docs-option-grid{
+    grid-template-columns:1fr;
+  }
+
+  .docs-layout{
+    grid-template-columns:1fr;
+    overflow:hidden;
+  }
+
+  .docs-sidebar{
+    display:flex;
+    position:sticky;
+    top:var(--site-shell-nav-height);
+    z-index:5;
+    height:auto;
+    padding:10px;
+    border-right:0;
+    border-bottom:1px solid rgba(var(--docs-blue-rgb),.1);
+    overflow-x:auto;
+    background:rgba(var(--docs-white-rgb),.92);
+  }
+
+  .docs-sidebar-group{
+    display:flex;
+    margin:0;
+  }
+
+  .docs-sidebar-label{
+    display:none;
+  }
+
+  .docs-sidebar-link{
+    white-space:nowrap;
+    margin:0 4px;
+  }
+
+  .docs-sidebar-link.is-active{
+    box-shadow:inset 0 -3px 0 var(--docs-teal);
+  }
+
+  .docs-content{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    padding:22px 14px 42px;
+  }
+
+  .docs-article{
+    width:100%;
+    max-width:100%;
+    padding:24px 18px;
+    border-radius:22px;
+  }
+
+  .docs-article h2{
+    font-size:1.75rem;
+  }
+}
+
+@media(max-width:520px){
+  body.has-site-shell[data-shell-page="docs"]{
+    background:
+      linear-gradient(180deg,#08090d 0%,#0a0b0d 28%,var(--docs-white) 28.1%,var(--docs-white));
+    overflow-x:hidden;
+  }
+
+  .docs-breadcrumb{
+    width:auto !important;
+    max-width:none;
+    margin:20px 16px 10px !important;
+    margin-left:16px !important;
+    margin-right:16px !important;
+    font-size:.78rem !important;
+  }
+
+  .docs-expanded-shell{
+    width:auto !important;
+    max-width:none;
+    margin-left:16px;
+    margin-right:16px;
+    border-radius:22px;
+  }
+
+  .docs-hero-text{
+    width:100%;
+    max-width:100%;
+    padding:60px 16px 24px;
+  }
+
+  .docs-title{
+    max-width:100%;
+    font-size:1.62rem;
+    line-height:1.04;
+    overflow-wrap:anywhere;
+    text-wrap:balance;
+  }
+
+  .docs-hero p{
+    max-width:calc(100vw - 82px);
+    overflow-wrap:break-word;
+  }
+
+  .docs-hero-actions,
+  .docs-hero-actions a{
+    max-width:100%;
+  }
+
+  .docs-watermark{
+    display:none;
+  }
+
+  .docs-back-link{
+    top:14px;
+    right:14px;
+  }
+
+  .docs-hero-actions a{
+    width:100%;
+    justify-content:center;
+  }
+
+  .docs-hero-metrics div{
+    min-height:auto;
+  }
+
+  .docs-sidebar{
+    display:none;
+  }
+
+  .docs-content{
+    width:100%;
+    max-width:100%;
+    padding:14px 10px 32px;
+  }
+
+  .docs-article{
+    width:100%;
+    max-width:100%;
+    padding:22px 15px;
+    margin-bottom:14px;
+  }
+
+  .docs-article p,
+  .docs-article ul li,
+  .docs-template-list{
+    font-size:.92rem;
+  }
+
+  .docs-table th,
+  .docs-table td{
+    padding:10px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  body[data-shell-page="docs"]::after{
+    animation:none;
+  }
+
+  .docs-hero-actions a:hover,
+  .docs-back-link:hover{
+    transform:none;
+  }
+}
+
+/* ==========================================================================
+   DOCS UPGRADE (2026-08-21) — parity with the tutorials rebuild
+   a) the homepage navbar replaces the injected site-shell nav
+   b) the shell widens on large displays instead of stopping at 1580px
+   ========================================================================== */
+
+/* ---- a) homepage header ---- */
+body[data-shell-page="docs"]{--site-shell-nav-height:66px}
+body[data-shell-page="docs"] .site-header{
+  position:fixed;
+  inset:0 0 auto;
+  z-index:1000;
+  height:66px;
+  border-bottom:1px solid rgba(var(--docs-yellow-rgb),.12);
+  background:
+    radial-gradient(680px 160px at 72% 0%,rgba(var(--docs-red-rgb),.2),transparent 64%),
+    linear-gradient(180deg,rgba(9,8,12,.92),rgba(9,8,12,.76));
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  transition:border-color .25s,background .25s;
+}
+body[data-shell-page="docs"] .site-header::after{
+  content:"";
+  position:absolute;
+  left:50%;
+  bottom:-1px;
+  width:min(1120px,88vw);
+  height:1px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,rgba(var(--docs-orange-rgb),.45),transparent);
+  pointer-events:none;
+}
+body[data-shell-page="docs"] .site-header.is-scrolled{background:rgba(9,8,12,.95)}
+body[data-shell-page="docs"] .nav-shell{
+  width:min(100%,1480px);
+  height:100%;
+  margin:auto;
+  padding-inline:clamp(18px,4vw,56px);
+  display:flex;
+  align-items:center;
+  gap:30px;
+}
+body[data-shell-page="docs"] .brand{
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  color:var(--docs-white);
+  text-decoration:none;
+  font-family:"Space Grotesk",Inter,sans-serif;
+  font-size:20px;
+  font-weight:800;
+  letter-spacing:-.04em;
+}
+body[data-shell-page="docs"] .brand img{display:block;width:44px;height:44px}
+body[data-shell-page="docs"] .brand span span{color:var(--docs-orange)}
+body[data-shell-page="docs"] .desktop-nav{
+  display:flex;
+  align-items:center;
+  gap:30px;
+  margin-left:auto;
+}
+body[data-shell-page="docs"] .desktop-nav a{
+  color:#b7afa2;
+  text-decoration:none;
+  font-size:13px;
+  font-weight:650;
+  transition:color .2s;
+}
+body[data-shell-page="docs"] .desktop-nav a:hover{color:var(--docs-yellow)}
+body[data-shell-page="docs"] .desktop-nav a[aria-current="page"]{color:var(--docs-orange)}
+body[data-shell-page="docs"] .desktop-cta{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  min-height:40px;
+  padding:0 18px;
+  border:1px solid rgba(var(--docs-yellow-rgb),.22);
+  border-radius:999px;
+  color:var(--docs-white);
+  text-decoration:none;
+  font-size:13px;
+  font-weight:750;
+  transition:transform .2s,border-color .2s,background .2s;
+}
+body[data-shell-page="docs"] .desktop-cta:hover{
+  transform:translateY(-2px);
+  border-color:rgba(var(--docs-orange-rgb),.55);
+  background:rgba(var(--docs-orange-rgb),.1);
+}
+body[data-shell-page="docs"] .tx-burger{display:none}
+body[data-shell-page="docs"] .site-header a:focus-visible{
+  outline:2px solid var(--docs-orange);
+  outline-offset:4px;
+}
+/* the page starts under the fixed header now that the shell nav is gone */
+body[data-shell-page="docs"] .docs-page{padding-top:66px}
+
+@media(max-width:760px){
+  body[data-shell-page="docs"] .desktop-nav,
+  body[data-shell-page="docs"] .desktop-cta{display:none}
+  body[data-shell-page="docs"] .tx-burger{
+    display:grid;
+    position:relative;
+    width:42px;
+    height:42px;
+    margin-left:auto;
+    border:1px solid rgba(var(--docs-yellow-rgb),.18);
+    border-radius:14px;
+    background:rgba(255,255,255,.04);
+    cursor:pointer;
+  }
+  body[data-shell-page="docs"] .tx-burger span{
+    position:absolute;
+    top:50%;
+    left:50%;
+    width:6px;
+    height:6px;
+    border-radius:2px;
+    background:var(--docs-yellow);
+  }
+  body[data-shell-page="docs"] .brand img{width:38px;height:38px}
+  body[data-shell-page="docs"] .brand{font-size:18px}
+}
+
+/* ---- b) scale with the display, same steps as tutorials ---- */
+@media(min-width:1600px){
+  body[data-shell-page="docs"] .docs-expanded-shell{width:min(1780px,94vw)}
+  body[data-shell-page="docs"] .docs-layout{grid-template-columns:330px minmax(0,1fr)}
+  body[data-shell-page="docs"] .docs-hero-text{max-width:1320px}
+  body[data-shell-page="docs"] .docs-option-grid{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+}
+@media(min-width:2000px){
+  body[data-shell-page="docs"] .docs-expanded-shell{width:min(2000px,92vw)}
+  body[data-shell-page="docs"] .docs-layout{grid-template-columns:360px minmax(0,1fr)}
+  body[data-shell-page="docs"] .docs-hero-text{max-width:1560px}
+  body[data-shell-page="docs"] .docs-content{padding-inline:clamp(48px,4vw,96px)}
+  body[data-shell-page="docs"] .docs-option-grid{grid-template-columns:repeat(auto-fit,minmax(340px,1fr))}
+}
+
+/* ==========================================================================
+   ONE FLAT SURFACE + STATIC SIDEBAR (2026-08-21)
+   a) every stacked gradient (body wash, fixed ::before/::after glow layers,
+      shell, layout, hero, article, code card) collapses to one flat colour:
+        page = Dirty White #EFE9E9, hero = Midnight Blue #1E223D
+   b) the sidebar becomes the tutorials-style floating card and stops being
+      sticky — it scrolls away with the page.
+   ========================================================================== */
+
+/* ---- a) flat surface ---- */
+body.has-site-shell[data-shell-page="docs"]{
+  background:#EFE9E9!important;
+  color:var(--docs-muted);
+}
+body[data-shell-page="docs"]::before,
+body[data-shell-page="docs"]::after{display:none}
+body[data-shell-page="docs"] .docs-page{background:#EFE9E9}
+body[data-shell-page="docs"] .docs-expanded-shell{
+  background:#EFE9E9;
+  border-color:rgba(var(--docs-blue-rgb),.1);
+}
+body[data-shell-page="docs"] .docs-hero{background:#1E223D}
+body[data-shell-page="docs"] .docs-hero::before,
+body[data-shell-page="docs"] .docs-hero::after{display:none}
+body[data-shell-page="docs"] .docs-layout{background:#EFE9E9}
+body[data-shell-page="docs"] .docs-article{background:#ffffff}
+body[data-shell-page="docs"] .docs-code-card{background:#1E223D}
+
+/* ---- b) sidebar: tutorials-style card, not sticky ---- */
+body[data-shell-page="docs"] .docs-sidebar{
+  position:static;
+  top:auto;
+  height:auto;
+  max-height:none;
+  align-self:start;
+  margin:22px 0 22px 22px;
+  padding:16px 12px;
+  border:1px solid rgba(var(--docs-blue-rgb),.12);
+  border-right:1px solid rgba(var(--docs-blue-rgb),.12);
+  border-radius:20px;
+  background:rgba(255,255,255,.72);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  box-shadow:0 18px 44px rgba(30,34,61,.07);
+  overflow:visible;
+}
+body[data-shell-page="docs"] .docs-sidebar-link{
+  border-radius:10px;
+  margin:0 6px 2px;
+  padding:8px 12px;
+  font-size:12.5px;
+}
+body[data-shell-page="docs"] .docs-sidebar-link.is-active{
+  background:rgba(var(--docs-orange-rgb),.09);
+  color:var(--docs-ink);
+  font-weight:750;
+}
+@media(max-width:1100px){
+  body[data-shell-page="docs"] .docs-sidebar{
+    position:static;
+    margin:16px;
+    border-radius:16px;
+  }
+}
+
+/* ==========================================================================
+   SIDEBAR: follow the scroll (2026-08-21b)
+   The card must stay visible while reading, exactly like the tutorials rail.
+   For sticky to work inside .docs-layout's grid the item must not stretch —
+   align-self:start is what makes it possible; the old rule faked it with a
+   100vh height and a full-bleed column instead.
+   ========================================================================== */
+body[data-shell-page="docs"] .docs-layout{align-items:start}
+body[data-shell-page="docs"] .docs-sidebar{
+  position:sticky!important;
+  top:calc(66px + 20px)!important;
+  align-self:start;
+  height:auto!important;
+  max-height:calc(100vh - 66px - 40px)!important;
+  margin:20px 0 24px 20px;
+  padding:18px 12px;
+  border:1px solid rgba(var(--docs-blue-rgb),.12);
+  border-right:1px solid rgba(var(--docs-blue-rgb),.12);
+  border-radius:20px;
+  background:rgba(255,255,255,.78);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  box-shadow:0 18px 44px rgba(30,34,61,.08);
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  scrollbar-width:thin;
+}
+body[data-shell-page="docs"] .docs-content{padding-block:34px 76px}
+@media(max-width:1100px){
+  body[data-shell-page="docs"] .docs-sidebar{
+    position:static!important;
+    max-height:none!important;
+    margin:16px;
+    overflow-x:auto!important;
+  }
+}
+
+/* .docs-expanded-shell has overflow:hidden (it clips its 32px radius). Any
+   overflow other than visible on an ancestor makes position:sticky useless —
+   the sidebar was scrolling away because of it. Clip-path keeps the rounded
+   corners without creating a scroll container. */
+body[data-shell-page="docs"] .docs-expanded-shell{
+  overflow:visible!important;
+  border-radius:26px;
+}

@@ -14,8 +14,8 @@
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="img/logo.png?v=20260815logo" />
-  <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-logo-192.png?v=20260815logo">
-  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-logo-180.png?v=20260815logo">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/favicon-logo-192.png?v=20260815logo">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/favicon-logo-180.png?v=20260815logo">
   
   <meta name="theme-color" content="#0a0a0a" />
 
@@ -825,6 +825,7 @@
   </style>
   <link rel="stylesheet" href="site-shell.css?v=20260819palette2" />
   <link rel="stylesheet" href="tx-menu.css?v=20260819palette2">
+  <link rel="stylesheet" href="docs-palette.css?v=20260821polish">
   <!-- Google Tag Manager -->
   <script>
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -841,7 +842,46 @@
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
   <!-- End Google Tag Manager (noscript) -->
-  <div data-site-shell="nav"></div>
+  <header class="site-header" data-header>
+    <div class="shell nav-shell">
+      <a class="brand" href="/" aria-label="TimrX home"><img src="img/logo.png?v=20260815logo" width="44" height="44" alt=""><span>Timr<span>X</span></span></a>
+      <nav class="desktop-nav" aria-label="Primary navigation">
+        <a href="/">Home</a><a href="/3dprint" data-track="nav_create">Create</a><a href="/community" data-track="nav_community">Community</a><a href="/tutorials" data-track="nav_tutorials">Tutorials</a><a href="/docs" aria-current="page" data-track="nav_docs">Docs</a><a href="/hub#pricing" data-track="nav_pricing">Pricing</a><a href="/blogs" data-track="nav_blog">Blog</a><a href="/hub" data-track="nav_dashboard">Dashboard</a>
+      </nav>
+      <a class="button button-small desktop-cta" href="/3dprint" data-track="nav_open_workspace">Open Workspace <span aria-hidden="true">↗</span></a>
+      <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
+    </div>
+  </header>
+
+  <!-- Mobile menu — shared component (tx-menu.css / js/shared/tx-menu.js) -->
+  <div class="tx-menu" id="txMenu" aria-hidden="true" data-tx-menu>
+    <div class="tx-menu-panel">
+      <div class="tx-menu-head">
+        <span class="tx-menu-brand" aria-hidden="true">
+          <img src="img/logo.png?v=20260815logo" width="34" height="34" alt="">
+          <span>T<span>X</span></span>
+        </span>
+        <button class="tx-menu-close" type="button" aria-label="Close menu" data-tx-menu-close><span></span><span></span></button>
+      </div>
+      <nav class="tx-menu-links" aria-label="Mobile navigation">
+        <a href="/"><span>Home</span><small>Product overview and free trial</small></a>
+        <a href="/3dprint" data-track="mobile_create"><span>Create</span><small>Open the TimrX workspace</small></a>
+        <a href="/community"><span>Community</span><small>Showcase, creators and discovery</small></a>
+        <a href="/tutorials"><span>Tutorials</span><small>Guides, flows and walkthroughs</small></a>
+        <a href="/docs" aria-current="page"><span>Docs</span><small>Reference, support and how-tos</small></a>
+        <a href="/hub#pricing"><span>Pricing</span><small>Credits, packs and subscriptions</small></a>
+        <a href="/blogs"><span>Blog</span><small>Guides, updates and product notes</small></a>
+        <a href="/hub"><span>Dashboard</span><small>Account, credits and billing</small></a>
+      </nav>
+      <a class="tx-menu-cta" href="/3dprint" data-track="mobile_open_workspace">Open Workspace <span aria-hidden="true">↗</span></a>
+      <div class="tx-menu-foot" data-tx-menu-watermark="TimrX creative platform">
+        <a href="/ai-tools">Tools</a>
+        <a href="/converter">Converter</a>
+        <a href="/stl-library">STL Library</a>
+        <a href="/company">Company</a>
+      </div>
+    </div>
+  </div>
 
   <div class="docs-page">
     <!-- Breadcrumb -->
@@ -861,6 +901,15 @@
           <span class="docs-pill">Documentation</span>
           <h1 class="docs-title">TimrX Documentation — AI Tools, Assets and Credits</h1>
           <p>Everything you need to know about TimrX — generation tools, My Assets, Inspire, Community, print prep, exports, pricing, credits and workflows.</p>
+          <div class="docs-hero-actions" aria-label="Primary documentation actions">
+            <a href="/3dprint">Open Workspace <span aria-hidden="true">&#8594;</span></a>
+            <a href="/hub#pricing">View Pricing <span aria-hidden="true">&#8594;</span></a>
+          </div>
+          <div class="docs-hero-metrics" aria-label="Documentation coverage">
+            <div><strong>18</strong><span>Workflow Guides</span></div>
+            <div><strong>6</strong><span>Core Formats</span></div>
+            <div><strong>24/7</strong><span>Self-Serve Help</span></div>
+          </div>
         </div>
         <a href="/hub" class="docs-back-link">Hub &#8592;</a>
         <span class="docs-watermark">DOCS</span>
@@ -1701,5 +1750,10 @@ print(f"Status: {status['status']}")</code></pre>
 
 
   <script type="module" src="js/analytics.js"></script>
+  <script>
+    (function(){var h=document.querySelector('.site-header[data-header]');if(!h)return;
+      var f=function(){h.classList.toggle('is-scrolled',window.scrollY>8)};f();
+      window.addEventListener('scroll',f,{passive:true});})();
+  </script>
 </body>
 </html>

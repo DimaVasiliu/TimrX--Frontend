@@ -13,8 +13,8 @@
   <link rel="alternate" hreflang="en-gb" href="https://timrx.live/">
   <link rel="alternate" hreflang="x-default" href="https://timrx.live/">
   <link rel="icon" type="image/png" sizes="32x32" href="img/favicon-logo-32.png?v=20260815logo">
-  <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-logo-192.png?v=20260815logo">
-  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-logo-180.png?v=20260815logo">
+  <link rel="icon" type="image/png" sizes="192x192" href="img/favicon-logo-192.png?v=20260815logo">
+  <link rel="apple-touch-icon" sizes="180x180" href="img/favicon-logo-180.png?v=20260815logo">
   <link rel="icon" type="image/png" sizes="16x16" href="img/favicon-logo-16.png?v=20260815logo">
 
   <link rel="manifest" href="site.webmanifest">
@@ -59,10 +59,10 @@
   <link rel="stylesheet" href="fonts/fonts.css">
   <link rel="stylesheet" href="landing.css?v=20260820viewerfill3">
   <link rel="stylesheet" href="hero-assistant.css?v=20260816stablehero">
-  <link rel="stylesheet" href="landing-widgets.css?v=20260813sync">
+  <link rel="stylesheet" href="landing-widgets.css?v=20260821blogfeed">
   <link rel="stylesheet" href="homepage-responsive.css?v=20260820viewerfill2">
   <link rel="stylesheet" href="tx-menu.css?v=20260819palette2">
-  <link rel="stylesheet" href="index-palette.css?v=20260820communitycards">
+  <link rel="stylesheet" href="index-palette.css?v=20260821onemodel">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" integrity="sha384-/o6I2CkkWC//PSjvWC/eYN7l3xM3tJm8ZzVkCOfp//W05QcE3mlGskpoHB6XqI+B" crossorigin="anonymous" referrerpolicy="no-referrer"></noscript>
   <script>window.dataLayer=window.dataLayer||[];</script>
@@ -153,8 +153,8 @@
             </a>
             <a class="hero-cap-card hero-cap-card--feature hero-cap-card--model" href="/text-to-3d" data-track="hero_capability_3d">
               <span class="hero-card-media hero-model-stage" aria-hidden="true" data-hero-media="model">
-                <img class="hero-model-poster" src="img/model-posters/mod5.png" alt="" loading="lazy" decoding="async">
-                <model-viewer src="vid/models/mod5.glb" poster="img/model-posters/mod5.png" auto-rotate auto-rotate-delay="0" rotation-per-second="20deg" disable-zoom disable-pan interaction-prompt="none" environment-image="neutral" exposure="1.05" shadow-intensity=".55" loading="lazy" reveal="auto"></model-viewer>
+                <img class="hero-model-poster" src="vid/image-to-3d/toy-robot.png" alt="" loading="lazy" decoding="async">
+                <model-viewer src="vid/image-to-3d/toy-robot.glb" poster="vid/image-to-3d/toy-robot.png" auto-rotate auto-rotate-delay="0" rotation-per-second="20deg" disable-zoom disable-pan interaction-prompt="none" environment-image="neutral" exposure="1.05" shadow-intensity=".55" loading="lazy" reveal="auto"></model-viewer>
                 <span class="hero-model-hologram hero-model-hologram--one"></span>
                 <span class="hero-model-hologram hero-model-hologram--two"></span>
                 <span class="hero-model-hologram hero-model-hologram--three"></span>
@@ -687,10 +687,13 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
             <p class="insight-tagline">Build better · Learn faster · Create more</p>
           </div>
         </div>
-        <div class="insight-grid" data-blog-feed aria-live="polite">
-          <article class="insight-card is-loading"><div class="insight-thumb"></div><div class="insight-body"><h3>Loading article</h3><p>Loading article excerpt</p><div class="insight-meta">Loading</div></div></article>
-          <article class="insight-card is-loading"><div class="insight-thumb"></div><div class="insight-body"><h3>Loading article</h3><p>Loading article excerpt</p><div class="insight-meta">Loading</div></div></article>
-          <article class="insight-card is-loading"><div class="insight-thumb"></div><div class="insight-body"><h3>Loading article</h3><p>Loading article excerpt</p><div class="insight-meta">Loading</div></div></article>
+        <div class="insight-grid insight-grid--split" data-blog-feed aria-live="polite">
+          <article class="insight-card insight-card--featured is-loading"><div class="insight-thumb"></div><div class="insight-body"><h3>Loading article</h3><p>Loading article excerpt</p><div class="insight-meta">Loading</div></div></article>
+          <div class="insight-side">
+            <article class="insight-card is-loading"><div class="insight-body"><h3>Loading article</h3><div class="insight-meta">Loading</div></div></article>
+            <article class="insight-card is-loading"><div class="insight-body"><h3>Loading article</h3><div class="insight-meta">Loading</div></div></article>
+            <article class="insight-card is-loading"><div class="insight-body"><h3>Loading article</h3><div class="insight-meta">Loading</div></div></article>
+          </div>
         </div>
         <nav class="insight-links" aria-label="Browse the blog">
           <span class="insight-links-cap">Browse articles</span>
@@ -763,9 +766,9 @@ curl -X GET "https://3d.timrx.live/api/download/{task_id}" \
   </script>
   <script src="app.js?v=20260813sync" defer></script>
   <script src="hero-assistant.js?v=20260816stablehero" defer></script>
-  <script src="js/hero-card-media.js?v=1" defer></script>
+  <script src="js/hero-card-media.js?v=20260821onemodel" defer></script>
   <script src="js/hero-feature-scenes.js?v=20260820fxc-shapes" defer></script>
-  <script src="landing-widgets.js?v=20260813sync" defer></script>
+  <script src="landing-widgets.js?v=20260821blogfeed" defer></script>
   <script src="js/shared/tx-menu.js?v=20260818mobile" defer></script>
   <script src="landing.js?v=20260820corners2" defer></script>
   <script type="module" src="js/model-viewer-3.5.0.module.min.js"></script>

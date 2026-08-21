@@ -29,33 +29,54 @@
     return Number.isNaN(date.getTime()) ? 'Recent' : date.toLocaleDateString('en-GB', { month:'short', year:'numeric' });
   }
 
-  function renderPost(post){
+  function renderPost(post, opts){
+    const featured = opts && opts.featured;
     const tag = (post.tags || '').split(',').map(t => t.trim()).filter(Boolean)[0] || 'TimrX';
     const fallbackCover = 'https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=1400&auto=format&fit=crop';
     const href = localHref(`/blog/${encodeURIComponent(post.slug || '')}`);
     const coverAlt = post.cover_alt || post.title || `${tag} article cover image`;
-    return `<a class="insight-card reveal is-visible" href="${href}">
-      <div class="insight-thumb"><img src="${esc(post.cover_url || fallbackCover)}" alt="${esc(coverAlt)}" loading="lazy" decoding="async"><span class="insight-pill">${esc(tag)}</span></div>
-      <div class="insight-body"><h3>${esc(post.title || 'Untitled article')}</h3><p>${esc(post.excerpt || 'Read the latest TimrX update.')}</p><div class="insight-meta">${esc(postDate(post))} · ${readTime(post)} min</div></div>
+    if(featured){
+      return `<a class="insight-card insight-card--featured reveal is-visible" href="${href}">
+        <div class="insight-thumb"><img src="${esc(post.cover_url || fallbackCover)}" alt="${esc(coverAlt)}" loading="lazy" decoding="async"><span class="insight-pill">${esc(tag)}</span><span class="insight-flag">Featured</span></div>
+        <div class="insight-body"><h3>${esc(post.title || 'Untitled article')}</h3><p>${esc(post.excerpt || 'Read the latest TimrX update.')}</p><div class="insight-meta">${esc(postDate(post))} · ${readTime(post)} min<span class="insight-cta">Read article <span aria-hidden="true">→</span></span></div></div>
+      </a>`;
+    }
+    return `<a class="insight-row reveal is-visible" href="${href}">
+      <span class="insight-row-thumb"><img src="${esc(post.cover_url || fallbackCover)}" alt="${esc(coverAlt)}" loading="lazy" decoding="async"></span>
+      <span class="insight-row-body"><span class="insight-row-tag">${esc(tag)}</span><strong>${esc(post.title || 'Untitled article')}</strong><span class="insight-row-meta">${esc(postDate(post))} · ${readTime(post)} min</span></span>
+      <span class="insight-row-arrow" aria-hidden="true">→</span>
     </a>`;
+  }
+
+  function renderFeed(posts){
+    const featured = renderPost(posts[0], {featured:true});
+    const rest = posts.slice(1, 5);
+    const side = rest.length
+      ? `<div class="insight-side"><span class="insight-side-cap">More from the blog</span>${rest.map(p => renderPost(p)).join('')}<a class="insight-side-all" href="${localHref('/blogs')}">View all posts <span aria-hidden="true">→</span></a></div>`
+      : '';
+    return featured + side;
   }
 
   async function loadBlogFeed(){
     const grid = document.querySelector('[data-blog-feed]');
     if(!grid) return;
     try{
-      const response = await fetch(`${blogBase}/api/posts?page=1&size=3`, { cache:'no-store' });
+      const response = await fetch(`${blogBase}/api/posts?page=1&size=5`, { cache:'no-store' });
       if(!response.ok) throw new Error(`Blog API ${response.status}`);
       const data = await response.json();
       const posts = data.items || data.posts || [];
       if(!posts.length) throw new Error('No posts returned');
-      grid.innerHTML = posts.slice(0,3).map(renderPost).join('');
+      grid.classList.add('insight-grid--split');
+      grid.innerHTML = renderFeed(posts.slice(0, 5));
     }catch(error){
-      grid.innerHTML = [
+      grid.classList.add('insight-grid--split');
+      grid.innerHTML = renderFeed([
         {slug:'timrx-ai-generation-hub',title:'Build faster creative workflows with TimrX',excerpt:'How image, video and 3D generation fit together in one browser workspace.',tags:'TimrX,Workflow'},
         {slug:'prompt-to-print-workflow',title:'From prompt to print-ready model',excerpt:'A practical path from text or image prompts to usable STL, OBJ, GLB and 3MF exports.',tags:'3D Printing'},
-        {slug:'creative-technology-notes',title:'Creative technology notes from Dima',excerpt:'Design, engineering and 3D workflow lessons from building production web products.',tags:'Founder'}
-      ].map(renderPost).join('');
+        {slug:'creative-technology-notes',title:'Creative technology notes from Dima',excerpt:'Design, engineering and 3D workflow lessons from building production web products.',tags:'Founder'},
+        {slug:'rendering-3d-in-the-browser',title:'Rendering 3D in the browser: a technical teardown',excerpt:'How TimrX renders complex GLB and OBJ files with Three.js.',tags:'3D Rendering'},
+        {slug:'ai-models-production-ready',title:'Why most AI 3D models are not production-ready',excerpt:'What real-world workflows demand and how browser tools help.',tags:'Production'}
+      ]);
     }
   }
 

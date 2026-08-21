@@ -676,6 +676,8 @@ body[data-shell-page="hub"] .mode-pill.active{
 }
 
 body[data-shell-page="hub"] .credits-info-trigger{
+  width:18px;
+  min-width:18px;
   color:rgba(var(--hub-yellow-rgb),.68);
 }
 
@@ -685,9 +687,16 @@ body[data-shell-page="hub"] .credits-info-trigger:focus{
 }
 
 body[data-shell-page="hub"] .credits-info-popover{
+  display:none;
   border-color:rgba(var(--hub-yellow-rgb),.2);
   background:linear-gradient(145deg,#15151b,#101211);
   box-shadow:0 18px 44px rgba(0,0,0,.54);
+}
+
+body[data-shell-page="hub"] .credits-info-trigger:hover .credits-info-popover,
+body[data-shell-page="hub"] .credits-info-trigger:focus .credits-info-popover,
+body[data-shell-page="hub"] .credits-info-trigger:focus-within .credits-info-popover{
+  display:block;
 }
 
 body[data-shell-page="hub"] .credits-info-popover .popover-arrow{
@@ -1385,5 +1394,46 @@ body[data-shell-page="hub"] .calc-item-detail{
   body[data-shell-page="hub"] .dashboard-estimates,
   body[data-shell-page="hub"] .dashboard-account-actions{
     grid-template-columns:1fr;
+  }
+}
+
+/* Final audit polish: keep the dashboard hero and pricing controls contained. */
+body[data-shell-page="hub"] .dashboard-hero h1{
+  max-width:620px;
+}
+
+body[data-shell-page="hub"] .price-card{
+  min-width:0;
+}
+
+body[data-shell-page="hub"] .pc-features li,
+body[data-shell-page="hub"] .pc-note,
+body[data-shell-page="hub"] .pricing-cta{
+  max-width:100%;
+}
+
+@media(max-width:760px){
+  body[data-shell-page="hub"] .credits-info-popover{
+    left:50%!important;
+    right:auto!important;
+    width:min(320px,calc(100vw - 32px));
+    transform:translateX(-50%);
+  }
+
+  body[data-shell-page="hub"] .credits-info-popover .popover-arrow{
+    left:50%;
+    right:auto;
+    transform:translateX(-50%) rotate(45deg);
+  }
+
+  body[data-shell-page="hub"] .price-card{
+    padding-inline:20px;
+  }
+}
+
+@media(max-width:620px){
+  body[data-shell-page="hub"] .dashboard-hero h1{
+    font-size:clamp(38px,11.5vw,52px);
+    letter-spacing:-.055em;
   }
 }
