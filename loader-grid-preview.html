@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- Favicon / app icons -->
+  <link rel="icon" href="/favicon.ico?v=20260822head" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="/img/favicon-logo-16.png?v=20260822head">
+  <link rel="icon" type="image/png" sizes="32x32" href="/img/favicon-logo-32.png?v=20260822head">
+  <link rel="icon" type="image/png" sizes="48x48" href="/img/favicon-logo-48.png?v=20260822head">
+  <link rel="icon" type="image/png" sizes="192x192" href="/img/favicon-logo-192.png?v=20260822head">
+  <link rel="apple-touch-icon" sizes="180x180" href="/img/favicon-logo-180.png?v=20260822head">
+  <meta name="msapplication-TileImage" content="/img/favicon-logo-192.png?v=20260822head">
+<title>TimrX loader — orbit grid preview</title>
+<!--
+  DROP THIS AT THE FRONTEND ROOT, next to 3dprint.html, and open it.
+  Every path below is the real one, so what you see is what 3dprint.html
+  will do. Nothing here is needed in production — delete it when you are done.
+  Reload to replay the boot.
+-->
+<link rel="stylesheet" href="/fonts/fonts.css">
+<link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css">
+<link rel="stylesheet" href="3dprint-modules/css/workspace-loader-grid.css">
+<style>
+  :root{ --accent-blue-rgb:127,200,194; --text:#f2f5f3; }
+  html,body{height:100%;margin:0;background:#0d1211;color:#e9efee;
+    font-family:Inter,system-ui,sans-serif}
+  .stand-in{display:grid;place-items:center;height:100%;
+    background:
+      linear-gradient(rgba(255,255,255,.03) 1px,transparent 1px) 0 0/40px 40px,
+      linear-gradient(90deg,rgba(255,255,255,.03) 1px,transparent 1px) 0 0/40px 40px,
+      #0d1211;
+    font-size:13px;letter-spacing:.3em;text-transform:uppercase;
+    color:rgba(255,255,255,.22)}
+</style>
+</head>
+<body class="print3d-page">
+<script>document.body.classList.add('has-ws-loader');</script>
+
+<!-- ===================================================================== -->
+<!-- 3dprint.html's loader block verbatim. The orbit grid is not in the      -->
+<!-- markup - workspace-loader-grid.js injects it into .__scene, so that    -->
+<!-- empty div is load-bearing.     -->
+<!-- ===================================================================== -->
+<div class="workspace-loader" id="workspaceLoader" role="status" aria-live="polite"
+     aria-label="Preparing TimrX workspace" data-grid-base="img/">
+  <div class="workspace-loader__floor" aria-hidden="true"></div>
+  <div class="workspace-loader__scene"></div>
+  <div class="workspace-loader__meter" aria-hidden="true">
+    <div class="workspace-loader__progress">
+      <span class="workspace-loader__bar" data-loader-bar></span>
+    </div>
+    <p class="workspace-loader__percent" data-loader-percent>00</p>
+    <p class="workspace-loader__status" data-loader-status>Initializing</p>
+  </div>
+</div>
+
+<div class="stand-in">workspace</div>
+
+<!-- ===================================================================== -->
+<!-- Fail loudly. Every path in this file is relative to the Frontend root, -->
+<!-- so opening it from anywhere else (Downloads, Desktop) silently 404s    -->
+<!-- the stylesheet and you get unstyled markup with no clue why.          -->
+<!-- ===================================================================== -->
+<script>
+(function () {
+  window.addEventListener('load', function () {
+    /* workspace-loader.css sets position:fixed on .workspace-loader. If it is
+       still static, the stylesheet did not arrive. */
+    var el = document.getElementById('workspaceLoader');
+    if (!el || getComputedStyle(el).position === 'fixed') return;
+    document.documentElement.innerHTML =
+      '<body style="margin:0;display:grid;place-items:center;height:100vh;' +
+      'background:#0d1211;color:#e9efee;font:15px/1.7 Inter,system-ui,sans-serif;' +
+      'text-align:center;padding:24px">' +
+      '<div style="max-width:52ch">' +
+      '<p style="font-size:13px;letter-spacing:.22em;text-transform:uppercase;' +
+      'color:rgba(127,200,194,.9);font-weight:700">Wrong folder</p>' +
+      '<p>This preview loads the real loader by relative path, so it has to sit ' +
+      'at the <b>Frontend root, next to 3dprint.html</b>.</p>' +
+      '<p style="color:rgba(230,238,236,.5)">It is currently at:<br>' +
+      '<code style="color:#e9efee">' + location.pathname + '</code></p>' +
+      '<p style="color:rgba(230,238,236,.5)">Move it beside <code>3dprint.html</code> ' +
+      'and reload. Make sure <code>3dprint-modules/css/workspace-loader-grid.css</code> ' +
+      'and <code>js/workspace-loader-grid.js</code> are in place too.</p>' +
+      '</div></body>';
+  });
+})();
+</script>
+
+<script defer src="js/workspace-loader.js"></script>
+<script defer src="js/workspace-loader-grid.js"></script>
+</body>
+</html>

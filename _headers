@@ -103,6 +103,7 @@
 
 /*.ico
   Content-Type: image/x-icon
+  Cache-Control: public, max-age=86400
 
 # Versioned CSS/JS — long cache (cache-busted via ?v= param)
 /styles.css
