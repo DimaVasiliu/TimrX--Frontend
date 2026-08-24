@@ -113,7 +113,29 @@
     const sendButton = panel.querySelector('#chatSend');
     const history = [];
     let closingTimer = null;
+    let fitTimerA = null;
+    let fitTimerB = null;
     let isSending = false;
+    const mobileChatQuery = window.matchMedia('(max-width: 820px)');
+    const coarsePointerQuery = window.matchMedia('(pointer: coarse)');
+
+    function shouldAutoFocusChat(){
+      return !mobileChatQuery.matches && !coarsePointerQuery.matches;
+    }
+
+    function clearViewportVars(){
+      ['--chat-visual-width','--chat-visual-height','--chat-visual-top','--chat-visual-left','--chat-keyboard-offset'].forEach(prop => panel.style.removeProperty(prop));
+      panel.classList.remove('has-keyboard');
+    }
+
+    function scheduleFitPanel(){
+      if(panel.hidden) return;
+      fitPanelToViewport();
+      clearTimeout(fitTimerA);
+      clearTimeout(fitTimerB);
+      fitTimerA = setTimeout(fitPanelToViewport, 140);
+      fitTimerB = setTimeout(fitPanelToViewport, 420);
+    }
 
     function setOpen(open){
       clearTimeout(closingTimer);
@@ -122,25 +144,51 @@
       document.body.classList.toggle('chat-open', open);
       if(open){
         panel.hidden = false; backdrop.hidden = false;
-        requestAnimationFrame(()=>{panel.classList.add('is-open');backdrop.classList.add('is-open')});
-        setTimeout(()=>{input.focus({preventScroll:true}); fitPanelToViewport();}, 80);
+        requestAnimationFrame(()=>{
+          panel.classList.add('is-open');
+          backdrop.classList.add('is-open');
+          scheduleFitPanel();
+        });
+        setTimeout(()=>{
+          if(shouldAutoFocusChat()) input.focus({preventScroll:true});
+          scheduleFitPanel();
+        }, 80);
       }else{
+        clearTimeout(fitTimerA);
+        clearTimeout(fitTimerB);
         panel.classList.remove('is-open'); backdrop.classList.remove('is-open');
-        panel.classList.remove('has-keyboard');
+        clearViewportVars();
         closingTimer = setTimeout(()=>{panel.hidden = true; backdrop.hidden = true}, 240);
       }
     }
     function fitPanelToViewport(){
+      if(panel.hidden) return;
       const viewport = window.visualViewport;
+      const root = document.documentElement;
+      const layoutHeight = Math.round(window.innerHeight || root.clientHeight || 0);
+      const layoutWidth = Math.round(window.innerWidth || root.clientWidth || 0);
       if(!viewport){
-        panel.style.removeProperty('--chat-keyboard-offset');
+        panel.style.setProperty('--chat-visual-width', `${layoutWidth}px`);
+        panel.style.setProperty('--chat-visual-height', `${layoutHeight}px`);
+        panel.style.setProperty('--chat-visual-top', '0px');
+        panel.style.setProperty('--chat-visual-left', '0px');
+        panel.style.setProperty('--chat-keyboard-offset', '0px');
         panel.classList.remove('has-keyboard');
         return;
       }
-      const keyboardOffset = Math.max(0, Math.round(window.innerHeight - viewport.height - viewport.offsetTop));
+      const visualWidth = Math.max(1, Math.round(viewport.width || layoutWidth));
+      const visualHeight = Math.max(1, Math.round(viewport.height || layoutHeight));
+      const visualTop = Math.max(0, Math.round(viewport.offsetTop || 0));
+      const visualLeft = Math.max(0, Math.round(viewport.offsetLeft || 0));
+      const keyboardOffset = Math.max(0, Math.round(layoutHeight - visualHeight - visualTop));
       const focused = document.activeElement === input;
-      panel.style.setProperty('--chat-keyboard-offset', `${Math.min(keyboardOffset, 360)}px`);
-      panel.classList.toggle('has-keyboard', focused && keyboardOffset > 80);
+      const compactViewport = mobileChatQuery.matches && layoutHeight > 0 && visualHeight < layoutHeight * 0.82;
+      panel.style.setProperty('--chat-visual-width', `${visualWidth}px`);
+      panel.style.setProperty('--chat-visual-height', `${visualHeight}px`);
+      panel.style.setProperty('--chat-visual-top', `${visualTop}px`);
+      panel.style.setProperty('--chat-visual-left', `${visualLeft}px`);
+      panel.style.setProperty('--chat-keyboard-offset', `${Math.min(keyboardOffset, 440)}px`);
+      panel.classList.toggle('has-keyboard', focused && (keyboardOffset > 72 || compactViewport));
     }
     function scroll(){requestAnimationFrame(()=>{body.scrollTop = body.scrollHeight})}
     function formatChat(text){
@@ -208,7 +256,7 @@
       }finally{
         isSending = false;
         if(sendButton) sendButton.disabled = false;
-        fitPanelToViewport();
+        scheduleFitPanel();
       }
     }
     button.addEventListener('click',()=>setOpen(true));
@@ -225,10 +273,12 @@
       input.style.height = 'auto';
       input.style.height = `${Math.min(input.scrollHeight, 130)}px`;
     });
-    input.addEventListener('focus', fitPanelToViewport);
-    input.addEventListener('blur', () => setTimeout(fitPanelToViewport, 80));
-    window.visualViewport?.addEventListener('resize', fitPanelToViewport);
-    window.visualViewport?.addEventListener('scroll', fitPanelToViewport);
+    input.addEventListener('focus', scheduleFitPanel);
+    input.addEventListener('blur', () => setTimeout(scheduleFitPanel, 120));
+    window.addEventListener('resize', scheduleFitPanel);
+    window.addEventListener('orientationchange', () => setTimeout(scheduleFitPanel, 220));
+    window.visualViewport?.addEventListener('resize', scheduleFitPanel);
+    window.visualViewport?.addEventListener('scroll', scheduleFitPanel);
   }
 
   document.addEventListener('DOMContentLoaded', () => {

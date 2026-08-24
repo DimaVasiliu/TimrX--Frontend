@@ -486,6 +486,324 @@ body.ws-panel-open .ws-dock__chip--adv .c-ico,
   .ws-hero__hint { font-size: 12px; padding: 6px 11px; }
 }
 
+/* Real mobile browsers reserve less usable space than DevTools reports. Keep
+   the command dock compact, wrap its controls predictably, and leave the hero
+   scrollable above it. */
+@media (max-width: 768px) {
+  body.ws-mobile-scrolled:not(.ws-viewer-open):not(.assets-modal-open):not(.ws-panel-open):not(.menu-open):not(.ws-cmd-open):not(.has-modal):not(.print-panel-open) .ws-header.nav-hidden {
+    transform: translate3d(0, -120%, 0) !important;
+    pointer-events: none;
+  }
+
+  .ws-dock {
+    width: min(100vw - 18px, 520px);
+    bottom: calc(max(8px, env(safe-area-inset-bottom, 0px)) + var(--ws-keyboard-inset, 0px));
+  }
+
+  .ws-dock__card {
+    padding: 8px;
+    border-radius: 20px;
+  }
+
+  .ws-dock__row {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .ws-dock__agent {
+    width: 44px;
+    height: 50px;
+    border-radius: 14px;
+  }
+
+  .ws-dock__prompt {
+    min-width: 0;
+    height: 50px;
+    padding: 8px 0 7px;
+    font-size: 14px;
+    line-height: 1.25;
+  }
+
+  .ws-dock__generate {
+    height: 50px;
+    min-width: 112px;
+    padding: 0 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    gap: 7px;
+  }
+
+  .ws-dock__generate .ws-dock__cost {
+    margin-left: 0;
+  }
+
+  .ws-dock__generate svg {
+    width: 18px;
+    height: 18px;
+  }
+
+  .ws-dock__chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .ws-dock__chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ws-dock__chip {
+    flex: none;
+    justify-content: center;
+    min-width: 0;
+    max-width: none;
+    width: 100%;
+    padding: 7px 9px;
+    font-size: 12px;
+  }
+
+  .ws-dock__chip .c-val {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock {
+    width: min(100vw - 14px, 520px);
+    bottom: calc(max(6px, env(safe-area-inset-bottom, 0px)) + var(--ws-keyboard-inset, 0px));
+  }
+
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__card {
+    padding: 6px;
+    border-radius: 18px;
+  }
+
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__row {
+    grid-template-columns: 38px minmax(0, 1fr) 88px;
+    gap: 6px;
+  }
+
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__agent,
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__prompt,
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__generate {
+    height: 44px;
+  }
+
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__agent {
+    width: 38px;
+  }
+
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__generate {
+    min-width: 88px;
+    padding-inline: 9px;
+    border-radius: 14px;
+    font-size: 12px;
+  }
+
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__generate .ws-dock__cost {
+    display: none;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1000px) {
+  .ws-dock {
+    width: min(720px, calc(100vw - 28px));
+    bottom: max(12px, env(safe-area-inset-bottom, 0px));
+  }
+
+  .ws-dock__chips {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 390px) {
+  .ws-dock {
+    width: calc(100vw - 14px);
+  }
+
+  .ws-dock__card {
+    padding: 7px;
+  }
+
+  .ws-dock__row {
+    grid-template-columns: 40px minmax(0, 1fr) 86px;
+    gap: 7px;
+  }
+
+  .ws-dock__agent,
+  .ws-dock__prompt,
+  .ws-dock__generate {
+    height: 48px;
+  }
+
+  .ws-dock__agent {
+    width: 40px;
+  }
+
+  .ws-dock__generate {
+    width: 86px;
+    min-width: 0;
+    padding-inline: 8px;
+    font-size: 12px;
+  }
+
+  .ws-dock__generate .ws-dock__cost {
+    display: none;
+  }
+
+  .ws-dock__chip {
+    min-width: 0;
+    padding-inline: 7px;
+    font-size: 11.5px;
+  }
+
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__row {
+    grid-template-columns: 36px minmax(0, 1fr) 78px;
+  }
+
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__agent {
+    width: 36px;
+  }
+
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__agent,
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__prompt,
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__generate {
+    height: 42px;
+  }
+
+  body.ws-mobile-scrolled:not(.ws-keyboard-open) .ws-dock__generate {
+    min-width: 78px;
+    width: 78px;
+    font-size: 11.5px;
+  }
+}
+
+@media (max-width: 560px) and (max-height: 760px) {
+  body.print3d-page.ws-dock-on:not(.ws-viewer-open):not(.ws-panel-open):not(.assets-modal-open):not(.menu-open):not(.ws-cmd-open):not(.has-modal):not(.print-panel-open) .ws-dock {
+    width: calc(100vw - 14px);
+    bottom: calc(max(6px, env(safe-area-inset-bottom, 0px)) + var(--ws-keyboard-inset, 0px));
+  }
+
+  body.print3d-page.ws-dock-on:not(.ws-viewer-open):not(.ws-panel-open):not(.assets-modal-open):not(.menu-open):not(.ws-cmd-open):not(.has-modal):not(.print-panel-open) .ws-dock__card {
+    padding: 6px;
+    border-radius: 18px;
+  }
+
+  body.print3d-page.ws-dock-on:not(.ws-viewer-open):not(.ws-panel-open):not(.assets-modal-open):not(.menu-open):not(.ws-cmd-open):not(.has-modal):not(.print-panel-open) .ws-dock__chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  body.print3d-page.ws-dock-on:not(.ws-viewer-open):not(.ws-panel-open):not(.assets-modal-open):not(.menu-open):not(.ws-cmd-open):not(.has-modal):not(.print-panel-open) .ws-dock__row {
+    grid-template-columns: 36px minmax(0, 1fr) 80px;
+    gap: 6px;
+  }
+
+  body.print3d-page.ws-dock-on:not(.ws-viewer-open):not(.ws-panel-open):not(.assets-modal-open):not(.menu-open):not(.ws-cmd-open):not(.has-modal):not(.print-panel-open) .ws-dock__agent,
+  body.print3d-page.ws-dock-on:not(.ws-viewer-open):not(.ws-panel-open):not(.assets-modal-open):not(.menu-open):not(.ws-cmd-open):not(.has-modal):not(.print-panel-open) .ws-dock__prompt,
+  body.print3d-page.ws-dock-on:not(.ws-viewer-open):not(.ws-panel-open):not(.assets-modal-open):not(.menu-open):not(.ws-cmd-open):not(.has-modal):not(.print-panel-open) .ws-dock__generate {
+    height: 42px;
+  }
+
+  body.print3d-page.ws-dock-on:not(.ws-viewer-open):not(.ws-panel-open):not(.assets-modal-open):not(.menu-open):not(.ws-cmd-open):not(.has-modal):not(.print-panel-open) .ws-dock__agent {
+    width: 36px;
+    border-radius: 13px;
+  }
+
+  body.print3d-page.ws-dock-on:not(.ws-viewer-open):not(.ws-panel-open):not(.assets-modal-open):not(.menu-open):not(.ws-cmd-open):not(.has-modal):not(.print-panel-open) .ws-dock__prompt {
+    padding-block: 7px 6px;
+    font-size: 13px;
+  }
+
+  body.print3d-page.ws-dock-on:not(.ws-viewer-open):not(.ws-panel-open):not(.assets-modal-open):not(.menu-open):not(.ws-cmd-open):not(.has-modal):not(.print-panel-open) .ws-dock__generate {
+    width: 80px;
+    min-width: 0;
+    padding-inline: 8px;
+    border-radius: 14px;
+    font-size: 11.5px;
+  }
+
+  body.print3d-page.ws-dock-on:not(.ws-viewer-open):not(.ws-panel-open):not(.assets-modal-open):not(.menu-open):not(.ws-cmd-open):not(.has-modal):not(.print-panel-open) .ws-dock__generate .ws-dock__cost {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  body.ws-keyboard-open .ws-dock {
+    width: min(100vw - 14px, 520px);
+  }
+
+  body.ws-keyboard-open .ws-dock__card {
+    padding: 6px;
+    border-radius: 18px;
+  }
+
+  body.ws-keyboard-open .ws-dock__chips {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+    margin-top: 6px;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  body.ws-keyboard-open .ws-dock__chip {
+    justify-content: center;
+    min-width: 0;
+    width: 100%;
+    padding: 6px 7px;
+    font-size: 11.5px;
+  }
+
+  body.ws-keyboard-open .ws-dock__chip .c-val {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  body.ws-keyboard-open .ws-dock__row {
+    grid-template-columns: 38px minmax(0, 1fr) 58px;
+    gap: 6px;
+  }
+
+  body.ws-keyboard-open .ws-dock__agent,
+  body.ws-keyboard-open .ws-dock__prompt,
+  body.ws-keyboard-open .ws-dock__generate {
+    height: 44px;
+  }
+
+  body.ws-keyboard-open .ws-dock__agent {
+    width: 38px;
+  }
+
+  body.ws-keyboard-open .ws-dock__generate {
+    min-width: 58px;
+    padding-inline: 10px;
+    font-size: 0;
+  }
+
+  body.ws-keyboard-open .ws-dock__generate .ws-dock__cost {
+    display: none;
+  }
+}
+
 /* ==========================================================================
    REDESIGN PHASE 2 (2026-08-11): stage background, empty-state hero,
    header assets button, right filmstrip, chrome retirement.

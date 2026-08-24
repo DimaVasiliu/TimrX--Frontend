@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>TimrX — Pipeline Story prototype (scroll-driven idea → reality)</title>
+<!-- ==========================================================================
+     PIPELINE STORY — isolated prototype. NOT linked from production.
+     One creation followed through the whole TimrX pipeline:
+
+       PROMPT → UNDERSTAND → GENERATE → REFINE → PRINT CHECK → EXPORT
+
+     Scroll-scrubbed master timeline (0..1) over a sticky stage:
+       0.00–0.15  Scene 1  prompt types itself, submit pulse
+       0.15–0.30  Scene 2  tokens ride PCB traces, converge centre
+       0.30–0.50  Scene 3  point cloud → wireframe → rough → clean → textured
+       0.50–0.68  Scene 4  refinement labels flash around the model
+       0.68–0.84  Scene 5  slicing plane + layer lines + printability score
+       0.84–1.00  Scene 6  formats orbit, converge to EXPORT, closing type
+
+     Engineering notes
+       · Extends the tiny in-house canvas 3D engine from
+         js/hero-feature-scenes.js (rot / proj / painter faces / prand).
+         Zero dependencies. One canvas, one rAF, gated by IntersectionObserver.
+       · The SAME vertex set is reused across every construction stage, so the
+         object is genuinely built, never crossfaded.
+       · DOM overlays animate with transform/opacity only; writes happen only
+         when values change. No layout reads inside the frame loop.
+       · prefers-reduced-motion: no spring smoothing, no ambient drift, no
+         autoplay — the page becomes a stepped scrub of static frames.
+       · Mobile (<760px): shorter track, lower-poly lathe, 3 tokens, no
+         pointer parallax.
+
+     Production integration plan (later, not in this file's job):
+       extract <script> → js/pipeline-story.js, styles → pipeline-story.css,
+       and let this sequence REPLACE index.html section "03 / LIVE DEMO".
+     ========================================================================== -->
+<link rel="icon" href="/favicon.ico?v=20260822head" sizes="any">
+<link rel="stylesheet" href="fonts/fonts.css">
+<style>
+/* ---- design tokens — mirrors index-palette.css ------------------------- */
+:root{
+  --tx-red:#5A2132;      --tx-red-rgb:90,33,50;
+  --tx-white:#EFE9E9;    --tx-white-rgb:239,233,233;
+  --tx-teal:#035352;     --tx-teal-rgb:3,83,82;
+  --tx-yellow:#F3E8BC;   --tx-yellow-rgb:243,232,188;
+  --tx-blue:#1E223D;     --tx-blue-rgb:30,34,61;
+  --tx-orange:#F54F1B;   --tx-orange-rgb:245,79,27;
+  --tx-dark:#090a0d;
+  --line:rgba(var(--tx-yellow-rgb),.13);
+  --ink:#f4f1ea; --muted:#a39b8f;
+  --track:720;             /* story track height in vh */
+  --header:64px;
+}
+@media(max-width:760px){:root{--track:480}}
+
+*{box-sizing:border-box}
+html{background:var(--tx-dark);overflow-x:clip}
+body{
+  margin:0;color:var(--ink);
+  font-family:Inter,system-ui,-apple-system,sans-serif;
+  -webkit-font-smoothing:antialiased;overflow-x:clip;
+  background:
+    radial-gradient(circle at 8% 10%,rgba(var(--tx-red-rgb),.18),transparent 30%),
+    radial-gradient(circle at 92% 20%,rgba(var(--tx-teal-rgb),.2),transparent 28%),
+    radial-gradient(circle at 50% 96%,rgba(var(--tx-blue-rgb),.28),transparent 34%),
+    var(--tx-dark);
+}
+a{color:inherit}
+
+/* ---- minimal prototype header ------------------------------------------ */
+.proto-header{
+  position:fixed;inset:0 0 auto;z-index:50;height:var(--header);
+  display:flex;align-items:center;gap:14px;padding:0 clamp(16px,3vw,32px);
+  background:linear-gradient(180deg,rgba(9,10,13,.88),rgba(9,10,13,.55) 78%,transparent);
+}
+.proto-brand{display:inline-flex;align-items:center;gap:9px;text-decoration:none;
+  font-family:"Space Grotesk",Inter,sans-serif;font-weight:700;font-size:18px;letter-spacing:-.04em}
+.proto-brand img{width:30px;height:30px;display:block}
+.proto-brand span span{color:var(--tx-orange)}
+.proto-badge{
+  padding:5px 10px;border:1px solid rgba(var(--tx-yellow-rgb),.22);border-radius:999px;
+  color:var(--tx-yellow);font-size:9.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+}
+.proto-actions{margin-left:auto;display:flex;gap:8px}
+.proto-actions button,.proto-actions a{
+  display:inline-flex;align-items:center;gap:7px;min-height:34px;padding:0 14px;cursor:pointer;
+  border:1px solid rgba(var(--tx-yellow-rgb),.2);border-radius:999px;background:rgba(var(--tx-white-rgb),.05);
+  color:var(--tx-white);font:750 11.5px Inter,sans-serif;letter-spacing:.02em;text-decoration:none;
+  transition:border-color .2s,background .2s;
+}
+.proto-actions button:hover,.proto-actions a:hover{border-color:rgba(var(--tx-yellow-rgb),.42);background:rgba(var(--tx-teal-rgb),.16)}
+.proto-actions button,.proto-actions a{white-space:nowrap}
+@media(max-width:560px){
+  .proto-badge{display:none}
+  .proto-actions button,.proto-actions a{min-height:30px;padding:0 11px;font-size:10.5px}
+}
+
+/* ---- story track + sticky stage ---------------------------------------- */
+.story-track{position:relative;height:calc(var(--track) * 1vh)}
+.story-stage{
+  position:sticky;top:0;height:100svh;overflow:clip;isolation:isolate;
+}
+.stage-grid{
+  position:absolute;inset:0;z-index:-1;opacity:.5;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(var(--tx-yellow-rgb),.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(var(--tx-teal-rgb),.08) 1px,transparent 1px);
+  background-size:64px 64px;
+  mask-image:radial-gradient(ellipse 88% 72% at 50% 46%,#000 30%,transparent 82%);
+}
+#stageCanvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+/* ---- progress rail ------------------------------------------------------ */
+.stage-rail{
+  position:absolute;left:clamp(14px,2.4vw,34px);top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:16px;z-index:6;
+}
+.stage-rail button{
+  display:flex;align-items:center;gap:10px;padding:2px 0;border:0;background:none;cursor:pointer;
+  color:#7d766c;font:750 9.5px Inter,sans-serif;letter-spacing:.16em;text-transform:uppercase;
+  transition:color .3s;text-align:left;
+}
+.stage-rail button i{
+  width:7px;height:7px;border-radius:50%;flex:0 0 auto;
+  background:rgba(var(--tx-yellow-rgb),.2);transition:background .3s,box-shadow .3s;
+}
+.stage-rail button.is-active{color:var(--tx-yellow)}
+.stage-rail button.is-active i{background:var(--tx-orange);box-shadow:0 0 12px rgba(var(--tx-orange-rgb),.7)}
+.stage-rail button.is-done i{background:rgba(var(--tx-teal-rgb),.9)}
+@media(max-width:900px){.stage-rail{display:none}}
+
+/* ---- scene 1 · prompt ---------------------------------------------------- */
+.prompt-ui{
+  position:absolute;left:50%;top:44%;z-index:5;width:min(600px,88vw);
+  transform:translate(-50%,-50%);will-change:transform,opacity;
+}
+.prompt-ui .eyebrow{
+  display:inline-flex;align-items:center;gap:9px;margin-bottom:14px;
+  color:var(--tx-yellow);font-size:10px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;
+}
+.prompt-ui .eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--tx-orange);box-shadow:0 0 14px rgba(var(--tx-orange-rgb),.6)}
+.prompt-bar{
+  display:flex;align-items:center;gap:12px;padding:10px 10px 10px 18px;
+  border:1px solid rgba(var(--tx-yellow-rgb),.16);border-radius:16px;
+  background:linear-gradient(180deg,rgba(var(--tx-blue-rgb),.5),rgba(9,10,13,.82));
+  box-shadow:0 28px 70px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.05);
+  backdrop-filter:blur(14px);
+}
+.prompt-text{
+  flex:1;min-height:22px;font-size:clamp(13px,1.3vw,15.5px);color:var(--tx-white);
+  white-space:nowrap;overflow:hidden;
+}
+.prompt-text .ph{color:#6e675e}
+.prompt-caret{
+  display:inline-block;width:2px;height:1.05em;margin-left:1px;vertical-align:text-bottom;
+  background:var(--tx-yellow);
+}
+.prompt-go{
+  display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 18px;border-radius:12px;
+  border:0;background:linear-gradient(135deg,var(--tx-orange),#d94018 58%,var(--tx-red));
+  color:#130908;font:800 12.5px Inter,sans-serif;letter-spacing:.02em;
+  box-shadow:0 12px 30px rgba(var(--tx-orange-rgb),.18);
+  transform:scale(1);will-change:transform;
+}
+.prompt-go.is-armed{box-shadow:0 12px 38px rgba(var(--tx-orange-rgb),.42),0 0 0 1px rgba(var(--tx-yellow-rgb),.28) inset}
+.prompt-go.is-fired{transform:scale(.94)}
+
+/* ---- shared HUD chip look (matches homepage .hud-chip) ------------------- */
+.px-chip{
+  position:absolute;z-index:5;display:inline-flex;align-items:center;gap:7px;
+  padding:6px 11px;border:1px solid rgba(var(--tx-yellow-rgb),.18);border-radius:999px;
+  background:rgba(9,10,13,.78);backdrop-filter:blur(8px);
+  color:#cfc8ba;font:800 9.5px Inter,sans-serif;letter-spacing:.13em;text-transform:uppercase;
+  opacity:0;transform:translateY(10px);will-change:transform,opacity;pointer-events:none;
+  white-space:nowrap;
+}
+.px-chip b{color:var(--tx-yellow);font-weight:800}
+.px-chip.ok{border-color:rgba(102,211,198,.4);color:#9be3d8}
+.px-chip .tick{color:#66d3c6;font-size:11px}
+
+/* refine labels get a leader line */
+.px-label::after{
+  content:"";position:absolute;width:26px;height:1px;background:rgba(var(--tx-yellow-rgb),.28);
+  top:50%;left:100%;
+}
+.px-label.lead-left::after{left:auto;right:100%}
+
+/* ---- scene 5 · print HUD -------------------------------------------------- */
+.print-score{
+  position:absolute;z-index:5;left:50%;bottom:12%;transform:translate(-50%,14px);
+  display:flex;align-items:baseline;gap:12px;opacity:0;will-change:transform,opacity;pointer-events:none;
+}
+.print-score small{color:#9b948a;font:800 10px Inter,sans-serif;letter-spacing:.2em;text-transform:uppercase}
+.print-score b{
+  font-family:"Space Grotesk",Inter,sans-serif;font-weight:700;font-size:clamp(38px,4.6vw,58px);
+  letter-spacing:-.04em;color:var(--tx-white);font-variant-numeric:tabular-nums;
+}
+.print-score b.ok{color:#8fe3d6}
+.print-checks{
+  position:absolute;z-index:5;right:clamp(16px,6vw,10%);top:50%;transform:translateY(-50%);
+  display:flex;flex-direction:column;gap:9px;pointer-events:none;
+}
+.print-checks span{
+  display:flex;align-items:center;gap:9px;color:#b6afa3;
+  font:750 10px Inter,sans-serif;letter-spacing:.14em;text-transform:uppercase;
+  opacity:0;transform:translateX(14px);will-change:transform,opacity;
+}
+.print-checks span i{
+  display:grid;place-items:center;width:15px;height:15px;border-radius:50%;font-style:normal;font-size:9px;
+  border:1px solid rgba(102,211,198,.5);color:#66d3c6;
+}
+@media(max-width:760px){.print-checks{right:12px;gap:7px}.print-checks span{font-size:8.5px}}
+
+/* ---- scene 6 · export ----------------------------------------------------- */
+.export-ctl{
+  position:absolute;z-index:5;left:50%;bottom:11%;transform:translate(-50%,16px);
+  display:inline-flex;align-items:center;gap:9px;min-height:44px;padding:0 22px;border-radius:999px;
+  border:1px solid rgba(var(--tx-yellow-rgb),.24);background:rgba(9,10,13,.85);
+  color:var(--tx-white);font:800 12px Inter,sans-serif;letter-spacing:.12em;text-transform:uppercase;
+  opacity:0;will-change:transform,opacity;pointer-events:none;
+}
+.export-ctl i{font-style:normal;color:var(--tx-orange)}
+.export-ctl.is-charged{
+  border-color:rgba(var(--tx-orange-rgb),.55);
+  box-shadow:0 0 0 1px rgba(var(--tx-orange-rgb),.25),0 14px 44px rgba(var(--tx-orange-rgb),.22);
+}
+
+/* ---- closing typography --------------------------------------------------- */
+.final-copy{
+  position:absolute;z-index:7;inset:0;display:grid;place-content:center;text-align:center;
+  pointer-events:none;padding:0 18px;
+}
+.final-copy p{
+  margin:0;font-family:"Space Grotesk",Inter,sans-serif;font-weight:700;
+  font-size:clamp(26px,4.4vw,54px);line-height:1.06;letter-spacing:-.045em;color:var(--tx-white);
+  opacity:0;transform:translateY(26px);will-change:transform,opacity;
+}
+.final-copy p em{font-style:normal;color:var(--tx-yellow)}
+.final-copy .fc-brand{
+  margin-top:26px;font-size:clamp(15px,1.6vw,19px);letter-spacing:.34em;color:var(--tx-orange);
+}
+.final-copy .fc-tag{
+  margin-top:10px;font-family:Inter,sans-serif;font-weight:750;font-size:clamp(10px,1.1vw,12px);
+  letter-spacing:.22em;color:#9b948a;
+}
+
+/* ---- after the story: hand back to the site ------------------------------- */
+.after-story{position:relative;padding:clamp(72px,10vw,130px) 0 90px;text-align:center}
+.after-story::before{
+  content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:min(1100px,86vw);height:1px;
+  background:linear-gradient(90deg,transparent,rgba(var(--tx-yellow-rgb),.14) 50%,transparent);
+}
+.after-story h2{
+  margin:0 0 14px;font-family:"Space Grotesk",Inter,sans-serif;font-weight:700;
+  font-size:clamp(30px,4vw,52px);letter-spacing:-.05em;
+}
+.after-story p{max-width:520px;margin:0 auto 30px;color:var(--muted);font-size:15px;line-height:1.7}
+.after-actions{display:flex;justify-content:center;gap:12px;flex-wrap:wrap}
+.btn{
+  display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 24px;border-radius:999px;
+  text-decoration:none;font:750 13px Inter,sans-serif;transition:transform .2s,border-color .2s;
+}
+.btn:hover{transform:translateY(-2px)}
+.btn-primary{background:linear-gradient(135deg,var(--tx-orange),#d94018 58%,var(--tx-red));color:#130908;
+  box-shadow:0 18px 42px rgba(var(--tx-orange-rgb),.22)}
+.btn-ghost{border:1px solid rgba(var(--tx-yellow-rgb),.22);background:rgba(var(--tx-white-rgb),.045);color:var(--tx-white)}
+
+/* ---- reduced motion ------------------------------------------------------- */
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .prompt-caret{animation:none}
+  .btn:hover{transform:none}
+}
+</style>
+</head>
+<body>
+
+<header class="proto-header">
+  <a class="proto-brand" href="/" aria-label="TimrX home">
+    <img src="img/logo.png?v=20260815logo" alt="" onerror="this.style.display='none'">
+    <span>Timr<span>X</span></span>
+  </a>
+  <span class="proto-badge">Pipeline story · prototype</span>
+  <div class="proto-actions">
+    <button type="button" id="autoplayBtn">▶ Autoplay</button>
+    <a href="/">← Back to site</a>
+  </div>
+</header>
+
+<!-- ======================= THE STORY ======================= -->
+<div class="story-track" id="storyTrack">
+  <section class="story-stage" id="storyStage" aria-label="From idea to reality — the TimrX pipeline">
+    <div class="stage-grid" aria-hidden="true"></div>
+    <canvas id="stageCanvas" aria-hidden="true"></canvas>
+
+    <nav class="stage-rail" id="stageRail" aria-label="Pipeline stages">
+      <button type="button" data-goto="0.06"><i></i>Prompt</button>
+      <button type="button" data-goto="0.22"><i></i>Understand</button>
+      <button type="button" data-goto="0.40"><i></i>Generate</button>
+      <button type="button" data-goto="0.59"><i></i>Refine</button>
+      <button type="button" data-goto="0.76"><i></i>Print check</button>
+      <button type="button" data-goto="0.93"><i></i>Export</button>
+    </nav>
+
+    <!-- Scene 1 · prompt -->
+    <div class="prompt-ui" id="promptUI">
+      <div class="eyebrow">TimrX workspace</div>
+      <div class="prompt-bar">
+        <div class="prompt-text"><span id="promptTyped"></span><span class="prompt-caret" id="promptCaret"></span><span class="ph" id="promptPh">Describe what to create…</span></div>
+        <button class="prompt-go" id="promptGo" type="button" tabindex="-1">Generate <span aria-hidden="true">→</span></button>
+      </div>
+    </div>
+
+    <!-- Scene 4 · refinement labels (windows are driven from JS) -->
+    <div class="px-chip px-label lead-left" id="lblMesh"    style="left:14%;top:26%">Mesh analysis</div>
+    <div class="px-chip px-label lead-left" id="lblRetopo"  style="left:11%;top:52%">Retopology · <b id="lblTris">214K TRIS</b></div>
+    <div class="px-chip px-label" id="lblSurface"           style="right:13%;top:32%">Surface detail</div>
+    <div class="px-chip px-label" id="lblTexture"           style="right:15%;top:63%">Texture pass</div>
+
+    <!-- Scene 5 · print HUD -->
+    <div class="px-chip" id="printChip" style="left:14%;top:20%">Print analysis</div>
+    <div class="print-score" id="printScore"><small id="printScoreCap">Printability</small><b id="printScoreVal">63</b></div>
+    <div class="print-checks" id="printChecks">
+      <span><i>✓</i>Geometry</span>
+      <span><i>✓</i>Thickness</span>
+      <span><i>✓</i>Supports</span>
+      <span><i>✓</i>Scale</span>
+    </div>
+
+    <!-- Scene 6 · export -->
+    <button class="export-ctl" id="exportCtl" type="button" tabindex="-1"><i>⇩</i> Export</button>
+    <div class="final-copy" id="finalCopy" aria-hidden="true">
+      <p>From prompt</p>
+      <p>to pixels</p>
+      <p>to polygons</p>
+      <p><em>to reality.</em></p>
+      <p class="fc-brand">TIMRX</p>
+      <p class="fc-tag">Create without switching tools.</p>
+    </div>
+  </section>
+</div>
+
+<!-- ======================= BACK INTO THE SITE ======================= -->
+<section class="after-story">
+  <h2>Make the next asset in TimrX.</h2>
+  <p>The whole pipeline you just watched — prompt, generation, refinement, print check and export — runs in one browser workspace.</p>
+  <div class="after-actions">
+    <a class="btn btn-primary" href="/3dprint">Open Workspace <span aria-hidden="true">→</span></a>
+    <a class="btn btn-ghost" href="/community">View Community</a>
+  </div>
+</section>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---- shared micro-engine (same conventions as js/hero-feature-scenes.js) */
+  var TEAL = [102, 211, 198], SAND = [243, 232, 188], ORANGE = [245, 79, 27],
+      BLUE = [30, 34, 61], OX = [90, 33, 50], WHITE = [239, 233, 233];
+  var RM = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var MOBILE = window.matchMedia('(max-width: 760px)').matches;
+
+  function rgba(c, a) { return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function clamp01(t) { return Math.max(0, Math.min(1, t)); }
+  function sub(p, a, b) { return clamp01((p - a) / (b - a)); }
+  function ease(t) { t = clamp01(t); return t * t * (3 - 2 * t); }
+  function easeOut(t) { t = clamp01(t); return 1 - Math.pow(1 - t, 3); }
+  function mixColor(a, b, t) {
+    t = clamp01(t);
+    return [Math.round(lerp(a[0], b[0], t)), Math.round(lerp(a[1], b[1], t)), Math.round(lerp(a[2], b[2], t))];
+  }
+  function prand(i) { var x = Math.sin(i * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+  function rot(v, ax, ay) {
+    var x = v[0], y = v[1], z = v[2];
+    var ca = Math.cos(ay), sa = Math.sin(ay);
+    var t = x * ca - z * sa; z = x * sa + z * ca; x = t;
+    var cb = Math.cos(ax), sb = Math.sin(ax);
+    t = y * cb - z * sb; z = y * sb + z * cb; y = t;
+    return [x, y, z];
+  }
+
+  /* ------------------------------------------------------------------------
+     GEOMETRY — one lathe helmet (kabuto silhouette) + crest fin.
+     Same verts are reused by every construction stage.
+     ------------------------------------------------------------------------ */
+  var PROFILE = [            /* [radius, y] bottom→top, y in -1..1 */
+    [0.92, -1.00], [0.99, -0.86], [0.85, -0.70], [0.80, -0.52],
+    [0.845, -0.28], [0.81, -0.04], [0.71, 0.22], [0.565, 0.46],
+    [0.40, 0.66], [0.235, 0.82], [0.10, 0.92], [0.00, 0.985]
+  ];
+  var SEG = MOBILE ? 10 : 16;
+  function buildHelmet() {
+    var verts = [], quads = [];
+    for (var i = 0; i < PROFILE.length; i++)
+      for (var s = 0; s < SEG; s++) {
+        var a = s / SEG * Math.PI * 2;
+        verts.push([Math.cos(a) * PROFILE[i][0], -PROFILE[i][1], Math.sin(a) * PROFILE[i][0]]);
+      }
+    for (var r = 0; r < PROFILE.length - 1; r++)
+      for (var s2 = 0; s2 < SEG; s2++) {
+        var a0 = r * SEG + s2, a1 = r * SEG + (s2 + 1) % SEG;
+        quads.push([a0, a1, a1 + SEG, a0 + SEG]);
+      }
+    return { verts: verts, quads: quads };
+  }
+  var MODEL = buildHelmet();
+  /* per-vertex scatter start (point-cloud origin) + per-vertex stagger */
+  var SCATTER = MODEL.verts.map(function (v, i) {
+    return [(prand(i) - 0.5) * 3.4, (prand(i + 91) - 0.5) * 2.8, (prand(i + 173) - 0.5) * 3.4];
+  });
+  /* crest fin — swept-back blade in the x/y plane, grows in the rough stage */
+  var CREST = [[0.02, 0.95], [0.16, 1.16], [0.46, 1.26], [0.78, 1.13], [0.52, 1.0], [0.22, 0.92]]
+    .map(function (p) { return [p[0], -p[1], 0]; });
+  var CREST_BASE = [0.02, -0.95, 0];
+
+  function radiusAt(my) {           /* model y (down) → lathe radius */
+    var py = -my;
+    for (var i = 0; i < PROFILE.length - 1; i++) {
+      var a = PROFILE[i], b = PROFILE[i + 1];
+      if (py >= a[1] && py <= b[1]) return lerp(a[0], b[0], (py - a[1]) / (b[1] - a[1] || 1));
+    }
+    return py < PROFILE[0][1] ? PROFILE[0][0] : 0;
+  }
+
+  /* ------------------------------------------------------------------------
+     SCROLL DRIVER — scroll position → master progress, spring-smoothed.
+     ------------------------------------------------------------------------ */
+  var track = document.getElementById('storyTrack');
+  var stage = document.getElementById('storyStage');
+  var canvas = document.getElementById('stageCanvas');
+  var ctx = canvas.getContext('2d');
+  var dpr = Math.min(2, window.devicePixelRatio || 1);
+  var W = 2, H = 2, trackTop = 0, trackRange = 1;
+  var target = 0, smooth = 0, ambientT = 0, lastNow = 0;
+  var running = false, raf = null, needsFrame = true;
+  var mx = 0, my = 0, mxS = 0, myS = 0;   /* pointer parallax */
+
+  function measure() {
+    var r = track.getBoundingClientRect();
+    trackTop = r.top + window.scrollY;
+    trackRange = Math.max(1, r.height - window.innerHeight);
+    var s = stage.getBoundingClientRect();
+    W = Math.max(2, Math.round(s.width * dpr));
+    H = Math.max(2, Math.round(s.height * dpr));
+    if (canvas.width !== W) canvas.width = W;
+    if (canvas.height !== H) canvas.height = H;
+    buildPaths();
+    needsFrame = true;
+  }
+  function onScroll() {
+    target = clamp01((window.scrollY - trackTop) / trackRange);
+    needsFrame = true;
+  }
+
+  /* ------------------------------------------------------------------------
+     SCENE 2 — token traces (PCB-style polylines, pixel-space, rebuilt on
+     resize). Each token: label + polyline + cumulative segment lengths.
+     ------------------------------------------------------------------------ */
+  var TOKENS = MOBILE ? ['CYBERPUNK', 'SAMURAI', 'HELMET'] : ['CYBERPUNK', 'SAMURAI', 'HELMET', 'METALLIC', 'PRINTABLE'];
+  var XS = MOBILE ? [0.22, 0.5, 0.78] : [0.15, 0.325, 0.5, 0.675, 0.85];
+  var PATHS = [];
+  function buildPaths() {
+    PATHS = TOKENS.map(function (label, i) {
+      var x = XS[i];
+      var pts = [
+        [0.5 + (x - 0.5) * 0.16, 0.245], [x, 0.31], [x, 0.40],
+        [0.5 + (x - 0.5) * 0.32, 0.475], [0.5 + (x - 0.5) * 0.05, 0.535]
+      ].map(function (p) { return [p[0] * W, p[1] * H]; });
+      var lens = [0], total = 0;
+      for (var k = 1; k < pts.length; k++) {
+        total += Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]);
+        lens.push(total);
+      }
+      return { label: label, pts: pts, lens: lens, total: total };
+    });
+  }
+  function pointAt(path, t) {
+    var d = clamp01(t) * path.total;
+    for (var k = 1; k < path.pts.length; k++) {
+      if (d <= path.lens[k]) {
+        var f = (d - path.lens[k - 1]) / (path.lens[k] - path.lens[k - 1] || 1);
+        return [lerp(path.pts[k - 1][0], path.pts[k][0], f), lerp(path.pts[k - 1][1], path.pts[k][1], f)];
+      }
+    }
+    return path.pts[path.pts.length - 1];
+  }
+  function strokePartial(path, t0, t1, style, width) {
+    t0 = clamp01(t0); t1 = clamp01(t1);
+    if (t1 <= t0) return;
+    ctx.strokeStyle = style; ctx.lineWidth = width; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath();
+    var p0 = pointAt(path, t0);
+    ctx.moveTo(p0[0], p0[1]);
+    for (var k = 1; k < path.pts.length; k++) {
+      var lt = path.lens[k] / path.total;
+      if (lt <= t0) continue;
+      if (lt >= t1) break;
+      ctx.lineTo(path.pts[k][0], path.pts[k][1]);
+    }
+    var p1 = pointAt(path, t1);
+    ctx.lineTo(p1[0], p1[1]);
+    ctx.stroke();
+  }
+
+  /* rounded chip with label (same visual language as hero-feature-scenes) */
+  function chipDraw(x, y, label, col, alpha, size) {
+    if (alpha <= 0.01) return;
+    ctx.save();
+    ctx.globalAlpha = clamp01(alpha);
+    var fs = (size || 10) * dpr;
+    ctx.font = '800 ' + fs + 'px Inter, sans-serif';
+    var tw = ctx.measureText(label).width, px = 9 * dpr, ph = fs + 3 * dpr;
+    var rx = x - tw / 2 - px, ry = y - ph / 2 - 3 * dpr, rw = tw + px * 2, rh = ph + 6 * dpr, rr = rh / 2;
+    ctx.fillStyle = 'rgba(11,12,16,0.92)';
+    ctx.strokeStyle = rgba(col, 0.55);
+    ctx.lineWidth = 1 * dpr;
+    ctx.beginPath();
+    ctx.moveTo(rx + rr, ry); ctx.arcTo(rx + rw, ry, rx + rw, ry + rh, rr);
+    ctx.arcTo(rx + rw, ry + rh, rx, ry + rh, rr); ctx.arcTo(rx, ry + rh, rx, ry, rr);
+    ctx.arcTo(rx, ry, rx + rw, ry, rr); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.fillStyle = rgba(col, 0.95);
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(label, x, y);
+    ctx.restore();
+  }
+
+  /* ------------------------------------------------------------------------
+     PROMPT (scene 1) — DOM. Typing thresholds are precomputed with human
+     jitter, then made monotonic so scrubbing backwards works too.
+     ------------------------------------------------------------------------ */
+  var PROMPT = 'Create a futuristic cyberpunk samurai helmet';
+  var TH = (function () {
+    var out = [], run = 0;
+    for (var i = 0; i < PROMPT.length; i++) {
+      var t = 0.015 + ((i + 0.9 * prand(i * 2.3)) / PROMPT.length) * 0.085;
+      run = Math.max(run, t);
+      out.push(run);
+    }
+    return out;
+  })();
+  var elPromptUI = document.getElementById('promptUI');
+  var elTyped = document.getElementById('promptTyped');
+  var elCaret = document.getElementById('promptCaret');
+  var elPh = document.getElementById('promptPh');
+  var elGo = document.getElementById('promptGo');
+
+  /* ---- DOM write cache — write only when a value changes.
+     Keyed per-element via WeakMap (ids are optional, collisions impossible). */
+  var domCache = new WeakMap();
+  function bag(el) {
+    var b = domCache.get(el);
+    if (!b) { b = {}; domCache.set(el, b); }
+    return b;
+  }
+  function setStyle(el, prop, val) {
+    var b = bag(el);
+    if (b['s:' + prop] === val) return;
+    b['s:' + prop] = val;
+    el.style[prop] = val;
+  }
+  function setText(el, val) {
+    var b = bag(el);
+    if (b.txt === val) return;
+    b.txt = val;
+    el.textContent = val;
+  }
+  function setClass(el, cls, on) {
+    var b = bag(el);
+    if (b['c:' + cls] === on) return;
+    b['c:' + cls] = on;
+    el.classList.toggle(cls, on);
+  }
+  /* window helper: fade in over `f`, hold, fade out */
+  function winVis(p, a, b, f) {
+    f = f || 0.018;
+    return Math.min(ease(sub(p, a, a + f)), 1 - ease(sub(p, b - f, b)));
+  }
+
+  var elLblMesh = document.getElementById('lblMesh');
+  var elLblRetopo = document.getElementById('lblRetopo');
+  var elLblTris = document.getElementById('lblTris');
+  var elLblSurface = document.getElementById('lblSurface');
+  var elLblTexture = document.getElementById('lblTexture');
+  var elPrintChip = document.getElementById('printChip');
+  var elPrintScore = document.getElementById('printScore');
+  var elPrintScoreVal = document.getElementById('printScoreVal');
+  var elPrintScoreCap = document.getElementById('printScoreCap');
+  var elChecks = Array.prototype.slice.call(document.querySelectorAll('#printChecks span'));
+  var elExport = document.getElementById('exportCtl');
+  var elFinal = document.getElementById('finalCopy');
+  var elFinalLines = Array.prototype.slice.call(elFinal.children);
+  var railBtns = Array.prototype.slice.call(document.querySelectorAll('#stageRail button'));
+
+  var SCENE_EDGES = [0, 0.15, 0.30, 0.50, 0.68, 0.84, 1.001];
+
+  function chipVis(el, v, dy) {
+    setStyle(el, 'opacity', v.toFixed(3));
+    setStyle(el, 'transform', 'translateY(' + ((1 - v) * (dy || 10)).toFixed(1) + 'px)');
+  }
+
+  function updateDOM(p, t) {
+    /* rail */
+    var sceneIdx = 0;
+    for (var i = 0; i < 6; i++) if (p >= SCENE_EDGES[i]) sceneIdx = i;
+    railBtns.forEach(function (b, i) {
+      setClass(b, 'is-active', i === sceneIdx);
+      setClass(b, 'is-done', i < sceneIdx);
+    });
+
+    /* scene 1 — typing */
+    var chars = 0;
+    for (var c = 0; c < TH.length; c++) if (p >= TH[c]) chars = c + 1;
+    setText(elTyped, PROMPT.slice(0, chars));
+    setStyle(elPh, 'display', chars > 0 ? 'none' : 'inline');
+    var caretOn = p < 0.135 && (RM || Math.sin(t * 7) > -0.25 || (chars > 0 && chars < PROMPT.length));
+    setStyle(elCaret, 'opacity', caretOn ? '1' : '0');
+    setClass(elGo, 'is-armed', chars === PROMPT.length && p < 0.14);
+    setClass(elGo, 'is-fired', p >= 0.128 && p < 0.15);
+
+    /* prompt docks to the top for scene 2, then leaves */
+    var dock = ease(sub(p, 0.14, 0.20));
+    var gone = ease(sub(p, 0.27, 0.315));
+    var stageH = H / dpr;
+    setStyle(elPromptUI, 'transform',
+      'translate(-50%,-50%) translateY(' + (-dock * stageH * 0.295 - gone * 40).toFixed(1) + 'px) scale(' + lerp(1, 0.66, dock).toFixed(3) + ')');
+    setStyle(elPromptUI, 'opacity', (1 - gone).toFixed(3));
+    setStyle(elPromptUI, 'visibility', p >= 0.34 ? 'hidden' : 'visible');
+
+    /* scene 4 — refine labels */
+    chipVis(elLblMesh, winVis(p, 0.505, 0.565));
+    chipVis(elLblRetopo, winVis(p, 0.545, 0.625));
+    var tq = ease(sub(p, 0.552, 0.605));
+    setText(elLblTris, tq < 0.02 ? '214K TRIS' : Math.round(lerp(214, 18, tq)) + 'K ' + (tq > 0.72 ? 'QUADS' : 'TRIS'));
+    chipVis(elLblSurface, winVis(p, 0.595, 0.652));
+    chipVis(elLblTexture, winVis(p, 0.628, 0.678));
+
+    /* scene 5 — print HUD */
+    chipVis(elPrintChip, winVis(p, 0.685, 0.845));
+    var sv = winVis(p, 0.70, 0.855, 0.025);
+    setStyle(elPrintScore, 'opacity', sv.toFixed(3));
+    setStyle(elPrintScore, 'transform', 'translate(-50%,' + ((1 - sv) * 14).toFixed(1) + 'px)');
+    var KEYS = [63, 78, 91, 96];
+    var q = ease(sub(p, 0.755, 0.822)) * (KEYS.length - 1);
+    var ki = Math.min(KEYS.length - 2, Math.floor(q));
+    var score = Math.round(lerp(KEYS[ki], KEYS[ki + 1], q - ki));
+    setText(elPrintScoreVal, String(score));
+    setClass(elPrintScoreVal, 'ok', score >= 96);
+    setText(elPrintScoreCap, score >= 96 ? 'Printability' : 'Print score');
+    elChecks.forEach(function (el, i) {
+      var v = winVis(p, 0.705 + i * 0.028, 0.85, 0.02);
+      setStyle(el, 'opacity', v.toFixed(3));
+      setStyle(el, 'transform', 'translateX(' + ((1 - v) * 14).toFixed(1) + 'px)');
+    });
+
+    /* scene 6 — export control + closing type */
+    var ev = winVis(p, 0.875, 0.995, 0.02);
+    setStyle(elExport, 'opacity', ev.toFixed(3));
+    setStyle(elExport, 'transform', 'translate(-50%,' + ((1 - ev) * 16).toFixed(1) + 'px)');
+    setClass(elExport, 'is-charged', p > 0.938);
+    elFinalLines.forEach(function (el, i) {
+      var v = ease(sub(p, 0.948 + i * 0.007, 0.966 + i * 0.007));
+      setStyle(el, 'opacity', v.toFixed(3));
+      setStyle(el, 'transform', 'translateY(' + ((1 - v) * 26).toFixed(1) + 'px)');
+    });
+  }
+
+  /* ------------------------------------------------------------------------
+     CANVAS RENDER — one frame at master progress p.
+     ------------------------------------------------------------------------ */
+  function render(p, t) {
+    ctx.clearRect(0, 0, W, H);
+    var cx = W * 0.5, cy = H * (0.545 + 0.05 * ease(sub(p, 0.948, 0.99)));
+    var amb = RM ? 0 : t;
+
+    /* --- scene 1 → 2: submit pulse ring --- */
+    var pr = sub(p, 0.126, 0.185);
+    if (pr > 0 && pr < 1) {
+      var prx = cx, pry = H * 0.44;
+      ctx.strokeStyle = rgba(ORANGE, 0.5 * (1 - pr));
+      ctx.lineWidth = 1.4 * dpr;
+      ctx.beginPath();
+      ctx.arc(prx, pry, easeOut(pr) * Math.min(W, H) * 0.26, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    /* --- scene 2: traces + token signals --- */
+    if (p > 0.145 && p < 0.345) {
+      var fadeS2 = 1 - ease(sub(p, 0.305, 0.34));
+      var pathIn = ease(sub(p, 0.15, 0.205));
+      PATHS.forEach(function (path, i) {
+        var stagger = i * 0.014;
+        /* faint full rail draws in */
+        strokePartial(path, 0, ease(sub(pathIn, stagger * 0.6, 1)),
+          rgba(mixColor(BLUE, TEAL, 0.5), 0.22 * fadeS2), 1 * dpr);
+        /* node dots at elbows */
+        ctx.fillStyle = rgba(TEAL, 0.35 * fadeS2);
+        path.pts.forEach(function (pt, k) {
+          if (k === 0 || k === path.pts.length - 1) return;
+          ctx.beginPath(); ctx.arc(pt[0], pt[1], 1.6 * dpr, 0, 7); ctx.fill();
+        });
+        /* the signal: bright travelling segment + chip */
+        var st = ease(sub(p, 0.195 + stagger, 0.288 + stagger * 0.5));
+        if (st > 0) {
+          var col = mixColor(SAND, ORANGE, 0.25 + 0.5 * prand(i * 3));
+          strokePartial(path, st - 0.14, st, rgba(col, 0.75 * fadeS2), 1.6 * dpr);
+          var pos = pointAt(path, st);
+          var chipA = fadeS2 * Math.min(1, st * 6) * (st > 0.985 ? 0 : 1);
+          chipDraw(pos[0], pos[1], TOKENS[i], col, chipA, MOBILE ? 8.5 : 10);
+          if (st >= 0.985) {   /* arrival tick */
+            ctx.fillStyle = rgba(col, 0.5 * fadeS2);
+            ctx.beginPath(); ctx.arc(pos[0], pos[1], 2.6 * dpr, 0, 7); ctx.fill();
+          }
+        }
+      });
+      /* converged charge */
+      var charge = ease(sub(p, 0.24, 0.315));
+      if (charge > 0) {
+        var chR = Math.min(W, H) * 0.09 * charge;
+        var g = ctx.createRadialGradient(cx, H * 0.545, 0, cx, H * 0.545, chR * 2.2);
+        g.addColorStop(0, rgba(TEAL, 0.22 * charge * fadeS2 + (RM ? 0 : 0.05 * Math.sin(t * 5) * charge)));
+        g.addColorStop(1, rgba(TEAL, 0));
+        ctx.fillStyle = g;
+        ctx.fillRect(cx - chR * 2.2, H * 0.545 - chR * 2.2, chR * 4.4, chR * 4.4);
+      }
+    }
+
+    if (p < 0.295) return;   /* model does not exist yet */
+
+    /* --- persistent model: construction parameters --- */
+    var ptsIn = sub(p, 0.298, 0.365);      /* point cloud */
+    var wireIn = sub(p, 0.352, 0.415);     /* wireframe propagation */
+    var faceIn = sub(p, 0.40, 0.452);      /* rough faces */
+    var cleanIn = sub(p, 0.442, 0.478);    /* clean geometry */
+    var texIn = sub(p, 0.468, 0.52);       /* textured */
+    var jitter = (1 - ease(cleanIn)) * 0.055;
+
+    /* camera */
+    var rotY = 0.85 + p * 3.1 + amb * 0.06 + mxS * 0.25;
+    var rotX = -0.36
+      - 0.16 * ease(sub(p, 0.665, 0.72))       /* tilt for the slice plane */
+      + 0.20 * ease(sub(p, 0.82, 0.875))       /* back to hero angle */
+      + myS * 0.12;
+    var scl = Math.min(W, H) * 0.235
+      * lerp(0.62, 1, easeOut(sub(p, 0.30, 0.44)))
+      * lerp(1, 1.06, ease(sub(p, 0.50, 0.56)))      /* refine push-in */
+      * lerp(1, 0.90, ease(sub(p, 0.665, 0.72)))     /* print pull-back */
+      * lerp(1, 0.86, ease(sub(p, 0.90, 0.97)));     /* export settle */
+    var dist = 4.6;
+
+    /* transformed verts (with scatter + jitter while under construction) */
+    var rv = new Array(MODEL.verts.length);
+    var pv = new Array(MODEL.verts.length);
+    for (var vi = 0; vi < MODEL.verts.length; vi++) {
+      var stag = prand(vi * 1.7) * 0.35;
+      var kv = easeOut(sub(ptsIn, stag, 0.65 + stag));
+      var v0 = MODEL.verts[vi], s0 = SCATTER[vi];
+      var vx = lerp(s0[0], v0[0], kv) + (prand(vi) - 0.5) * jitter * (1 + (RM ? 0 : Math.sin(t * 3 + vi)));
+      var vy = lerp(s0[1], v0[1], kv) + (prand(vi + 9) - 0.5) * jitter;
+      var vz = lerp(s0[2], v0[2], kv) + (prand(vi + 17) - 0.5) * jitter;
+      var rr = rot([vx, vy, vz], rotX, rotY);
+      rv[vi] = rr;
+      var d = dist / (dist + rr[2]);
+      pv[vi] = [cx + rr[0] * scl * d, cy + rr[1] * scl * d, d];
+    }
+
+    /* print-phase params */
+    var slice = ease(sub(p, 0.685, 0.775));
+    var planeY = lerp(1.18, -1.22, slice);
+    var inPrint = p > 0.665 && p < 0.85;
+
+    /* faces, painter-sorted */
+    if (wireIn > 0 || faceIn > 0) {
+      var order = MODEL.quads.map(function (q, qi) {
+        return { q: q, z: (rv[q[0]][2] + rv[q[1]][2] + rv[q[2]][2] + rv[q[3]][2]) / 4, i: qi };
+      }).sort(function (a, b) { return b.z - a.z; });
+
+      var retopoFlash = winVis(p, 0.548, 0.625, 0.02);   /* wireframe overlay in refine */
+      var dim = 1 - 0.72 * ease(sub(p, 0.948, 0.985));   /* recede behind final copy */
+
+      for (var oi = 0; oi < order.length; oi++) {
+        var f = order[oi], q = f.q;
+        var visible = prand(f.i * 1.31) < wireIn * 1.25;
+        if (!visible) continue;
+        ctx.beginPath();
+        ctx.moveTo(pv[q[0]][0], pv[q[0]][1]);
+        ctx.lineTo(pv[q[1]][0], pv[q[1]][1]);
+        ctx.lineTo(pv[q[2]][0], pv[q[2]][1]);
+        ctx.lineTo(pv[q[3]][0], pv[q[3]][1]);
+        ctx.closePath();
+
+        var lum = 0.45 + 0.55 * clamp01((rv[q[0]][2] + 1.5) / 2.8);
+        var filled = prand(f.i * 2.09) < faceIn * 1.3;
+        if (filled) {
+          var warm = 0.5 + 0.5 * Math.sin(f.i * 0.63);
+          var base = mixColor(mixColor(BLUE, TEAL, 0.42), mixColor(TEAL, SAND, warm * 0.55), texIn);
+          var alpha = (0.10 + 0.24 * lum) * lerp(0.55, 1.45, texIn) * dim;
+          /* texture sheen sweeps once as texIn completes */
+          var sheenX = (pv[q[0]][0] + pv[q[2]][0]) / 2 / W;
+          var sheen = texIn > 0 && texIn < 1 && Math.abs(sheenX - texIn * 1.2 + 0.1) < 0.06 ? 0.18 : 0;
+          /* printed layers tint during slicing */
+          var myMid = (MODEL.verts[q[0]][1] + MODEL.verts[q[2]][1]) / 2;
+          if (inPrint && myMid > planeY) base = mixColor(base, SAND, 0.22);
+          ctx.fillStyle = rgba(base, alpha + sheen);
+          ctx.fill();
+        }
+        var lineCol = filled
+          ? mixColor(mixColor(TEAL, SAND, 0.3), WHITE, 0.12 * lum)
+          : mixColor(BLUE, TEAL, 0.55);
+        var lineA = filled
+          ? (0.28 + 0.22 * lum) * lerp(1, 0.5, texIn) * dim + retopoFlash * 0.3
+          : 0.30 * wireIn * dim;
+        ctx.strokeStyle = rgba(lineCol, lineA);
+        ctx.lineWidth = (filled ? 1 : 0.8) * dpr;
+        ctx.stroke();
+      }
+
+      /* crest fin — appears with clean geometry */
+      var finK = ease(sub(p, 0.445, 0.50));
+      if (finK > 0.01) {
+        ctx.beginPath();
+        for (var ci = 0; ci < CREST.length; ci++) {
+          var cp0 = CREST[ci];
+          var grown = [
+            CREST_BASE[0] + (cp0[0] - CREST_BASE[0]) * finK,
+            CREST_BASE[1] + (cp0[1] - CREST_BASE[1]) * finK,
+            0];
+          var crr = rot(grown, rotX, rotY);
+          var cd = dist / (dist + crr[2]);
+          var px2 = cx + crr[0] * scl * cd, py2 = cy + crr[1] * scl * cd;
+          if (ci === 0) ctx.moveTo(px2, py2); else ctx.lineTo(px2, py2);
+        }
+        ctx.closePath();
+        var finDim = 1 - 0.45 * ease(sub(p, 0.955, 0.99));
+        ctx.fillStyle = rgba(mixColor(ORANGE, OX, 0.35), (0.16 + 0.3 * texIn) * finDim);
+        ctx.fill();
+        ctx.strokeStyle = rgba(mixColor(ORANGE, SAND, 0.4), 0.5 * finDim);
+        ctx.lineWidth = 1 * dpr;
+        ctx.stroke();
+      }
+    }
+
+    /* point cloud dots (fade out as wireframe takes over) */
+    var dotA = ptsIn > 0 ? clamp01(ptsIn * 1.4) * (1 - ease(sub(p, 0.40, 0.45))) : 0;
+    if (dotA > 0.01) {
+      for (var di = 0; di < pv.length; di++) {
+        if (prand(di * 3.7) > ptsIn * 1.2) continue;
+        ctx.fillStyle = rgba(mixColor(TEAL, SAND, prand(di)), dotA * (0.4 + 0.5 * pv[di][2] * 0.5));
+        ctx.beginPath();
+        ctx.arc(pv[di][0], pv[di][1], (0.9 + prand(di + 5) * 1.1) * dpr, 0, 7);
+        ctx.fill();
+      }
+    }
+
+    /* --- scene 5: slicing plane + transient layer lines --- */
+    if (inPrint && slice > 0 && slice < 1) {
+      var plr = rot([0, planeY, 0], rotX, 0);
+      var pld = dist / (dist + plr[2]);
+      var ply = cy + plr[1] * scl * pld;
+      var span = scl * 1.5;
+      var lg = ctx.createLinearGradient(cx - span, 0, cx + span, 0);
+      var laser = mixColor(TEAL, SAND, 0.4 + (RM ? 0 : 0.3 * Math.sin(t * 3)));
+      lg.addColorStop(0, rgba(laser, 0));
+      lg.addColorStop(0.5, rgba(laser, 0.85));
+      lg.addColorStop(1, rgba(laser, 0));
+      ctx.fillStyle = lg;
+      ctx.fillRect(cx - span, ply - 1 * dpr, span * 2, 2 * dpr);
+      /* layer rings just below the plane */
+      for (var L = 0; L < 26; L++) {
+        var ly = -1.0 + L * 0.082;              /* model y (down): -1 top? no: +1 bottom */
+        var myL = 1.0 - L * 0.082;              /* bottom → top */
+        if (myL < planeY || myL > planeY + 0.5) continue;
+        var rad = radiusAt(myL);
+        if (rad <= 0.01) continue;
+        var a = 0.42 * (1 - (myL - planeY) / 0.5) * (1 - Math.abs(slice - 0.5) * 0.4);
+        ctx.strokeStyle = rgba(SAND, a);
+        ctx.lineWidth = 0.8 * dpr;
+        ctx.beginPath();
+        for (var ri = 0; ri <= 20; ri++) {
+          var ra = ri / 20 * Math.PI * 2;
+          var rp = rot([Math.cos(ra) * rad, myL, Math.sin(ra) * rad], rotX, rotY);
+          var rd = dist / (dist + rp[2]);
+          var rpx = cx + rp[0] * scl * rd, rpy = cy + rp[1] * scl * rd;
+          if (ri === 0) ctx.moveTo(rpx, rpy); else ctx.lineTo(rpx, rpy);
+        }
+        ctx.stroke();
+      }
+    }
+
+    /* --- scene 6: formats orbit → converge on EXPORT --- */
+    var orbitIn = ease(sub(p, 0.848, 0.885));
+    if (orbitIn > 0 && p < 0.985) {
+      var FORMATS = ['STL', 'OBJ', 'GLB', '3MF'];
+      var conv = ease(sub(p, 0.902, 0.948));
+      var ex = cx, ey = H * 0.865;                      /* export control position */
+      var rx0 = scl * 1.95 * (1 - conv * 0.97), ry0 = scl * 0.62 * (1 - conv * 0.97);
+      for (var fi = 0; fi < FORMATS.length; fi++) {
+        var ang = fi / FORMATS.length * Math.PI * 2 + p * 9 + amb * 0.35;
+        var ox = cx + Math.cos(ang) * rx0, oy = cy + Math.sin(ang) * ry0;
+        var fx = lerp(ox, ex, conv), fy = lerp(oy, ey, conv);
+        var behind = Math.sin(ang) < -0.2 && conv < 0.4;
+        var a2 = orbitIn * (behind ? 0.35 : 0.95) * (1 - ease(sub(conv, 0.9, 1)));
+        chipDraw(fx, fy, FORMATS[fi], mixColor(SAND, ORANGE, 0.2 + 0.5 * prand(fi * 7)), a2, MOBILE ? 8.5 : 10);
+      }
+      if (conv > 0.93) {                                /* arrival flash on the control */
+        ctx.strokeStyle = rgba(ORANGE, 0.5 * (1 - ease(sub(p, 0.945, 0.975))));
+        ctx.lineWidth = 1.3 * dpr;
+        ctx.beginPath();
+        ctx.arc(ex, ey, easeOut(sub(p, 0.94, 0.975)) * 60 * dpr + 20 * dpr, 0, Math.PI * 2);
+        ctx.stroke();
+      }
+    }
+  }
+
+  /* ------------------------------------------------------------------------
+     FRAME LOOP — runs only while the story is on screen.
+     ------------------------------------------------------------------------ */
+  function frame(now) {
+    if (!running) return;
+    var dt = Math.min(0.05, (now - lastNow) / 1000 || 0.016);
+    lastNow = now;
+    ambientT += dt;
+    if (RM) {
+      smooth = target;
+    } else {
+      smooth += (target - smooth) * Math.min(1, dt * 7.5);
+      mxS += (mx - mxS) * Math.min(1, dt * 4);
+      myS += (my - myS) * Math.min(1, dt * 4);
+    }
+    var settled = Math.abs(target - smooth) < 0.0004;
+    var ambient = !RM && smooth > 0.02;    /* ambient drift once anything moves */
+    if (needsFrame || !settled || ambient) {
+      render(smooth, ambientT);
+      updateDOM(smooth, ambientT);
+      if (settled) needsFrame = false;
+    }
+    raf = requestAnimationFrame(frame);
+  }
+
+  new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (e.isIntersecting && !running) {
+        running = true; lastNow = performance.now(); needsFrame = true;
+        raf = requestAnimationFrame(frame);
+      } else if (!e.isIntersecting && running) {
+        running = false; cancelAnimationFrame(raf);
+      }
+    });
+  }, { threshold: 0.02 }).observe(track);
+
+  /* pointer parallax (desktop, motion allowed) */
+  if (!RM && !MOBILE) {
+    stage.addEventListener('pointermove', function (e) {
+      var r = stage.getBoundingClientRect();
+      mx = (e.clientX - r.left) / r.width - 0.5;
+      my = (e.clientY - r.top) / r.height - 0.5;
+    }, { passive: true });
+  }
+
+  /* rail navigation */
+  railBtns.forEach(function (b) {
+    b.addEventListener('click', function () {
+      var pTo = parseFloat(b.getAttribute('data-goto'));
+      window.scrollTo({ top: trackTop + pTo * trackRange, behavior: RM ? 'auto' : 'smooth' });
+    });
+  });
+
+  /* autoplay — tween scroll through the track; any user input cancels */
+  var autoRaf = null;
+  function stopAuto() { if (autoRaf) { cancelAnimationFrame(autoRaf); autoRaf = null; } }
+  document.getElementById('autoplayBtn').addEventListener('click', function () {
+    stopAuto();
+    if (RM) { window.scrollTo(0, trackTop); return; }
+    var DUR = 30000, t0 = performance.now();
+    window.scrollTo(0, trackTop);
+    function step(now) {
+      var k = Math.min(1, (now - t0) / DUR);
+      window.scrollTo(0, trackTop + k * trackRange);
+      if (k < 1) autoRaf = requestAnimationFrame(step);
+    }
+    autoRaf = requestAnimationFrame(step);
+  });
+  ['wheel', 'touchstart', 'keydown'].forEach(function (ev) {
+    window.addEventListener(ev, stopAuto, { passive: true });
+  });
+
+  /* boot */
+  window.addEventListener('resize', measure, { passive: true });
+  window.addEventListener('scroll', onScroll, { passive: true });
+  measure();
+  onScroll();
+  smooth = target;
+  render(smooth, 0);
+  updateDOM(smooth, 0);
+  if (new URLSearchParams(location.search).get('autoplay') === '1' && !RM) {
+    document.getElementById('autoplayBtn').click();
+  }
+})();
+</script>
+</body>
+</html>

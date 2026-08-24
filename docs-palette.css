@@ -189,13 +189,15 @@ body[data-shell-page="docs"] .tx-menu{
 
 body[data-shell-page="docs"] .tx-menu-links a{
   border-color:rgba(var(--docs-yellow-rgb),.11);
-  background:rgba(var(--docs-white-rgb),.035);
+  background:transparent;
+  box-shadow:none;
 }
 
 body[data-shell-page="docs"] .tx-menu-links a:hover,
 body[data-shell-page="docs"] .tx-menu-links a:focus-visible{
   border-color:rgba(var(--docs-yellow-rgb),.3);
-  background:rgba(var(--docs-teal-rgb),.13);
+  background:transparent;
+  box-shadow:none;
 }
 
 body[data-shell-page="docs"] .tx-menu-cta{

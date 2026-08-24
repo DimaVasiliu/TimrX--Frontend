@@ -1162,31 +1162,58 @@ model-viewer.inspire-model::part(default-progress-mask) {
    ========================================================================== */
 .inspire-card[data-type="model"] .inspire-card__media {
   background:
-    radial-gradient(120% 100% at 50% 0%, rgba(var(--accent-blue-rgb, 127, 200, 194), 0.09), transparent 62%),
-    linear-gradient(180deg, #141a1c 0%, #0c1011 100%);
+    radial-gradient(95% 82% at 50% 40%, rgba(var(--accent-blue-rgb, 127, 200, 194), 0.28), transparent 64%),
+    radial-gradient(90% 70% at 50% 86%, rgba(var(--accent-orange-rgb, 245, 79, 27), 0.18), transparent 68%),
+    linear-gradient(180deg, rgba(239, 233, 233, 0.1) 0%, #0e1717 48%, #061011 100%);
+  box-shadow: inset 0 0 38px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.1);
 }
 
 .inspire-card[data-type="model"] .inspire-card__image,
 .inspire-card[data-type="model"] .inspire-card__image-refined {
   object-fit: contain;
   /* Breathing room so the silhouette never touches the tile edge. */
-  padding: 6%;
+  padding: 3%;
   box-sizing: border-box;
+  filter:
+    brightness(1.55)
+    contrast(1.22)
+    saturate(1.18)
+    drop-shadow(0 0 14px rgba(var(--accent-orange-rgb, 245, 79, 27), 0.22))
+    drop-shadow(0 0 18px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.14));
+  mix-blend-mode: screen;
+  object-position: center center;
 }
 
 /* Ken Burns is a photo effect: on a contained model it pushes the object
    out of its own box. Models get a gentle lift on hover instead. */
 .inspire-card[data-type="model"] .inspire-card__image {
   animation: none;
-  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: scale(1.04);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), filter 0.45s ease;
 }
 .inspire-card[data-type="model"]:hover .inspire-card__image {
-  transform: scale(1.04);
+  transform: scale(1.08);
+  filter:
+    brightness(1.7)
+    contrast(1.26)
+    saturate(1.22)
+    drop-shadow(0 0 18px rgba(var(--accent-orange-rgb, 245, 79, 27), 0.28))
+    drop-shadow(0 0 24px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.18));
 }
 /* The refine crossfade still runs — it swaps two contained images, which is
    exactly the comparison it is there to show. */
 .inspire-card[data-type="model"].has-refine .inspire-card__image {
   animation: modelCrossfade 4s ease-in-out infinite;
+}
+
+.inspire-card[data-type="model"] .inspire-card__overlay {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 58%,
+    rgba(4, 10, 12, 0.42) 84%,
+    rgba(4, 10, 12, 0.68) 100%
+  );
 }
 
 /* ==========================================================================

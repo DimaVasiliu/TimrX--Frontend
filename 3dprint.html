@@ -5,7 +5,7 @@
   <script>(function(){var qs=(location.search||"")+(location.hash||"");var ref=document.referrer||"";var allow=/[?&#]gtm_debug=/.test(qs)||/^https:\/\/tagassistant\.google\.com/.test(ref);if(self!==top&&!allow){top.location=self.location;}})();</script>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="preconnect" href="https://3d.timrx.live" crossorigin>
   <link rel="preconnect" href="https://timrx-3d-models.s3.eu-west-2.amazonaws.com">
   <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
@@ -150,7 +150,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha384-t1nt8BQoYMLFN5p42tRAtuAAFQaCQODekUVeKKZrEnEyp4H2R0RHFz0KWpmj7i8g" crossorigin="anonymous" referrerpolicy="no-referrer" />
   <link rel="stylesheet" href="3dprint-modules/css/workspace-loader.css?v=20260818warmboot">
   <link rel="stylesheet" href="3dprint-modules/css/workspace-loader-grid.css?v=20260818warmboot">
-  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260818herolab11">
+  <link rel="stylesheet" href="3dprint-modules/main.css?v=20260823mobilelanding6">
   <link rel="stylesheet" href="3dprint-modules/css/print-prep.css?v=20260802f">
   <link rel="stylesheet" href="tx-menu.css?v=20260819palette2">
   <link rel="stylesheet" href="assets-modal-palette.css?v=20260820assets-modal-palette">
@@ -2127,24 +2127,90 @@
 
       if (wsHeader) {
         let ticking = false;
+        let forceMobileHeaderVisible = false;
+        let lastMobileScrollY = 0;
+        let hasMeasuredMobileScroll = false;
+        const overlayClasses = [
+          'ws-viewer-open',
+          'assets-modal-open',
+          'ws-panel-open',
+          'menu-open',
+          'ws-cmd-open',
+          'has-modal',
+          'print-panel-open'
+        ];
+
+        const scrollContainers = [
+          window,
+          document.documentElement,
+          document.body,
+          document.querySelector('.timrx-3dprint'),
+          document.querySelector('.ws-grid'),
+          document.querySelector('.ws-stage'),
+          document.querySelector('.ws-hero')
+        ].filter(Boolean);
+
+        const getMobileScrollY = () => Math.max(
+          window.scrollY || 0,
+          document.documentElement.scrollTop || 0,
+          document.body.scrollTop || 0,
+          ...scrollContainers
+            .filter(el => el !== window)
+            .map(el => el.scrollTop || 0)
+        );
+
+        const hasMobileScroll = () => {
+          const docScrollable = document.documentElement.scrollHeight > window.innerHeight + 80;
+          const containerScrollable = scrollContainers
+            .filter(el => el !== window)
+            .some(el => (el.scrollHeight || 0) > (el.clientHeight || 0) + 80);
+          return docScrollable || containerScrollable;
+        };
+
+        const setMobileHeaderState = (hidden) => {
+          wsHeader.classList.toggle('nav-hidden', hidden);
+          document.body.classList.toggle('ws-mobile-scrolled', hidden);
+        };
+
+        const hasActiveOverlay = () => overlayClasses.some(className => document.body.classList.contains(className));
+
+        const revealMobileHeader = () => {
+          forceMobileHeaderVisible = true;
+          setMobileHeaderState(false);
+        };
 
         const handleScroll = () => {
           const isMobileOrTablet = window.innerWidth <= 1280;
           const revealThreshold = isMobileOrTablet ? 12 : 18;
           const isExpandedView = document.body.classList.contains('history-expanded');
+          const currentScrollY = isMobileOrTablet ? getMobileScrollY() : window.scrollY;
+          const pageCanScroll = isMobileOrTablet ? hasMobileScroll() : document.documentElement.scrollHeight > window.innerHeight + 80;
+          const keepHeaderVisible = hasActiveOverlay();
 
-          const currentScrollY = window.scrollY;
-
-          // Mobile/tablet: only hide the header inside the expanded gallery.
-          // (It used to hide on ANY scroll — but with the tab bar retired the
-          // header is now the sole route to the burger/credits/Assets, audit
-          // 2026-08-11.)
+          // Mobile/tablet: keep the fixed header out of the content path once
+          // the longer landing workspace has started scrolling.
           if (isMobileOrTablet) {
-            if (!isExpandedView || currentScrollY <= revealThreshold) {
-              wsHeader.classList.remove('nav-hidden');
-            } else {
-              wsHeader.classList.add('nav-hidden');
+            if (!hasMeasuredMobileScroll) {
+              hasMeasuredMobileScroll = true;
+              lastMobileScrollY = currentScrollY;
+              setMobileHeaderState(false);
+              ticking = false;
+              return;
             }
+
+            const scrollingDown = currentScrollY > lastMobileScrollY + 5;
+            const scrollingUp = currentScrollY < lastMobileScrollY - 5;
+            if (currentScrollY <= revealThreshold || scrollingUp) {
+              forceMobileHeaderVisible = false;
+            }
+
+            if (!pageCanScroll || keepHeaderVisible || forceMobileHeaderVisible || currentScrollY <= revealThreshold || scrollingUp) {
+              setMobileHeaderState(false);
+            } else if (scrollingDown) {
+              forceMobileHeaderVisible = false;
+              setMobileHeaderState(true);
+            }
+            lastMobileScrollY = currentScrollY;
             ticking = false;
             return;
           }
@@ -2153,6 +2219,7 @@
           if (!isExpandedView) {
             hideableElements.forEach(el => el.classList.remove('nav-hidden'));
             wsHeader.classList.remove('nav-hidden');
+            document.body.classList.remove('ws-mobile-scrolled');
             ticking = false;
             return;
           }
@@ -2166,15 +2233,63 @@
           ticking = false;
         };
 
-        window.addEventListener('scroll', () => {
+        const requestScrollSync = () => {
           if (!ticking) {
             window.requestAnimationFrame(handleScroll);
             ticking = true;
           }
-        }, { passive: true });
+        };
+
+        scrollContainers.forEach(el => {
+          el.addEventListener('scroll', requestScrollSync, { passive: true });
+        });
+        window.addEventListener('resize', requestScrollSync, { passive: true });
+        window.addEventListener('touchmove', requestScrollSync, { passive: true });
+        window.visualViewport?.addEventListener('scroll', requestScrollSync, { passive: true });
+        window.visualViewport?.addEventListener('resize', requestScrollSync, { passive: true });
+
+        let overlayWasActive = hasActiveOverlay();
+        const overlayObserver = new MutationObserver(() => {
+          const overlayIsActive = hasActiveOverlay();
+          if (overlayWasActive && !overlayIsActive) {
+            revealMobileHeader();
+          }
+          if (overlayIsActive) {
+            setMobileHeaderState(false);
+          }
+          overlayWasActive = overlayIsActive;
+          requestScrollSync();
+        });
+        overlayObserver.observe(document.body, { attributes: true, attributeFilter: ['class'] });
 
         handleScroll();
       }
+    });
+  </script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!window.visualViewport) return;
+
+      const syncKeyboardViewport = () => {
+        const vv = window.visualViewport;
+        const isTouchLayout = window.innerWidth <= 1000;
+        const active = document.activeElement;
+        const editableFocused = active && (
+          active.matches?.('input, textarea, select') ||
+          active.isContentEditable
+        );
+        const keyboardInset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+
+        document.documentElement.style.setProperty('--ws-keyboard-inset', `${Math.round(keyboardInset)}px`);
+        document.body.classList.toggle('ws-keyboard-open', isTouchLayout && editableFocused && keyboardInset > 90);
+      };
+
+      window.visualViewport.addEventListener('resize', syncKeyboardViewport, { passive: true });
+      window.visualViewport.addEventListener('scroll', syncKeyboardViewport, { passive: true });
+      document.addEventListener('focusin', syncKeyboardViewport);
+      document.addEventListener('focusout', () => window.setTimeout(syncKeyboardViewport, 0));
+      window.addEventListener('orientationchange', syncKeyboardViewport, { passive: true });
+      syncKeyboardViewport();
     });
   </script>
   <script src="js/cookie-consent.js?v=20260802a" defer></script>
