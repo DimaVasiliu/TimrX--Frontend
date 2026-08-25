@@ -357,3 +357,24 @@ body.print3d-page .assets-modal-backdrop{
     border-radius:20px;
   }
 }
+
+
+/* ==========================================================================
+   CARD MENUS (2026-08-21)
+   Something in the cascade nulls .card-menu's background inside the modal;
+   the menu then reads as frosted glass with the grid showing through it.
+   Guarantee an opaque surface here — this sheet loads last.
+   ========================================================================== */
+.timrx-3dprint .card-menu{
+  background:rgba(10,13,22,.98)!important;
+  border:1px solid rgba(var(--assets-yellow-rgb),.14);
+  box-shadow:0 18px 52px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.04);
+}
+.timrx-3dprint .card-menu .card-menu__label{
+  background:rgba(10,13,22,.98);
+  color:rgba(var(--assets-yellow-rgb),.85);
+}
+.timrx-3dprint .card-submenu{
+  background:rgba(10,13,22,.98)!important;
+  border:1px solid rgba(var(--assets-yellow-rgb),.12);
+}

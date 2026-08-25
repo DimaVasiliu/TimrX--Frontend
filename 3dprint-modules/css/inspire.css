@@ -51,6 +51,15 @@ body.inspire-open .ws-right {
   transition: filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* The assets modal IS .ws-right. When it opens on top of Inspire it must not
+   inherit the backdrop blur: the filter dims the whole library AND becomes
+   the containing block for its fixed-position card menus, which detaches
+   them from the cards that opened them. */
+body.inspire-open .ws-right.assets-modal {
+  filter: none;
+  pointer-events: auto;
+}
+
 /* ===== INSPIRE OVERLAY CONTAINER ===== */
 .inspire-overlay {
   position: fixed !important;
@@ -1174,13 +1183,11 @@ model-viewer.inspire-model::part(default-progress-mask) {
   /* Breathing room so the silhouette never touches the tile edge. */
   padding: 3%;
   box-sizing: border-box;
-  filter:
-    brightness(1.55)
-    contrast(1.22)
-    saturate(1.18)
-    drop-shadow(0 0 14px rgba(var(--accent-orange-rgb, 245, 79, 27), 0.22))
-    drop-shadow(0 0 18px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.14));
-  mix-blend-mode: screen;
+  /* screen-blend assumed a bright object on pure black; real thumbnails are
+     often dark renders, which screen() erased against the dark stage. Normal
+     blending + a gentle lift keeps every thumbnail legible. */
+  filter: brightness(1.12) contrast(1.08) saturate(1.1);
+  border-radius: 10px;
   object-position: center center;
 }
 
@@ -1193,12 +1200,7 @@ model-viewer.inspire-model::part(default-progress-mask) {
 }
 .inspire-card[data-type="model"]:hover .inspire-card__image {
   transform: scale(1.08);
-  filter:
-    brightness(1.7)
-    contrast(1.26)
-    saturate(1.22)
-    drop-shadow(0 0 18px rgba(var(--accent-orange-rgb, 245, 79, 27), 0.28))
-    drop-shadow(0 0 24px rgba(var(--accent-blue-rgb, 127, 200, 194), 0.18));
+  filter: brightness(1.2) contrast(1.1) saturate(1.14);
 }
 /* The refine crossfade still runs — it swaps two contained images, which is
    exactly the comparison it is there to show. */

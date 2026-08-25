@@ -2574,6 +2574,11 @@
   };
 
   // Allow external cache invalidation (e.g. after history deletion)
+  /* My Assets opens over this overlay; it asks Inspire to stand down so the
+     inspire-open backdrop blur cannot dim the library or break its menus. */
+  window.addEventListener('inspire:close', () => {
+    try { closeInspire({ isManual: false }); } catch (e) { /* not open */ }
+  });
   window.addEventListener('inspire:invalidate', () => {
     INSPIRE_POOL = null;
     INSPIRE_POOL_TS = 0;
