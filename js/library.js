@@ -284,7 +284,6 @@
   function remixActions(el, id) {
     // Read the asset's shape off the card rather than re-querying state: the
     // grid is the only place that knows what this particular card renders.
-    var type = el.getAttribute('data-asset-type') || 'model';
     var promptEl = el.querySelector('.expanded-thumb__status-prompt');
     // title carries the full prompt; textContent is shortTitle()'s output and
     // falls back to the literal "(untitled)" for prompt-less assets, which is
@@ -293,12 +292,10 @@
     if (!prompt || prompt === '(untitled)') prompt = '';
     var items = [];
 
-    if (type === 'image') {
-      items.push(['remix-image-to-3d', 'Make 3D model', 'M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4']);
-      items.push(['remix-image-to-video', 'Animate to video', 'M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z']);
-    } else if (type === 'model' || type === 'animated') {
-      items.push(['remix-model-texture', 'Re-texture', 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z']);
-    }
+    /* 2026-08-21 dedup: 'Make 3D model', 'Animate to video' and 'Re-texture'
+       were removed — each duplicated an entry the card's base menu already
+       has (Create 3D Model, Create Video, Edit Model > Texture). This group
+       keeps only what exists nowhere else: prompt reuse and organisation. */
     if (prompt) {
       items.push(['remix-rerun', 'Run this prompt again', 'M4 4v5h5M20 20v-5h-5M20 9A8 8 0 006 5.3M4 15a8 8 0 0014 3.7']);
       items.push(['remix-copy-prompt', 'Copy prompt', 'M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2v-2M8 5a2 2 0 002 2h4a2 2 0 002-2M8 5a2 2 0 012-2h4a2 2 0 012 2m0 0h2a2 2 0 012 2v3']);
@@ -344,10 +341,10 @@
         esc(t) + '<span aria-hidden="true">&times;</span></button>';
     }).join('');
 
+    var remixBlock = remixActions(el, id);
     var block =
       '<div class="card-menu__group" data-lib-menu>' +
-        '<div class="card-menu__label">Do more with this</div>' +
-        remixActions(el, id) +
+        (remixBlock ? '<div class="card-menu__label">Do more with this</div>' + remixBlock : '') +
         '<div class="card-menu__label">Organise</div>' +
         '<button class="card-menu__item" type="button" data-lib-act="add-tag" data-id="' + esc(id) + '">' +
           '<span class="card-menu__item-inner"><span class="card-menu__icon">#</span><span>Add tag</span></span>' +
@@ -699,7 +696,7 @@
       // Model cards use data-act="download" (not "download-"), and grouped
       // batch cards expose only that — the prefix selector matched neither and
       // only worked by accident via the print button appearing earlier.
-      var btn = el.querySelector('[data-act="download"], [data-act^="download-"], [data-act="print"]');
+      var btn = el.querySelector('[data-act="download"], [data-act^="download-"]');
       if (!btn || btn.hasAttribute('disabled')) return;
       started++;
       setTimeout(function () { btn.click(); }, index * 400);
@@ -712,7 +709,6 @@
 
   // ------------------------------------------------------------- remix wiring
   function remix(action, id, prompt) {
-    var el = grid() && grid().querySelector('.expanded-thumb[data-gid="' + cssEscape(id) + '"]');
 
     if (action === 'remix-copy-prompt') {
       if (navigator.clipboard && prompt) {
@@ -739,19 +735,9 @@
       return;
     }
 
-    // The remaining actions reuse the card's own menu entries, so the existing
-    // pipelines (and their credit checks) stay the single source of truth.
-    var map = {
-      'remix-image-to-3d': '[data-act="image-to-3d"], [data-act="use-image-3d"]',
-      'remix-image-to-video': '[data-act="animate-image"], [data-act="image-to-video"]',
-      'remix-model-texture': '[data-act="texture"], [data-act="retexture"]',
-    };
-    var target = el && map[action] ? el.querySelector(map[action]) : null;
-    if (target) {
-      target.click();
-    } else {
-      toast('That action is not available for this asset yet.', 'info');
-    }
+    /* 2026-08-21 dedup: the proxy map for remix-image-to-3d /
+       remix-image-to-video / remix-model-texture is gone with the duplicate
+       menu entries it served — the base menu's own buttons are the only path. */
   }
 
   // ---------------------------------------------------------------- events

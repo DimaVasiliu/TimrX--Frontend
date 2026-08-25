@@ -27,7 +27,7 @@ import {
   getGroupedCardItems,
   resetGalleryInfiniteScroll,
   syncAssetsToolbarFilters
-} from './history.js?v=20260815menuanchor';
+} from './history.js?v=20260821dedup';
 import * as API from './api.js?v=20260815rigfix';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
@@ -4154,7 +4154,9 @@ function wireGallery() {
         return;
       }
 
-      if (act === 'download' || act === 'print') {
+      /* 'print' was a duplicate of 'download' (same handler, same result);
+         the menu item is gone and the alias with it. */
+      if (act === 'download') {
         const explicitDownloadUrl = btn.getAttribute('data-download-url') || '';
         const downloadUrl = explicitDownloadUrl || item.glb_url || item.glb_proxy;
         if (!downloadUrl) return;

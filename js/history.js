@@ -1506,7 +1506,6 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
                   <span class="card-menu__icon">&#127912;</span>
                   <span>${isVectorImage ? 'Rasterize Before 3D' : 'Create 3D Model'}</span>
                 </span>
-                <span class="card-menu__arrow">></span>
               </button>
               <button class="card-menu__item" type="button" data-act="image-to-video" data-id="${displayModel.id}" data-image-url="${escapeAttr(fullSrc)}" ${isVectorImage ? 'disabled' : ''}>
                 <span class="card-menu__item-inner">
@@ -1882,13 +1881,6 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
               <span class="card-menu__item-inner">
                 <span class="card-menu__icon">&#11042;</span>
                 <span>Edit Model</span>
-              </span>
-              <span class="card-menu__arrow">></span>
-            </button>
-            <button class="card-menu__item" type="button" data-act="print" data-id="${displayModel.id}" data-download-url="${modelDownloadUrl}" ${!canDownload ? 'disabled' : ''}>
-              <span class="card-menu__item-inner">
-                <span class="card-menu__icon">&#128424;</span>
-                <span>Print</span>
               </span>
               <span class="card-menu__arrow">></span>
             </button>
