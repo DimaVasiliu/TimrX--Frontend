@@ -504,28 +504,23 @@ body.history-menu-open .timrx-3dprint .history-group-card.is-menu-open .history-
   transition: opacity 0.15s ease, transform 0.15s ease, visibility 0s 0s;
 }
 
-/* Menus are positioned with viewport coordinates in history.js. Expanded
-   gallery cards animate with transform, which would otherwise create a new
-   containing block for position:fixed and make the menu appear far from the
-   thumbnail that opened it. Once open, remove that containing transform. */
-.timrx-3dprint .history-thumb.is-menu-open,
-.timrx-3dprint .expanded-thumb.is-menu-open,
-.timrx-3dprint .history-group-card.is-menu-open,
-.timrx-3dprint .card-menu.is-open {
-  transform: none !important;
-}
+/* 2026-08-21: the transform/will-change/contain unsetters that used to live
+   here are gone. Open menus are portaled to body (.tx-menu-layer) by
+   history.js, so no ancestor can become their containing block. */
 
-.timrx-3dprint .history-thumb.is-menu-open,
-.timrx-3dprint .expanded-thumb.is-menu-open,
-.timrx-3dprint .history-group-card.is-menu-open {
-  will-change: auto !important;
-  contain: none !important;
+/* Portal layer for open card menus: body-level, so position:fixed means
+   plain viewport coordinates — immune to ancestor transforms, filters,
+   overflow clipping and stacking contexts. */
+.tx-menu-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  pointer-events: none;
 }
-
-.timrx-3dprint .expanded-thumb.is-menu-open {
-  animation: none !important;
-  opacity: 1;
-}
+.tx-menu-layer .card-menu,
+.tx-menu-layer .card-submenu { pointer-events: none; }
+.tx-menu-layer .card-menu.is-open,
+.tx-menu-layer .card-submenu.is-open { pointer-events: auto; }
 
 .timrx-3dprint .card-menu__list {
   display: flex;

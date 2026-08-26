@@ -27,7 +27,7 @@ import {
   getGroupedCardItems,
   resetGalleryInfiniteScroll,
   syncAssetsToolbarFilters
-} from './history.js?v=20260821dedup';
+} from './history.js?v=20260821portal';
 import * as API from './api.js?v=20260815rigfix';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
@@ -625,6 +625,15 @@ window.TimrXState = {
   getHistory: State.getHistory,
   setActiveModelId: State.setHistoryActiveModelId,
   getActiveModelId: () => State.historyActiveModelId,
+  findHistoryItem: State.findHistoryItem,
+  /* Shared opener for surfaces outside the assets grid (the dock filmstrip):
+     open an asset by id through the exact pipeline the grid cards use. */
+  openAsset(id, preferredType) {
+    const item = State.findHistoryItem(id);
+    if (!item) return Promise.resolve(false);
+    const ghost = document.createElement('button');
+    return openHistoryAsset(item, ghost, preferredType || '');
+  },
 };
 
 // ============================================================================

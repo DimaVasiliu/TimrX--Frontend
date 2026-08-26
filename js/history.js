@@ -3,7 +3,7 @@
  * Renders the history list. Contains HTML templates for history cards.
  */
 
-import { byId, dateLabel, normalizeEpochMs, HISTORY_MENU_EDGE_PAD, HISTORY_SUBMENU_GAP } from './config.js';
+import { byId, dateLabel, normalizeEpochMs } from './config.js';
 import {
   getHistory,
   getActiveJobs,
@@ -1079,6 +1079,115 @@ function buildLineageBundles(models = []) {
 // MENU POSITIONING
 // ============================================================================
 
+/* ============================================================================
+   CARD MENUS — portal implementation (2026-08-21 rewrite)
+   ----------------------------------------------------------------------------
+   The old system positioned each menu with position:fixed *inside its card*
+   and compensated for whatever containing block an ancestor's transform,
+   filter or backdrop-filter happened to create. Every new styling layer that
+   touched an ancestor broke the compensation in a new way (menus parked at
+   the viewport corner, detached from their card, clipped by overflow).
+
+   Now the open menu is MOVED to a body-level portal layer
+   (div.timrx-3dprint.tx-menu-layer). At body level, position:fixed means
+   plain viewport coordinates: no origin math, no containing-block traps, no
+   clipping, no stacking-context fights. On close the node returns to its
+   card (or is dropped if the grid re-rendered meanwhile — the rebuild makes
+   a fresh one). The exported API is unchanged.
+   ============================================================================ */
+
+const MENU_VIEWPORT_PAD = 8;
+const MENU_ANCHOR_GAP = 6;
+
+let _menuLayerEl = null;
+function _menuLayer() {
+  if (_menuLayerEl && _menuLayerEl.isConnected) return _menuLayerEl;
+  _menuLayerEl = document.createElement('div');
+  /* timrx-3dprint keeps every `.timrx-3dprint .card-menu` rule matching
+     after the menu leaves the workspace subtree. */
+  _menuLayerEl.className = 'timrx-3dprint tx-menu-layer';
+  document.body.appendChild(_menuLayerEl);
+  return _menuLayerEl;
+}
+
+const _menuHomes = new WeakMap(); // menu/submenu node -> placeholder comment at its home
+function _portalIn(el) {
+  if (!el || el.parentElement === _menuLayer()) return;
+  const ph = document.createComment('tx-menu-home');
+  _menuHomes.set(el, ph);
+  el.parentNode.insertBefore(ph, el);
+  _menuLayer().appendChild(el);
+}
+function _portalOut(el) {
+  if (!el) return;
+  const ph = _menuHomes.get(el);
+  _menuHomes.delete(el);
+  if (ph && ph.parentNode && ph.isConnected) {
+    ph.parentNode.insertBefore(el, ph);
+    ph.remove();
+  } else {
+    /* The grid re-rendered while the menu was open; its card is gone and a
+       fresh menu was built with the new card. Drop the orphan. */
+    el.remove();
+  }
+}
+
+function _viewport() {
+  return {
+    w: window.innerWidth || document.documentElement.clientWidth,
+    h: window.innerHeight || document.documentElement.clientHeight,
+  };
+}
+
+/* Anchor the menu to its ⋯ button: below hanging left, then above hanging
+   left, then the left-aligned variants; clamped to the viewport either way. */
+function _placeMenu(anchorBtn, menu) {
+  const { w: vw, h: vh } = _viewport();
+  const btn = anchorBtn.getBoundingClientRect();
+  menu.style.left = '0px';
+  menu.style.top = '0px';
+  const size = menu.getBoundingClientRect();
+  const mw = size.width;
+  const mh = size.height;
+
+  const clampX = (x) => Math.max(MENU_VIEWPORT_PAD, Math.min(vw - mw - MENU_VIEWPORT_PAD, x));
+  const clampY = (y) => Math.max(MENU_VIEWPORT_PAD, Math.min(vh - mh - MENU_VIEWPORT_PAD, y));
+  const fits = (x, y) => x >= MENU_VIEWPORT_PAD && y >= MENU_VIEWPORT_PAD &&
+    x + mw + MENU_VIEWPORT_PAD <= vw && y + mh + MENU_VIEWPORT_PAD <= vh;
+
+  const below = btn.bottom + MENU_ANCHOR_GAP;
+  const above = btn.top - mh - MENU_ANCHOR_GAP;
+  const hangLeft = btn.right - mw;
+  const hangRight = btn.left;
+
+  const spot = [
+    [hangLeft, below], [hangLeft, above], [hangRight, below], [hangRight, above],
+  ].find(([x, y]) => fits(x, y)) || [clampX(hangLeft), clampY(below)];
+
+  menu.style.left = `${Math.round(clampX(spot[0]))}px`;
+  menu.style.top = `${Math.round(clampY(spot[1]))}px`;
+}
+
+/* Submenus sit beside the parent item: to the right, flipping left when
+   there is no room, vertically aligned with the item and clamped. */
+function _placeSubmenu(anchorBtn, submenu) {
+  const { w: vw, h: vh } = _viewport();
+  const item = anchorBtn.getBoundingClientRect();
+  submenu.style.left = '0px';
+  submenu.style.top = '0px';
+  const size = submenu.getBoundingClientRect();
+  const sw = size.width;
+  const sh = size.height;
+
+  let x = item.right + MENU_ANCHOR_GAP;
+  if (x + sw + MENU_VIEWPORT_PAD > vw) x = item.left - sw - MENU_ANCHOR_GAP;
+  x = Math.max(MENU_VIEWPORT_PAD, Math.min(vw - sw - MENU_VIEWPORT_PAD, x));
+  const y = Math.max(MENU_VIEWPORT_PAD, Math.min(vh - sh - MENU_VIEWPORT_PAD, item.top));
+
+  submenu.style.left = `${Math.round(x)}px`;
+  submenu.style.top = `${Math.round(y)}px`;
+}
+
 export function closeActiveHistorySubmenu() {
   if (activeHistorySubmenuBtn) {
     activeHistorySubmenuBtn.setAttribute('aria-expanded', 'false');
@@ -1087,6 +1196,7 @@ export function closeActiveHistorySubmenu() {
   if (activeHistorySubmenu) {
     activeHistorySubmenu.classList.remove('is-open');
     resetMenuPlacement(activeHistorySubmenu);
+    _portalOut(activeHistorySubmenu);
   }
   if (activeHistoryMenu) activeHistoryMenu.classList.remove('has-mobile-submenu');
   activeHistorySubmenuBtn = null;
@@ -1103,6 +1213,7 @@ export function closeActiveHistoryMenu() {
   if (activeHistoryMenu) {
     activeHistoryMenu.classList.remove('is-open');
     resetMenuPlacement(activeHistoryMenu);
+    _portalOut(activeHistoryMenu);
   }
   activeHistoryMenuBtn = null;
   activeHistoryMenu = null;
@@ -1118,17 +1229,20 @@ export function openHistoryMenu(menuBtn, menu) {
   menuBtn.setAttribute('aria-expanded', 'true');
   menuBtn.classList.add('is-open');
   getHistoryMenuHosts(menuBtn).forEach((host) => host.classList.add('is-menu-open'));
-  menu.classList.add('is-open');
   activeHistoryMenuBtn = menuBtn;
   activeHistoryMenu = menu;
-  menu.classList.toggle('is-mobile-sheet', isMobileAssetsMenu());
   document.body.classList.add('history-menu-open');
-  positionHistoryMenu(menuBtn, menu);
-  requestAnimationFrame(() => {
-    if (activeHistoryMenuBtn === menuBtn && activeHistoryMenu === menu) {
-      positionHistoryMenu(menuBtn, menu);
-    }
-  });
+
+  _portalIn(menu);
+  const mobile = isMobileAssetsMenu();
+  menu.classList.toggle('is-mobile-sheet', mobile);
+  menu.classList.add('is-open');
+  if (mobile) {
+    resetMenuPlacement(menu);
+    menu.classList.add('is-mobile-sheet');
+  } else {
+    _placeMenu(menuBtn, menu);
+  }
 }
 
 /**
@@ -1139,154 +1253,41 @@ export function openHistorySubmenu(submenuBtn, submenu) {
   closeActiveHistorySubmenu();
   submenuBtn.setAttribute('aria-expanded', 'true');
   submenuBtn.classList.add('is-open');
-  submenu.classList.add('is-open');
   activeHistorySubmenuBtn = submenuBtn;
   activeHistorySubmenu = submenu;
-  submenu.classList.toggle('is-mobile-sheet', isMobileAssetsMenu());
-  if (activeHistoryMenu) activeHistoryMenu.classList.toggle('has-mobile-submenu', isMobileAssetsMenu());
-  positionHistorySubmenu(submenuBtn, submenu);
-}
 
-function positionHistoryMenu(anchorBtn, menu) {
-  if (!anchorBtn || !menu) return;
-  if (isMobileAssetsMenu()) {
-    menu.style.left = '';
-    menu.style.right = '';
-    menu.style.top = '';
-    menu.style.bottom = '';
-    menu.style.width = '';
-    return;
+  _portalIn(submenu);
+  const mobile = isMobileAssetsMenu();
+  submenu.classList.toggle('is-mobile-sheet', mobile);
+  if (activeHistoryMenu) activeHistoryMenu.classList.toggle('has-mobile-submenu', mobile);
+  submenu.classList.add('is-open');
+  if (mobile) {
+    resetMenuPlacement(submenu);
+    submenu.classList.add('is-mobile-sheet');
+  } else {
+    _placeSubmenu(submenuBtn, submenu);
   }
-  const spacing = HISTORY_MENU_EDGE_PAD;
-  const gap = 6;
-  const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-
-  const btnRect = anchorBtn.getBoundingClientRect();
-  // Reset so getBoundingClientRect returns the menu's natural size
-  menu.style.left = '0px';
-  menu.style.top = '0px';
-  const menuRect = menu.getBoundingClientRect();
-  const originLeft = menuRect.left;
-  const originTop = menuRect.top;
-  const menuWidth = menuRect.width;
-  const menuHeight = menuRect.height;
-
-  // Never let the bounds invert. If a menu is somehow still taller than the
-  // viewport (a browser that ignores the CSS cap, a very short window), the
-  // old code's clamp collapsed to its minimum and parked the menu at the top
-  // of the screen, nowhere near the card. Clamping the *bound* first means the
-  // worst case is a menu flush with the top edge but still horizontally on its
-  // card — not one teleported across the page.
-  const maxLeft = Math.max(spacing, viewportWidth - menuWidth - spacing);
-  const maxTop = Math.max(spacing, viewportHeight - menuHeight - spacing);
-  const clampLeft = (v) => Math.max(spacing, Math.min(maxLeft, v));
-  const clampTop = (v) => Math.max(spacing, Math.min(maxTop, v));
-  const fits = (left, top) => left >= spacing &&
-    top >= spacing &&
-    left + menuWidth + spacing <= viewportWidth &&
-    top + menuHeight + spacing <= viewportHeight;
-
-  // The menu belongs to the ⋯ button, so every preferred position is measured
-  // from the BUTTON, not from the card. The previous order flanked the whole
-  // card first and rejected anything overlapping it, which pushed the menu a
-  // full card-width away from the thumbnail you actually clicked. Overlapping
-  // its own card is normal menu behaviour and is now allowed.
-  const underButton = btnRect.bottom + gap;
-  const aboveButton = btnRect.top - menuHeight - gap;
-  const rightAligned = btnRect.right - menuWidth;   // menu's right edge on the button's
-  const leftAligned = btnRect.left;
-
-  const candidates = [
-    { left: rightAligned, top: underButton },   // below, hanging left  ← default
-    { left: rightAligned, top: aboveButton },   // above, hanging left
-    { left: leftAligned,  top: underButton },   // below, hanging right
-    { left: leftAligned,  top: aboveButton },   // above, hanging right
-  ];
-
-  // Fallback for a card near the bottom of the viewport, where neither below
-  // nor above leaves room: keep the menu locked to the button horizontally and
-  // slide it vertically until it fits. Flanking the whole card was the old
-  // behaviour and it threw the menu a card-width away from the thumbnail you
-  // clicked — the thing this is meant to stop.
-  const chosen = candidates.find((pos) => fits(pos.left, pos.top)) || {
-    left: rightAligned,
-    top: clampTop(underButton),
-  };
-
-  menu.style.left = `${Math.round(clampLeft(chosen.left) - originLeft)}px`;
-  menu.style.top = `${Math.round(clampTop(chosen.top) - originTop)}px`;
 }
 
-function positionHistorySubmenu(anchorBtn, submenu) {
-  if (!anchorBtn || !submenu) return;
-  if (isMobileAssetsMenu()) {
-    submenu.style.left = '';
-    submenu.style.right = '';
-    submenu.style.top = '';
-    submenu.style.bottom = '';
-    submenu.style.width = '';
-    return;
-  }
-  const spacing = HISTORY_MENU_EDGE_PAD;
-  const gap = Math.min(HISTORY_SUBMENU_GAP, 6);
-  const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-  const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-
-  submenu.style.left = '0px';
-  submenu.style.top = '0px';
-
-  const btnRect = anchorBtn.getBoundingClientRect();
-  const menuRect = activeHistoryMenu?.getBoundingClientRect() || btnRect;
-  const hostRect = activeHistoryMenuBtn ?
-    (getHistoryMenuHost(activeHistoryMenuBtn)?.getBoundingClientRect() || null) :
-    null;
-  const submenuRect = submenu.getBoundingClientRect();
-  const originLeft = submenuRect.left;
-  const originTop = submenuRect.top;
-  const submenuWidth = submenuRect.width;
-  const submenuHeight = submenuRect.height;
-  const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
-
-  const top = clamp(btnRect.top, spacing, viewportHeight - submenuHeight - spacing);
-  const candidates = [
-    { left: menuRect.right + gap, top },
-    { left: menuRect.left - submenuWidth - gap, top },
-    { left: clamp(btnRect.right - submenuWidth, spacing, viewportWidth - submenuWidth - spacing), top: menuRect.bottom + gap },
-    { left: clamp(btnRect.right - submenuWidth, spacing, viewportWidth - submenuWidth - spacing), top: menuRect.top - submenuHeight - gap }
-  ];
-
-  const fitsViewport = (pos) => pos.left >= spacing &&
-    pos.top >= spacing &&
-    pos.left + submenuWidth + spacing <= viewportWidth &&
-    pos.top + submenuHeight + spacing <= viewportHeight;
-  const overlapsRect = (pos, rect) => {
-    if (!rect) return false;
-    const right = pos.left + submenuWidth;
-    const bottom = pos.top + submenuHeight;
-    return !(right <= rect.left || pos.left >= rect.right || bottom <= rect.top || pos.top >= rect.bottom);
-  };
-
-  const chosen = candidates.find((pos) => fitsViewport(pos) && !overlapsRect(pos, hostRect) && !overlapsRect(pos, menuRect)) ||
-    candidates.find((pos) => fitsViewport(pos) && !overlapsRect(pos, hostRect)) ||
-    candidates.find(fitsViewport) || {
-      left: clamp(menuRect.left, spacing, viewportWidth - submenuWidth - spacing),
-      top: clamp(menuRect.bottom + gap, spacing, viewportHeight - submenuHeight - spacing)
-    };
-
-  submenu.style.left = `${Math.round(chosen.left - originLeft)}px`;
-  submenu.style.top = `${Math.round(chosen.top - originTop)}px`;
-}
-
+/* Called by main.js on window resize and captured document scroll: keep the
+   menu pinned to its thumbnail while the modal scrolls. If the anchor is
+   gone (grid re-rendered) or scrolled out of view, close instead of drifting. */
 export function updateActiveHistoryMenuPosition() {
   if (!activeHistoryMenuBtn || !activeHistoryMenu) return;
-  const mobileAssets = isMobileAssetsMenu();
-  activeHistoryMenu.classList.toggle('is-mobile-sheet', mobileAssets);
-  if (activeHistorySubmenu) activeHistorySubmenu.classList.toggle('is-mobile-sheet', mobileAssets);
-  activeHistoryMenu.classList.toggle('has-mobile-submenu', mobileAssets && !!activeHistorySubmenu);
-  positionHistoryMenu(activeHistoryMenuBtn, activeHistoryMenu);
+  if (!activeHistoryMenuBtn.isConnected) { closeActiveHistoryMenu(); return; }
+  const btnRect = activeHistoryMenuBtn.getBoundingClientRect();
+  const { h: vh } = _viewport();
+  if (btnRect.bottom < 0 || btnRect.top > vh) { closeActiveHistoryMenu(); return; }
+
+  const mobile = isMobileAssetsMenu();
+  activeHistoryMenu.classList.toggle('is-mobile-sheet', mobile);
+  if (activeHistorySubmenu) activeHistorySubmenu.classList.toggle('is-mobile-sheet', mobile);
+  activeHistoryMenu.classList.toggle('has-mobile-submenu', mobile && !!activeHistorySubmenu);
+  if (mobile) return;
+  _placeMenu(activeHistoryMenuBtn, activeHistoryMenu);
   if (activeHistorySubmenuBtn && activeHistorySubmenu) {
-    positionHistorySubmenu(activeHistorySubmenuBtn, activeHistorySubmenu);
+    if (!activeHistorySubmenuBtn.isConnected) { closeActiveHistorySubmenu(); return; }
+    _placeSubmenu(activeHistorySubmenuBtn, activeHistorySubmenu);
   }
 }
 

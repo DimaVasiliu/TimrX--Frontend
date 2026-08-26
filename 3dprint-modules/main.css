@@ -41,7 +41,7 @@
 @import url('media/viewer-media.css?v=20260811ah');
 
 /* 6. History Panel */
-@import url('css/history.css?v=20260815menuanchor');
+@import url('css/history.css?v=20260821portal');
 @import url('media/history-media.css?v=20260811ah');
 
 /* 10. Inspire Section */
@@ -65,7 +65,7 @@
 
 /* 15b. Bottom prompt dock — the redesigned primary creation surface.
    Imported before the responsive layer so stage-media.css can adjust it. */
-@import url('css/dock.css?v=20260823mobilelanding5');
+@import url('css/dock.css?v=20260821strip');
 
 /* 15c. Floating generation progress — reactor card + minimisable orb.
    Replaces the old .gen-track cards (markup retired; see generation-tracker.js). */

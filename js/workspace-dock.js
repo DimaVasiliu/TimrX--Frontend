@@ -492,9 +492,67 @@
     });
   }
 
-  /* ---------- right filmstrip (recent assets) ---------------------------- */
+  /* ---------- right filmstrip (recent assets) ----------------------------
+     2026-08-21 rewrite. The strip used to scrape <img> tags out of the
+     hidden assets grid and replay clicks on whatever element it happened to
+     find — it broke silently every time the grid template changed. It now
+     reads the SAME history state the assets modal renders from, opens
+     assets by id through the shared opener bridge (TimrXState.openAsset),
+     and shows a live slot for the generation in flight. One store, two
+     views: strip = peek, modal = manage. */
 
   var filmstrip = null;
+  var stripJobsWatch = null;
+
+  function stateFn(name) {
+    if (window.TimrXState && typeof window.TimrXState[name] === 'function') {
+      return window.TimrXState[name];
+    }
+    if (typeof window[name] === 'function') return window[name];
+    return null;
+  }
+
+  function stripKind(type) {
+    var t = String(type || '').toLowerCase();
+    if (t.indexOf('video') !== -1 || t.indexOf('seedance') !== -1 || t.indexOf('veo') !== -1) return 'VID';
+    if (t.indexOf('image') !== -1) return 'IMG';
+    return '3D';
+  }
+
+  function stripItems() {
+    var get = stateFn('getHistory');
+    var list = [];
+    try { list = (get && get()) || []; } catch (e) { list = []; }
+    var out = [];
+    for (var i = 0; i < list.length && out.length < 6; i++) {
+      var it = list[i] || {};
+      var status = String(it.status || '').toLowerCase();
+      if (status && ['completed', 'succeeded', 'done', 'finished'].indexOf(status) === -1) continue;
+      var thumb = it.thumbnail_url || it.thumb_url || it.thumb_preview || it.image_url || '';
+      if (!thumb || !it.id) continue;
+      out.push({
+        id: String(it.id),
+        thumb: thumb,
+        kind: stripKind(it.type),
+        title: it.prompt || it.title || 'Open asset'
+      });
+    }
+    return out;
+  }
+
+  function activeStripJob() {
+    var getActive = stateFn('getActiveJobs');
+    var getMeta = stateFn('getPendingMeta');
+    var ids = [];
+    try { ids = (getActive && getActive()) || []; } catch (e) { ids = []; }
+    if (!ids.length) return null;
+    var meta = {};
+    try { meta = (getMeta && getMeta()) || {}; } catch (e) { meta = {}; }
+    var m = meta[ids[0]] || {};
+    var pct = typeof m.progress === 'number' ? m.progress
+            : typeof m.progress_pct === 'number' ? m.progress_pct : null;
+    return { count: ids.length, pct: pct, kind: stripKind(m.type || m.kind) };
+  }
 
   function initFilmstrip() {
     filmstrip = document.createElement('aside');
@@ -502,58 +560,69 @@
     filmstrip.setAttribute('aria-label', 'Recent assets');
     filmstrip.setAttribute('data-panel', '');
     document.body.appendChild(filmstrip);
-    window.addEventListener('history:rendered', function () {
-      /* let history.js finish painting the grid first */
-      setTimeout(renderFilmstrip, 80);
+    filmstrip.addEventListener('click', function (e) {
+      var item = e.target.closest && e.target.closest('.ws-filmstrip__item[data-asset-id]');
+      if (!item) return;
+      var open = stateFn('openAsset');
+      if (open) open(item.getAttribute('data-asset-id'), item.getAttribute('data-kind') === 'VID' ? 'video' : '');
     });
-    window.addEventListener('timrx:startup-complete', function () {
-      setTimeout(renderFilmstrip, 300);
-    });
-    /* history may have painted before this module booted — catch up */
-    [800, 2500, 6000].forEach(function (ms) { setTimeout(renderFilmstrip, ms); });
+    window.addEventListener('history:rendered', function () { renderFilmstrip(); });
+    window.addEventListener('generation:start', function () { renderFilmstrip(); });
+    var subscribe = stateFn('onActiveJobsChange');
+    if (subscribe) { try { subscribe(function () { renderFilmstrip(); }); } catch (e) {} }
+    /* history state can hydrate after this module boots — one late catch-up */
+    setTimeout(renderFilmstrip, 1200);
     renderFilmstrip();
   }
 
   function renderFilmstrip() {
     if (!filmstrip) return;
-    var grid = $('historyGrid');
+    var items = stripItems();
+    var job = activeStripJob();
     filmstrip.innerHTML = '';
-    var shown = 0;
-    var seen = {};
-    var imgs = grid ? grid.querySelectorAll('img') : [];
-    for (var i = 0; i < imgs.length && shown < 6; i++) {
-      var img = imgs[i];
-      var src = img.currentSrc || img.getAttribute('src') || '';
-      if (!src || src.indexOf('data:image/svg') === 0 || seen[src]) continue;
-      seen[src] = true;
-      /* the element whose click the delegated #historyGrid handler understands */
-      var opener = img.closest('[data-act]') || img.closest('button, a') ||
-                   img.closest('.history-group-card, .history-collection, [data-asset-type]') || img;
-      var typeHost = img.closest('[data-asset-type]');
-      var hostCls = (img.closest('[class*="video"]') ? 'video' : '') ||
-                    (typeHost ? typeHost.getAttribute('data-asset-type') : '');
-      var tipo = /video/i.test(hostCls) ? 'VID' : /image/i.test(hostCls) ? 'IMG' : '3D';
+
+    if (job) {
+      var gen = document.createElement('div');
+      gen.className = 'ws-filmstrip__gen';
+      gen.setAttribute('role', 'status');
+      gen.setAttribute('aria-label', job.count > 1 ? job.count + ' generations running' : 'Generation running');
+      gen.title = job.count > 1 ? job.count + ' generations running' : 'Generating\u2026';
+      var pctText = job.pct != null ? Math.round(job.pct) + '%' : '';
+      gen.innerHTML =
+        '<span class="ws-filmstrip__gen-ring' + (job.pct == null ? ' is-indeterminate' : '') + '"' +
+          (job.pct != null ? ' style="--gen-pct:' + Math.max(0, Math.min(100, Math.round(job.pct))) + '"' : '') +
+        '></span>' +
+        '<span class="ws-filmstrip__gen-pct">' + (pctText || '\u00b7\u00b7\u00b7') + '</span>' +
+        '<span class="ws-filmstrip__tipo">' + (job.count > 1 ? job.count + '\u00d7' : job.kind) + '</span>';
+      filmstrip.appendChild(gen);
+      /* keep the ring moving while something is running */
+      if (!stripJobsWatch) stripJobsWatch = setInterval(renderFilmstrip, 2000);
+    } else if (stripJobsWatch) {
+      clearInterval(stripJobsWatch);
+      stripJobsWatch = null;
+    }
+
+    items.forEach(function (it) {
       var b = document.createElement('button');
       b.type = 'button';
       b.className = 'ws-filmstrip__item';
-      b.title = 'Open asset';
-      b.innerHTML = '<img src="' + src.replace(/"/g, '&quot;') + '" alt="" loading="lazy">' +
-        '<span class="ws-filmstrip__tipo">' + tipo + '</span>';
-      (function (openerEl) {
-        b.addEventListener('click', function () { openerEl.click(); });
-      })(opener);
+      b.setAttribute('data-asset-id', it.id);
+      b.setAttribute('data-kind', it.kind);
+      b.title = it.title;
+      b.innerHTML = '<img src="' + it.thumb.replace(/"/g, '&quot;') + '" alt="" loading="lazy">' +
+        '<span class="ws-filmstrip__tipo">' + it.kind + '</span>';
       filmstrip.appendChild(b);
-      shown++;
-    }
-    if (shown) {
+    });
+
+    if (items.length || job) {
       var more = document.createElement('button');
       more.type = 'button';
       more.className = 'ws-filmstrip__more';
-      more.textContent = 'All →';
+      more.textContent = 'All \u2192';
       more.setAttribute('data-open-assets', '');
       filmstrip.appendChild(more);
     }
-    filmstrip.classList.toggle('has-items', shown > 0);
+    filmstrip.classList.toggle('has-items', items.length > 0 || !!job);
   }
 
   /* ---------- viewer fullscreen ------------------------------------------ */

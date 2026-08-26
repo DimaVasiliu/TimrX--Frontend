@@ -997,6 +997,39 @@ body.ws-panel-open .ws-filmstrip { display: none !important; }
 }
 .ws-filmstrip__more:hover { color: var(--accent-blue); border-color: rgba(var(--accent-blue-rgb), 0.5); }
 
+/* Live-generation slot: first tile while a job is running. Determinate jobs
+   fill the conic ring from --gen-pct; indeterminate ones spin a partial arc. */
+.ws-filmstrip__gen {
+  position: relative;
+  width: 52px;
+  height: 52px;
+  border-radius: 10px;
+  border: 1px solid rgba(245, 79, 27, 0.38);
+  background: var(--surface-2, #121719);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.ws-filmstrip__gen-ring {
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: conic-gradient(#F54F1B calc(var(--gen-pct, 25) * 1%), rgba(255, 255, 255, 0.09) 0);
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
+}
+.ws-filmstrip__gen-ring.is-indeterminate { animation: wsGenSpin 1.1s linear infinite; }
+.ws-filmstrip__gen-pct {
+  position: relative;
+  font: 700 10px/1 ui-monospace, SFMono-Regular, monospace;
+  color: #F3E8BC;
+  letter-spacing: 0.02em;
+}
+@keyframes wsGenSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .ws-filmstrip__gen-ring.is-indeterminate { animation: none; }
+}
+
 @media (max-width: 900px) { .ws-filmstrip { display: none !important; } }
 
 /* ==========================================================================

@@ -416,18 +416,41 @@
       right: 0;
       width: 100%;
       margin: 0;
+      background:
+        radial-gradient(680px 160px at 72% 0%, rgba(90, 33, 50, 0.2), transparent 64%),
+        linear-gradient(180deg, rgba(30, 34, 61, 0.88), rgba(8, 9, 12, 0.76)) !important;
+      border-bottom-color: rgba(243, 232, 188, 0.12) !important;
     }
 
     body.stl-page[data-shell-page="stl-library"] .site-shell-nav-inner {
-      width: min(1600px, calc(100vw - 48px));
+      display: flex;
+      align-items: center;
+      gap: 30px;
+      width: min(100%, calc(1480px + clamp(18px, 4vw, 56px) * 2));
       margin: 0 auto;
+      padding-inline: clamp(18px, 4vw, 56px);
+      box-sizing: border-box;
+    }
+
+    body.stl-page[data-shell-page="stl-library"] .site-shell-nav::after {
+      width: min(1120px, 88vw);
+      background: linear-gradient(90deg, transparent, rgba(245, 79, 27, 0.5), rgba(243, 232, 188, 0.42), rgba(3, 83, 82, 0.5), transparent);
+    }
+
+    body.stl-page[data-shell-page="stl-library"] .site-shell-brand {
+      gap: 10px;
+    }
+
+    body.stl-page[data-shell-page="stl-library"] .site-shell-brand img {
+      width: 40px;
+      height: 40px;
     }
 
     body.stl-page[data-shell-page="stl-library"] .site-shell-brand-wordmark {
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      font-size: 28px;
-      font-weight: 700;
-      letter-spacing: 0;
+      font-family: "Space Grotesk", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.04em;
       text-transform: none;
     }
 
@@ -437,10 +460,77 @@
     }
 
     body.stl-page[data-shell-page="stl-library"] .site-shell-brand-wordmark .site-shell-brand-x {
-      background: linear-gradient(90deg, var(--stl-orange), var(--stl-teal));
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+      background: none;
+      color: var(--stl-orange);
+    }
+
+    body.stl-page[data-shell-page="stl-library"] .site-shell-nav-links {
+      gap: clamp(16px, 2vw, 30px);
+      margin-left: auto;
+      justify-content: flex-end;
+    }
+
+    body.stl-page[data-shell-page="stl-library"] .site-shell-nav-link {
+      min-height: auto;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+      color: rgba(239, 233, 233, 0.72);
+      font-size: 13px;
+      font-weight: 650;
+      letter-spacing: 0;
+      text-transform: none;
+      transform: none;
+    }
+
+    body.stl-page[data-shell-page="stl-library"] .site-shell-nav-link:hover,
+    body.stl-page[data-shell-page="stl-library"] .site-shell-nav-link:focus-visible,
+    body.stl-page[data-shell-page="stl-library"] .site-shell-nav-link.is-active,
+    body.stl-page[data-shell-page="stl-library"] .site-shell-nav-link.is-accent:hover,
+    body.stl-page[data-shell-page="stl-library"] .site-shell-nav-link.is-accent:focus-visible {
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+      color: var(--stl-yellow);
+      transform: none;
+    }
+
+    body.stl-page[data-shell-page="stl-library"] .site-shell-nav-link.is-accent {
+      background: transparent;
+      border-color: transparent;
+      box-shadow: none;
+      color: rgba(239, 233, 233, 0.72);
+    }
+
+    body.stl-page[data-shell-page="stl-library"] .site-shell-account-btn,
+    body.stl-page[data-shell-page="stl-library"] .site-shell-credits-pill {
+      width: 42px;
+      min-width: 42px;
+      height: 42px;
+      border-color: rgba(243, 232, 188, 0.16);
+      background: rgba(239, 233, 233, 0.035);
+    }
+
+    body.stl-page[data-shell-page="stl-library"] .site-shell-credits-pill {
+      width: auto;
+      padding: 0 14px;
+    }
+
+    body.stl-page[data-shell-page="stl-library"] .site-shell-buy-btn {
+      min-height: 42px;
+      padding: 0 18px;
+      border-color: rgba(243, 232, 188, 0.34);
+      background: linear-gradient(135deg, var(--stl-cream), var(--stl-yellow));
+      color: #14110c;
+      font-size: 13px;
+      font-weight: 750;
+      letter-spacing: 0.01em;
+    }
+
+    body.stl-page[data-shell-page="stl-library"] .site-shell-nav-right {
+      margin-left: 14px;
     }
 
     body.stl-page[data-shell-page="stl-library"] .stl-main {
