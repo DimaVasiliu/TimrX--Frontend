@@ -26,8 +26,9 @@ import {
   getActiveHistorySubmenu,
   getGroupedCardItems,
   resetGalleryInfiniteScroll,
-  syncAssetsToolbarFilters
-} from './history.js?v=20260821portal';
+  syncAssetsToolbarFilters,
+  getHistoryMenuLayer
+} from './history.js?v=20260821portal2';
 import * as API from './api.js?v=20260815rigfix';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js';
@@ -3945,7 +3946,7 @@ function wireGallery() {
 
   // Grid event delegation
   if (grid) {
-    grid.addEventListener('click', async (e) => {
+    const onHistoryCardClick = async (e) => {
       // Toggle collection expansion
       const toggleBtn = e.target.closest('[data-action="toggle-collection"]');
       if (toggleBtn) {
@@ -4535,7 +4536,12 @@ function wireGallery() {
         }
         return;
       }
-    });
+    };
+    grid.addEventListener('click', onHistoryCardClick);
+    // The open menu is portaled to body (.tx-menu-layer), so its clicks never
+    // bubble through the grid. Attach the same delegated handler to the layer,
+    // otherwise submenu toggles and every data-act item inside the menu are dead.
+    getHistoryMenuLayer().addEventListener('click', onHistoryCardClick);
 
     // Keyboard navigation in grid
     grid.addEventListener('keydown', (evt) => {

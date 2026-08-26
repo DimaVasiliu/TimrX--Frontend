@@ -1110,6 +1110,12 @@ function _menuLayer() {
   return _menuLayerEl;
 }
 
+/* main.js attaches its delegated card-click handler here too: the open menu
+   lives in this body-level layer, so its clicks never bubble through the
+   history grid. Without this hook, submenu toggles and data-act items inside
+   a portaled menu are unreachable. */
+export function getHistoryMenuLayer() { return _menuLayer(); }
+
 const _menuHomes = new WeakMap(); // menu/submenu node -> placeholder comment at its home
 function _portalIn(el) {
   if (!el || el.parentElement === _menuLayer()) return;
