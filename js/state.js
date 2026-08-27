@@ -1159,7 +1159,7 @@ export const PROVIDER_CAPABILITIES = {
       hint: 'Drop an image (and optional mask) — gpt-image will edit it based on your prompt.'
     },
     google: {
-      name: 'Google (Imagen)',
+      name: 'Google Gemini',
       operations: [
         { value: 'generate', label: 'Generate',            requiresSource: false, requiresMask: false },
         { value: 'edit',     label: 'Reference / Edit',    requiresSource: true,  requiresMask: false }
@@ -1183,7 +1183,7 @@ export const PROVIDER_CAPABILITIES = {
       supportsMaskImage: true,
       supportsReferenceImages: true,
       maxReferenceImages: 4,
-      hint: 'Text-to-image uses Imagen 4.0 Fast. Reference / edit mode runs Vertex AI Imagen 3 capability — drop an image to use as your reference.'
+      hint: 'Text-to-image uses Gemini 3.1 Flash Image (Google\u2019s replacement for Imagen). Reference / edit mode uses the same Gemini image model — drop an image to use as your reference.'
     },
     google_nano: {
       name: 'Google Nano',

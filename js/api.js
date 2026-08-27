@@ -4305,14 +4305,14 @@ const GOOGLE_SHAPE_MAP = {
   landscape: '16:9',
 };
 
-// Map quality to Google imageSize (Imagen 4.0 only supports 1K and 2K)
+// Map quality to Google imageSize (the Gemini image API supports 1K and 2K)
 const GOOGLE_QUALITY_MAP = {
   standard: '1K',
   high: '2K'
 };
 
 /**
- * Start Gemini (Google Imagen) image generation
+ * Start Gemini (Google) image generation
  * IMPORTANT: Provider must be 'google' in GenerationState before calling this.
  */
 export async function startGeminiImageGeneration() {
@@ -4393,7 +4393,7 @@ export async function startGeminiImageGeneration() {
 
   addGeneratingPlaceholder(tempId, {
     type: 'image',
-    status_label: 'Generating image with Imagen...',
+    status_label: 'Generating image with Gemini...',
     prompt: promptRaw,
     stage: 'image',
     provider: 'google',
@@ -4405,7 +4405,7 @@ export async function startGeminiImageGeneration() {
   try {
     prog.label('Generating image with Gemini...');
 
-    // Image-to-image refs (any of these → backend routes through Vertex Imagen 3 capability)
+    // Image-to-image refs (any of these → backend routes through the Gemini image API)
     const refs = normalizeImageAssetList(stateSettings.referenceImages);
     const srcImg = stateSettings.sourceImage || '';
     const maskImg = stateSettings.maskImage || '';
@@ -4487,7 +4487,7 @@ export async function startGeminiImageGeneration() {
           stage: 'image',
           provider: 'google',
           provider_used: 'google',
-          model: 'imagen-4.0',
+          model: 'gemini-3.1-flash-image',
           image_url: '',
         });
       }
@@ -4541,7 +4541,7 @@ export async function startGeminiImageGeneration() {
       stage: 'image',
       provider: 'google',
       provider_used: 'google',  // Locked provider for this job
-      model: 'imagen-4.0'
+      model: 'gemini-3.1-flash-image'
     };
 
     // Replace temp placeholder with final item

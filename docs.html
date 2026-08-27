@@ -829,7 +829,21 @@
   </style>
   <link rel="stylesheet" href="site-shell.css?v=20260819palette2" />
   <link rel="stylesheet" href="tx-menu.css?v=20260819palette2">
-  <link rel="stylesheet" href="docs-palette.css?v=20260821polish">
+  <link rel="stylesheet" href="docs-palette.css?v=20260827gapfix">
+  <style>
+    body[data-shell-page="docs"] .docs-page {
+      padding-top: 0 !important;
+    }
+
+    body[data-shell-page="docs"] .docs-breadcrumb {
+      display: none !important;
+      margin: 0 !important;
+    }
+
+    body[data-shell-page="docs"] .docs-expanded-shell {
+      margin-top: 0 !important;
+    }
+  </style>
   <!-- Google Tag Manager -->
   <script>
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -892,7 +906,7 @@
     <nav class="docs-breadcrumb" aria-label="Breadcrumb" style="font-size:13px;color:#666;margin-bottom:16px">
       <a href="/" style="color:#666;text-decoration:none;transition:color .2s">Home</a>
       <span style="margin:0 8px;opacity:.4">/</span>
-      <a href="/hub" style="color:#666;text-decoration:none;transition:color .2s">Hub</a>
+      <a href="/hub" style="color:#666;text-decoration:none;transition:color .2s">Dashboard</a>
       <span style="margin:0 8px;opacity:.4">/</span>
       <span style="color:#999">Docs</span>
     </nav>
@@ -983,7 +997,7 @@
             <ul>
               <li><strong>Text to 3D</strong> — Generate 3D models from text descriptions.</li>
               <li><strong>Image to 3D</strong> — Convert reference images into 3D models.</li>
-              <li><strong>AI Image</strong> — Generate 2D images via OpenAI, Google Imagen, Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, Nano Banana, or Nano Banana Pro.</li>
+              <li><strong>AI Image</strong> — Generate 2D images via OpenAI, Google Gemini, Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, Nano Banana, or Nano Banana Pro.</li>
               <li><strong>AI Video</strong> — Generate videos via Veo 3.1, Seedance 2.0 (Mini / Fast / Quality), Seedance 2.5, or Seedance 1.5 Pro.</li>
               <li><strong>Refine</strong> — Turn a preview model into a higher-detail Meshy refine with optional style guidance.</li>
               <li><strong>Remesh</strong> — Optimize 3D model topology for printing or editing.</li>
@@ -1185,7 +1199,7 @@
             <div class="docs-option-grid">
               <dl class="docs-option-card">
                 <dt>Provider</dt>
-                <dd>OpenAI, Google (Imagen), Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, Nano Banana, or Nano Banana Pro</dd>
+                <dd>OpenAI, Google (Gemini), Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, Nano Banana, or Nano Banana Pro</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Shape</dt>
@@ -1193,7 +1207,7 @@
               </dl>
               <dl class="docs-option-card">
                 <dt>Quality</dt>
-                <dd>Provider-dependent. OpenAI and Imagen support Standard / 2K; Nano Banana and Nano Banana Pro add 4K Ultra (Pro charges the same for 1K and 2K); some providers are Standard-only. Recraft V4 also offers SVG vector output.</dd>
+                <dd>Provider-dependent. OpenAI and Gemini support Standard / 2K; Nano Banana and Nano Banana Pro add 4K Ultra (Pro charges the same for 1K and 2K); some providers are Standard-only. Recraft V4 also offers SVG vector output.</dd>
               </dl>
             </div>
             <div class="docs-tip"><strong>Cost:</strong> 4–27 credits depending on provider and resolution. Estimated time ~30 seconds.</div>
