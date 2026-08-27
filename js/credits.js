@@ -1549,6 +1549,15 @@
   // Video Buy Modal
   // ─────────────────────────────────────────────────────────────
 
+  // ── LEGACY: video credit packs (retired at the Stage 5 cutover) ──────────
+  // /api/billing/plans returns zero video_* codes, the hub markup for this
+  // modal was deleted in Stage 7, and nothing calls openVideoBuyModal any
+  // more (pricingMode 'video' is coerced to 'one_time'). Every lookup below
+  // therefore resolves to null and every use of it is null-guarded, so this
+  // block is inert. It is kept, not deleted, because VIDEO_PLANS is still
+  // needed to price HISTORICAL video-pack purchases in analytics/conversion
+  // reporting (see trackCheckoutEvent and the ads conversion helper).
+  // Safe to remove wholesale once no pre-cutover purchase needs reporting.
   const videoBuyModal = document.getElementById('videoBuyModal');
   const videoBuyClose = document.getElementById('videoBuyClose');
   const videoBuyTitle = document.getElementById('videoBuyTitle');
@@ -2678,7 +2687,7 @@
       const result = await apiFetch('/api/billing/checkout', {
         method: 'POST',
         body: {
-          plan_code: selectedPlan.id,  // plan_code matches DB: starter_250, creator_900, studio_2200
+          plan_code: selectedPlan.id,  // DB codes: mini_50, starter_120, creator_250, studio_550, max_1200
         }
       });
 

@@ -775,13 +775,12 @@ async function _fetchWalletAndShow(elementId) {
 
   const wallet = await _fetchWallet();
   const apiBal = wallet?.balance ?? wallet?.available ?? 0;
-  const video = wallet?.video_balance ?? 0;
 
   // Use pill value if available and higher (avoids stale/partial API response)
   const balance = (!isNaN(pillBalance) && pillBalance > apiBal) ? pillBalance : apiBal;
 
-  let text = `${balance.toLocaleString()} credits`;
-  if (video > 0) text += ` + ${video.toLocaleString()} video credits`;
+  // Unified credits: one balance — no separate video figure to append.
+  const text = `${balance.toLocaleString()} credits`;
   _setText(elementId, text);
 }
 
