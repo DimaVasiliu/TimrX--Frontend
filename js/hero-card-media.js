@@ -135,7 +135,7 @@
         return {src:loadableModelUrl(modelUrl),poster:poster,title:title,fit:inferModelFit({title:title})};
       }
       return {src:firstString(asset.image_url,asset.thumbnail_url,post.image_url,post.thumbnail_url),poster:poster,title:title};
-    }).filter(function(item){return !!item.src;})).slice(0,type==='model'?10:6);
+    }).filter(function(item){return !!item.src;})).slice(0,type==='model'?1:6);
   }
 
   function fetchFeed(type){
@@ -220,6 +220,7 @@
     var viewer=stage&&stage.querySelector('model-viewer');
     var poster=stage&&stage.querySelector('.hero-model-poster');
     if(!viewer||!items.length)return;
+    items=dedupeItems(items).slice(0,1);
     if(stage._heroTimer)window.clearInterval(stage._heroTimer);
     if(!stage._heroModelLoadBound){
       if(poster){poster.addEventListener('error',function(){poster.hidden=true;});}
@@ -240,16 +241,15 @@
       window.setTimeout(function(){
         var fit=item.fit||inferModelFit(item);
         stage.classList.remove('is-model-loaded');
+        stage.classList.add('has-model-source');
         stage.setAttribute('data-model-fit',fit);
         stage.setAttribute('data-model-index',String(index+1));
         stage.setAttribute('data-model-count',String(items.length));
-        if(item.poster){viewer.setAttribute('poster',item.poster);}
-        else{viewer.removeAttribute('poster');}
+        viewer.removeAttribute('poster');
         viewer.setAttribute('src',item.src);
         if(poster){
-          poster.hidden=!item.poster;
-          if(item.poster){poster.src=item.poster;}
-          else{poster.removeAttribute('src');}
+          poster.hidden=true;
+          poster.removeAttribute('src');
         }
         var chip=stage.querySelector('.hero-media-chip');
         if(chip)chip.textContent=items.length>1?'Live orbit '+(index+1)+'/'+items.length:'Live orbit';
@@ -257,12 +257,11 @@
       },220);
     }
     show(0);
-    if(!reduced&&items.length>1)stage._heroTimer=window.setInterval(function(){show(index+1);},8800);
   }
 
   setVideoItems(fallback.video);
   setImageItems(fallback.image);
-  setModelItems(fallback.model);
+  setModelItems(fallback.model.slice(0,1));
 
   Promise.all([fetchFeed('video'),fetchFeed('image'),fetchFeed('model')]).then(function(results){
     if(results[0].length)setVideoItems(results[0]);

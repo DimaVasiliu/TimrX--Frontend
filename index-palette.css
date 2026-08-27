@@ -456,6 +456,11 @@ body{
   transform:scale(.98);
 }
 
+.hero-cap-card--model .hero-model-stage.has-model-source .hero-model-poster,
+.hero-cap-card--model .hero-model-poster[hidden]{
+  display:none !important;
+}
+
 /* once the live model is on stage, the poster leaves entirely — a ghosted
    poster of a DIFFERENT asset read as two models rendering at once */
 .hero-cap-card--model .hero-model-stage.is-model-loaded .hero-model-poster{
