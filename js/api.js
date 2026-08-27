@@ -15,10 +15,10 @@ import {
   getLoadableModelUrl,
   isTimrxS3Url
 } from './config.js';
-import * as State from './state.js?v=20260827c';
-import * as Viewer from './viewer.js?v=20260827c';
+import * as State from './state.js?v=20260827d';
+import * as Viewer from './viewer.js?v=20260827d';
 import * as UI from './ui-utils.js';
-import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260827c';
+import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260827d';
 
 // ============================================================================
 // LOCKS & STATE

@@ -9,7 +9,7 @@
  */
 
 import { BACKEND, apiFetch, getLoadableModelUrl, isTimrxS3Url } from './config.js';
-import * as State from './state.js?v=20260827c';
+import * as State from './state.js?v=20260827d';
 
 // ============================================================================
 // Auth gate — 3MF downloads require a verified-email (active) account.

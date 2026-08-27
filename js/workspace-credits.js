@@ -935,7 +935,7 @@ export function getVideoCreditCost(task, durationSeconds, resolution) {
  * @param {number} available - Credits available (optional, uses current state if not provided)
  */
 export function showInsufficientVideoCreditsMessage(required, available = null) {
-  const actualAvailable = available !== null ? available : creditsState.wallet.videoAvailable;
+  const actualAvailable = available !== null ? available : creditsState.wallet.available;
   const needed = Math.max(0, required - actualAvailable);
 
   log('[Credits] Insufficient video credits:', { required, available: actualAvailable, needed });
@@ -1262,11 +1262,13 @@ export function reserveAmount({ action, amount, meta = {} }) {
     return { reservationId: null, amount: 0 };
   }
 
-  // Pool-aware availability check: video actions use the video credits pool
-  const isVidAction = isVideoAction(action || '');
-  const available = Number(isVidAction ? creditsState.wallet.videoAvailable : creditsState.wallet.available) || 0;
-  // Video pool has no client-side reservation tracking (server deducts after generation)
-  const reserved = isVidAction ? 0 : Number(creditsState.totalReserved) || 0;
+  // Unified credits: ONE pool. Video actions spend the same balance as
+  // everything else, and they now go through the same reservation flow, so
+  // there is no video-specific branch left. Reading wallet.videoAvailable
+  // here was reading a field the backend now always reports as 0, which made
+  // every video action look unaffordable and greyed out Generate.
+  const available = Number(creditsState.wallet.available) || 0;
+  const reserved = Number(creditsState.totalReserved) || 0;
   const effectiveAvailable = available - reserved;
   const missing = Math.max(0, numAmount - effectiveAvailable);
   const shouldBlock = missing > 0;
@@ -1274,7 +1276,7 @@ export function reserveAmount({ action, amount, meta = {} }) {
   // Detailed logging for debugging credit issues
   console.log(`[CREDITS] ========================================`);
   console.log(`[CREDITS] RESERVE AMOUNT CHECK`);
-  console.log(`[CREDITS] action=${action} pool=${isVidAction ? 'video' : 'general'}`);
+  console.log(`[CREDITS] action=${action} pool=general`);
   console.log(`[CREDITS] cost=${numAmount}`);
   console.log(`[CREDITS] available=${available}`);
   console.log(`[CREDITS] reserved=${reserved}`);
@@ -1286,7 +1288,7 @@ export function reserveAmount({ action, amount, meta = {} }) {
   if (shouldBlock) {
     log('[Credits] reserveAmount failed: insufficient credits', {
       action,
-      pool: isVidAction ? 'video' : 'general',
+      pool: 'general',
       cost: numAmount,
       available,
       reserved,
@@ -1300,13 +1302,10 @@ export function reserveAmount({ action, amount, meta = {} }) {
   const reservation = {
     amount: numAmount,
     action,
-    isVideo: isVidAction,
     meta,
     timestamp: Date.now(),
   };
 
-  // Track reservation — video reservations do NOT increment totalReserved
-  // (video pool deduction is tracked server-side; avoid double-deducting general display)
   creditsState.reservations.set(reservationId, reservation);
   // Unified credits: every reservation counts against the single pool
   creditsState.totalReserved += numAmount;
@@ -1314,10 +1313,10 @@ export function reserveAmount({ action, amount, meta = {} }) {
   log('[Credits] reserveAmount succeeded:', {
     reservationId,
     action,
-    pool: isVidAction ? 'video' : 'general',
+    pool: 'general',
     amount: numAmount,
     totalReserved: creditsState.totalReserved,
-    effectiveAvailable: available - (isVidAction ? numAmount : creditsState.totalReserved),
+    effectiveAvailable: available - creditsState.totalReserved,
   });
 
   // Update UI to show reservation
@@ -1396,9 +1395,7 @@ export function getEffectiveAvailable() {
  */
 export function hasEffectiveCreditsFor(action, count = 1) {
   const cost = getActionCost(action) * count;
-  if (isVideoAction(action)) {
-    return creditsState.wallet.videoAvailable >= cost;
-  }
+  // Unified credits: video draws from the same balance — no pool branch.
   return getEffectiveAvailable() >= cost;
 }
 
@@ -1506,14 +1503,9 @@ export function updateCreditsUI() {
   // Update hover tooltip with pool breakdown.
   // The mobile menu mirrors these because the header pill collapses below 900px.
   const generalText = effectiveAvailable.toLocaleString();
-  const videoText = creditsState.wallet.videoAvailable.toLocaleString();
   ['tooltipGeneral', 'mobileCreditsGeneral'].forEach((id) => {
     const el = document.getElementById(id);
     if (el) el.textContent = generalText;
-  });
-  ['tooltipVideo', 'mobileCreditsVideo'].forEach((id) => {
-    const el = document.getElementById(id);
-    if (el) el.textContent = videoText;
   });
 
   // Show/hide reserved indicator
@@ -1638,15 +1630,14 @@ function updateGenerateButtonCosts() {
     const isUnknown = costPerItem === null;
     const totalCost = isUnknown ? 0 : costPerItem * batchCount;
 
-    // Pool-aware affordability check: video actions use the video credits pool
-    const isVideo = isVideoAction(action);
-    const balanceForCheck = isVideo ? creditsState.wallet.videoAvailable : effectiveAvailable;
+    // Unified credits: one balance for every action, video included.
+    const balanceForCheck = effectiveAvailable;
 
     // Three states:
     //   isChecking = true  → wallet or costs not yet loaded (show neutral/loading)
     //   hasCreds   = true  → confirmed affordable
     //   hasCreds   = false → confirmed insufficient
-    const walletKnown = creditsState.loaded || creditsState.wallet.available > 0 || creditsState.wallet.videoAvailable > 0;
+    const walletKnown = creditsState.loaded || creditsState.wallet.available > 0;
     const isChecking = isUnknown || !walletKnown;
     const hasCreds = isChecking ? true : balanceForCheck >= totalCost;
 
@@ -1697,8 +1688,7 @@ function updateGenerateButtonCosts() {
     } else if (!hasCreds) {
       // Ensure missing is never negative — use correct pool for message
       const missing = Math.max(0, totalCost - balanceForCheck);
-      const poolLabel = isVideo ? 'video credits' : 'credits';
-      btn.setAttribute('title', `You need ${totalCost} ${poolLabel} to generate this. (${missing} more needed)`);
+      btn.setAttribute('title', `You need ${totalCost} credits to generate this. (${missing} more needed)`);
     } else {
       btn.setAttribute('title', `${totalCost} credits`);
     }
@@ -2145,9 +2135,8 @@ export function getIdentityId() {
  */
 export function canDownloadAssets() {
   if (!creditsState.loaded) return false;
-  const totalAvailable = (creditsState.wallet.available || 0)
-    + (creditsState.wallet.videoAvailable || 0);
-  return totalAvailable > 0;
+  // Unified credits: one balance — adding videoAvailable would double-count.
+  return (creditsState.wallet.available || 0) > 0;
 }
 
 /**
@@ -2169,7 +2158,6 @@ export function showDownloadAccessRequiredMessage(assetType = 'asset') {
   }[normalizedType] || 'asset';
 
   const generalAvailable = Number(creditsState.wallet.available) || 0;
-  const videoAvailable = Number(creditsState.wallet.videoAvailable) || 0;
   const balanceKnown = !!creditsState.loaded;
 
   const closeModal = () => {
@@ -2185,13 +2173,10 @@ export function showDownloadAccessRequiredMessage(assetType = 'asset') {
   document.getElementById('downloadAccessCreditsModal')?.remove();
 
   const generalDisplay = balanceKnown ? generalAvailable : '—';
-  const videoDisplay = balanceKnown ? videoAvailable : '—';
   const statusLine = balanceKnown
-    ? `You currently have <strong style="color:#f0f0f0">${generalDisplay}</strong> general credits and <strong style="color:#f0f0f0">${videoDisplay}</strong> video credits.`
-    : `We couldn't confirm your balances yet. Refresh your wallet or open pricing to continue.`;
-  const helperLine = isVideoAsset
-    ? 'Video generation still uses the separate video credits pool.'
-    : 'General and video credits remain separate in the workspace.';
+    ? `You currently have <strong style="color:#f0f0f0">${generalDisplay}</strong> credits.`
+    : `We couldn't confirm your balance yet. Refresh your wallet or open pricing to continue.`;
+  const helperLine = 'One balance covers images, 3D and video.';
 
   const modal = document.createElement('div');
   modal.id = 'downloadAccessCreditsModal';
@@ -2213,13 +2198,9 @@ export function showDownloadAccessRequiredMessage(assetType = 'asset') {
         ${statusLine}
       </p>
       <div style="margin:0 0 18px;padding:14px 16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:12px;text-align:left">
-        <div style="display:flex;justify-content:space-between;gap:16px;font-size:14px;color:rgba(255,255,255,.7);margin-bottom:8px">
-          <span>General credits</span>
-          <strong style="color:#f0f0f0">${generalDisplay}</strong>
-        </div>
         <div style="display:flex;justify-content:space-between;gap:16px;font-size:14px;color:rgba(255,255,255,.7)">
-          <span>Video credits</span>
-          <strong style="color:#f0f0f0">${videoDisplay}</strong>
+          <span>Credits</span>
+          <strong style="color:#f0f0f0">${generalDisplay}</strong>
         </div>
       </div>
       <p style="margin:0 0 24px;color:rgba(255,255,255,.56);font-size:13px;line-height:1.5">
