@@ -5472,6 +5472,70 @@ body.history-expanded .timrx-3dprint .ws-right.assets-modal .history-pager{
   text-overflow: ellipsis;
 }
 
+/* ---- grouped-view caption (history-thumb) --------------------------------
+   The grouped library cards still used the legacy top-left stacked caption:
+   date, provider and a free-wrapping prompt drawn straight over the artwork
+   with only a text-shadow. Mirror the expanded-thumb treatment: caption is a
+   bottom scrim strip, prompt is one ellipsized line, and the stage pill moves
+   to the top-left corner so the two never collide. */
+.timrx-3dprint .history-thumb__status-bar {
+  top: auto;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 5px;
+  padding: 16px 8px 7px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.86) 0%, rgba(0, 0, 0, 0.55) 55%, transparent 100%);
+  text-shadow: none;
+}
+
+.timrx-3dprint .history-thumb__status-date {
+  flex: none;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.62);
+  font-variant-numeric: tabular-nums;
+}
+
+.timrx-3dprint .history-thumb__status-provider {
+  flex: none;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--accent-blue-rgb, 127, 200, 194), 0.32);
+  background: rgba(var(--accent-blue-rgb, 127, 200, 194), 0.14);
+  color: var(--accent-blue-soft, #a5ded9);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.timrx-3dprint .history-thumb__status-prompt {
+  flex: 1 1 100%;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 10.5px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Stage pill (PREVIEW / REMESHED / IMAGE TO 3D) leaves the bottom edge to the
+   caption strip. */
+.timrx-3dprint .history-thumb__stage {
+  bottom: auto;
+  top: 8px;
+  left: 8px;
+}
+
 /* ---- version stacks ------------------------------------------------------- */
 .timrx-3dprint .expanded-thumb.is-stack-hidden {
   display: none;

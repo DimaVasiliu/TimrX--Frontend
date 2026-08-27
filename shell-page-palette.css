@@ -25,6 +25,8 @@
   --sp-surface:#ffffff;
 }
 
+html{overscroll-behavior-y:none}
+
 /* ---- 1. one flat page for every shell page ---- */
 body.has-site-shell[data-shell-page="community"],
 body.has-site-shell[data-shell-page="converter"],
@@ -35,6 +37,8 @@ body.has-site-shell[data-shell-page="company"],
 body.has-site-shell[data-shell-page="about"]{
   background:var(--sp-white)!important;
   color:var(--sp-ink);
+  margin:0;
+  overscroll-behavior-y:none;
 }
 body[data-shell-page] .converter-expanded-view,
 body[data-shell-page] .about-expanded-view,
@@ -43,6 +47,7 @@ body[data-shell-page] .converter-expanded-shell,
 body[data-shell-page] .about-expanded-shell,
 body[data-shell-page] .video-convert-shell{
   max-width:none;
+  margin-block:0;
   background:transparent;
   border:0;
   border-radius:0;
@@ -391,7 +396,7 @@ body[data-shell-page] .breadcrumbs-sep{color:rgba(var(--sp-blue-rgb),.3)}
 body[data-shell-page] .container,
 body[data-shell-page] .converter-expanded-shell,
 body[data-shell-page] .about-expanded-shell,
-body[data-shell-page] .video-convert-shell{width:min(1320px,calc(100% - 40px));margin-inline:auto}
+body[data-shell-page] .video-convert-shell{width:min(1320px,calc(100% - 40px));margin:0 auto}
 @media(min-width:1600px){
   body[data-shell-page] .container,
   body[data-shell-page] .converter-expanded-shell,
@@ -714,7 +719,9 @@ body[data-shell-page="prompts"] .tip-card{
    homepage shell surfaces from home-shell.css / index-palette.css.
    ========================================================================== */
 .site-shell-nav{
-  position:relative;
+  position:fixed;
+  inset:0 0 auto;
+  z-index:1000;
   background:
     linear-gradient(180deg,rgba(30,34,61,.88),rgba(8,9,12,.76))!important;
   border-bottom:1px solid rgba(243,232,188,.12)!important;

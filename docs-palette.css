@@ -212,9 +212,7 @@ body[data-shell-page="docs"] .tx-menu-cta{
 }
 
 .docs-breadcrumb{
-  width:min(1580px,calc(100% - 48px));
-  margin:34px auto 18px !important;
-  color:rgba(var(--docs-white-rgb),.56) !important;
+  display:none;
 }
 
 .docs-breadcrumb a,
@@ -946,8 +944,8 @@ body[data-shell-page="docs"] .site-header a:focus-visible{
   outline:2px solid var(--docs-orange);
   outline-offset:4px;
 }
-/* the page starts under the fixed header now that the shell nav is gone */
-body[data-shell-page="docs"] .docs-page{padding-top:66px}
+/* body.has-site-shell already offsets the fixed header; keep the hero flush. */
+body[data-shell-page="docs"] .docs-page{padding-top:0}
 
 @media(max-width:760px){
   body[data-shell-page="docs"] .desktop-nav,
