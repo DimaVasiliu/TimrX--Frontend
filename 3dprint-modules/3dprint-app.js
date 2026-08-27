@@ -5411,7 +5411,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         }
 
         const operation = settings.operation || 'generate';
-        const modelVariant = settings.modelVariant || (settings.outputMode === 'vector_svg' ? 'recraftv4_vector' : 'recraftv4');
+        const modelVariant = settings.modelVariant || (settings.outputMode === 'vector_svg' ? 'recraftv4_1_vector' : 'recraftv4_1');
         const isV3 = isRecraftV3Model(modelVariant);
         const isVector = isRecraftVectorModel(modelVariant, operation);
         const supportsStyles = recraftSupportsStyles(modelVariant, operation);

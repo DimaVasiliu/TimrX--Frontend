@@ -4705,7 +4705,7 @@ function buildRecraftRequestFromState(stateSettings = {}) {
   const shape = stateSettings.shape || 'square';
   const size = RECRAFT_V4_SHAPE_MAP[shape] || '1024x1024';
   const operation = stateSettings.operation || 'generate';
-  const modelVariant = stateSettings.modelVariant || (stateSettings.outputMode === 'vector_svg' ? 'recraftv4_vector' : 'recraftv4');
+  const modelVariant = stateSettings.modelVariant || (stateSettings.outputMode === 'vector_svg' ? 'recraftv4_1_vector' : 'recraftv4_1');
   const isVectorModel = /vector/i.test(modelVariant);
   const isV3Model = /^recraftv3(?:_vector)?$/i.test(modelVariant);
   const supportsStyles = isV3Model && ['generate', 'image_to_image', 'inpaint', 'replace_background', 'generate_background'].includes(operation);
@@ -5426,7 +5426,7 @@ export async function startRecraftV4ImageGeneration() {
     queuedLabel: 'Queueing Recraft request...',
     successLabel: outputMode === 'vector_svg' ? 'Vector ready!' : 'Image generated!',
     tempIdPrefix: 'recraft-v4-temp',
-    responseModel: requestBody.model_variant || (outputMode === 'vector_svg' ? 'recraftv4_vector' : 'recraftv4'),
+    responseModel: requestBody.model_variant || (outputMode === 'vector_svg' ? 'recraftv4_1_vector' : 'recraftv4_1'),
     pendingMeta: {
       provider_variant: requestBody.operation,
       operation: requestBody.operation,

@@ -1046,10 +1046,11 @@ const IDEOGRAM_OPERATIONS = [
 ];
 
 const RECRAFT_MODEL_VARIANTS = [
-  { value: 'recraftv4', label: 'V4 Raster', operations: ['generate'] },
-  { value: 'recraftv4_vector', label: 'V4 Vector', operations: ['generate'] },
-  { value: 'recraftv4_pro', label: 'V4 Pro Raster', operations: ['generate'] },
-  { value: 'recraftv4_pro_vector', label: 'V4 Pro Vector', operations: ['generate'] },
+  // V4.1 family (mid-May 2026) is Recraft's current /images/generations line;
+  // V4 is now only used by their explore endpoint. Edits remain V3-only.
+  { value: 'recraftv4_1', label: 'V4.1 Raster', operations: ['generate'] },
+  { value: 'recraftv4_1_vector', label: 'V4.1 Vector', operations: ['generate'] },
+  { value: 'recraftv4_1_pro', label: 'V4.1 Pro Raster', operations: ['generate'] },
   { value: 'recraftv3', label: 'V3 Raster', operations: ['generate', 'image_to_image', 'inpaint', 'replace_background', 'generate_background'] },
   { value: 'recraftv3_vector', label: 'V3 Vector', operations: ['generate', 'image_to_image', 'inpaint', 'replace_background', 'generate_background'] },
 ];
@@ -1282,7 +1283,7 @@ export const PROVIDER_CAPABILITIES = {
       operations: RECRAFT_OPERATIONS,
       defaultOperation: 'generate',
       modelVariants: RECRAFT_MODEL_VARIANTS,
-      defaultModelVariant: 'recraftv4',
+      defaultModelVariant: 'recraftv4_1',
       shapes: ['square', 'portrait', 'landscape'],
       qualities: ['standard'],
       defaultShape: 'square',
