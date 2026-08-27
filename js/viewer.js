@@ -7,7 +7,7 @@
  */
 
 import { byId, log, isTimrxS3Url, getLoadableModelUrl } from './config.js';
-import { setHistoryActiveModelId, resetModelVersionStack } from './state.js?v=20260812a';
+import { setHistoryActiveModelId, resetModelVersionStack } from './state.js?v=20260827unified';
 
 let scene, camera, renderer, controls;
 let viewerPlaceholder = null;
