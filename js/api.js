@@ -15,10 +15,10 @@ import {
   getLoadableModelUrl,
   isTimrxS3Url
 } from './config.js';
-import * as State from './state.js?v=20260827b';
-import * as Viewer from './viewer.js?v=20260827b';
+import * as State from './state.js?v=20260827c';
+import * as Viewer from './viewer.js?v=20260827c';
 import * as UI from './ui-utils.js';
-import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260827b';
+import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260827c';
 
 // ============================================================================
 // LOCKS & STATE
@@ -5680,40 +5680,37 @@ const VIDEO_ASPECT_MAP = {
  */
 // Vertex Veo 3.1: 12 c/s (margin-stabilized). All modes equalized.
 const VIDEO_CREDIT_COSTS = {
-  '720p':  { 4: 48, 6: 72, 8: 96 },
-  '1080p': { 8: 120 },
-  '4k':    { 8: 156 }
+  '720p':  { 4: 10, 6: 15, 8: 20 },
+  '1080p': { 8: 25 },
+  '4k':    { 8: 62 }
 };
 
 // Image-to-Video costs — EQUALIZED with text-to-video (no premium)
 const VIDEO_IMAGE_CREDIT_COSTS = {
-  '720p':  { 4: 48, 6: 72, 8: 96 },
-  '1080p': { 8: 120 },
-  '4k':    { 8: 156 }
+  '720p':  { 4: 10, 6: 15, 8: 20 },
+  '1080p': { 8: 25 },
+  '4k':    { 8: 62 }
 };
 
 // Seedance 2 GA credit costs. Keep in sync with pricing_service.py and migrations 068/069/076.
 const SEEDANCE_COSTS = {
-  // seedance-2.5: PiAPI cut list ~50% at GA (Aug 2026) — $0.15/s 480p, $0.35/s 720p
-  // at the same 120 credits per $/s (migration 081).
-  v25: {
-    '480p': { 5: 90,  10: 180, 15: 270, 20: 360, 25: 450, 30: 540 },
-    '720p': { 5: 210, 10: 420, 15: 630, 20: 840, 25: 1050, 30: 1260 },
-  },
-  // seedance-2-mini: 12.5% cheaper upstream than Fast, priced at 87.5% of it. No 1080p.
-  mini: {
-    '480p': { 5: 70,  10: 140, 15: 210 },
-    '720p': { 5: 105, 10: 210, 15: 315 },
-  },
-  fast: {
-    '480p': { 5: 80, 10: 160, 15: 240 },
-    '720p': { 5: 120, 10: 240, 15: 360 },
-  },
-  quality: {
-    '480p': { 5: 100, 10: 200, 15: 300 },
-    '720p': { 5: 160, 10: 320, 15: 480 },
-    '1080p': { 5: 300, 10: 600, 15: 900 },
-  },
+    v25: {
+      '480p': { 5: 18, 10: 36, 15: 54, 20: 72, 25: 90, 30: 108 },
+      '720p': { 5: 42, 10: 84, 15: 126, 20: 168, 25: 210, 30: 252 },
+    },
+    mini: {
+      '480p': { 5: 8,  10: 16, 15: 24 },
+      '720p': { 5: 16, 10: 32, 15: 48 },
+    },
+    fast: {
+      '480p': { 5: 10, 10: 20, 15: 30 },
+      '720p': { 5: 20, 10: 40, 15: 60 },
+    },
+    quality: {
+      '480p': { 5: 12, 10: 24, 15: 36 },
+      '720p': { 5: 24, 10: 48, 15: 72 },
+      '1080p': { 5: 60, 10: 120, 15: 180 },
+    },
 };
 const SEEDANCE_CPS = { mini: 14, fast: 16, quality: 20, preview: 20, v25: 18 };
 // PiAPI's per-tier default resolution — Mini defaults to 720p, not 480p.

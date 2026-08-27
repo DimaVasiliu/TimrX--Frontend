@@ -3320,29 +3320,25 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       // Mini = cheapest / fastest (480p, 720p). Fast = drafts / social (480p, 720p).
       // Quality = cinematic (adds 1080p premium).
       // Must mirror backend pricing_service.SEEDANCE_CREDIT_COSTS and migrations 068/076.
+      // Unified credits (Aug 2026): values mirror backend/unified_price_book.py
+      // and were verified against live /api/billing/action-costs.
       const SEEDANCE_COSTS = {
-        // Seedance 2.5 (PiAPI `seedance-2.5`) — a newer model, not a 2.0 speed tier.
-        // PiAPI cut the list price ~50% at GA (Aug 2026): $0.15/s 480p, $0.35/s 720p.
-        // Same 120 credits-per-$/s ratio, so credits halved with it (migration 081).
         v25: {
-          '480p': { 5: 90,  10: 180, 15: 270, 20: 360, 25: 450, 30: 540 },
-          '720p': { 5: 210, 10: 420, 15: 630, 20: 840, 25: 1050, 30: 1260 },
+          '480p': { 5: 18, 10: 36, 15: 54, 20: 72, 25: 90, 30: 108 },
+          '720p': { 5: 42, 10: 84, 15: 126, 20: 168, 25: 210, 30: 252 },
         },
-        // PiAPI seedance-2-mini is 12.5% cheaper upstream than Fast at every
-        // resolution, so Mini is priced at 87.5% of Fast. No 1080p on this tier.
         mini: {
-          '480p': { 5: 70,  10: 140, 15: 210 },
-          '720p': { 5: 105, 10: 210, 15: 315 },
+          '480p': { 5: 8,  10: 16, 15: 24 },
+          '720p': { 5: 16, 10: 32, 15: 48 },
         },
         fast: {
-          '480p': { 5: 80,  10: 160, 15: 240 },
-          '720p': { 5: 120, 10: 240, 15: 360 },
+          '480p': { 5: 10, 10: 20, 15: 30 },
+          '720p': { 5: 20, 10: 40, 15: 60 },
         },
         quality: {
-          '480p': { 5: 100, 10: 200, 15: 300 },
-          '720p': { 5: 160, 10: 320, 15: 480 },
-          // 1080p bumped 20% (migration 069) to protect net margin vs PiAPI's $0.50/s cost.
-          '1080p': { 5: 300, 10: 600, 15: 900 },
+          '480p': { 5: 12, 10: 24, 15: 36 },
+          '720p': { 5: 24, 10: 48, 15: 72 },
+          '1080p': { 5: 60, 10: 120, 15: 180 },
         },
       };
       // Approximate CPS at 480p baseline — used only when no exact match (DB authoritative).
@@ -3391,7 +3387,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       };
       let videoReferencePolicy = { ...DEFAULT_REFERENCE_POLICY, limits: { ...DEFAULT_REFERENCE_POLICY.limits } };
       // fal Seedance 1.5 Pro — BUDGET tier (8–9 c/s)
-      const FAL_SEEDANCE_COSTS = { 5: 45, 10: 80, 12: 95 };
+      const FAL_SEEDANCE_COSTS = { 5: 8, 10: 16, 12: 19 };
       const FAL_SEEDANCE_CPS = 8;
       // Valid durations per resolution (Veo constraints)
       const VIDEO_VALID_DURATIONS = {
