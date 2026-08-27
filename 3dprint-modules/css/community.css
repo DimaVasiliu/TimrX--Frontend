@@ -1798,6 +1798,7 @@ video.ccg-card__image {
   color: var(--ccg-text-3);
   text-align: center;
 }
+.ccg-empty[hidden] { display: none; }
 .ccg-empty p { margin: 0; font-size: 15px; color: var(--ccg-text-2); }
 .ccg-empty small { font-size: 13px; color: var(--ccg-text-3); }
 

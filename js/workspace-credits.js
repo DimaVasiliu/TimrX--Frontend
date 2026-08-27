@@ -354,7 +354,7 @@ async function _fetchRealWalletBalances() {
  */
 const _ACTION_COSTS_CACHE_KEY = 'timrx_action_costs';
 const _ACTION_COSTS_CACHE_TTL = 3600000; // 1 hour — costs are admin-configured, rarely change
-const _ACTION_COSTS_CACHE_VERSION = 3;   // Bump when pricing changes to invalidate stale caches
+const _ACTION_COSTS_CACHE_VERSION = 4;   // bumped for unified-credits price book (Sep 2026)   // Bump when pricing changes to invalidate stale caches
 
 export async function fetchActionCosts() {
   // Fast path: use localStorage cache if fresh (avoids network call entirely on repeat loads)
@@ -733,9 +733,8 @@ export function hasCreditsFor(action) {
     return false;
   }
   const cost = getActionCost(action);
-  if (isVideoAction(action)) {
-    return creditsState.wallet.videoAvailable >= cost;
-  }
+  // Unified credits (Sep 2026): ONE balance for everything — video actions
+  // charge the same general pool.
   return creditsState.wallet.available >= cost;
 }
 
@@ -800,17 +799,19 @@ export function getConfirmedBalance() {
  * Get available video credits
  */
 export function getVideoCredits() {
-  return creditsState.wallet.videoAvailable;
+  // Unified credits: mirrors the single balance (video pool retired)
+  return creditsState.wallet.available;
 }
 
 /**
  * Get video wallet state
  */
 export function getVideoWallet() {
+  // Unified credits: mirrors the single wallet (video pool retired)
   return {
-    balance: creditsState.wallet.videoBalance,
-    reserved: creditsState.wallet.videoReserved,
-    available: creditsState.wallet.videoAvailable,
+    balance: creditsState.wallet.balance,
+    reserved: creditsState.wallet.reserved,
+    available: creditsState.wallet.available,
   };
 }
 
@@ -820,7 +821,8 @@ export function getVideoWallet() {
  * @returns {boolean}
  */
 export function hasVideoCredits(cost) {
-  return creditsState.wallet.videoAvailable >= cost;
+  // Unified credits: checks the single balance
+  return creditsState.wallet.available >= cost;
 }
 
 /**
@@ -958,7 +960,7 @@ export function showInsufficientVideoCreditsMessage(required, available = null) 
       <div class="modal-header" style="margin-bottom:16px;">
         <h3 style="margin:0;color:var(--text-primary, #fff);font-size:1.25rem;display:flex;align-items:center;gap:8px;">
           <i class="fa-solid fa-video" style="color:var(--accent-warning, #f59e0b);"></i>
-          Video Credits Required
+          Not Enough Credits
         </h3>
       </div>
       <div class="modal-body" style="color:var(--text-secondary, #a0a0b0);margin-bottom:20px;">
@@ -987,7 +989,7 @@ export function showInsufficientVideoCreditsMessage(required, available = null) 
         </button>
         <button class="btn btn-primary" id="video-credits-modal-buy" style="padding:10px 20px;border-radius:8px;border:none;background:linear-gradient(135deg, var(--accent-purple, #b8a77a), var(--accent-2, #8f8261));color:#fff;cursor:pointer;font-weight:600;">
           <i class="fa-solid fa-coins" style="margin-right:6px;"></i>
-          Buy Video Credits
+          Buy Credits
         </button>
       </div>
     </div>
@@ -1306,12 +1308,8 @@ export function reserveAmount({ action, amount, meta = {} }) {
   // Track reservation — video reservations do NOT increment totalReserved
   // (video pool deduction is tracked server-side; avoid double-deducting general display)
   creditsState.reservations.set(reservationId, reservation);
-  if (!isVidAction) {
-    creditsState.totalReserved += numAmount;
-  } else {
-    // Optimistically reduce video available to prevent double-clicks
-    creditsState.wallet.videoAvailable = Math.max(0, creditsState.wallet.videoAvailable - numAmount);
-  }
+  // Unified credits: every reservation counts against the single pool
+  creditsState.totalReserved += numAmount;
 
   log('[Credits] reserveAmount succeeded:', {
     reservationId,
@@ -1345,20 +1343,12 @@ export function confirmReservation(reservationId, jobId) {
   // Remove from reservations
   creditsState.reservations.delete(reservationId);
 
-  if (reservation.isVideo) {
-    // Video pool: server deducts on completion; videoAvailable already optimistically reduced
-    // No applyDelta needed — next refreshCredits will reconcile
-    log('[Credits] Video reservation confirmed (server will deduct):', {
-      reservationId, jobId, amount: reservation.amount,
-    });
-  } else {
-    creditsState.totalReserved -= reservation.amount;
-    // Apply actual deduction to general pool
-    applyDelta(-reservation.amount, reservation.action, jobId);
-    log('[Credits] Reservation confirmed:', {
-      reservationId, jobId, amount: reservation.amount, newBalance: creditsState.wallet.available,
-    });
-  }
+  // Unified credits: every reservation lives in the single pool
+  creditsState.totalReserved -= reservation.amount;
+  applyDelta(-reservation.amount, reservation.action, jobId);
+  log('[Credits] Reservation confirmed:', {
+    reservationId, jobId, amount: reservation.amount, newBalance: creditsState.wallet.available,
+  });
 }
 
 /**
@@ -1377,18 +1367,11 @@ export function releaseReservation(reservationId) {
   // Remove from reservations
   creditsState.reservations.delete(reservationId);
 
-  if (reservation.isVideo) {
-    // Restore the optimistic video deduction
-    creditsState.wallet.videoAvailable += reservation.amount;
-    log('[Credits] Video reservation released:', {
-      reservationId, amount: reservation.amount, videoAvailable: creditsState.wallet.videoAvailable,
-    });
-  } else {
-    creditsState.totalReserved -= reservation.amount;
-    log('[Credits] Reservation released:', {
-      reservationId, amount: reservation.amount, totalReserved: creditsState.totalReserved,
-    });
-  }
+  // Unified credits: single pool
+  creditsState.totalReserved -= reservation.amount;
+  log('[Credits] Reservation released:', {
+    reservationId, amount: reservation.amount, totalReserved: creditsState.totalReserved,
+  });
 
   // Update UI
   updateCreditsUI();

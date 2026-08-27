@@ -569,11 +569,21 @@ body[data-shell-page="community"] .ccg-sort__select{
   border-radius:999px;
   border-color:rgba(243,232,188,.14);
   background:rgba(5,6,8,.72);
-  color:var(--community-ink);
+  color:var(--community-ink) !important;
 }
 
 body[data-shell-page="community"] .ccg-search__input::placeholder{
   color:rgba(239,233,233,.34);
+}
+
+body[data-shell-page="community"] .ccg-search__input{
+  caret-color:var(--community-teal);
+  -webkit-text-fill-color:var(--community-ink);
+}
+
+body[data-shell-page="community"] .ccg-search__input::selection{
+  background:rgba(116,215,207,.3);
+  color:var(--community-ink);
 }
 
 body[data-shell-page="community"] .ccg-filter-bar{

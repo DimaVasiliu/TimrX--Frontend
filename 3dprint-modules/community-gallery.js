@@ -176,6 +176,50 @@
     return REACTIONS.reduce((sum, reaction) => sum + (reactions?.[reaction] || 0), 0);
   }
 
+  function getPostAgeHours(post) {
+    const created = post?.created_at ? new Date(post.created_at).getTime() : 0;
+    if (!created || Number.isNaN(created)) return Number.POSITIVE_INFINITY;
+    return Math.max((Date.now() - created) / 36e5, 0.01);
+  }
+
+  function getPopularityScore(post) {
+    return (
+      getReactionTotal(post?.reactions || {}) * 2 +
+      (Number(post?.comment_count) || 0) * 3 +
+      (Number(post?.tip_total) || 0) * 0.35
+    );
+  }
+
+  function getTrendingScore(post) {
+    const ageHours = getPostAgeHours(post);
+    const recencyBoost = ageHours <= 48 ? 8 : ageHours <= 168 ? 3 : 0;
+    return (getPopularityScore(post) + recencyBoost) / Math.pow(ageHours + 4, 1.08);
+  }
+
+  function compareNewest(a, b) {
+    return (new Date(b?.created_at || 0).getTime() || 0) - (new Date(a?.created_at || 0).getTime() || 0);
+  }
+
+  function applyClientSort(posts, sortKey) {
+    const sorted = [...posts];
+    if (sortKey === 'popular') {
+      sorted.sort((a, b) => (
+        getPopularityScore(b) - getPopularityScore(a) ||
+        getReactionTotal(b?.reactions || {}) - getReactionTotal(a?.reactions || {}) ||
+        compareNewest(a, b)
+      ));
+    } else if (sortKey === 'trending') {
+      sorted.sort((a, b) => (
+        getTrendingScore(b) - getTrendingScore(a) ||
+        getPopularityScore(b) - getPopularityScore(a) ||
+        compareNewest(a, b)
+      ));
+    } else {
+      sorted.sort(compareNewest);
+    }
+    return sorted;
+  }
+
   // ─── Card rendering — Masonry (no fixed aspect ratio) ────────────────────
 
   function buildCard(post) {
@@ -503,9 +547,33 @@
     return grid ? grid.querySelectorAll('.ccg-card').length : 0;
   }
 
+  function setEmptyStateVisible(visible) {
+    if (!emptyState) return;
+    emptyState.hidden = !visible;
+    emptyState.setAttribute('aria-hidden', visible ? 'false' : 'true');
+
+    if (!visible) return;
+    const title = emptyState.querySelector('p');
+    const detail = emptyState.querySelector('small');
+    const hasSearch = !!currentSearch;
+    const hasFilter = currentFilter && currentFilter !== 'all';
+
+    if (hasSearch) {
+      if (title) title.textContent = `No results for "${currentSearch}".`;
+      if (detail) detail.textContent = 'Try a different creator, prompt, or asset type.';
+    } else if (hasFilter) {
+      const filterNames = { model: '3D models', image: 'images', video: 'videos', animated: 'animations' };
+      if (title) title.textContent = `No ${filterNames[currentFilter] || 'creations'} found yet.`;
+      if (detail) detail.textContent = 'Switch filters or share the first creation in this category.';
+    } else {
+      if (title) title.textContent = 'No community creations yet.';
+      if (detail) detail.textContent = 'Generate something in the workspace and share it here.';
+    }
+  }
+
   function syncGalleryChrome(hasMore) {
     const hasCards = getRenderedCardCount() > 0;
-    if (emptyState) emptyState.hidden = hasCards;
+    setEmptyStateVisible(!hasCards);
     if (loadMoreWrap) loadMoreWrap.hidden = !hasCards || !hasMore;
   }
 
@@ -550,14 +618,14 @@
     try {
       if (!append) {
         showSkeleton();
-        if (emptyState) emptyState.hidden = true;
+        setEmptyStateVisible(false);
         if (loadMoreWrap) loadMoreWrap.hidden = true;
       }
 
       const data = await fetchPage(filter, offset);
       if (!data.ok) throw new Error(data.error?.message || 'Feed failed');
 
-      const posts = data.posts || [];
+      const posts = applyClientSort(data.posts || [], currentSort);
       currentOffset = offset + posts.length;
 
       // Cache posts for detail view lookup
@@ -595,7 +663,7 @@
         clearCards();
         syncGalleryChrome(false);
       } else {
-        if (emptyState) emptyState.hidden = previousEmptyHidden;
+        setEmptyStateVisible(!previousEmptyHidden);
         if (loadMoreWrap) loadMoreWrap.hidden = previousLoadMoreHidden;
       }
     } finally {
