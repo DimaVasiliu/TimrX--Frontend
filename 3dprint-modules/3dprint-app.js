@@ -733,7 +733,7 @@
             <span class="gen-divider">|</span>
             <span class="gen-credits" id="imageCreditsDisplay"><i class="fa-solid fa-coins"></i> 7</span>
           </div>
-          <button type="button" id="generateImageBtn" class="gen-btn" title="7 credits" data-provider="nano_banana">
+          <button type="button" id="generateImageBtn" class="gen-btn" title="2 credits" data-provider="nano_banana">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
             Generate <span class="btn-cost-badge">7 cr</span>
           </button>
@@ -1055,7 +1055,7 @@
             <span class="gen-divider">|</span>
             <span class="gen-credits" id="modelCreditsDisplay"><i class="fa-solid fa-coins"></i> 20</span>
           </div>
-          <button type="button" id="generateModelBtn" class="gen-btn" title="20 credits">
+          <button type="button" id="generateModelBtn" class="gen-btn" title="10 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"/></svg>
             Generate <span class="btn-cost-badge">20 cr</span>
           </button>
@@ -1246,7 +1246,7 @@
             <span class="gen-divider">|</span>
             <span class="gen-credits" id="remeshCreditsDisplay"><i class="fa-solid fa-coins"></i> 5</span>
           </div>
-          <button type="button" id="applyRemeshBtn" class="gen-btn" title="5 credits">
+          <button type="button" id="applyRemeshBtn" class="gen-btn" title="3 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
             Remesh <span class="btn-cost-badge">5 cr</span>
           </button>
@@ -1447,7 +1447,7 @@
             <span class="gen-divider">|</span>
             <span class="gen-credits"><i class="fa-solid fa-coins"></i> 10</span>
           </div>
-          <button type="button" id="generateTextureBtn" class="gen-btn" title="10 credits">
+          <button type="button" id="generateTextureBtn" class="gen-btn" title="5 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
             Texture <span class="btn-cost-badge">10 cr</span>
           </button>
@@ -1620,7 +1620,7 @@
             <span class="gen-divider">|</span>
             <span class="gen-credits"><i class="fa-solid fa-coins"></i> 5</span>
           </div>
-          <button type="button" id="startRigBtn" class="gen-btn gen-btn--rail" title="5 credits">
+          <button type="button" id="startRigBtn" class="gen-btn gen-btn--rail" title="3 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v1h2a1 1 0 011 1v2a1 1 0 01-1 1h-1v5l1 4H6l1-4v-5H6a1 1 0 01-1-1V8a1 1 0 011-1h2V6a4 4 0 014-4z"/></svg>
             Start Rigging <span class="btn-cost-badge">5 cr</span>
           </button>
@@ -1768,7 +1768,7 @@
               <span class="gen-divider">|</span>
               <span class="gen-credits"><i class="fa-solid fa-coins"></i> 3</span>
             </div>
-            <button type="button" id="applyAnimationBtn2" class="gen-btn gen-btn--rail anim-btn-inactive" title="3 credits">
+            <button type="button" id="applyAnimationBtn2" class="gen-btn gen-btn--rail anim-btn-inactive" title="2 credits">
               <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
               Apply Animation <span class="btn-cost-badge">3 cr</span>
             </button>
@@ -2001,7 +2001,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           <button type="button" id="previewVideoBtn" class="gen-btn gen-btn--preview" title="Quick preview (~10 credits)" disabled style="display:none">
             Preview
           </button>
-          <button type="button" id="generateVideoBtn" class="gen-btn" title="96 credits" data-base-credits="96" data-video-mode="text2video" data-provider="vertex" disabled>
+          <button type="button" id="generateVideoBtn" class="gen-btn" title="20 credits" data-base-credits="20" data-video-mode="text2video" data-provider="vertex" disabled>
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
             Generate <span class="btn-cost-badge">96 cr</span>
           </button>
@@ -2063,10 +2063,10 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             <span class="gen-credits" id="creativeLabCreditsDisplay"><i class="fa-solid fa-coins"></i> 6</span>
           </div>
           <div class="gen-btn-row">
-            <button type="button" id="creativeLabPrototypeBtn" class="gen-btn" title="6 credits">
+            <button type="button" id="creativeLabPrototypeBtn" class="gen-btn" title="4 credits">
               Prototype <span class="btn-cost-badge">6 cr</span>
             </button>
-            <button type="button" id="creativeLabBuildBtn" class="gen-btn" title="30 credits" disabled>
+            <button type="button" id="creativeLabBuildBtn" class="gen-btn" title="15 credits" disabled>
               Build <span class="btn-cost-badge">30 cr</span>
             </button>
           </div>

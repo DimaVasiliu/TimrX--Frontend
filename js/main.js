@@ -29,9 +29,9 @@ import {
   syncAssetsToolbarFilters,
   getHistoryMenuLayer
 } from './history.js?v=20260821portal2';
-import * as API from './api.js?v=20260815rigfix';
+import * as API from './api.js?v=20260827unified';
 import * as Converter from './converter.js';
-import * as Credits from './workspace-credits.js';
+import * as Credits from './workspace-credits.js?v=20260827unified';
 import * as Notifications from './notifications.js';
 // Analytics: wraps dataLayer.push for GTM (GA4 + Google Ads). Side-effect import —
 // the module self-primes on load and listens for `timrx:identity:confirmed`.

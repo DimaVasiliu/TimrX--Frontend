@@ -322,7 +322,7 @@ export function renderSeoPage(page) {
   <section class="container">
     <div class="seo-cta">
       <h2>${isConverter ? 'Open the Free Converter' : 'Start Creating Now'}</h2>
-      <p>${isConverter ? 'Convert files directly in TimrX with a focused browser workflow.' : '50 free credits on signup. No software to install. Generate your first 3D model in minutes.'}</p>
+      <p>${isConverter ? 'Convert files directly in TimrX with a focused browser workflow.' : '15 free credits on signup. No software to install. Generate your first 3D model in minutes.'}</p>
       <a href="${isConverter ? ctaUrl : '/3dprint?panel=model'}" class="btn">${isConverter ? ctaLabel : 'Open Workspace'} &rarr;</a>
     </div>
   </section>

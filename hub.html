@@ -438,12 +438,8 @@
         </div>
         <div class="dashboard-metrics">
           <div>
-            <span class="metric-label">General credits</span>
+            <span class="metric-label">Credits</span>
             <strong id="dashboardCreditsValue">--</strong>
-          </div>
-          <div>
-            <span class="metric-label">Video credits</span>
-            <strong id="dashboardVideoCreditsValue">--</strong>
           </div>
           <div>
             <span class="metric-label">Plan</span>
@@ -488,7 +484,7 @@
             <span>Short videos</span>
             <strong id="dashboardVideoEstimate">--</strong><span class="dashboard-estimate__go" aria-hidden="true">→</span></a>
         </div>
-        <p class="dashboard-panel-note">Estimates use common starting costs: 4 general credits per image, 20 per 3D model, and 45 video credits per short video.</p>
+        <p class="dashboard-panel-note">Estimates use common starting costs: 2 credits per image, 10 per 3D model, and 8 per short video.</p>
       </article>
 
       <article class="dashboard-panel">
@@ -568,8 +564,8 @@
                   <div class="popover-arrow"></div>
                   <h4>How credits work</h4>
                   <ul>
-                    <li><strong>Video credits</strong> are separate from general credits.</li>
-                    <li>Each video costs <strong>45–240 credits</strong> based on provider, duration, and quality.</li>
+                    <li><strong>One balance</strong> — images, 3D and video share the same credits.</li>
+                    <li>Each video costs <strong>8–62 credits</strong> based on provider, duration, and quality.</li>
                     <li>Veo 3.1 (720p/1080p/4K), Seedance 2.0, Seedance 1.5 Pro.</li>
                     <li><strong>Full ownership</strong> — no watermarks.</li>
                     <li>Credits never expire. No refunds after use.</li>
@@ -603,7 +599,7 @@
           </div>
           <ul class="pc-list">
             <li>Up to 60 AI images</li>
-            <li>Up to 8 3D models</li>
+            <li>Up to 8 textured 3D models</li>
             <li>Up to 15 short videos</li>
             <li>One balance for everything</li>
           </ul>
@@ -624,7 +620,7 @@
           </div>
           <ul class="pc-list">
             <li>Up to 125 AI images</li>
-            <li>Up to 16 3D models</li>
+            <li>Up to 16 textured 3D models</li>
             <li>Up to 31 short videos</li>
             <li>GLB/GLTF downloads</li>
           </ul>
@@ -645,7 +641,7 @@
           </div>
           <ul class="pc-list">
             <li>Up to 275 AI images</li>
-            <li>Up to 36 3D models</li>
+            <li>Up to 36 textured 3D models</li>
             <li>Up to 68 short videos</li>
             <li>Priority queue access</li>
           </ul>
@@ -656,7 +652,7 @@
 
       <!-- Video pricing grid REMOVED (unified credits Sep 2026 — one balance) -->
 
-      <p class="foot-note" id="pricingFootNote">AI Image from 4 credits · 3D from 3–30 credits · 5s video from 45 credits · 8s standard video from 96 credits · Subscriptions include general + video credits</p>
+      <p class="foot-note" id="pricingFootNote">Images from 1 credit · 3D from 10 · 5s video from 8 · one balance for everything</p>
 
       <!-- ═══ "What can I generate?" Calculator ═══ -->
       <div class="calc-wrap collapsed" id="valueCalculator">
@@ -688,11 +684,11 @@
     <div class="card sub-modal-card" style="position:relative">
       <button type="button" class="close-x" id="subModalClose" aria-label="Close">&times;</button>
       <h4 id="subModalTitle">Subscribe — Starter</h4>
-      <p class="modal-subtitle" id="subModalSubtitle">300 general + 100 video credits every month. Cancel anytime.</p>
+      <p class="modal-subtitle" id="subModalSubtitle">Credits refill every month. Cancel anytime.</p>
 
       <div class="sub-modal-details">
         <div class="sub-detail-row">
-          <span class="sub-detail-label">General credits / month</span>
+          <span class="sub-detail-label">Credits / month</span>
           <span class="sub-detail-value" id="subModalCredits">300</span>
         </div>
         <div class="sub-detail-row" id="subModalVideoRow">
@@ -997,7 +993,7 @@
       </div>
     </div>
 
-    <script src="hub.js?v=20260815hubfix"></script>
+    <script src="hub.js?v=20260827unified"></script>
     <script src="js/fx.js?v=20260525c"></script>
     <!-- Shared component layer (Phase 1): nav/footer model + UI factories. Must load before site-shell.js. -->
     <script src="js/shared/site-nav-data.js?v=20260818footer2" defer></script>
@@ -1005,7 +1001,7 @@
     <script src="js/shared/tx-menu.js?v=20260818mobile" defer></script>
     <script src="js/site-shell.js?v=20260803b" defer></script>
     <script src="js/auth-modal.js?v=20260407a" defer></script>
-    <script src="js/credits.js?v=20260813sync" defer></script>
+    <script src="js/credits.js?v=20260827unified" defer></script>
     <script src="js/trustpilot.js" defer></script>
     <script src="js/cookie-consent.js" defer></script>
 

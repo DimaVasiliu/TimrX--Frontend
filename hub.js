@@ -270,9 +270,9 @@ if (slider) {
       // rather than a bare 0 sitting next to two healthy numbers.
       el.closest('.dashboard-estimate')?.classList.toggle('is-empty', count <= 0);
     };
-    set(imageEstimate, Math.floor(general / 4));
-    set(modelEstimate, Math.floor(general / 20));
-    set(videoEstimate, Math.floor(video / 45));
+    set(imageEstimate, Math.floor(general / 2));
+    set(modelEstimate, Math.floor(general / 10));
+    set(videoEstimate, Math.floor(general / 8));
   }
 
   function updateNextStep() {
@@ -283,7 +283,7 @@ if (slider) {
       setAction('account', 'Recommended next step', 'Sign in to sync credits, checkout and creation history.', 'Sign in');
     } else if (total <= 0) {
       setAction('pricing', 'Balance is empty', 'Choose a credit pack or subscription before starting a new generation.', 'Buy credits');
-    } else if (Number.isFinite(state.general) && state.general < 20 && Number.isFinite(state.video) && state.video < 45) {
+    } else if (total < 10) {
       setAction('pricing', 'Balance is low', 'Top up before starting larger 3D or video jobs.', 'Top up');
     } else {
       setAction('workspace', 'Ready to create', 'Open the workspace with your current credit balance.', 'Open workspace');

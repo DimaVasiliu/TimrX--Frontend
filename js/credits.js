@@ -301,19 +301,19 @@
       images: 65,   // 130 credits ÷ 2 per image
       models: 8,    // 130 ÷ 15 per textured model
       videos: 16,   // 130 ÷ 8 per budget 5s video
-      perks: ['Up to 65 AI images/mo', 'Up to 8 3D models/mo', 'Up to 16 short videos/mo', 'One balance for everything'],
+      perks: ['Up to 65 AI images/mo', 'Up to 8 textured 3D models/mo', 'Up to 16 short videos/mo', 'One balance for everything'],
     },
     creator: {
       images: 175,
       models: 23,
       videos: 43,
-      perks: ['Up to 175 AI images/mo', 'Up to 23 3D models/mo', 'Up to 43 short videos/mo', 'Priority queue'],
+      perks: ['Up to 175 AI images/mo', 'Up to 23 textured 3D models/mo', 'Up to 43 short videos/mo', 'Priority queue'],
     },
     studio: {
       images: 375,
       models: 50,
       videos: 93,
-      perks: ['Up to 375 AI images/mo', 'Up to 50 3D models/mo', 'Up to 93 short videos/mo', 'Pro priority queue'],
+      perks: ['Up to 375 AI images/mo', 'Up to 50 textured 3D models/mo', 'Up to 93 short videos/mo', 'Pro priority queue'],
     },
   };
 
@@ -327,14 +327,14 @@
   // Dynamic bullet copy per pricing mode and tier — Pricing refactor Mar 2026
   const PLAN_BULLETS = {
     one_time: {
-      starter: ['Up to 60 AI images', 'Up to 8 3D models', 'Up to 15 short videos', 'One balance for everything'],
-      creator: ['Up to 125 AI images', 'Up to 16 3D models', 'Up to 31 short videos', 'GLB/GLTF downloads'],
-      studio:  ['Up to 275 AI images', 'Up to 36 3D models', 'Up to 68 short videos', 'Priority queue access'],
+      starter: ['Up to 60 AI images', 'Up to 8 textured 3D models', 'Up to 15 short videos', 'One balance for everything'],
+      creator: ['Up to 125 AI images', 'Up to 16 textured 3D models', 'Up to 31 short videos', 'GLB/GLTF downloads'],
+      studio:  ['Up to 275 AI images', 'Up to 36 textured 3D models', 'Up to 68 short videos', 'Priority queue access'],
     },
     monthly: {
-      starter: ['Up to 65 AI images/mo', 'Up to 8 3D models/mo', 'Up to 16 short videos/mo', 'Cancel anytime'],
-      creator: ['Up to 175 AI images/mo', 'Up to 23 3D models/mo', 'Up to 43 short videos/mo', 'Priority queue'],
-      studio:  ['Up to 375 AI images/mo', 'Up to 50 3D models/mo', 'Up to 93 short videos/mo', 'Pro priority queue'],
+      starter: ['Up to 65 AI images/mo', 'Up to 8 textured 3D models/mo', 'Up to 16 short videos/mo', 'Cancel anytime'],
+      creator: ['Up to 175 AI images/mo', 'Up to 23 textured 3D models/mo', 'Up to 43 short videos/mo', 'Priority queue'],
+      studio:  ['Up to 375 AI images/mo', 'Up to 50 textured 3D models/mo', 'Up to 93 short videos/mo', 'Pro priority queue'],
     },
     yearly: {
       starter: ['Billed yearly (12 monthly refills)', 'Save ~2 months vs monthly', 'One balance for everything', 'Cancel anytime'],
@@ -4567,24 +4567,22 @@
 
   // Credit costs (single source of truth — matches backend pricing_service.py)
   const CALC_COSTS = {
+    // Unified credits (Sep 2026): one balance for everything. Mirrors
+    // backend/services/unified_price_book.py — update BOTH together.
     general: {
-      image_1k: 4,
-      image_2k: 8,
-      image_4k_nb: 18,
-      text_to_3d: 20,
-      image_to_3d: 30,
-      refine: 6,
+      image_1k: 2,
+      image_2k: 3,
+      image_4k_nb: 5,
+      text_to_3d: 10,
+      image_to_3d: 15,
+      refine: 5,
       retexture: 5,
     },
     video: {
-      budget:  { '5s': 45, '10s': 80, '12s': 95 },
-      standard: { '4s': 48, '6s': 72, '8s': 96, '8s_1080p': 120, '8s_4k': 156 },
-      // Seedance 2.0 at its 480p baseline. Mirrors pricing_service.SEEDANCE_CREDIT_COSTS
-      // and migrations 068/069/076 — these were still showing pre-GA figures
-      // (fast 50/100/150, premium 80/160/240), which understated the real cost.
-      mini:    { '5s': 70,  '10s': 140, '15s': 210 },
-      fast:    { '5s': 80,  '10s': 160, '15s': 240 },
-      premium: { '5s': 100, '10s': 200, '15s': 300 },
+      // Veo 3.1 (vertex) + Seedance at 480p baseline — same wallet as general.
+      veo:  { '4s': 10, '6s': 15, '8s': 20, '8s_1080p': 25, '8s_4k': 62 },
+      mini: { '5s': 8,  '10s': 16, '15s': 24 },
+      fast: { '5s': 10, '10s': 20, '15s': 30 },
     },
   };
 
@@ -4596,26 +4594,26 @@
     if (type === 'general') {
       const c = CALC_COSTS.general;
       items = [
-        { icon: 'fa-image',       value: Math.floor(credits / c.image_1k),   label: 'AI Images',   detail: '1K · 4c each' },
-        { icon: 'fa-expand',      value: Math.floor(credits / c.image_2k),   label: 'HD Images',   detail: '2K · 8c each' },
-        { icon: 'fa-cube',        value: Math.floor(credits / c.text_to_3d), label: '3D Models',   detail: 'Text to 3D · 20c' },
-        { icon: 'fa-upload',      value: Math.floor(credits / c.image_to_3d),label: 'Image to 3D', detail: 'Photo → model · 30c' },
-        { icon: 'fa-wand-magic-sparkles', value: Math.floor(credits / c.refine), label: 'Refines', detail: 'Enhance · 6c' },
+        { icon: 'fa-image',       value: Math.floor(credits / c.image_1k),   label: 'AI Images',   detail: '1K · 2c each' },
+        { icon: 'fa-expand',      value: Math.floor(credits / c.image_2k),   label: 'HD Images',   detail: '2K · 3c each' },
+        { icon: 'fa-cube',        value: Math.floor(credits / c.text_to_3d), label: '3D Models',   detail: 'Text to 3D · 10c' },
+        { icon: 'fa-upload',      value: Math.floor(credits / c.image_to_3d),label: 'Image to 3D', detail: 'Photo → model · 15c' },
+        { icon: 'fa-wand-magic-sparkles', value: Math.floor(credits / c.refine), label: 'Refines', detail: 'Enhance · 5c' },
         { icon: 'fa-palette',     value: Math.floor(credits / c.retexture),  label: 'Retextures',  detail: 'New textures · 5c' },
       ];
     } else {
       // Video mode — show key durations across all tiers (3x3 grid)
       const v = CALC_COSTS.video;
       items = [
-        { icon: 'fa-bolt',        value: Math.floor(credits / v.mini['5s']),     label: '5s Mini',       detail: 'Seedance 2.0 Mini · 70c' },
-        { icon: 'fa-bolt',        value: Math.floor(credits / v.mini['10s']),    label: '10s Mini',      detail: 'Seedance 2.0 Mini · 140c' },
-        { icon: 'fa-bolt',        value: Math.floor(credits / v.mini['15s']),    label: '15s Mini',      detail: 'Seedance 2.0 Mini · 210c' },
-        { icon: 'fa-video',       value: Math.floor(credits / v.fast['5s']),     label: '5s Standard',   detail: 'Seedance 2.0 Fast · 80c' },
-        { icon: 'fa-video',       value: Math.floor(credits / v.fast['10s']),    label: '10s Standard',  detail: 'Seedance 2.0 Fast · 160c' },
-        { icon: 'fa-video',       value: Math.floor(credits / v.fast['15s']),    label: '15s Standard',  detail: 'Seedance 2.0 Fast · 240c' },
-        { icon: 'fa-film',        value: Math.floor(credits / v.standard['4s']), label: '4s HD',         detail: 'Veo 3.1 720p · 48c' },
-        { icon: 'fa-film',        value: Math.floor(credits / v.standard['8s']), label: '8s HD',         detail: 'Veo 3.1 720p · 96c' },
-        { icon: 'fa-clapperboard',value: Math.floor(credits / v.standard['8s_4k']),label: '8s Ultra',    detail: 'Veo 3.1 4K · 156c' },
+        { icon: 'fa-bolt',        value: Math.floor(credits / v.mini['5s']),     label: '5s Mini',       detail: 'Seedance 2.0 Mini · 8c' },
+        { icon: 'fa-bolt',        value: Math.floor(credits / v.mini['10s']),    label: '10s Mini',      detail: 'Seedance 2.0 Mini · 16c' },
+        { icon: 'fa-bolt',        value: Math.floor(credits / v.mini['15s']),    label: '15s Mini',      detail: 'Seedance 2.0 Mini · 24c' },
+        { icon: 'fa-video',       value: Math.floor(credits / v.fast['5s']),     label: '5s Standard',   detail: 'Seedance 2.0 Fast · 10c' },
+        { icon: 'fa-video',       value: Math.floor(credits / v.fast['10s']),    label: '10s Standard',  detail: 'Seedance 2.0 Fast · 20c' },
+        { icon: 'fa-video',       value: Math.floor(credits / v.fast['15s']),    label: '15s Standard',  detail: 'Seedance 2.0 Fast · 30c' },
+        { icon: 'fa-film',        value: Math.floor(credits / v.veo['4s']),      label: '4s HD',         detail: 'Veo 3.1 720p · 10c' },
+        { icon: 'fa-film',        value: Math.floor(credits / v.veo['8s']),      label: '8s HD',         detail: 'Veo 3.1 720p · 20c' },
+        { icon: 'fa-clapperboard',value: Math.floor(credits / v.veo['8s_4k']),   label: '8s Ultra',      detail: 'Veo 3.1 4K · 62c' },
       ];
     }
 
@@ -4636,14 +4634,12 @@
 
     // Tier options per pool
     const generalTiers = (mode === 'monthly' || mode === 'yearly')
-      ? [{ value: 300, label: 'Starter · 300/mo' }, { value: 800, label: 'Creator · 800/mo' }, { value: 2000, label: 'Studio · 2,000/mo' }]
-      : [{ value: 350, label: 'Starter · 350' }, { value: 1100, label: 'Creator · 1,100' }, { value: 2400, label: 'Studio · 2,400' }];
+      ? [{ value: 130, label: 'Starter · 130/mo' }, { value: 350, label: 'Creator · 350/mo' }, { value: 750, label: 'Studio · 750/mo' }]
+      : [{ value: 120, label: 'Starter · 120' }, { value: 250, label: 'Creator · 250' }, { value: 550, label: 'Studio · 550' }, { value: 1200, label: 'Max · 1,200' }];
 
-    const videoTiers = [
-      { value: 550, label: 'Starter · 550' },
-      { value: 1800, label: 'Creator · 1,800' },
-      { value: 4000, label: 'Studio · 4,000' },
-    ];
+    // Unified wallet — video draws from the same balance, so the "Video" pill
+    // is just a different cost view over the same tier amounts.
+    const videoTiers = generalTiers;
 
     const activePool = mode === 'video' ? 'video' : 'general';
 
@@ -4677,7 +4673,7 @@
       renderCalcGrid(credits, pool);
       if (calcSub) {
         calcSub.textContent = pool === 'video'
-          ? 'Video credits are separate — used only for video generation.'
+          ? 'Video runs on the same balance — costs vary by provider, duration and quality.'
           : 'General credits — used for images, 3D, refine & retexture.';
       }
     }

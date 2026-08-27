@@ -1415,12 +1415,14 @@ function parseInsufficientCreditsError(errorMsg) {
 }
 
 /**
- * Show insufficient VIDEO credits modal
- * Video credits are separate from general credits - this modal explains that
+ * Show insufficient credits modal for a video action.
+ * Unified credits (Sep 2026): one wallet — video draws the same credits as
+ * images and 3D. Kept as a separate entry point only because the video panel
+ * calls it directly; the copy no longer implies a second pool.
  * Styled to match hub.html modals with dark theme
  *
- * @param {number} required - Video credits required for this action
- * @param {number} available - Video credits currently available
+ * @param {number} required - Credits required for this action
+ * @param {number} available - Credits currently available
  */
 /**
  * Show daily quota exceeded modal — provider-specific, premium UX.
@@ -1537,10 +1539,10 @@ function showInsufficientVideoCreditsModal(required, available) {
       <div style="width: 72px; height: 72px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08);">
         <i class="fa-solid fa-video" style="font-size: 28px; color: #f0f0f0;" aria-hidden="true"></i>
       </div>
-      <h4 id="insuffVideoCreditsTitle" style="margin: 0 0 16px; font-family: 'Bebas Neue', system-ui, sans-serif; font-size: 28px; letter-spacing: 0.5px; color: #f5f5f5;">Video Credits Needed</h4>
+      <h4 id="insuffVideoCreditsTitle" style="margin: 0 0 16px; font-family: 'Bebas Neue', system-ui, sans-serif; font-size: 28px; letter-spacing: 0.5px; color: #f5f5f5;">Not Enough Credits</h4>
       <p style="margin: 0 0 20px; color: rgba(255, 255, 255, 0.72); font-size: 15px; line-height: 1.6;">
-        Video generation requires <strong class="video-credits-required" style="color: #f0f0f0;">${numRequired}</strong> video credits.<br>
-        You currently have <strong class="video-credits-available" style="color: #f0f0f0;">${numAvailable}</strong> video credits.
+        This video needs <strong class="video-credits-required" style="color: #f0f0f0;">${numRequired}</strong> credits.<br>
+        You currently have <strong class="video-credits-available" style="color: #f0f0f0;">${numAvailable}</strong> credits.
       </p>
       <div style="margin: 0 0 24px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px;">
         <span style="font-size: 14px; color: rgba(255, 255, 255, 0.6);">You need </span>
@@ -1552,7 +1554,7 @@ function showInsufficientVideoCreditsModal(required, available) {
         <a href="/hub#pricing" id="insuffVideoCreditsCtaBtn" style="padding: 14px 24px; background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0)), #1a1a1a; border: 1px solid rgba(255, 255, 255, 0.18); color: #f5f5f5; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);">Buy Credits</a>
       </div>
       <p style="margin: 20px 0 0; font-size: 12px; color: rgba(255, 255, 255, 0.45);">
-        Video credits are separate from general credits.
+        One balance for everything — images, 3D and video.
       </p>
     </div>
   `;

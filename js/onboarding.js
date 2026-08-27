@@ -55,7 +55,7 @@
     {
       id: 'generate',
       title: 'Hit Generate',
-      body: 'Click Generate to start creating. Your first 3D model takes about 3-5 minutes. You have 50 free credits to experiment with.',
+      body: 'Click Generate to start creating. Your first 3D model takes about 3-5 minutes. You have 15 free credits to experiment with.',
       selector: '#generateBtn, .generate-btn, button:contains("Generate")',
       position: 'above',
       icon: 'sparkles',
