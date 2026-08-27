@@ -15,10 +15,10 @@ import {
   getLoadableModelUrl,
   isTimrxS3Url
 } from './config.js';
-import * as State from './state.js?v=20260827d';
-import * as Viewer from './viewer.js?v=20260827d';
+import * as State from './state.js?v=20260827e';
+import * as Viewer from './viewer.js?v=20260827e';
 import * as UI from './ui-utils.js';
-import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260827d';
+import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260827e';
 
 // ============================================================================
 // LOCKS & STATE
@@ -1141,17 +1141,17 @@ export function wirePromptCharCounter() {
 function checkCreditsForGeneration(cost, mode = 'generation') {
   // Get wallet and ensure numeric conversion
   const wallet = window.WorkspaceCredits?.getWallet?.() || {};
-  // Pool-aware: video generation checks the video credits pool
-  const isVideo = mode === 'video';
-  const available = isVideo
-    ? Number(wallet.videoAvailable ?? wallet.video_available_credits ?? 0)
-    : Number(wallet.available ?? wallet.available_credits ?? 0);
+  // Unified credits: ONE pool. Video used to check wallet.videoAvailable,
+  // which the backend now always reports as 0 — so every video generation was
+  // blocked with "You currently have 0 credits" while the header showed the
+  // real balance. `mode` is kept for logging/telemetry only.
+  const available = Number(wallet.available ?? wallet.available_credits ?? 0);
   const numCost = Number(cost) || 0;
   const missing = Math.max(0, numCost - available);
   const shouldBlock = missing > 0;
 
   // Debug log before block decision
-  console.log(`[CREDITS] pool=${isVideo ? 'video' : 'general'} available=${available}, cost=${numCost}, missing=${missing}, willBlock=${shouldBlock}`);
+  console.log(`[CREDITS] mode=${mode} pool=general available=${available}, cost=${numCost}, missing=${missing}, willBlock=${shouldBlock}`);
 
   return { available, cost: numCost, missing, shouldBlock };
 }

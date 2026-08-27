@@ -630,9 +630,11 @@
           const balance = d.credits_balance ?? 0;
           const reserved = d.reserved_credits ?? 0;
           const available = d.available_credits ?? Math.max(0, balance - reserved);
-          const videoBalance = d.video_credits_balance ?? 0;
-          const videoReserved = d.video_reserved_credits ?? 0;
-          const videoAvail = d.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
+          // Unified credits: video pool retired — mirror the single balance so
+          // no consumer sees a hard 0.
+          const videoReserved = 0;
+          const videoBalance = balance;
+          const videoAvail = available;
 
           WalletStore.update({
             balance, reserved, available,
@@ -3444,9 +3446,11 @@
           const balance = d.credits_balance ?? 0;
           const reserved = d.reserved_credits ?? 0;
           const available = d.available_credits ?? Math.max(0, balance - reserved);
-          const videoBalance = d.video_credits_balance ?? 0;
-          const videoReserved = d.video_reserved_credits ?? 0;
-          const videoAvail = d.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
+          // Unified credits: video pool retired — mirror the single balance so
+          // no consumer sees a hard 0.
+          const videoReserved = 0;
+          const videoBalance = balance;
+          const videoAvail = available;
           WalletStore.update({
             balance, reserved, available,
             videoBalance, videoReserved, videoAvailable: videoAvail,

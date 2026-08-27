@@ -335,9 +335,14 @@ async function _fetchRealWalletBalances() {
     const balance = d.credits_balance ?? 0;
     const reserved = d.reserved_credits ?? 0;
     const available = d.available_credits ?? Math.max(0, balance - reserved);
-    const videoBalance = d.video_credits_balance ?? 0;
-    const videoReserved = d.video_reserved_credits ?? 0;
-    const videoAvailable = d.video_available_credits ?? Math.max(0, videoBalance - videoReserved);
+    // Unified credits (Aug 2026): the backend always reports the video pool as
+    // 0 now. Mirroring the single balance into the video fields means any
+    // remaining reader — here or in another module — sees the real number
+    // instead of a hard 0. Nothing sums the two pools, so this cannot
+    // double-count; the mirror is the safety net, not the source of truth.
+    const videoReserved = 0;
+    const videoBalance = balance;
+    const videoAvailable = available;
 
     creditsState.wallet = { balance, reserved, available, videoBalance, videoReserved, videoAvailable };
     cacheCreditsBalance(available, videoAvailable);
@@ -1972,11 +1977,11 @@ export async function refreshCredits() {
           : Math.max(0, serverBalance - serverReserved);
 
         // Video credits (separate pool)
-        const videoBalance = data.video_credits_balance ?? 0;
-        const videoReserved = data.video_reserved_credits ?? 0;
-        const videoAvailable = typeof data.video_available_credits === 'number'
-          ? data.video_available_credits
-          : Math.max(0, videoBalance - videoReserved);
+        // Unified credits: mirror the single balance (see the note in the
+        // primary wallet parse above) so no reader ever sees a hard 0.
+        const videoReserved = 0;
+        const videoBalance = serverBalance;
+        const videoAvailable = serverAvailable;
 
         // Server is truth - use server's available (accounts for backend reservations)
         creditsState.pendingDeductions = [];

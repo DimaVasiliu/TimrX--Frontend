@@ -6,8 +6,8 @@
 
 import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url, BACKEND } from './config.js';
 import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, triggerBrowserDownload } from './download-utils.js';
-import * as State from './state.js?v=20260827d';
-import * as Viewer from './viewer.js?v=20260827d';
+import * as State from './state.js?v=20260827e';
+import * as Viewer from './viewer.js?v=20260827e';
 import * as UI from './ui-utils.js';
 
 // 20+ call sites across api.js / 3dprint-app.js / multi-color-print.js guard on
@@ -28,15 +28,15 @@ import {
   resetGalleryInfiniteScroll,
   syncAssetsToolbarFilters,
   getHistoryMenuLayer
-} from './history.js?v=20260827d';
-import * as API from './api.js?v=20260827d';
+} from './history.js?v=20260827e';
+import * as API from './api.js?v=20260827e';
 import * as Converter from './converter.js';
-import * as Credits from './workspace-credits.js?v=20260827d';
+import * as Credits from './workspace-credits.js?v=20260827e';
 import * as Notifications from './notifications.js';
 // Analytics: wraps dataLayer.push for GTM (GA4 + Google Ads). Side-effect import —
 // the module self-primes on load and listens for `timrx:identity:confirmed`.
 import './analytics.js';
-import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260827d';
+import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260827e';
 
 // ============================================================================
 // MODULE STATE
