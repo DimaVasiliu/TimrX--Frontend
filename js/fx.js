@@ -15,18 +15,25 @@
 
   // Country to currency mapping
   const COUNTRY_CURRENCY_MAP = {
-    // USD countries (US + UK + USD-pegged territories)
+    // GBP — home market. We print and ship from the UK, so these are
+    // domestic prices, not a conversion of the USD list.
+    'GB': 'GBP', 'UK': 'GBP',
+    'GG': 'GBP', // Guernsey
+    'JE': 'GBP', // Jersey
+    'IM': 'GBP', // Isle of Man
+    // USD countries (US + USD-pegged territories)
     'US': 'USD',
     'PR': 'USD', // Puerto Rico
     'GU': 'USD', // Guam
     'VI': 'USD', // US Virgin Islands
-    'GB': 'USD', // UK ships at USD pricing
-    'UK': 'USD',
-    // EUR countries (Eurozone)
+    // EUR countries (Eurozone + EEA/EFTA)
     'AT': 'EUR', 'BE': 'EUR', 'CY': 'EUR', 'EE': 'EUR', 'FI': 'EUR',
     'FR': 'EUR', 'DE': 'EUR', 'GR': 'EUR', 'IE': 'EUR', 'IT': 'EUR',
     'LV': 'EUR', 'LT': 'EUR', 'LU': 'EUR', 'MT': 'EUR', 'NL': 'EUR',
     'PT': 'EUR', 'SK': 'EUR', 'SI': 'EUR', 'ES': 'EUR',
+    'BG': 'EUR', 'HR': 'EUR', 'CZ': 'EUR', 'DK': 'EUR', 'HU': 'EUR',
+    'PL': 'EUR', 'RO': 'EUR', 'SE': 'EUR',
+    'IS': 'EUR', 'LI': 'EUR', 'NO': 'EUR', 'CH': 'EUR',
     // CAD
     'CA': 'CAD',
     // AUD
@@ -38,7 +45,7 @@
     'en-US': 'USD',
     'en-CA': 'CAD',
     'en-AU': 'AUD',
-    'en-GB': 'USD',
+    'en-GB': 'GBP',
     // European locales
     'de': 'EUR', 'de-DE': 'EUR', 'de-AT': 'EUR',
     'fr': 'EUR', 'fr-FR': 'EUR', 'fr-BE': 'EUR',
@@ -50,9 +57,11 @@
     'fi': 'EUR', 'fi-FI': 'EUR',
   };
 
-  // Currency symbols and formatting. USD is the base (billing) currency.
+  // Currency symbols and formatting. USD is the base (billing) currency
+  // for credits; print orders are billed natively in GBP / EUR / USD.
   const CURRENCY_CONFIG = {
     USD: { symbol: '$',  locale: 'en-US' },
+    GBP: { symbol: '£',  locale: 'en-GB' },
     EUR: { symbol: '€',  locale: 'de-DE' },
     CAD: { symbol: 'C$', locale: 'en-CA' },
     AUD: { symbol: 'A$', locale: 'en-AU' },
