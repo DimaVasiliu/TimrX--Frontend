@@ -199,6 +199,137 @@ function showWorkspaceNotice(message, type = 'error') {
   showErrorToast(message);
 }
 
+function showWorkspaceConfirm({
+  title = 'Confirm action',
+  message = 'Continue?',
+  confirmLabel = 'Continue',
+  cancelLabel = 'Cancel',
+  danger = false,
+} = {}) {
+  return new Promise((resolve) => {
+    if (!document.body) {
+      resolve(false);
+      return;
+    }
+
+    document.getElementById('workspaceConfirmOverlay')?.remove();
+
+    const overlay = document.createElement('div');
+    overlay.id = 'workspaceConfirmOverlay';
+    overlay.setAttribute('role', 'presentation');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.58);backdrop-filter:blur(6px);';
+
+    const card = document.createElement('div');
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-modal', 'true');
+    card.style.cssText = 'width:min(420px,100%);background:#111827;color:#f8fafc;border:1px solid rgba(255,255,255,.14);border-radius:12px;box-shadow:0 24px 70px rgba(0,0,0,.45);padding:22px;';
+
+    const heading = document.createElement('h2');
+    heading.textContent = title;
+    heading.style.cssText = 'margin:0 0 8px;font-size:18px;line-height:1.25;';
+
+    const body = document.createElement('p');
+    body.textContent = message;
+    body.style.cssText = 'margin:0 0 18px;color:#cbd5e1;font-size:14px;line-height:1.5;';
+
+    const actions = document.createElement('div');
+    actions.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;';
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button';
+    cancelBtn.textContent = cancelLabel;
+    cancelBtn.style.cssText = 'border:1px solid rgba(255,255,255,.16);background:transparent;color:#e2e8f0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;';
+
+    const confirmBtn = document.createElement('button');
+    confirmBtn.type = 'button';
+    confirmBtn.textContent = confirmLabel;
+    confirmBtn.style.cssText = `border:0;background:${danger ? '#dc2626' : '#2563eb'};color:#fff;border-radius:8px;padding:10px 14px;font-weight:800;cursor:pointer;`;
+
+    actions.append(cancelBtn, confirmBtn);
+    card.append(heading, body, actions);
+    overlay.appendChild(card);
+
+    const cleanup = (value) => {
+      document.removeEventListener('keydown', onKeydown);
+      overlay.remove();
+      resolve(value);
+    };
+    const onKeydown = (event) => {
+      if (event.key === 'Escape') cleanup(false);
+    };
+
+    overlay.addEventListener('click', (event) => {
+      if (event.target === overlay) cleanup(false);
+    });
+    cancelBtn.addEventListener('click', () => cleanup(false));
+    confirmBtn.addEventListener('click', () => cleanup(true));
+    document.addEventListener('keydown', onKeydown);
+    document.body.appendChild(overlay);
+    confirmBtn.focus({ preventScroll: true });
+  });
+}
+
+function showManualCopyModal(label, value) {
+  if (!document.body) {
+    console.info(`${label}: ${value}`);
+    return;
+  }
+
+  document.getElementById('workspaceCopyOverlay')?.remove();
+
+  const overlay = document.createElement('div');
+  overlay.id = 'workspaceCopyOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.58);backdrop-filter:blur(6px);';
+
+  const card = document.createElement('div');
+  card.setAttribute('role', 'dialog');
+  card.setAttribute('aria-modal', 'true');
+  card.style.cssText = 'width:min(460px,100%);background:#111827;color:#f8fafc;border:1px solid rgba(255,255,255,.14);border-radius:12px;box-shadow:0 24px 70px rgba(0,0,0,.45);padding:22px;';
+
+  const heading = document.createElement('h2');
+  heading.textContent = 'Copy Link';
+  heading.style.cssText = 'margin:0 0 8px;font-size:18px;line-height:1.25;';
+
+  const body = document.createElement('p');
+  body.textContent = label || 'Copy this link manually.';
+  body.style.cssText = 'margin:0 0 12px;color:#cbd5e1;font-size:14px;line-height:1.5;';
+
+  const textarea = document.createElement('textarea');
+  textarea.value = value || '';
+  textarea.readOnly = true;
+  textarea.rows = 4;
+  textarea.style.cssText = 'box-sizing:border-box;width:100%;resize:vertical;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:#020617;color:#f8fafc;padding:10px;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;';
+
+  const actions = document.createElement('div');
+  actions.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;margin-top:14px;';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.type = 'button';
+  closeBtn.textContent = 'Close';
+  closeBtn.style.cssText = 'border:1px solid rgba(255,255,255,.16);background:transparent;color:#e2e8f0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;';
+
+  actions.appendChild(closeBtn);
+  card.append(heading, body, textarea, actions);
+  overlay.appendChild(card);
+
+  const cleanup = () => {
+    document.removeEventListener('keydown', onKeydown);
+    overlay.remove();
+  };
+  const onKeydown = (event) => {
+    if (event.key === 'Escape') cleanup();
+  };
+
+  overlay.addEventListener('click', (event) => {
+    if (event.target === overlay) cleanup();
+  });
+  closeBtn.addEventListener('click', cleanup);
+  document.addEventListener('keydown', onKeydown);
+  document.body.appendChild(overlay);
+  textarea.focus({ preventScroll: true });
+  textarea.select();
+}
+
 /**
  * Show a nice popup for Gemini quota exceeded errors
  * Gemini API quota resets at midnight Pacific Time
@@ -1931,7 +2062,7 @@ function initViewerToolbar() {
         try {
           await navigator.clipboard.writeText(link);
           showWorkspaceNotice('Link copied to clipboard.', 'success');
-        } catch { prompt('Copy link manually:', link); }
+        } catch { showManualCopyModal('Copy link manually:', link); }
       }
       if (act === 'share-twitter') {
         const text = item?.prompt ? `Check out my creation: "${item.prompt.slice(0, 120)}"` : 'Check out my AI creation on TimrX!';
@@ -4110,7 +4241,13 @@ function wireGallery() {
         const groupIds = groupIdsStr.split(',').filter(Boolean);
         if (!groupIds.length) return;
         closeActiveHistoryMenu();
-        if (!confirm(`This will permanently delete all ${groupIds.length} variants in this batch. This action cannot be undone.`)) return;
+        const confirmed = await showWorkspaceConfirm({
+          title: 'Delete Batch',
+          message: `This will permanently delete all ${groupIds.length} variants in this batch. This action cannot be undone.`,
+          confirmLabel: 'Delete Batch',
+          danger: true,
+        });
+        if (!confirmed) return;
         let deleted = 0;
         for (const itemId of groupIds) {
           try {
@@ -4245,10 +4382,10 @@ function wireGallery() {
             await navigator.clipboard.writeText(videoUrl);
             showWorkspaceNotice('Video link copied to clipboard.', 'success');
           } catch {
-            prompt('Copy video link manually:', videoUrl);
+            showManualCopyModal('Copy video link manually:', videoUrl);
           }
         } else {
-          prompt('Copy video link manually:', videoUrl);
+          showManualCopyModal('Copy video link manually:', videoUrl);
         }
         return;
       }
@@ -4264,10 +4401,10 @@ function wireGallery() {
             await navigator.clipboard.writeText(link);
             showWorkspaceNotice('Link copied to clipboard.', 'success');
           } catch {
-            prompt('Copy link manually:', link);
+            showManualCopyModal('Copy link manually:', link);
           }
         } else {
-          prompt('Copy link manually:', link);
+          showManualCopyModal('Copy link manually:', link);
         }
         return;
       }
@@ -4531,7 +4668,13 @@ function wireGallery() {
           return;
         }
 
-        if (!confirm('This will permanently delete this item and all associated files. This action cannot be undone.')) return;
+        const confirmed = await showWorkspaceConfirm({
+          title: 'Delete Item',
+          message: 'This will permanently delete this item and all associated files. This action cannot be undone.',
+          confirmLabel: 'Delete Item',
+          danger: true,
+        });
+        if (!confirmed) return;
         try {
           const result = await apiFetch(`/api/_mod/history/item/${encodeURIComponent(id)}`, {
             method: 'DELETE'

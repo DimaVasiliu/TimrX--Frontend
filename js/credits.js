@@ -4258,10 +4258,13 @@
     if (!currentSubscription) return;
 
     // Confirm cancellation
-    const confirmed = confirm(
-      `Are you sure you want to cancel your ${currentSubscription.plan_name} subscription?\n\n` +
-      `You'll keep access to your remaining credits until ${formatDate(currentSubscription.current_period_end)}.`
-    );
+    const confirmed = await showConfirm({
+      title: 'Cancel Subscription',
+      message: `Are you sure you want to cancel your ${currentSubscription.plan_name} subscription?\n\nYou'll keep access to your remaining credits until ${formatDate(currentSubscription.current_period_end)}.`,
+      confirmText: 'Cancel Subscription',
+      cancelText: 'Keep Plan',
+      icon: 'fa-triangle-exclamation',
+    });
 
     if (!confirmed) return;
 

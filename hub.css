@@ -3170,8 +3170,11 @@ margin-bottom: 0;
 }
 .pricing-grid{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:clamp(18px,2.4vw,28px);
+  /* auto-fit, not repeat(3): the pack list comes from the backend and has
+     grown to 5. A fixed column count is how mini_50 and max_1200 ended up
+     with no card at all. */
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:clamp(14px,1.8vw,22px);
 }
 .price-card{
   background:#0f0f0f; border:1px solid var(--line);

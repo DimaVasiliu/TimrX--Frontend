@@ -1256,10 +1256,10 @@ body.menu-open .timrx-3dprint {
 }
 
 
-/* ── First-run clarity (added 2026-08-27) ─────────────────────────────────
-   The credits pill used to be a bare number and the sign-in affordance an
-   unlabeled glyph. A first-time visitor had no way to learn what a credit
-   is worth, what anything costs, or how to sign in. */
+/* ── Credits tooltip notes (2026-08-27) ──────────────────────────────────
+   The pill used to be a bare number. These lines carry what a generation
+   costs and, when relevant, a low/empty warning in words rather than colour
+   alone. Deliberately NOT a dollar value — credits are the product. */
 
 .ws-credits-tooltip-note {
   font-size: 11px;
@@ -1277,46 +1277,3 @@ body.menu-open .timrx-3dprint {
   font-weight: 600;
 }
 
-/* Anonymous visitors get a labeled pill; signed-in users keep the avatar
-   circle, because by then the icon has an initial in it and reads fine. */
-.account-shield-ws[data-status="anonymous"] {
-  width: auto;
-  height: 34px;
-  padding: 0 12px;
-  gap: 7px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  background: rgba(255, 255, 255, 0.05);
-}
-
-.account-shield-ws[data-status="anonymous"]:hover {
-  transform: none;
-  border-color: rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.account-beacon-label {
-  display: none;
-  font-size: 12.5px;
-  font-weight: 600;
-  letter-spacing: 0.01em;
-  color: rgba(255, 255, 255, 0.86);
-  white-space: nowrap;
-}
-
-.account-shield-ws[data-status="anonymous"] .account-beacon-label {
-  display: inline;
-}
-
-/* Below the header's tight breakpoint, fall back to the icon only. */
-@media (max-width: 900px) {
-  .account-shield-ws[data-status="anonymous"] {
-    width: 44px;
-    padding: 0;
-    border: none;
-    background: transparent;
-  }
-  .account-shield-ws[data-status="anonymous"] .account-beacon-label {
-    display: none;
-  }
-}

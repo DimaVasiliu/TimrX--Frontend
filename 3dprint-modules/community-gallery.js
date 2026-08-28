@@ -46,6 +46,74 @@
     }
   }
 
+  function confirmGalleryAction({
+    title = 'Continue?',
+    message = '',
+    confirmLabel = 'Continue',
+    cancelLabel = 'Cancel',
+    danger = false,
+  } = {}) {
+    return new Promise((resolve) => {
+      if (!document.body) {
+        resolve(false);
+        return;
+      }
+
+      document.getElementById('ccgConfirmOverlay')?.remove();
+      const overlay = document.createElement('div');
+      overlay.id = 'ccgConfirmOverlay';
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.58);backdrop-filter:blur(6px);';
+
+      const card = document.createElement('div');
+      card.setAttribute('role', 'dialog');
+      card.setAttribute('aria-modal', 'true');
+      card.style.cssText = 'width:min(380px,100%);background:#111827;color:#f8fafc;border:1px solid rgba(255,255,255,.14);border-radius:12px;box-shadow:0 24px 70px rgba(0,0,0,.45);padding:22px;';
+
+      const heading = document.createElement('h2');
+      heading.textContent = title;
+      heading.style.cssText = 'margin:0 0 8px;font-size:18px;line-height:1.25;';
+
+      const body = document.createElement('p');
+      body.textContent = message;
+      body.style.cssText = 'margin:0 0 18px;color:#cbd5e1;font-size:14px;line-height:1.5;';
+
+      const actions = document.createElement('div');
+      actions.style.cssText = 'display:flex;gap:10px;justify-content:flex-end;';
+
+      const cancelBtn = document.createElement('button');
+      cancelBtn.type = 'button';
+      cancelBtn.textContent = cancelLabel;
+      cancelBtn.style.cssText = 'border:1px solid rgba(255,255,255,.16);background:transparent;color:#e2e8f0;border-radius:8px;padding:10px 14px;font-weight:700;cursor:pointer;';
+
+      const confirmBtn = document.createElement('button');
+      confirmBtn.type = 'button';
+      confirmBtn.textContent = confirmLabel;
+      confirmBtn.style.cssText = `border:0;background:${danger ? '#dc2626' : '#2563eb'};color:#fff;border-radius:8px;padding:10px 14px;font-weight:800;cursor:pointer;`;
+
+      actions.append(cancelBtn, confirmBtn);
+      card.append(heading, body, actions);
+      overlay.appendChild(card);
+
+      const cleanup = (value) => {
+        document.removeEventListener('keydown', onKeydown);
+        overlay.remove();
+        resolve(value);
+      };
+      const onKeydown = (event) => {
+        if (event.key === 'Escape') cleanup(false);
+      };
+
+      overlay.addEventListener('click', (event) => {
+        if (event.target === overlay) cleanup(false);
+      });
+      cancelBtn.addEventListener('click', () => cleanup(false));
+      confirmBtn.addEventListener('click', () => cleanup(true));
+      document.addEventListener('keydown', onKeydown);
+      document.body.appendChild(overlay);
+      confirmBtn.focus({ preventScroll: true });
+    });
+  }
+
   // Content types excluded from public community display.
   const EXCLUDED_DISPLAY_TYPES = ['animated'];
 
@@ -1914,7 +1982,13 @@
     // Delete buttons
     list.querySelectorAll('.ccg-comment__action[data-action="delete"]').forEach(btn => {
       btn.onclick = async () => {
-        if (!confirm('Delete this comment?')) return;
+        const confirmed = await confirmGalleryAction({
+          title: 'Delete Comment',
+          message: 'Delete this comment?',
+          confirmLabel: 'Delete',
+          danger: true,
+        });
+        if (!confirmed) return;
         const commentId = btn.dataset.id;
         try {
           const res = await fetch(`${API_BASE}/api/_mod/community/comment/${commentId}`, {

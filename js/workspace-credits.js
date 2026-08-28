@@ -1469,8 +1469,6 @@ function updateEmailBeaconUI() {
     beacon.setAttribute('data-status', 'verified');
     beacon.setAttribute('title', `Signed in as ${creditsState.email}`);
     beacon.setAttribute('aria-label', `Account: ${creditsState.email}`);
-    const vLabel = document.getElementById('accountBeaconLabel');
-    if (vLabel) vLabel.style.display = 'none';
     if (icon) icon.style.display = 'none';
     if (initial) {
       initial.textContent = creditsState.email[0].toUpperCase();
@@ -1480,8 +1478,6 @@ function updateEmailBeaconUI() {
     beacon.setAttribute('data-status', 'anonymous');
     beacon.setAttribute('title', 'Sign in to save your work and get 15 free credits');
     beacon.setAttribute('aria-label', 'Sign in to save your work and get 15 free credits');
-    const aLabel = document.getElementById('accountBeaconLabel');
-    if (aLabel) aLabel.style.display = '';
     if (icon) icon.style.display = '';
     if (initial) initial.style.display = 'none';
   }
@@ -1545,10 +1541,6 @@ export function updateCreditsUI() {
   // Balance state in WORDS. The pill previously conveyed empty/low through
   // colour alone, which is invisible to anyone who cannot distinguish it and
   // meaningless to everyone else.
-  const worthEl = document.getElementById('creditsTooltipWorth');
-  if (worthEl && creditsState.loaded) {
-    worthEl.textContent = `1 credit = $0.10 \u00b7 you have ~$${(effectiveAvailable * 0.10).toFixed(2)} of credit`;
-  }
   const stateEl = document.getElementById('creditsTooltipState');
   if (stateEl) {
     if (!creditsState.loaded) stateEl.textContent = '';
@@ -1593,7 +1585,7 @@ export function updateCreditsUI() {
       const stateWord = effectiveAvailable === 0
         ? 'Out of credits — tap to top up'
         : (effectiveAvailable < 30 ? 'Running low — tap to top up' : 'Tap to top up');
-      const label = `${effectiveAvailable.toLocaleString()} credits (about $${(effectiveAvailable * 0.10).toFixed(2)}). ${stateWord}.`;
+      const label = `${effectiveAvailable.toLocaleString()} credits. ${stateWord}.`;
       creditsPill.setAttribute('aria-label', label);
       creditsPill.setAttribute('title', label);
     }
