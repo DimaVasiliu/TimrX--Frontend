@@ -1233,6 +1233,8 @@ export const PROVIDER_CAPABILITIES = {
       shapeMap: { square: '1024x1024', portrait: '1024x1536', landscape: '1536x1024' },
       qualityMap: { standard: '1K' },
       actionKeyByQuality: { standard: 'flux_pro_image_generate' },
+      // Backend charges +1 credit per 2 reference images on edits.
+      referenceSurchargePer2: true,
       supportsSeed: true,
       supportsPromptUpsampling: true,
       supportsGuidance: true,
@@ -1676,6 +1678,15 @@ export function getGenerationSnapshot(mode) {
     }
     if (caps.genTimeByOutputMode?.[outputMode]) {
       genTime = caps.genTimeByOutputMode[outputMode];
+    }
+    // Reference-image surcharge. The backend adds +1 credit per 2 reference
+    // images on Photoreal edits (BFL bills per input megapixel — see
+    // image_gen.py, the expected_cost override). The charge is legitimate,
+    // but until 2026-08-28 the frontend quoted the flat base and the customer
+    // was charged more than the button said. Mirror the backend formula here.
+    if (caps.referenceSurchargePer2 && Array.isArray(settings.referenceImages)) {
+      const refs = settings.referenceImages.filter(Boolean).length;
+      if (refs > 0) credits += Math.ceil(refs / 2);
     }
   } else if (mode === 'video' && caps) {
     // Video: pricing by duration and quality multiplier

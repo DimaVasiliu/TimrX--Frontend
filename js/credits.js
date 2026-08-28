@@ -750,6 +750,21 @@
       if (pricingFootNote) pricingFootNote.textContent = 'Images from 1 credit · 3D from 10 · 5s video from 8 · one balance for everything';
     }
 
+    // Mini and Max are ONE-TIME ONLY — the backend has no mini_monthly,
+    // mini_yearly, max_monthly or max_yearly plan. Before this, they were
+    // skipped by the CARD_TO_TIER lookup below and left showing one-time
+    // copy next to yearly prices ("$4.99 · Try it out" beside "$99.00/year").
+    // Hide them outside one_time rather than invent tiers that do not exist.
+    if (modelPricingGrid) {
+      modelPricingGrid.querySelectorAll('[data-one-time-only]').forEach(card => {
+        card.style.display = (mode === 'one_time') ? '' : 'none';
+      });
+      modelPricingGrid.dataset.cardCount = String(
+        [...modelPricingGrid.querySelectorAll('.price-card')]
+          .filter(c => c.style.display !== 'none').length
+      );
+    }
+
     // Update each pricing card
     pricingCards.forEach(card => {
       const ctaBtn = card.querySelector('.pricing-cta');
