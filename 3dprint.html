@@ -155,7 +155,7 @@
   <link rel="stylesheet" href="tx-menu.css?v=20260819palette2">
   <link rel="stylesheet" href="assets-modal-palette.css?v=20260821menus">
   <script defer src="3dprint-modules/prompting/prompt-enhancer-bundle.js?v=20260802f"></script>
-  <script defer src="3dprint-modules/3dprint-app.js?v=20260827f"></script>
+  <script defer src="3dprint-modules/3dprint-app.js?v=20260827g"></script>
   <script defer src="3dprint-modules/inspire.js?v=20260821menus"></script>
   <script defer src="js/workspace-loader.js?v=20260814slow"></script>
   <!-- The orbit grid. Reads workspace-loader.js's published --loader-progress
@@ -295,8 +295,9 @@
     <!-- Credits & Actions (top-right) -->
     <div class="ws-credits" id="workspaceCreditsGroup">
       <!-- Account beacon — next to Inspire button -->
-      <button type="button" id="accountBeacon" class="account-shield-ws" data-status="anonymous" aria-label="Sign In" title="Sign In">
+      <button type="button" id="accountBeacon" class="account-shield-ws" data-status="anonymous" aria-label="Sign In" title="Sign in to save your work and get 15 free credits">
         <i class="fa-solid fa-user" id="accountBeaconIcon"></i>
+        <span id="accountBeaconLabel" class="account-beacon-label">Sign in</span>
         <span id="accountBeaconInitial" class="account-initial" style="display:none"></span>
       </button>
       <!-- Notification Center bell — between shield and inspire -->
@@ -326,6 +327,9 @@
             <span>Credits</span>
             <span class="ws-credits-tooltip-val" id="tooltipGeneral">--</span>
           </span>
+          <span class="ws-credits-tooltip-note" id="creditsTooltipWorth">1 credit = $0.10</span>
+          <span class="ws-credits-tooltip-note">Image from 1 &middot; 3D from 10 &middot; Video from 8</span>
+          <span class="ws-credits-tooltip-note" id="creditsTooltipState"></span>
         </span>
       </span>
       <a href="/hub#pricing" class="ws-credits-buy" id="workspaceBuyBtn">Buy</a>
@@ -464,15 +468,15 @@
         <svg class="ws-video-tray__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
         <span>Animate</span>
       </button>
-      <button type="button" class="ws-video-tray__btn video-mode-btn hidden" data-mode="reference_video" id="videoReferenceModeBtn" title="Seedance only — guide video with references">
+      <button type="button" class="ws-video-tray__btn video-mode-btn hidden" data-mode="reference_video" id="videoReferenceModeBtn" title="Available on the Fast / Quality model — guide video with references">
         <svg class="ws-video-tray__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2" fill="currentColor"/></svg>
         <span>Reference</span>
       </button>
     </div>
 
     <div class="ws-video-tray__row ws-video-tray__row--providers video-provider-switcher" id="videoProviderSwitcher" role="group" aria-label="Video model">
-      <button type="button" class="ws-video-provider video-provider-btn is-active" data-provider="vertex"><span class="vpb-name">Cinematic</span><span class="vpb-tag">Veo</span></button>
-      <button type="button" class="ws-video-provider video-provider-btn" data-provider="seedance"><span class="vpb-name">Fast / Quality</span><span class="vpb-tag">Seedance</span></button>
+      <button type="button" class="ws-video-provider video-provider-btn is-active" data-provider="vertex"><span class="vpb-name">Cinematic</span><span class="vpb-tag">Highest quality</span></button>
+      <button type="button" class="ws-video-provider video-provider-btn" data-provider="seedance"><span class="vpb-name">Fast / Quality</span><span class="vpb-tag">Flexible tiers</span></button>
       <button type="button" class="ws-video-provider video-provider-btn" data-provider="fal_seedance"><span class="vpb-name">Legacy</span><span class="vpb-tag">1.5</span></button>
     </div>
   </div>
@@ -624,14 +628,14 @@
     <p class="ws-prompt-guide__intro">Use one sentence with the output, provider, subject, and settings. The AI will route it to the right generator.</p>
     <ol class="ws-prompt-guide__steps">
       <li><b>Output</b><span>image, video, or 3D model</span></li>
-      <li><b>Provider</b><span>Nano Banana, Veo, Seedance, or Meshy</span></li>
+      <li><b>Model</b><span>Photoreal, Cinematic, Fast / Quality, or 3D</span></li>
       <li><b>Settings</b><span>aspect ratio, duration, quality, or version</span></li>
     </ol>
     <div class="ws-prompt-guide__examples" aria-label="Prompt examples">
-      <button type="button" data-prompt-example="Generate a Nano Banana image of an ethereal human silhouette, portrait 9:16, 4K."><span>Image</span> Ethereal human, 9:16, 4K</button>
-      <button type="button" data-prompt-example="Create a Veo video of an ethereal human silhouette moving through light, 8 seconds, landscape 16:9, 1080p."><span>Video</span> Veo scene, 8 seconds, 16:9</button>
-      <button type="button" data-prompt-example="Create a Seedance 2.5 video of an ethereal human silhouette, 10 seconds, 720p, 16:9."><span>Video</span> Seedance 2.5, 10 seconds</button>
-      <button type="button" data-prompt-example="Create a Meshy 6 3D model of an ethereal human silhouette, clean topology, printable."><span>Model</span> Meshy 6, printable model</button>
+      <button type="button" data-prompt-example="Generate an image of an ethereal human silhouette, portrait 9:16, 4K."><span>Image</span> Ethereal human, 9:16, 4K</button>
+      <button type="button" data-prompt-example="Create a cinematic video of an ethereal human silhouette moving through light, 8 seconds, landscape 16:9, 1080p."><span>Video</span> Cinematic scene, 8 seconds, 16:9</button>
+      <button type="button" data-prompt-example="Create a 10 second video of an ethereal human silhouette, 720p, 16:9."><span>Video</span> 10 seconds, 720p</button>
+      <button type="button" data-prompt-example="Create a 3D model of an ethereal human silhouette, clean topology, printable."><span>Model</span> Printable 3D model</button>
     </div>
   </section>
 </div>
@@ -948,9 +952,9 @@
                       <label for="printCheckProvider">Check Provider</label>
                       <select id="printCheckProvider" class="print-prep-select">
                         <option value="local" selected>Local Check (free)</option>
-                        <option value="meshy">Meshy Analyze (free)</option>
+                        <option value="meshy">Printability Analyse (free)</option>
                       </select>
-                      <span class="field-hint">Local runs TimrX's own geometry analysis. Meshy Analyze uses Meshy's printability API and can hand off to Meshy Repair.</span>
+                      <span class="field-hint">Local runs TimrX&#39;s own geometry analysis. Printability Analyse runs a provider-side check and can hand off to Repair.</span>
                     </div>
 
                     <div class="print-prep-printer-select">
@@ -1005,8 +1009,8 @@
                   <section class="print-panel-surface" id="printMeshySection" style="display:none">
                     <div class="print-panel-surface-head">
                       <div>
-                        <p class="viewer-print-toast__subtitle">Meshy printability</p>
-                        <p class="print-panel-surface-note" id="printMeshyNote">Provider-side geometry report from Meshy's Analyze Printability API.</p>
+                        <p class="viewer-print-toast__subtitle">Printability report</p>
+                        <p class="print-panel-surface-note" id="printMeshyNote">Provider-side geometry report from the printability check.</p>
                       </div>
                     </div>
                     <div class="print-panel-checks" id="printMeshyGrid">
@@ -1017,9 +1021,9 @@
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
                           <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.8-3.8a6 6 0 01-7.8 7.8l-6.9 6.9a2.1 2.1 0 01-3-3l6.9-6.9a6 6 0 017.8-7.8l-3.8 3.8z"/>
                         </svg>
-                        Repair with Meshy (10 cr)
+                        Repair mesh (5 cr)
                       </button>
-                      <span class="field-hint" id="printMeshyRepairHint">Meshy rebuilds the mesh to close holes and remove non-manifold geometry. The repaired model appears in your history.</span>
+                      <span class="field-hint" id="printMeshyRepairHint">The mesh is rebuilt to close holes and remove non-manifold geometry. The repaired model appears in your history.</span>
                     </div>
                   </section>
 
@@ -1044,7 +1048,6 @@
                     <div style="display:grid;gap:6px;font-size:11.5px;line-height:1.5;color:rgba(255,255,255,.55)">
                       <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">AI models are not automatically production-ready.</strong> They are generated approximations. Always verify in a slicer (Bambu Studio, PrusaSlicer, Cura, OrcaSlicer) before committing to a print run.</p>
                       <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">Textures do not affect physical prints.</strong> For FDM/resin printing, only geometry matters. Focus on mesh quality, not visual appearance. Paint or finish the physical object after printing.</p>
-                      <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">Use Meshy's Blender plugin for quick repairs.</strong> Install the <a href="https://docs.meshy.ai/en/blender-plugin/model-cleanup" target="_blank" rel="noopener" style="color:#60a5fa;text-decoration:underline">Meshy for Blender</a> plugin and use the one-click "Make Manifold" tool to auto-fix holes, remove internal faces, and make normals consistent.</p>
                       <p style="margin:0"><strong style="color:rgba(255,255,255,.75)">Consider orientation and supports.</strong> Rotate the model in your slicer to minimize overhangs and support material. This affects print quality, time, and cost significantly.</p>
                     </div>
                   </section>
@@ -2063,16 +2066,15 @@
       </div>
       <div class="modal-footer">
         <button onclick="window.closeCreditsModal()" class="btn-secondary">Cancel</button>
-        <a href="/pricing" class="btn-primary">Buy Credits</a>
+        <a href="/hub#pricing" class="btn-primary">Buy Credits</a>
       </div>
     </div>
   </div>
 
   <!-- Clean modular architecture - ACTIVE -->
   <!-- Imports: job-tracker.js, history-manager.js, meshy-api.js, image-api.js, viewer-3d.js -->
-  <script type="module" src="./js/main.js?v=20260827f"></script>
-  <script src="./js/auth-modal.js?v=20260407a"></script>
-  <script src="js/onboarding.js" defer></script>
+  <script type="module" src="./js/main.js?v=20260827g"></script>
+  <script src="./js/auth-modal.js?v=20260827g"></script>
   <script src="js/command-palette.js?v=20260814scroll" defer></script>
   <script src="js/generation-tracker.js?v=20260818orbdock2" defer></script>
   <script src="js/command-ai.js?v=20260802a" defer></script>
@@ -2314,6 +2316,6 @@
   </script>
   <script src="js/shared/tx-menu.js?v=20260818mobile" defer></script>
   <!-- Bottom prompt dock (adapter over the legacy panels — see file header) -->
-  <script src="js/workspace-dock.js?v=20260821strip" defer></script>
+  <script src="js/workspace-dock.js?v=20260827g" defer></script>
 </body>
 </html>

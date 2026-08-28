@@ -19,7 +19,7 @@ import {
   getTabHistory,
   loadHistoryTab,
   loadMoreHistory
-} from './state.js?v=20260827f';
+} from './state.js?v=20260827g';
 
 // ============================================================================
 // MENU STATE
@@ -679,28 +679,28 @@ function itemPromptFingerprint(item = {}) {
 }
 
 /**
- * Short, human provider label for the card caption ("Meshy", "Seedance",
- * "Nano Banana"...). Falls back to the AI-model label so a card never shows a
- * raw slug. Returns '' when we genuinely don't know — the caption then just
+ * Short, human model label for the card caption. These are TimrX-facing
+ * capability names, deliberately not upstream vendor names. Falls back to the
+ * AI-model label so a card never shows a raw slug. Returns '' when we genuinely don't know — the caption then just
  * omits the chip rather than printing "Unknown".
  */
 const PROVIDER_LABELS = Object.freeze({
-  meshy: 'Meshy',
-  piapi: 'PiAPI',
-  seedance: 'Seedance',
-  fal: 'Fal',
-  fal_seedance: 'Seedance',
-  gemini: 'Gemini',
-  veo: 'Veo',
-  vertex: 'Veo',
-  openai: 'OpenAI',
-  flux_pro: 'Flux Pro',
-  ideogram_v3: 'Ideogram',
-  recraft_v4: 'Recraft',
-  nano_banana: 'Nano Banana',
-  google_nano: 'Nano Banana',
-  piapi_nano_banana: 'Nano Banana',
-  nano_banana_pro: 'Nano Banana Pro',
+  meshy: '3D Engine',
+  piapi: 'Image Engine',
+  seedance: 'Fast / Quality',
+  fal: 'Legacy',
+  fal_seedance: 'Legacy',
+  gemini: 'Reference-guided',
+  veo: 'Cinematic',
+  vertex: 'Cinematic',
+  openai: 'Precise edits & masking',
+  flux_pro: 'Photoreal',
+  ideogram_v3: 'Typography & posters',
+  recraft_v4: 'Vector & design',
+  nano_banana: 'Everyday (4K)',
+  google_nano: 'Quick photo edits',
+  piapi_nano_banana: 'Everyday (4K)',
+  nano_banana_pro: 'Pro — text & consistency',
 });
 
 function providerLabelFor(item = {}) {
@@ -1900,7 +1900,7 @@ function buildHistoryThumb(bundle = {}, isExpanded = false) {
             <button class="card-menu__item" type="button" data-act="meshy-multi-color-print" data-id="${displayModel.id}" data-title="${(displayModel.title || displayModel.prompt || '').replace(/"/g, '&quot;')}" data-thumb="${displayModel.thumbnail_url || ''}" data-glb="${modelDownloadUrl}" ${!canMeshyAuto3mf ? 'disabled' : ''}>
               <span class="card-menu__item-inner">
                 <span class="card-menu__icon">&#9881;</span>
-                <span>Meshy Auto 3MF</span>
+                <span>Full-Color 3MF</span>
               </span>
               <span class="card-menu__badge" style="background:rgba(var(--accent-blue-rgb, 127, 200, 194),.18);color:var(--accent-blue-soft, #a5ded9);font-size:9px;">10 cr</span>
             </button>

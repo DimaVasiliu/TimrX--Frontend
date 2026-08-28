@@ -66,8 +66,8 @@
       {
         label: 'Default',
         options: [
-          { value: '', label: 'Default (Recraft V3 Raw)' },
-          { value: 'Recraft V3 Raw', label: 'Recraft V3 Raw' },
+          { value: '', label: 'Default (V3 Raw)' },
+          { value: 'Recraft V3 Raw', label: 'V3 Raw' },
         ],
       },
       {
@@ -280,14 +280,14 @@
             <div class="inline-field">
               <label for="imageAIProvider">Provider</label>
               <select id="imageAIProvider">
-                <option value="nano_banana" selected>Nano Banana</option>
-                <option value="nano_banana_pro">Nano Banana Pro</option>
-                <option value="openai">OpenAI</option>
-                <option value="google">Google Imagen</option>
-                <option value="google_nano">Google Nano</option>
-                <option value="flux_pro">FLUX.2</option>
-                <option value="ideogram_v3">Ideogram</option>
-                <option value="recraft_v4">Recraft</option>
+                <option value="nano_banana" selected>Everyday (4K)</option>
+                <option value="nano_banana_pro">Pro — text &amp; consistency</option>
+                <option value="openai">Precise edits &amp; masking</option>
+                <option value="google">Reference-guided</option>
+                <option value="google_nano">Quick photo edits</option>
+                <option value="flux_pro">Photoreal</option>
+                <option value="ideogram_v3">Typography &amp; posters</option>
+                <option value="recraft_v4">Vector &amp; design</option>
               </select>
             </div>
 
@@ -301,7 +301,7 @@
             <div class="inline-field hidden" id="imageModelVariantRow">
               <label for="imageModelVariant" class="field-label-with-help">
                 <span>Model</span>
-                ${buildFieldHelp('Choose the provider model family. In Recraft, V4 is prompt-led for clean generation, while V3 unlocks curated styles, negative prompt, and edit tools.')}
+                ${buildFieldHelp('Choose the model family. V4 is prompt-led for clean generation, while V3 unlocks curated styles, negative prompt, and edit tools.')}
               </label>
               <select id="imageModelVariant">
                 <option value="">Default</option>
@@ -344,7 +344,7 @@
           <div class="image-settings-meta">
             <span class="field-hint" id="imageShapeHint">Shape controls layout, not quality.</span>
             <span class="field-hint" id="imageQualityHint">Standard 4c · 2K 8c</span>
-            <span class="field-hint hidden" id="imageOutputModeHint">Vector output is only available with Recraft V4.</span>
+            <span class="field-hint hidden" id="imageOutputModeHint">Vector output is only available on the Vector &amp; design model (V4).</span>
           </div>
           <div class="premium-quality-hint" id="premiumQualityHint"></div>
 
@@ -462,7 +462,7 @@
                 <button type="button" class="image-upload-clear hidden" id="imageStyleReferenceUploadClear">Clear</button>
               </div>
               <div class="image-upload-list hidden" id="imageStyleReferenceUploadList"></div>
-              <span class="field-hint" id="imageStyleReferenceUploadHint">Optional Ideogram style guides.</span>
+              <span class="field-hint" id="imageStyleReferenceUploadHint">Optional style-guide images.</span>
             </div>
 
             <div class="image-asset-group hidden" id="imageCharacterReferenceAssetGroup">
@@ -531,7 +531,7 @@
             <div class="hidden image-advanced-wide" id="imageNegativePromptGroup">
                 <label for="imageNegativePrompt" class="field-label-with-help">
                   <span>Negative Prompt</span>
-                  ${buildFieldHelp('Describe what to avoid, such as blurry faces, extra limbs, messy text, or clutter.<br>For Recraft, this only works on V3 and V3 Vector generation/edit modes. Leave it empty on V4.')}
+                  ${buildFieldHelp('Describe what to avoid, such as blurry faces, extra limbs, messy text, or clutter.<br>On this model, negative prompts only work on V3 and V3 Vector generation/edit modes. Leave it empty on V4.')}
                 </label>
                 <textarea id="imageNegativePrompt" rows="2" placeholder="Things to avoid in the image"></textarea>
               </div>
@@ -574,8 +574,8 @@
 
               <div class="hidden" id="imageStyleNameGroup">
                 <label for="imageStyleName" class="field-label-with-help">
-                  <span>Recraft Style</span>
-                  ${buildFieldHelp('Pick a curated Recraft style that is valid for the selected V3 model.<br>Raster styles are for PNG/JPG-style images. Vector styles are for SVG illustrations and icons.<br>V4 models do not support curated styles.')}
+                  <span>Design Style</span>
+                  ${buildFieldHelp('Pick a curated style that is valid for the selected V3 model.<br>Raster styles are for PNG/JPG-style images. Vector styles are for SVG illustrations and icons.<br>V4 models do not support curated styles.')}
                 </label>
                 <select id="imageStyleName">
                   <option value="">Default</option>
@@ -585,7 +585,7 @@
               <div class="hidden" id="imageStyleIdGroup">
                 <label for="imageStyleId" class="field-label-with-help">
                   <span>Style ID</span>
-                  ${buildFieldHelp('Paste a custom Recraft style ID from the Recraft Styles panel if you want to use your own saved style.<br>Use either the curated style dropdown or a style ID, not both.')}
+                  ${buildFieldHelp('Paste a custom style ID from the Styles panel if you want to use your own saved style.<br>Use either the curated style dropdown or a style ID, not both.')}
                 </label>
                 <input id="imageStyleId" type="text" placeholder="Custom provider style ID">
               </div>
@@ -696,7 +696,7 @@
               <div class="hidden image-advanced-wide" id="imageTextLayoutGroup">
                 <label for="imageTextLayout" class="field-label-with-help">
                   <span>Text Layout</span>
-                  ${buildFieldHelp('Optional JSON layout for placing text in the image. This is mainly for Recraft V3 / V3 Vector text-aware generation.<br>Use it only if you know the provider schema.')}
+                  ${buildFieldHelp('Optional JSON layout for placing text in the image. This is mainly for V3 / V3 Vector text-aware generation.<br>Use it only if you know the provider schema.')}
                 </label>
                 <textarea id="imageTextLayout" rows="3" placeholder='[{"text":"SALE","bbox":[[0.1,0.1],[0.8,0.1],[0.8,0.3],[0.1,0.3]]}]'></textarea>
               </div>
@@ -731,11 +731,11 @@
           <div class="gen-meta">
             <span class="gen-time" id="imageGenTime">45 sec</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits" id="imageCreditsDisplay"><i class="fa-solid fa-coins"></i> 7</span>
+            <span class="gen-credits" id="imageCreditsDisplay"><i class="fa-solid fa-coins"></i> 2</span>
           </div>
           <button type="button" id="generateImageBtn" class="gen-btn" title="2 credits" data-provider="nano_banana">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5" fill="currentColor"/><path d="M21 15l-5-5L5 21"/></svg>
-            Generate <span class="btn-cost-badge">7 cr</span>
+            Generate <span class="btn-cost-badge">2 cr</span>
           </button>
         </div>
       `,
@@ -768,7 +768,7 @@
             <div class="negative-prompt-field">
               <label for="modelNegativePrompt">Avoid <span class="field-optional">(optional)</span></label>
               <textarea id="modelNegativePrompt" class="negative-prompt-input" maxlength="240" placeholder="blurry forms, extra limbs, warped hands, text, logos, thin fragile parts"></textarea>
-              <span class="field-hint">Meshy 5/6 do not use a native negative-prompt field, so TimrX folds this into the prompt as “Avoid”.</span>
+              <span class="field-hint">Generations 5 and 6 have no native negative-prompt field, so TimrX folds this into the prompt as “Avoid”.</span>
             </div>
           </div>
 
@@ -800,7 +800,7 @@
             <div class="negative-prompt-field">
               <label for="image3dNegativePrompt">Avoid <span class="field-optional">(optional)</span></label>
               <textarea id="image3dNegativePrompt" class="negative-prompt-input negative-prompt-input--compact" maxlength="240" placeholder="unwanted text, logos, noisy surfaces, extra parts"></textarea>
-              <span class="field-hint">Saved with the model for your reference. Meshy's Image-to-3D API takes no text prompt, so it does not steer this generation.</span>
+              <span class="field-hint">Saved with the model for your reference. Image-to-3D takes no text prompt, so it does not steer this generation.</span>
             </div>
           </div>
 
@@ -809,7 +809,7 @@
               <label for="multiImageModelName" style="font-size:12px">Name</label>
               <input type="text" id="multiImageModelName" placeholder="My Multi-View Model" style="width:100%;padding:8px 10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:7px;color:#fff;font-size:12px" />
             </div>
-            <label class="video-section-label">Upload 1–4 Reference Images <span class="info-dot" title="Meshy 7 / Latest treats the first image as the primary front view. The order of the other images does not matter.">i</span></label>
+            <label class="video-section-label">Upload 1–4 Reference Images <span class="info-dot" title="Generation 7 / Latest treats the first image as the primary front view. The order of the other images does not matter.">i</span></label>
             <div id="multiImageGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:10px;max-width:240px;margin-left:auto;margin-right:auto">
               <div class="multi-img-slot" data-slot="0">
                 <div class="video-drop-zone" id="multiImgDrop0" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
@@ -844,7 +844,7 @@
                 <img class="multi-img-preview" width="120" height="120" loading="lazy" decoding="async" style="display:none;width:100%;aspect-ratio:1;object-fit:contain;border-radius:7px;background:rgba(0,0,0,0.3)" />
               </div>
             </div>
-            <span class="field-hint"><strong>Image 1 is the primary front view</strong> — Meshy 7 / Latest builds the model around it. Images 2–4 are optional extra angles of the same object, in any order.</span>
+            <span class="field-hint"><strong>Image 1 is the primary front view</strong> — Generation 7 / Latest builds the model around it. Images 2–4 are optional extra angles of the same object, in any order.</span>
             <span class="field-hint" style="color:#b08a3e;font-size:10px;margin-top:2px">Images are sent as data URLs — keep each file under 5 MB for reliable uploads</span>
             <div id="multiImageCount" style="font-size:11px;color:#666;margin-top:4px">0 / 4 images selected</div>
             <div class="negative-prompt-field">
@@ -860,11 +860,11 @@
               <span class="field-label-inline">AI Model <span class="info-dot" title="Select the AI model version">ⓘ</span></span>
               <select id="modelAIModel" class="field-select-inline">
                 <option value="latest" selected>Latest</option>
-                <option value="meshy-7">Meshy 7</option>
+                <option value="meshy-7">Generation 7</option>
                 <option value="meshy-t2">Smart Topology T2</option>
                 <option value="meshy-t1">Smart Topology T1</option>
-                <option value="meshy-6">Meshy 6</option>
-                <option value="meshy-5">Meshy 5</option>
+                <option value="meshy-6">Generation 6</option>
+                <option value="meshy-5">Generation 5</option>
               </select>
             </div>
 
@@ -958,7 +958,7 @@
             <div style="margin-top:10px;display:flex;flex-direction:column;gap:12px">
               <div class="field-row-grid field-row-grid--toggles">
                 <div class="field-row">
-                  <span class="field-label-inline">Auto-remesh Output <span class="info-dot" title="When enabled, Meshy rebuilds the mesh topology during preview generation. Leave off to get the raw high-detail mesh, then use the Remesh panel for controlled print prep.">i</span></span>
+                  <span class="field-label-inline">Auto-remesh Output <span class="info-dot" title="When enabled, the mesh topology is rebuilt during preview generation. Leave off to get the raw high-detail mesh, then use the Remesh panel for controlled print prep.">i</span></span>
                   <label class="toggle-switch">
                     <input type="checkbox" id="modelShouldRemesh">
                     <span class="toggle-slider"></span>
@@ -966,7 +966,7 @@
                 </div>
 
                 <div class="field-row">
-                  <span class="field-label-inline">Content Moderation <span class="info-dot" id="modelModerationInfo" title="Text-to-3D always runs Meshy content moderation. Image flows let you choose.">i</span></span>
+                  <span class="field-label-inline">Content Moderation <span class="info-dot" id="modelModerationInfo" title="Text-to-3D always runs content moderation. Image flows let you choose.">i</span></span>
                   <label class="toggle-switch">
                     <input type="checkbox" id="modelModeration">
                     <span class="toggle-slider"></span>
@@ -991,7 +991,7 @@
                   </select>
                 </div>
                 <div class="inline-field">
-                  <label for="modelDecimationMode">Decimation <span class="info-dot" title="Adaptive decimation picks the polycount for you. When set, Meshy ignores Target Polycount.">i</span></label>
+                  <label for="modelDecimationMode">Decimation <span class="info-dot" title="Adaptive decimation picks the polycount for you. When set, Target Polycount is ignored.">i</span></label>
                   <select id="modelDecimationMode">
                     <option value="" selected>Off — use polycount</option>
                     <option value="1">Adaptive — Ultra</option>
@@ -1043,7 +1043,7 @@
                 <p class="field-hint texture-setting-note">GLB stays enabled for in-app preview. Add extra formats only when needed. 3MF is recommended for color 3D printing.</p>
               </div>
 
-              <p class="field-hint texture-setting-note" id="modelPreviewAdvancedNote">Turn on auto-remesh if you want Meshy to apply topology cleanup during preview generation. For print workflows, it is usually better to leave this off and use the dedicated Remesh panel after refining, which gives you more control over the result.</p>
+              <p class="field-hint texture-setting-note" id="modelPreviewAdvancedNote">Turn on auto-remesh if you want topology cleanup during preview generation. For print workflows, it is usually better to leave this off and use the dedicated Remesh panel after refining, which gives you more control over the result.</p>
             </div>
           </details>
 
@@ -1053,11 +1053,11 @@
           <div class="gen-meta">
             <span class="gen-time">1 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits" id="modelCreditsDisplay"><i class="fa-solid fa-coins"></i> 20</span>
+            <span class="gen-credits" id="modelCreditsDisplay"><i class="fa-solid fa-coins"></i> 10</span>
           </div>
           <button type="button" id="generateModelBtn" class="gen-btn" title="10 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L9.19 8.63L2 9.24L7.46 13.97L5.82 21L12 17.27L18.18 21L16.54 13.97L22 9.24L14.81 8.63L12 2Z"/></svg>
-            Generate <span class="btn-cost-badge">20 cr</span>
+            Generate <span class="btn-cost-badge">10 cr</span>
           </button>
         </div>
       `,
@@ -1101,7 +1101,7 @@
           <div class="card-divider"></div>
 
           <div class="field-group" style="margin-bottom:12px">
-            <span class="field-label-inline">Operation <span class="info-dot" title="Each operation is a separate Meshy API with its own credit cost.">i</span></span>
+            <span class="field-label-inline">Operation <span class="info-dot" title="Each operation is a separate job with its own credit cost.">i</span></span>
             <div class="segment-group" data-segment-group data-target="#meshOperationMode">
               <button type="button" class="segment is-active" data-value="remesh">Remesh</button>
               <button type="button" class="segment" data-value="convert">Convert</button>
@@ -1153,14 +1153,14 @@
               <select id="meshResizeMode">
                 <option value="resize_height" selected>Height (metres)</option>
                 <option value="resize_longest_side">Longest side (metres)</option>
-                <option value="auto_size">Auto size (Meshy estimates real-world scale)</option>
+                <option value="auto_size">Auto size (estimated real-world scale)</option>
               </select>
             </div>
             <div class="inline-field" id="meshResizeValueField">
               <label for="meshResizeValue">Target size (m)</label>
               <input type="number" id="meshResizeValue" min="0" step="0.01" value="0.1">
             </div>
-            <p class="field-hint texture-setting-note"><strong>Metres, not millimetres</strong> — a 150&nbsp;mm print is <code>0.15</code>. Meshy Resize accepts exactly one sizing choice; Origin is set in Advanced Settings.</p>
+            <p class="field-hint texture-setting-note"><strong>Metres, not millimetres</strong> — a 150&nbsp;mm print is <code>0.15</code>. Resize accepts exactly one sizing choice; Origin is set in Advanced Settings.</p>
           </div>
 
           <div id="meshUvUnwrapModeFields" style="display:none">
@@ -1178,7 +1178,7 @@
                 <input type="number" id="targetPolyCount" value="50000" min="100" max="1000000" step="1000">
               </div>
               <div class="inline-field">
-                <label for="remeshDecimationMode">Decimation <span class="info-dot" title="Adaptive decimation lets Meshy pick the polycount. When set, Poly Count is ignored.">i</span></label>
+                <label for="remeshDecimationMode">Decimation <span class="info-dot" title="Adaptive decimation picks the polycount. When set, Poly Count is ignored.">i</span></label>
                 <select id="remeshDecimationMode">
                   <option value="" selected>Off — use poly count</option>
                   <option value="1">Adaptive — Ultra</option>
@@ -1244,11 +1244,11 @@
           <div class="gen-meta">
             <span class="gen-time">2 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits" id="remeshCreditsDisplay"><i class="fa-solid fa-coins"></i> 5</span>
+            <span class="gen-credits" id="remeshCreditsDisplay"><i class="fa-solid fa-coins"></i> 3</span>
           </div>
           <button type="button" id="applyRemeshBtn" class="gen-btn" title="3 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM14 5a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1V5zM4 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1H5a1 1 0 01-1-1v-4zM14 15a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"/></svg>
-            Remesh <span class="btn-cost-badge">5 cr</span>
+            Remesh <span class="btn-cost-badge">3 cr</span>
           </button>
         </div>
       `,
@@ -1309,11 +1309,11 @@
               <label for="textureStyleImageUrl">Or paste image URL</label>
               <input type="text" id="textureStyleImageUrl" placeholder="https://example.com/material-reference.jpg">
             </div>
-            <p class="field-hint texture-setting-note">If both text and image are set, Meshy uses the image reference to guide the retexture.</p>
+            <p class="field-hint texture-setting-note">If both text and image are set, the image reference guides the retexture.</p>
           </div>
 
           <div class="texture-style-block" id="textureMultiviewBlock" style="display:none">
-            <span class="field-label-inline">Multiview Style Images <span class="info-dot" title="Meshy 7 / Latest can texture from up to 4 photos of the same object. The first image is the primary front view; the other angles can be in any order.">i</span></span>
+            <span class="field-label-inline">Multiview Style Images <span class="info-dot" title="Generation 7 / Latest can texture from up to 4 photos of the same object. The first image is the primary front view; the other angles can be in any order.">i</span></span>
             <div id="textureMultiviewGrid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:8px auto;max-width:240px">
               <div class="multi-img-slot" data-slot="0">
                 <div class="video-drop-zone" style="aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer">
@@ -1353,7 +1353,7 @@
               <input type="text" id="textureMultiviewUrls" placeholder="https://a.jpg, https://b.jpg">
             </div>
             <div id="textureMultiviewCount" style="font-size:11px;color:#666;margin-top:4px">0 / 4 style views selected</div>
-            <p class="field-hint texture-setting-note" id="textureMultiviewNote">Multiview replaces the text prompt and the single style image — when views are set, Meshy textures from them alone.</p>
+            <p class="field-hint texture-setting-note" id="textureMultiviewNote">Multiview replaces the text prompt and the single style image — when views are set, texturing runs from them alone.</p>
           </div>
 
           <div class="material-chips" id="materialChips">
@@ -1384,12 +1384,12 @@
           </button>
           <div class="remesh-advanced remesh-advanced--collapsed" id="textureAdvanced">
             <div class="inline-field">
-              <label for="textureAiModel">Meshy Model</label>
+              <label for="textureAiModel">Engine Version</label>
               <select id="textureAiModel">
-                <option value="latest" selected>Latest (Meshy 7)</option>
-                <option value="meshy-7">Meshy 7</option>
-                <option value="meshy-6">Meshy 6</option>
-                <option value="meshy-5">Meshy 5</option>
+                <option value="latest" selected>Latest (Generation 7)</option>
+                <option value="meshy-7">Generation 7</option>
+                <option value="meshy-6">Generation 6</option>
+                <option value="meshy-5">Generation 5</option>
               </select>
             </div>
             <div class="inline-field">
@@ -1407,7 +1407,7 @@
                 <span class="toggle-slider"></span>
               </label>
             </div>
-            <p class="field-hint texture-setting-note" id="textureRemoveLightingNote">Cleaner base color textures for custom lighting setups. Only available on Meshy 6.</p>
+            <p class="field-hint texture-setting-note" id="textureRemoveLightingNote">Cleaner base color textures for custom lighting setups. Only available on Generation 6.</p>
             <label style="margin-top:8px;display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px">
               <input type="checkbox" id="seamless" checked>
               <span>Preserve Original UV</span>
@@ -1449,7 +1449,7 @@
           </div>
           <button type="button" id="generateTextureBtn" class="gen-btn" title="5 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
-            Texture <span class="btn-cost-badge">10 cr</span>
+            Texture <span class="btn-cost-badge">5 cr</span>
           </button>
         </div>
       `,
@@ -1608,7 +1608,7 @@
               <label for="rigTextureImageUrl">Or paste PNG URL</label>
               <input type="text" id="rigTextureImageUrl" placeholder="https://example.com/base-color.png">
             </div>
-            <p class="field-hint texture-setting-note">Use this when your GLB has weak or missing embedded textures. Meshy only supports PNG for rig texture guidance.</p>
+            <p class="field-hint texture-setting-note">Use this when your GLB has weak or missing embedded textures. Only PNG is supported for rig texture guidance.</p>
           </div>
         </div>
 
@@ -1622,7 +1622,7 @@
           </div>
           <button type="button" id="startRigBtn" class="gen-btn gen-btn--rail" title="3 credits">
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 014 4v1h2a1 1 0 011 1v2a1 1 0 01-1 1h-1v5l1 4H6l1-4v-5H6a1 1 0 01-1-1V8a1 1 0 011-1h2V6a4 4 0 014-4z"/></svg>
-            Start Rigging <span class="btn-cost-badge">5 cr</span>
+            Start Rigging <span class="btn-cost-badge">3 cr</span>
           </button>
         </div>
 
@@ -1751,7 +1751,7 @@
                 <option value="60">60</option>
               </select>
             </div>
-            <p class="field-hint texture-setting-note" id="animPostProcessNote">Keep the default GLB / FBX animation outputs, or ask Meshy for one extra processed derivative per run.</p>
+            <p class="field-hint texture-setting-note" id="animPostProcessNote">Keep the default GLB / FBX animation outputs, or ask for one extra processed derivative per run.</p>
           </div>
 
           <div class="gen-footer-card" style="margin-top:12px">
@@ -1770,7 +1770,7 @@
             </div>
             <button type="button" id="applyAnimationBtn2" class="gen-btn gen-btn--rail anim-btn-inactive" title="2 credits">
               <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-              Apply Animation <span class="btn-cost-badge">3 cr</span>
+              Apply Animation <span class="btn-cost-badge">2 cr</span>
             </button>
           </div>
         </div>
@@ -1995,15 +1995,15 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         <div class="gen-meta">
           <span class="gen-time" id="videoGenTime">~2 min</span>
           <span class="gen-divider">|</span>
-          <span class="gen-credits" id="videoCreditsDisplay"><i class="fa-solid fa-coins"></i> 70</span>
+          <span class="gen-credits" id="videoCreditsDisplay"><i class="fa-solid fa-coins"></i> 20</span>
         </div>
         <div class="gen-btn-row">
-          <button type="button" id="previewVideoBtn" class="gen-btn gen-btn--preview" title="Quick preview (~10 credits)" disabled style="display:none">
+          <button type="button" id="previewVideoBtn" class="gen-btn gen-btn--preview" title="Quick preview (~8 credits)" disabled style="display:none">
             Preview
           </button>
           <button type="button" id="generateVideoBtn" class="gen-btn" title="20 credits" data-base-credits="20" data-video-mode="text2video" data-provider="vertex" disabled>
             <svg class="gen-btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
-            Generate <span class="btn-cost-badge">96 cr</span>
+            Generate <span class="btn-cost-badge">20 cr</span>
           </button>
         </div>
       </div>
@@ -2060,14 +2060,14 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           <div class="gen-meta">
             <span class="gen-time">~2 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits" id="creativeLabCreditsDisplay"><i class="fa-solid fa-coins"></i> 6</span>
+            <span class="gen-credits" id="creativeLabCreditsDisplay"><i class="fa-solid fa-coins"></i> 4</span>
           </div>
           <div class="gen-btn-row">
             <button type="button" id="creativeLabPrototypeBtn" class="gen-btn" title="4 credits">
-              Prototype <span class="btn-cost-badge">6 cr</span>
+              Prototype <span class="btn-cost-badge">4 cr</span>
             </button>
             <button type="button" id="creativeLabBuildBtn" class="gen-btn" title="15 credits" disabled>
-              Build <span class="btn-cost-badge">30 cr</span>
+              Build <span class="btn-cost-badge">15 cr</span>
             </button>
           </div>
         </div>
@@ -3342,7 +3342,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         },
       };
       // Approximate CPS at 480p baseline — used only when no exact match (DB authoritative).
-      const SEEDANCE_CPS = { mini: 14, fast: 16, quality: 20, v25: 18 };
+      const SEEDANCE_CPS = { mini: 1.6, fast: 2.0, quality: 2.4, v25: 3.6 };
       // Per-tier allowed resolutions (UI must not present invalid combos like Fast 1080p).
       const SEEDANCE_RESOLUTIONS = {
         mini:    ['480p', '720p'],
@@ -3388,7 +3388,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       let videoReferencePolicy = { ...DEFAULT_REFERENCE_POLICY, limits: { ...DEFAULT_REFERENCE_POLICY.limits } };
       // fal Seedance 1.5 Pro — BUDGET tier (8–9 c/s)
       const FAL_SEEDANCE_COSTS = { 5: 8, 10: 16, 12: 19 };
-      const FAL_SEEDANCE_CPS = 8;
+      const FAL_SEEDANCE_CPS = 1.6;
       // Valid durations per resolution (Veo constraints)
       const VIDEO_VALID_DURATIONS = {
         '720p':  [4, 6, 8],   // Standard: all durations
@@ -3520,7 +3520,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           showSeedanceResolution: true,
           showAudioToggle: true,      // PiAPI `audio` flag \u2014 soundtrack on/off
           showLoop: false,
-          hint: 'Mini is the cheapest and fastest. Fast for drafts/social. Quality unlocks 1080p. Seedance 2.5 is the newest model with the best motion, at a premium rate and 720p max. Queue times vary with demand.',
+          hint: 'Mini is the cheapest and fastest. Fast for drafts/social. Quality unlocks 1080p. Cinematic 2.5 is the newest tier with the best motion, at a premium rate and 720p max. Queue times vary with demand.',
           timeEstimate: (s) => {
             if (s.seedanceTier === 'quality') return '~2\u201310 min';
             if (s.seedanceTier === 'mini') return '~30 s\u20132 min';
@@ -3610,7 +3610,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         if (provider === 'fal_seedance') {
           cost = (FAL_SEEDANCE_COSTS[duration] !== undefined)
             ? FAL_SEEDANCE_COSTS[duration]
-            : FAL_SEEDANCE_CPS * duration;
+            : Math.round(FAL_SEEDANCE_CPS * duration);
           source = 'fal_seedance';
         }
 
@@ -3648,7 +3648,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
               source = `seedance-${tier}-${seedanceRes}-derived`;
             }
           if (cost === null || cost === undefined) {
-              cost = (SEEDANCE_CPS[tier] || 16) * duration;
+              cost = Math.round((SEEDANCE_CPS[tier] || 2.0) * duration);
               source = `seedance-${tier}-cps`;
             }
           }
@@ -4018,7 +4018,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             tierWrap = document.createElement('div');
             tierWrap.id = 'seedanceTierWrap';
             tierWrap.className = 'vs-setting';
-            tierWrap.innerHTML = '<label for="seedanceTierSelect">Speed</label><select id="seedanceTierSelect"><option value="mini">Mini — cheapest, fastest (~30 s\u20132 min)</option><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option><option value="v25">Seedance 2.5 — newest model, up to 30s (~7\u201330 min)</option></select>';
+            tierWrap.innerHTML = '<label for="seedanceTierSelect">Speed</label><select id="seedanceTierSelect"><option value="mini">Mini — cheapest, fastest (~30 s\u20132 min)</option><option value="fast" selected>Fast — drafts &amp; social (~1\u20133 min)</option><option value="quality">Quality — cinematic detail (~2\u201310 min)</option><option value="v25">Cinematic 2.5 — newest tier, up to 30s (~7\u201330 min)</option></select>';
             const durationSetting = videoDuration?.closest('.vs-setting');
             if (durationSetting) durationSetting.after(tierWrap);
           }
@@ -4310,8 +4310,8 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         function seedanceCps() {
           let tier = (leftStack.querySelector('#seedanceTier')?.value) || 'fast';
           if (tier === 'preview') tier = 'quality';
-          // SEEDANCE_CPS is defined in this scope (mini:14, fast:16, quality:20), 480p baseline.
-          return (typeof SEEDANCE_CPS !== 'undefined' && SEEDANCE_CPS[tier]) ? SEEDANCE_CPS[tier] : 16;
+          // SEEDANCE_CPS is defined in this scope (mini:1.6, fast:2.0, quality:2.4), 480p baseline.
+          return (typeof SEEDANCE_CPS !== 'undefined' && SEEDANCE_CPS[tier]) ? SEEDANCE_CPS[tier] : 2.0;
         }
 
         function seedanceBaseCreditsForCurrentOptions() {
@@ -4366,7 +4366,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           const extraCredits = Math.ceil((baseCredits / Math.max(1, duration)) * 0.5 * vSec);
           costWarn.classList.remove('hidden');
           costWarn.innerHTML =
-            `<strong>Heads up:</strong> reference videos add to the cost. PiAPI bills an extra ` +
+            `<strong>Heads up:</strong> reference videos add to the cost. The provider bills an extra ` +
             `half the per-second rate for each second of input video — about <strong>${vSec.toFixed(1)}s</strong> here ` +
             `(≈ <strong>${extraCredits}</strong> extra credits at the current tier). Audio + image references don't add a surcharge.`;
         }
@@ -5412,7 +5412,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         const isVector = isRecraftVectorModel(modelVariant, operation);
         const supportsStyles = recraftSupportsStyles(modelVariant, operation);
         const supportsNegativePrompt = recraftSupportsNegativePrompt(modelVariant, operation);
-        const tips = ['<strong>Recraft workflow</strong>', '<ul>'];
+        const tips = ['<strong>Vector &amp; design workflow</strong>', '<ul>'];
 
         if (operation === 'generate') {
           if (isVector) {
@@ -5422,7 +5422,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
               : 'For SVG, ask for icons, logos, flat shapes, limited colors, and clean outlines. V4 Vector is prompt-only.';
             tips.push(`<li>Selected model: <code>${modelVariant}</code></li>`);
             tips.push('<li>Use SVG for logos, icons, stickers, decals, and flat illustrations.</li>');
-            tips.push(`<li>${supportsStyles ? 'Use the Recraft Style dropdown for V3 Vector styles such as Vector art, Line art, or Engraving.' : 'V4 vector models do not support curated styles.'}</li>`);
+            tips.push(`<li>${supportsStyles ? 'Use the Design Style dropdown for V3 Vector styles such as Vector art, Line art, or Engraving.' : 'V4 vector models do not support curated styles.'}</li>`);
             tips.push('<li>Avoid photo language like bokeh, skin pores, camera lenses, or ultra-detailed texture when you want clean vectors.</li>');
           } else {
             imagePrompt.placeholder = isV3
@@ -5431,7 +5431,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             imagePromptHint.textContent = 'For raster, describe the subject, scene, materials, lighting, lens feel, and mood. Product, lifestyle, and concept prompts all work well here.';
             tips.push(`<li>Selected model: <code>${modelVariant}</code></li>`);
             tips.push('<li>Raster is best for photos, posters, packaging, and detailed illustrations.</li>');
-            tips.push(`<li>${supportsStyles ? 'Use the Recraft Style dropdown for V3 Raster looks such as Photorealism, Illustration, Product photo, or Punk Graphic.' : 'V4 raster models do not support curated styles. Direct the look with your prompt plus color controls.'}</li>`);
+            tips.push(`<li>${supportsStyles ? 'Use the Design Style dropdown for V3 Raster looks such as Photorealism, Illustration, Product photo, or Punk Graphic.' : 'V4 raster models do not support curated styles. Direct the look with your prompt plus color controls.'}</li>`);
             tips.push(`<li>${supportsNegativePrompt ? 'Negative Prompt is available here if you want to exclude clutter, extra limbs, blur, or messy text.' : 'Leave Negative Prompt empty on V4 generate models.'}</li>`);
           }
         } else if (operation === 'image_to_image') {
@@ -5463,7 +5463,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           tips.push('<li>Cleaner source art produces cleaner SVG paths.</li>');
         } else if (operation === 'remove_background') {
           imagePrompt.placeholder = 'Prompt not used for Remove Background';
-          imagePromptHint.textContent = 'Upload a source image and Recraft will cut the background away.';
+          imagePromptHint.textContent = 'Upload a source image and the background will be cut away.';
           tips.push('<li>Remove Background keeps the foreground subject and strips the background.</li>');
         } else if (operation === 'crisp_upscale') {
           imagePrompt.placeholder = 'Prompt not used for Crisp Upscale';
@@ -5471,7 +5471,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           tips.push('<li>Crisp Upscale prioritizes sharper detail with minimal reinterpretation.</li>');
         } else if (operation === 'creative_upscale') {
           imagePrompt.placeholder = 'Prompt not used for Creative Upscale';
-          imagePromptHint.textContent = 'Upload a source image to upscale it while letting Recraft refine small details and faces.';
+          imagePromptHint.textContent = 'Upload a source image to upscale it while small details and faces are refined.';
           tips.push('<li>Creative Upscale can alter fine detail more aggressively than Crisp Upscale.</li>');
         } else if (operation === 'erase_region') {
           imagePrompt.placeholder = 'Prompt not used for Erase Region';
@@ -5479,7 +5479,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           tips.push('<li>Erase Region removes masked content without using a text prompt.</li>');
         } else if (operation === 'remix') {
           imagePrompt.placeholder = 'Prompt optional for Remix';
-          imagePromptHint.textContent = 'Upload a source image to create a variation. Recraft reinterprets it without curated styles.';
+          imagePromptHint.textContent = 'Upload a source image to create a variation. It is reinterpreted without curated styles.';
           tips.push('<li>Remix creates a variation of the uploaded image.</li>');
           tips.push('<li>Curated styles and negative prompt are not used here.</li>');
         } else {
@@ -5505,10 +5505,10 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         const provider = snapshot?.provider;
         const PROVIDER_SOURCE_HINTS = {
           openai: 'Drop an image — gpt-image will edit it based on your prompt. PNG / JPG / WebP.',
-          google: 'Drop an image — Vertex AI Imagen will use it as your reference (image-to-image edit).',
-          google_nano: 'Drop an image — Gemini 2.5 Flash Image will edit it natively. Describe the change in your prompt.',
-          nano_banana: 'Drop a reference image — Nano Banana 2 will steer its 1K/2K/4K generation off it.',
-          nano_banana_pro: 'Drop up to 4 references — Nano Banana Pro keeps subjects consistent across them.',
+          google: 'Drop an image to use as your reference (image-to-image edit).',
+          google_nano: 'Drop an image and it will be edited natively. Describe the change in your prompt.',
+          nano_banana: 'Drop a reference image to steer the 1K/2K/4K generation off it.',
+          nano_banana_pro: 'Drop up to 4 references — subjects stay consistent across them.',
           flux_pro: 'Shown for edit, remix, reframe, upscale, and utility modes.',
           ideogram_v3: 'Source image for remix / edit / reframe operations.',
           recraft_v4: 'Source image for image-to-image, inpaint, background ops, and vectorize.'
@@ -5516,8 +5516,8 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         const PROVIDER_REF_HINTS = {
           openai: (n) => `Up to ${n} reference images — gpt-image will blend them based on your prompt.`,
           google: (n) => `Up to ${n} references — primary becomes the base; extras act as subject guides.`,
-          google_nano: (n) => `Up to ${n} references — Gemini will weave them into the result.`,
-          nano_banana: () => 'Single reference image — Nano Banana 2 uses one reference at a time.',
+          google_nano: (n) => `Up to ${n} references — they are woven into the result.`,
+          nano_banana: () => 'Single reference image — this model uses one reference at a time.',
           nano_banana_pro: (n) => `Up to ${n} references — Pro holds character and product consistency across them.`,
           flux_pro: (n) => `Add up to ${n} references to guide composition, style, pose, or materials.`,
           ideogram_v3: () => 'Up to 8 style references.',
@@ -5535,7 +5535,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             ? refHintFn(maxRefs)
             : `Add up to ${maxRefs} references to guide composition, style, pose, or materials.`;
         }
-        if (imageStyleReferenceUploadHint) imageStyleReferenceUploadHint.textContent = 'Optional Ideogram style guides.';
+        if (imageStyleReferenceUploadHint) imageStyleReferenceUploadHint.textContent = 'Optional style-guide images.';
         if (imageCharacterReferenceUploadHint) imageCharacterReferenceUploadHint.textContent = 'Use one image to keep a character consistent.';
         if (imageCharacterMaskUploadHint) imageCharacterMaskUploadHint.textContent = 'Optional mask for the character reference.';
 
@@ -6008,7 +6008,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
             imageOutputModeHint.classList.toggle('hidden', supportedOutputModes.length <= 1);
             imageOutputModeHint.textContent = supportedOutputModes.includes('vector_svg')
               ? 'Raster works with downstream image tools. SVG is ideal for logos and vector design.'
-              : 'Vector output is only available with Recraft V4.';
+              : 'Vector output is only available on the Vector &amp; design model (V4).';
           }
           if (snapshot.settings?.outputMode !== imageOutputMode.value) {
             window.GenerationState.setSetting('image', 'outputMode', imageOutputMode.value);
@@ -6519,8 +6519,8 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         }
         if (textureRemoveLightingNote) {
           textureRemoveLightingNote.textContent = supportsRemoveLighting
-            ? 'Cleaner base color textures for custom lighting setups. Only available on Meshy 6.'
-            : 'Remove Lighting is only available on Meshy 6 and will stay off for this model.';
+            ? 'Cleaner base color textures for custom lighting setups. Only available on Generation 6.'
+            : 'Remove Lighting is only available on Generation 6 and will stay off for this model.';
         }
       };
 
@@ -6590,8 +6590,10 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       if (rigRemeshCTA) {
         rigRemeshCTA.addEventListener('click', () => {
           // Switch to remesh panel
-          const remeshBtn = document.querySelector('.rail-btn[data-panel="remesh"]');
-          if (remeshBtn) remeshBtn.click();
+          const remeshBtn = document.querySelector('.rail-btn[data-panel="remesh"]')
+            || document.querySelector('[data-model-panel="remesh"]');
+          if (remeshBtn) { remeshBtn.click(); return; }
+          _toast('Open the Remesh panel from the mode switcher to optimize this model.');
         });
       }
 
@@ -6741,8 +6743,10 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
              picker to choose the thing they just made. The panel is rebuilt by
              the rail click, so the selection is applied after that. */
           const justRigged = _findLatestRiggedFromHistory();
-          const animRailBtn = document.querySelector('.rail-btn[data-panel="animate"]');
-          if (animRailBtn) animRailBtn.click();
+          const animRailBtn = document.querySelector('.rail-btn[data-panel="animate"]')
+            || document.querySelector('[data-model-panel="animate"]');
+          if (animRailBtn) { animRailBtn.click(); }
+          else { _toast('Open the Animate panel from the mode switcher to animate this rig.'); }
           if (justRigged) {
             requestAnimationFrame(() => _selectRiggedItem(justRigged, 'rig'));
           }
@@ -7083,13 +7087,13 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
 
         if (modelPreviewAdvancedNote) {
           if (isLowPoly) {
-            modelPreviewAdvancedNote.textContent = 'Low Poly preview ignores Meshy remesh controls and returns simplified geometry directly.';
+            modelPreviewAdvancedNote.textContent = 'Low Poly preview ignores the remesh controls and returns simplified geometry directly.';
           } else if (decimationActive) {
-            modelPreviewAdvancedNote.textContent = 'Adaptive decimation lets Meshy choose the polycount for this level, so Target Polycount is ignored.';
+            modelPreviewAdvancedNote.textContent = 'Adaptive decimation chooses the polycount for this level, so Target Polycount is ignored.';
           } else if (remeshEnabled) {
             modelPreviewAdvancedNote.textContent = 'Auto-remesh lets preview honor topology and target polycount before the refine stage.';
           } else {
-            modelPreviewAdvancedNote.textContent = 'Turn on auto-remesh if you want Meshy preview to honor topology and target polycount.';
+            modelPreviewAdvancedNote.textContent = 'Turn on auto-remesh if you want the preview to honor topology and target polycount.';
           }
         }
       };
@@ -7204,7 +7208,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         clPrototypeBtn?.addEventListener('click', async () => {
           if (!clSourceImage) return;
           clPrototypeBtn.disabled = true;
-          if (clStatus) clStatus.textContent = 'Sending photo to Meshy...';
+          if (clStatus) clStatus.textContent = 'Sending photo to the 3D engine…';
           try {
             const result = await window.startCreativeLabPrototype(clProduct.value, {
               image_url: clSourceImage,
@@ -7486,9 +7490,9 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
 
     // Provider hint messages shown near the enhance button
     var _PROVIDER_HINTS = {
-      vertex:       'Veo works best with clean, simple descriptions.',
-      seedance:     'Seedance handles dynamic action and bold prompts well.',
-      fal_seedance: 'fal works best with short, punchy prompts (1\u20132 sentences).',
+      vertex:       'Cinematic works best with clean, simple descriptions.',
+      seedance:     'Fast / Quality handles dynamic action and bold prompts well.',
+      fal_seedance: 'Legacy works best with short, punchy prompts (1\u20132 sentences).',
     };
 
     function updateEnhanceProviderHint() {
@@ -8258,12 +8262,12 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
         if (animTargetFpsRow) animTargetFpsRow.style.display = type === 'change_fps' ? '' : 'none';
         if (animPostProcessNote) {
           animPostProcessNote.textContent = type === 'change_fps'
-            ? 'Meshy keeps the base GLB / FBX outputs and adds one extra FPS-adjusted FBX variant.'
+            ? 'We keep the base GLB / FBX outputs and add one extra FPS-adjusted FBX variant.'
             : type === 'fbx2usdz'
-              ? 'Meshy keeps the base GLB / FBX outputs and adds one USDZ conversion for AR / Apple preview.'
+              ? 'We keep the base GLB / FBX outputs and add one USDZ conversion for AR / Apple preview.'
               : type === 'extract_armature'
-                ? 'Meshy keeps the base GLB / FBX outputs and adds an armature-only FBX for downstream DCC work.'
-                : 'Keep the default GLB / FBX animation outputs, or ask Meshy for one extra processed derivative per run.';
+                ? 'We keep the base GLB / FBX outputs and add an armature-only FBX for downstream DCC work.'
+                : 'Keep the default GLB / FBX animation outputs, or ask for one extra processed derivative per run.';
         }
       };
 

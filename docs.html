@@ -993,16 +993,23 @@
           <article class="docs-article" id="doc-overview">
             <h2>Platform Overview</h2>
             <p>TimrX is a browser-based creative workspace for 3D models, images and videos. No downloads, no installs. Create assets from text prompts or reference images, refine and prepare them, organize the results in My Assets, then export, share, print-check or order a physical print from one place.</p>
-            <h3>Available tools</h3>
+            <p class="docs-note" style="margin:0 0 18px;padding:12px 14px;border-radius:8px;background:rgba(255,255,255,.04);font-size:13px;line-height:1.6;color:#a9b0bb">
+        <strong style="color:#d5dae1">How our models are named.</strong> TimrX model names describe what each one is
+        good at &mdash; Photoreal, Typography, Cinematic and so on &mdash; rather than naming the company behind it.
+        We do not build these models ourselves: TimrX runs on models licensed from third-party AI providers,
+        and we may change which provider sits behind a given name if a better one becomes available. Pricing,
+        limits and support are ours.
+      </p>
+      <h3>Available tools</h3>
             <ul>
               <li><strong>Text to 3D</strong> — Generate 3D models from text descriptions.</li>
               <li><strong>Image to 3D</strong> — Convert reference images into 3D models.</li>
-              <li><strong>AI Image</strong> — Generate 2D images via OpenAI, Google Gemini, Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, Nano Banana, or Nano Banana Pro.</li>
-              <li><strong>AI Video</strong> — Generate videos via Veo 3.1, Seedance 2.0 (Mini / Fast / Quality), Seedance 2.5, or Seedance 1.5 Pro.</li>
-              <li><strong>Refine</strong> — Turn a preview model into a higher-detail Meshy refine with optional style guidance.</li>
+              <li><strong>AI Image</strong> — Generate 2D images via Precise edits, Reference-guided, Quick edits, Photoreal, Typography, Vector &amp; design, Everyday, or Pro.</li>
+              <li><strong>AI Video</strong> — Generate videos via Cinematic, Fast / Quality (Mini, Fast and Quality tiers, v2 and v2.5), or Legacy.</li>
+              <li><strong>Refine</strong> — Turn a preview model into a higher-detail version with optional style guidance.</li>
               <li><strong>Remesh</strong> — Optimize 3D model topology for printing or editing.</li>
               <li><strong>AI Texture</strong> — Generate PBR textures for any 3D model.</li>
-              <li><strong>Full-Color 3MF</strong> — Convert textured models into slicer-ready 3MF files with 1-16 color palettes for multi-material printers (Bambu Lab, Prusa MMU, etc.). 10 credits.</li>
+              <li><strong>Full-Color 3MF</strong> — Convert textured models into slicer-ready 3MF files with 1-16 color palettes for multi-material printers (Bambu Lab, Prusa MMU, etc.). 5 credits.</li>
               <li><strong>Print Check</strong> — Inspect model dimensions, watertightness, wall thickness and print readiness before exporting or ordering.</li>
               <li><strong>Rig &amp; Animate</strong> — Bind humanoid characters, then apply library motion with optional post-processing outputs.</li>
               <li><strong>My Assets</strong> — Search, filter, favourite, download, bulk-manage and reopen generated images, videos and models.</li>
@@ -1028,7 +1035,7 @@
             <div class="docs-option-grid">
               <dl class="docs-option-card">
                 <dt>AI Model</dt>
-                <dd>Meshy 6 (latest), Meshy 5</dd>
+                <dd>Generation 6 (latest), Generation 5</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Batch Count</dt>
@@ -1052,7 +1059,7 @@
               </dl>
             </div>
             <p>When generating more than one model, a draft selection grid appears. Pick your favorite, then continue to texture or export.</p>
-            <div class="docs-tip"><strong>Cost:</strong> 20 credits per generation. Estimated time ~1 minute.</div>
+            <div class="docs-tip"><strong>Cost:</strong> 10 credits per generation. Estimated time ~1 minute.</div>
           </article>
 
           <!-- Image to 3D -->
@@ -1060,7 +1067,7 @@
             <h2>Image to 3D</h2>
             <p>Upload a reference image and get a 3D model based on it. Switch to the Image to 3D tab inside the Model panel, upload your image, optionally name the model, and generate.</p>
             <p>All the same options from Text to 3D apply — AI model, symmetry, art style, batch count, and license. The AI uses the image as a visual reference to construct the geometry.</p>
-            <div class="docs-tip"><strong>Cost:</strong> 30 credits per generation. Estimated time ~1 minute.</div>
+            <div class="docs-tip"><strong>Cost:</strong> 15 credits per generation. Estimated time ~1 minute.</div>
             <div class="docs-tip"><strong>Best results:</strong> Use clean, well-lit images with a single subject on a simple background. A single front-facing shot works best.</div>
           </article>
 
@@ -1075,7 +1082,7 @@
               </dl>
               <dl class="docs-option-card">
                 <dt>Size &amp; Origin</dt>
-                <dd>Set Meshy resize height in meters, choose bottom or center origin placement, and keep the separate print target-height field for STL export prep.</dd>
+                <dd>Set resize height in meters, choose bottom or center origin placement, and keep the separate print target-height field for STL export prep.</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Output Formats</dt>
@@ -1093,7 +1100,7 @@
           <!-- Refine -->
           <article class="docs-article" id="doc-refine">
             <h2>Refine</h2>
-            <p>Refine turns a finished preview model into a higher-detail Meshy refine pass. Start it from the history menu or the viewer toolbar when a preview result is active, then choose how much surface guidance you want before submitting.</p>
+            <p>Refine turns a finished preview model into a higher-detail high-detail refine pass. Start it from the history menu or the viewer toolbar when a preview result is active, then choose how much surface guidance you want before submitting.</p>
             <div class="docs-option-grid">
               <dl class="docs-option-card">
                 <dt>Eligible Source</dt>
@@ -1104,8 +1111,8 @@
                 <dd>Use a short texture prompt, a reference image, or both. When both are set, the image is the stronger guide.</dd>
               </dl>
               <dl class="docs-option-card">
-                <dt>Meshy Model</dt>
-                <dd>Choose Latest, Meshy 6, or Meshy 5. Remove Lighting is available on Meshy 6 / Latest.</dd>
+                <dt>Engine Version</dt>
+                <dd>Choose Latest, Generation 6, or Generation 5. Remove Lighting is available on Generation 6 / Latest.</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>PBR Output</dt>
@@ -1126,15 +1133,15 @@
                 <dd>Use text, a reference image, or both. When both are set, the image guides the retexture.</dd>
               </dl>
               <dl class="docs-option-card">
-                <dt>Meshy Model</dt>
-                <dd>Choose Latest, Meshy 6, or Meshy 5. Remove Lighting is available on Meshy 6 / Latest.</dd>
+                <dt>Engine Version</dt>
+                <dd>Choose Latest, Generation 6, or Generation 5. Remove Lighting is available on Generation 6 / Latest.</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Output Control</dt>
                 <dd>Keep GLB for in-app preview, then add OBJ, FBX, STL, or USDZ when you need extra export formats.</dd>
               </dl>
             </div>
-            <p>When PBR Maps is enabled, Meshy generates base color plus roughness, metallic, and normal outputs. Preserve Original UV keeps existing UVs when the source model is already laid out correctly.</p>
+            <p>When PBR Maps is enabled, the engine generates base color plus roughness, metallic, and normal outputs. Preserve Original UV keeps existing UVs when the source model is already laid out correctly.</p>
             <p>Accepted model uploads: OBJ, FBX, STL, GLTF, GLB. Accepted style-image uploads: JPG and PNG.</p>
             <div class="docs-tip"><strong>Cost:</strong> 5 credits. Estimated time ~1.5 minutes.</div>
           </article>
@@ -1163,7 +1170,7 @@
             </ol>
             <h3>Compatible printers</h3>
             <p>Works with any multi-material FDM printer that accepts 3MF files: Bambu Lab X1/P1S (with AMS), Prusa XL / MK4 (with MMU3), Creality (multi-color kits), and others. Single-color printers can also use 3MF as a replacement for STL — it carries richer metadata.</p>
-            <div class="docs-tip"><strong>Cost:</strong> 10 credits per conversion. Estimated time ~1 minute.</div>
+            <div class="docs-tip"><strong>Cost:</strong> 5 credits per conversion. Estimated time ~1 minute.</div>
           </article>
 
           <!-- Rig & Animate -->
@@ -1173,15 +1180,15 @@
             <div class="docs-option-grid">
               <dl class="docs-option-card">
                 <dt>Rig Preflight</dt>
-                <dd>Checks source availability, existing rig state, and face count when Meshy metadata is available. Uploads show a limited preflight warning because the deeper validation happens on submit.</dd>
+                <dd>Checks source availability, existing rig state, and face count when engine metadata is available. Uploads show a limited preflight warning because the deeper validation happens on submit.</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Rig Inputs</dt>
-                <dd>Use the current model or upload a GLB. Height is sent to Meshy for scale-aware binding, and you can optionally attach a PNG base texture image to help UV-based rigging.</dd>
+                <dd>Use the current model or upload a GLB. Height is sent to the engine for scale-aware binding, and you can optionally attach a PNG base texture image to help UV-based rigging.</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Provider Constraints</dt>
-                <dd>Meshy rejects models over 300,000 faces and can fail pose estimation on non-humanoid or poorly separated silhouettes. Remesh first when needed.</dd>
+                <dd>The engine rejects models over 300,000 faces and can fail pose estimation on non-humanoid or poorly separated silhouettes. Remesh first when needed.</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Animation Output</dt>
@@ -1189,7 +1196,7 @@
               </dl>
             </div>
             <p>Use the Animate panel after rigging succeeds. Load the latest rigged model or pick another rigged history item, choose an animation from the library, then apply it. Built-in walking/running outputs from the rig task stay available separately.</p>
-            <div class="docs-tip"><strong>Cost:</strong> Rigging 5 credits. Animation 3 credits.</div>
+            <div class="docs-tip"><strong>Cost:</strong> Rigging 3 credits. Animation 2 credits.</div>
           </article>
 
           <!-- AI Image -->
@@ -1199,18 +1206,18 @@
             <div class="docs-option-grid">
               <dl class="docs-option-card">
                 <dt>Provider</dt>
-                <dd>OpenAI, Google (Gemini), Google Nano, FLUX.2 Pro, Ideogram V3, Recraft V4, Nano Banana, or Nano Banana Pro</dd>
+                <dd>Precise edits, Reference-guided, Quick edits, Photoreal, Typography, Vector &amp; design, Everyday, or Pro</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Shape</dt>
-                <dd>Square, Portrait, or Landscape on every provider. Nano Banana and Nano Banana Pro add Wide (21:9), Classic (3:2), and Tall (4:5).</dd>
+                <dd>Square, Portrait, or Landscape on every model. Everyday and Pro add Wide (21:9), Classic (3:2), and Tall (4:5).</dd>
               </dl>
               <dl class="docs-option-card">
                 <dt>Quality</dt>
-                <dd>Provider-dependent. OpenAI and Gemini support Standard / 2K; Nano Banana and Nano Banana Pro add 4K Ultra (Pro charges the same for 1K and 2K); some providers are Standard-only. Recraft V4 also offers SVG vector output.</dd>
+                <dd>Model-dependent. Precise edits and Reference-guided support Standard / 2K; Everyday and Pro add 4K Ultra (Pro charges the same for 1K and 2K); some models are Standard-only. Vector &amp; design also offers SVG vector output.</dd>
               </dl>
             </div>
-            <div class="docs-tip"><strong>Cost:</strong> 4–27 credits depending on provider and resolution. Estimated time ~30 seconds.</div>
+            <div class="docs-tip"><strong>Cost:</strong> 1–5 credits depending on provider and resolution. Estimated time ~30 seconds.</div>
           </article>
 
           <!-- AI Video -->
@@ -1221,15 +1228,15 @@
             <h3>Video providers</h3>
             <div class="docs-option-grid">
               <dl class="docs-option-card">
-                <dt>Veo 3.1</dt>
+                <dt>Cinematic</dt>
                 <dd>Google's video model. Supports 4s, 6s, and 8s durations at 720p, 1080p, or 4K resolution.</dd>
               </dl>
               <dl class="docs-option-card">
-                <dt>Seedance 2.0</dt>
-                <dd>Mini, Fast, and Quality tiers, plus the newer Seedance 2.5 model. The 2.0 tiers support 5s, 10s, and 15s clips; Seedance 2.5 goes further with 20s, 25s, and 30s options. Mini is the cheapest and fastest; Quality unlocks 1080p. Aspect ratios 21:9, 16:9, 4:3, 1:1, 3:4, and 9:16. Clips include a generated soundtrack by default, which you can switch off.</dd>
+                <dt>Fast / Quality (v2)</dt>
+                <dd>Mini, Fast, and Quality tiers, plus the newer Fast / Quality (v2.5) model. The 2.0 tiers support 5s, 10s, and 15s clips; Fast / Quality (v2.5) goes further with 20s, 25s, and 30s options. Mini is the cheapest and fastest; Quality unlocks 1080p. Aspect ratios 21:9, 16:9, 4:3, 1:1, 3:4, and 9:16. Clips include a generated soundtrack by default, which you can switch off.</dd>
               </dl>
               <dl class="docs-option-card">
-                <dt>Seedance 1.5 Pro</dt>
+                <dt>Legacy (v1.5)</dt>
                 <dd>Via fal.ai. Supports 5s, 10s, and 12s durations.</dd>
               </dl>
             </div>
@@ -1240,13 +1247,13 @@
               <li><strong>Image to Video</strong> — Upload a reference image to animate into a video.</li>
             </ul>
 
-            <h3>Style presets (Veo)</h3>
+            <h3>Style presets (Cinematic)</h3>
             <ul>
               <li>Auto, Cinematic Realism, Product Ad, Anime Motion, Documentary</li>
               <li>Dreamlike Surreal, Aerial, Timelapse, Slow-Mo, Noir</li>
             </ul>
 
-            <h3>Camera motion (Veo)</h3>
+            <h3>Camera motion (Cinematic)</h3>
             <p>Choose from: None, Pan, Parallax, Zoom In, Zoom Out, Orbit, Dolly, or Tilt. Custom motion instructions also supported.</p>
 
             <div class="docs-option-grid">
@@ -1260,7 +1267,7 @@
               </dl>
             </div>
 
-            <div class="docs-tip"><strong>Cost:</strong> 8–62 credits depending on provider, duration, and quality. Seedance 5s from 8, Veo 720p 8s at 20, Veo 4K 8s at 62.</div>
+            <div class="docs-tip"><strong>Cost:</strong> 8–62 credits depending on model, duration, and quality. Fast / Quality 5s from 8, Cinematic 720p 8s at 20, Cinematic 4K 8s at 62.</div>
           </article>
 
           <!-- 3D Viewer -->
@@ -1366,7 +1373,7 @@
             <div class="docs-table-wrap">
               <table class="docs-table">
                 <thead>
-                  <tr><th>Resolution</th><th>Standard</th><th>Nano Banana (Premium)</th><th>Nano Banana Pro</th></tr>
+                  <tr><th>Resolution</th><th>Standard</th><th>Everyday (4K)</th><th>Pro</th></tr>
                 </thead>
                 <tbody>
                   <tr><td>Standard (1K)</td><td>4</td><td>7</td><td>16</td></tr>
@@ -1375,7 +1382,7 @@
                 </tbody>
               </table>
             </div>
-            <p>Image providers now span standard raster, premium photoreal, text-focused, and vector-capable models. Nano Banana and Nano Banana Pro carry exclusive 4K — Pro renders the sharpest in-image text, holds subjects consistent across up to 4 reference images, and charges the same for 1K and 2K. Recraft V4 adds SVG output for design workflows.</p>
+            <p>Our image models span standard raster, premium photoreal, text-focused, and vector-capable options. Everyday and Pro carry exclusive 4K — Pro renders the sharpest in-image text, holds subjects consistent across up to 4 reference images, and charges the same for 1K and 2K. Vector &amp; design adds SVG output for design workflows.</p>
 
             <h3>One-time credit packs</h3>
             <div class="docs-table-wrap">
@@ -1401,7 +1408,7 @@
             <h2>Video Pricing</h2>
             <p>Video costs vary by provider, duration, resolution, and generation mode (text-to-video vs image-to-video). Video spends the same credits as images and 3D — there is one balance.</p>
 
-            <h3>Veo 3.1 — All modes</h3>
+            <h3>Cinematic — All modes</h3>
             <p>Text-to-video, image-to-video, and image transitions all cost the same.</p>
             <div class="docs-table-wrap">
               <table class="docs-table">
@@ -1416,7 +1423,7 @@
               </table>
             </div>
 
-            <h3>Seedance 2.0 — Mini tier (cheapest, ~2x faster)</h3>
+            <h3>Fast / Quality (v2) — Mini tier (cheapest, ~2x faster)</h3>
             <div class="docs-table-wrap">
               <table class="docs-table">
                 <thead>
@@ -1431,7 +1438,7 @@
             </div>
             <p>Mini defaults to 720p and does not offer 1080p. Best for rapid iteration and drafts.</p>
 
-            <h3>Seedance 2.0 — Fast tier</h3>
+            <h3>Fast / Quality (v2) — Fast tier</h3>
             <div class="docs-table-wrap">
               <table class="docs-table">
                 <thead>
@@ -1446,7 +1453,7 @@
             </div>
             <p>Fast does not offer 1080p.</p>
 
-            <h3>Seedance 2.0 — Quality tier</h3>
+            <h3>Fast / Quality (v2) — Quality tier</h3>
             <div class="docs-table-wrap">
               <table class="docs-table">
                 <thead>
@@ -1460,7 +1467,7 @@
               </table>
             </div>
 
-            <h3>Seedance 2.5 — newest model, up to 30 seconds</h3>
+            <h3>Fast / Quality (v2.5) — newest model, up to 30 seconds</h3>
             <div class="docs-table-wrap">
               <table class="docs-table">
                 <thead>
@@ -1476,9 +1483,9 @@
                 </tbody>
               </table>
             </div>
-            <p>Seedance 2.5 is a newer model rather than a faster tier of 2.0, and its August 2026 price cut roughly halved every duration. It defaults to 720p, has no 1080p option, is the only model that generates clips up to 30 seconds in one shot, and accepts up to 15 references (9 images, 3 videos, 3 audio). It has the strongest motion and prompt adherence of the Seedance family, so it suits hero shots and long single takes.</p>
+            <p>Fast / Quality (v2.5) is a newer model rather than a faster tier of 2.0, and its August 2026 price cut roughly halved every duration. It defaults to 720p, has no 1080p option, is the only model that generates clips up to 30 seconds in one shot, and accepts up to 15 references (9 images, 3 videos, 3 audio). It has the strongest motion and prompt adherence of the Fast / Quality family, so it suits hero shots and long single takes.</p>
 
-            <h3>Seedance 1.5 Pro — Budget tier</h3>
+            <h3>Legacy (v1.5) — Budget tier</h3>
             <div class="docs-table-wrap">
               <table class="docs-table">
                 <thead>
@@ -1668,7 +1675,7 @@ print(f"Status: {status['status']}")</code></pre>
             <p>Generated models are suitable for most FDM and resin printers. For best results, run the Remesh tool with Feature Preserving or Adaptive mode to optimize the topology before slicing.</p>
 
             <h3>What is the difference between Refine and Remesh?</h3>
-            <p>Refine adds aesthetic detail and improves overall mesh quality (6 credits). Remesh optimizes the topology (polygon structure) for printing or further editing (6 credits). Use Refine for visual quality, Remesh for structural quality.</p>
+            <p>Refine adds aesthetic detail and improves overall mesh quality (5 credits). Remesh optimizes the topology (polygon structure) for printing or further editing (3 credits). Use Refine for visual quality, Remesh for structural quality.</p>
 
             <h3>Can I upload my own models?</h3>
             <p>Yes. Use the "New" button in the 3D viewer to upload a GLB or GLTF file (max 50MB). You can also upload models directly into the Remesh and Texture panels for processing.</p>
@@ -1677,7 +1684,7 @@ print(f"Status: {status['status']}")</code></pre>
             <p>Yes. The converter is completely free, requires no account, and processes everything client-side — your files never leave your device.</p>
 
             <h3>Which video provider should I use?</h3>
-            <p>Veo 3.1 offers the highest resolution (up to 4K) and style controls. Seedance 2.0 Mini is the most affordable and the fastest, so it suits rapid iteration. Seedance 2.0 Fast is the balanced default. Seedance 2.0 Quality offers higher quality at a premium and is the only tier with 1080p. Seedance 2.5 is a newer model with the strongest motion and prompt adherence, the only 20–30 second single-shot clips, and — after its 2026 price cut — per-second pricing between Fast and Quality (720p ceiling). Seedance 1.5 Pro via fal.ai supports 12-second durations.</p>
+            <p>Cinematic offers the highest resolution (up to 4K) and style controls. Fast / Quality (v2) Mini is the most affordable and the fastest, so it suits rapid iteration. Fast / Quality (v2) Fast is the balanced default. Fast / Quality (v2) Quality offers higher quality at a premium and is the only tier with 1080p. Fast / Quality (v2.5) is a newer model with the strongest motion and prompt adherence, the only 20–30 second single-shot clips, and — after its 2026 price cut — per-second pricing between Fast and Quality (720p ceiling). Legacy (v1.5) via fal.ai supports 12-second durations.</p>
 
             <h3>Do credits expire?</h3>
             <p>One-time purchased credits never expire. Subscription credits refresh each billing cycle — unused subscription credits do not roll over.</p>
@@ -1749,8 +1756,8 @@ print(f"Status: {status['status']}")</code></pre>
   <script src="js/shared/tx-components.js?v=20260818footer2" defer></script>
   <script src="js/shared/tx-menu.js?v=20260818mobile" defer></script>
   <script src="js/site-shell.js?v=20260803b" defer></script>
-  <script src="js/auth-modal.js?v=20260407a" defer></script>
-  <script src="js/credits.js?v=20260827f" defer></script>
+  <script src="js/auth-modal.js?v=20260827g" defer></script>
+  <script src="js/credits.js?v=20260827g" defer></script>
   <script src="js/cookie-consent.js" defer></script>
 
 

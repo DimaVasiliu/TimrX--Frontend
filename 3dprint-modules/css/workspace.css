@@ -2797,6 +2797,15 @@ html body.print3d-page > .sim-viewer-bg {
 .viewer-action-btn[disabled] {
   opacity: 0.3;
   cursor: not-allowed;
+}
+/* Keep hover alive on disabled buttons so the [data-tooltip] label still shows —
+   these are unlabeled glyphs, and `pointer-events: none` made a disabled one
+   completely unidentifiable. Clicks are still inert because the element is
+   genuinely disabled. */
+.viewer-toolbar__btn:disabled *,
+.viewer-toolbar__btn[disabled] *,
+.viewer-action-btn:disabled *,
+.viewer-action-btn[disabled] * {
   pointer-events: none;
 }
 

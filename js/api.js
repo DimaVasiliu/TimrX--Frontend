@@ -15,10 +15,10 @@ import {
   getLoadableModelUrl,
   isTimrxS3Url
 } from './config.js';
-import * as State from './state.js?v=20260827f';
-import * as Viewer from './viewer.js?v=20260827f';
+import * as State from './state.js?v=20260827g';
+import * as Viewer from './viewer.js?v=20260827g';
 import * as UI from './ui-utils.js';
-import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260827f';
+import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260827g';
 
 // ============================================================================
 // LOCKS & STATE
@@ -548,10 +548,10 @@ function _meshyShowToast(jobId, kind) {
   if (existing) return;
   const used = _meshyRetryCount.get(jobId) || 0;
   const remaining = Math.max(0, MESHY_MAX_RETRIES - used);
-  const headline = kind === 'failed' ? 'Generation failed' : 'Meshy is taking longer than usual';
+  const headline = kind === 'failed' ? 'Generation failed' : 'This is taking longer than usual';
   const body = kind === 'failed'
-    ? `Your TimrX credits were refunded. If Meshy charged you, request a refund via their support with task ID <code>${jobId}</code> (Studio plan: 8 free retries per task). Retries left: ${remaining}.`
-    : `Job has been queued for over 4 minutes. Cancel and re-submit — TimrX won't charge you again. If Meshy charges and the task fails, contact their support for a refund. Retries left: ${remaining}.`;
+    ? `Your credits have been refunded — you have not been charged for this job. You can try again${remaining ? ` (${remaining} free retries left on this job)` : ''}, or contact us with reference <code>${jobId}</code> if it keeps failing.`
+    : `This job has been queued for over 4 minutes. You can keep waiting, or cancel and re-submit — either way you will not be charged twice${remaining ? `. ${remaining} free retries left on this job` : ''}.`;
   const el = document.createElement('div');
   el.id = `mxy-toast-${jobId}`;
   el.className = 'mxy-toast';
@@ -561,13 +561,8 @@ function _meshyShowToast(jobId, kind) {
     <div class="mxy-toast-actions">
       <button class="mxy-btn mxy-btn-primary" data-act="retry">Try Again</button>
       <button class="mxy-btn" data-act="cancel">Cancel</button>
-      <button class="mxy-btn mxy-btn-ghost" data-act="meshy-support">Meshy support ↗</button>
       <button class="mxy-btn mxy-btn-ghost" data-act="dismiss">Dismiss</button>
     </div>`;
-  el.querySelector('[data-act="meshy-support"]').addEventListener('click', (e) => {
-    e.stopPropagation();
-    window.open(`https://www.meshy.ai/contact-support?task_id=${encodeURIComponent(jobId)}`, '_blank', 'noopener');
-  });
   el.addEventListener('click', (e) => {
     const act = e.target.closest('[data-act]')?.dataset.act;
     if (!act) return;
@@ -1013,7 +1008,7 @@ function _showStyledGeneralCreditsModal(required, available, needed) {
 // ============================================================================
 
 /**
- * Show a modal warning the user their prompt exceeds Meshy's character limit.
+ * Show a modal warning the user their prompt exceeds the 3D provider's character limit.
  * Includes a live character counter and lets the user trim the prompt inline.
  */
 function showPromptLimitModal(prompt, textareaRef, options = {}) {
@@ -1024,7 +1019,7 @@ function showPromptLimitModal(prompt, textareaRef, options = {}) {
   const effectiveLen = Number(options.effectiveLen || len);
   const over = effectiveLen - MESHY_PROMPT_HARD_LIMIT;
   const extraNote = options.extraText
-    ? ' This includes the Avoid field because TimrX folds it into the Meshy prompt.'
+    ? ' This includes the Avoid field because TimrX folds it into the 3D prompt.'
     : '';
 
   const overlay = document.createElement('div');
@@ -1036,7 +1031,7 @@ function showPromptLimitModal(prompt, textareaRef, options = {}) {
         <div>
           <p class="workspace-modal__eyebrow">Prompt too long</p>
           <h3 class="workspace-modal__title">Shorten your prompt to continue</h3>
-          <p class="workspace-modal__subtitle">Meshy's API accepts a maximum of ${MESHY_PROMPT_HARD_LIMIT} characters. Your provider prompt is <strong>${over}</strong> characters over the limit.${extraNote}</p>
+          <p class="workspace-modal__subtitle">3D prompts are capped at ${MESHY_PROMPT_HARD_LIMIT} characters. Yours is <strong>${over}</strong> characters over.${extraNote}</p>
         </div>
         <button type="button" class="workspace-modal__close" id="promptLimitClose">&times;</button>
       </div>
@@ -1773,9 +1768,9 @@ function showNextStepSuggestions(jobId, stage) {
   panel.innerHTML = `
     <div style="font-weight:600;margin-bottom:8px;color:#e0e0e0">Model generated! Next steps:</div>
     <div style="display:flex;flex-wrap:wrap;gap:6px">
-      <button class="next-step-btn" data-action="refine" style="padding:6px 12px;background:rgba(var(--accent-blue-rgb, 127, 200, 194),0.15);border:1px solid rgba(var(--accent-blue-rgb, 127, 200, 194),0.3);border-radius:8px;color:var(--accent-blue-soft, #a5ded9);font-size:12px;cursor:pointer">Refine <span class="btn-cost-badge">10 cr</span></button>
-      <button class="next-step-btn" data-action="remesh" style="padding:6px 12px;background:rgba(var(--accent-purple-rgb, 184, 167, 122),0.12);border:1px solid rgba(var(--accent-purple-rgb, 184, 167, 122),0.25);border-radius:8px;color:#c4b5fd;font-size:12px;cursor:pointer">Remesh <span class="btn-cost-badge">5 cr</span></button>
-      <button class="next-step-btn" data-action="rig" style="padding:6px 12px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:8px;color:#6ee7b7;font-size:12px;cursor:pointer">Rig <span class="btn-cost-badge">5 cr</span></button>
+      <button class="next-step-btn" data-action="refine" style="padding:6px 12px;background:rgba(var(--accent-blue-rgb, 127, 200, 194),0.15);border:1px solid rgba(var(--accent-blue-rgb, 127, 200, 194),0.3);border-radius:8px;color:var(--accent-blue-soft, #a5ded9);font-size:12px;cursor:pointer">Refine <span class="btn-cost-badge">5 cr</span></button>
+      <button class="next-step-btn" data-action="remesh" style="padding:6px 12px;background:rgba(var(--accent-purple-rgb, 184, 167, 122),0.12);border:1px solid rgba(var(--accent-purple-rgb, 184, 167, 122),0.25);border-radius:8px;color:#c4b5fd;font-size:12px;cursor:pointer">Remesh <span class="btn-cost-badge">3 cr</span></button>
+      <button class="next-step-btn" data-action="rig" style="padding:6px 12px;background:rgba(16,185,129,0.12);border:1px solid rgba(16,185,129,0.25);border-radius:8px;color:#6ee7b7;font-size:12px;cursor:pointer">Rig <span class="btn-cost-badge">3 cr</span></button>
       <button class="next-step-btn" data-action="export-stl" style="padding:6px 12px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:8px;color:#aaa;font-size:12px;cursor:pointer">Export STL</button>
     </div>
   `;
@@ -1785,12 +1780,19 @@ function showNextStepSuggestions(jobId, stage) {
     btn.addEventListener('click', () => {
       const action = btn.dataset.action;
       panel.remove();
-      // Dispatch tab-switch event that 3dprint-app.js listens for
-      const tabMap = { refine: 'model', remesh: 'remesh', rig: 'rig', 'export-stl': 'export' };
-      const tabId = tabMap[action];
-      if (tabId) {
-        const tabBtn = document.querySelector(`[data-tab="${tabId}"]`);
-        if (tabBtn) tabBtn.click();
+      // Switch panels. The workspace exposes `data-model-panel` (model | remesh |
+      // texture | rig | animate) — `data-tab` has never existed in this build, which
+      // is why every button here was a silent no-op before 2026-08-27.
+      if (action === 'export-stl') {
+        document.querySelector('[data-action="download"]')?.click();
+        return;
+      }
+      const panelMap = { refine: 'model', remesh: 'remesh', rig: 'rig' };
+      const panelId = panelMap[action];
+      if (panelId) {
+        const btn = document.querySelector(`.rail-btn[data-panel="${panelId}"]`)
+          || document.querySelector(`[data-model-panel="${panelId}"]`);
+        if (btn) btn.click();
       }
     });
   });
@@ -2110,8 +2112,17 @@ function handleJobFailure(message, operation = '', opts = {}) {
     console.warn(`[Recovery] Silently failed recovered ${operation} job: ${message}`);
     return false;
   }
-  alert(message || 'Job failed');
-  return false;
+  // A failed generation is the moment a customer decides whether to trust the
+  // billing. The reservation IS released server-side — say so, in the modal,
+  // every time. This used to be a bare alert() that never mentioned it.
+  showErrorModal(
+    'Generation failed',
+    message || 'This job could not be completed.',
+    'Your credits have been refunded — you have not been charged for this generation. '
+      + 'If this keeps happening, get in touch and we will look into it.',
+    '⚠️'
+  );
+  return true;
 }
 
 /**
@@ -2560,7 +2571,7 @@ async function openRefineSettingsModal(item = {}) {
           <div>
             <p class="workspace-modal__eyebrow">Preview refinement</p>
             <h3 id="refineSettingsTitle" class="workspace-modal__title">Refine ${sourceTitle}</h3>
-            <p class="workspace-modal__subtitle">Add material direction, guide the refine pass with an image, and choose the Meshy model used for the high-detail pass.</p>
+            <p class="workspace-modal__subtitle">Add material direction, guide the refine pass with an image, and choose the engine version used for the high-detail pass.</p>
           </div>
           <button type="button" class="workspace-modal__close" id="refineSettingsClose" aria-label="Close refine settings">&times;</button>
         </div>
@@ -2573,7 +2584,7 @@ async function openRefineSettingsModal(item = {}) {
             <div class="negative-prompt-field">
               <label for="refineNegativePrompt">Avoid <span class="field-optional">(optional)</span></label>
               <textarea id="refineNegativePrompt" class="negative-prompt-input negative-prompt-input--compact" maxlength="${MESHY_NEGATIVE_PROMPT_LIMIT}" placeholder="plastic shine, noisy texture, text, logos, extra artifacts">${item.negative_prompt || item.texture_negative_prompt || ''}</textarea>
-              <p class="field-hint texture-setting-note">TimrX stores this separately and folds it into the Meshy refine prompt as an avoid instruction.</p>
+              <p class="field-hint texture-setting-note">TimrX stores this separately and folds it into the refine prompt as an avoid instruction.</p>
             </div>
 
             <div class="texture-style-block">
@@ -2592,18 +2603,18 @@ async function openRefineSettingsModal(item = {}) {
                 <label for="refineStyleImageUrl">Or paste image URL</label>
                 <input type="text" id="refineStyleImageUrl" placeholder="https://example.com/refine-style.jpg">
               </div>
-              <p class="field-hint texture-setting-note">If both text and image are set, Meshy uses the text style prompt.</p>
+              <p class="field-hint texture-setting-note">If both text and image are set, the text style prompt wins.</p>
             </div>
           </div>
 
           <div class="card">
             <h3>Advanced Settings</h3>
             <div class="inline-field">
-              <label for="refineAiModel">Meshy Model</label>
+              <label for="refineAiModel">Engine Version</label>
               <select id="refineAiModel">
-                <option value="latest" selected>Latest (Meshy 6)</option>
-                <option value="meshy-6">Meshy 6</option>
-                <option value="meshy-5">Meshy 5</option>
+                <option value="latest" selected>Latest (Generation 6)</option>
+                <option value="meshy-6">Generation 6</option>
+                <option value="meshy-5">Generation 5</option>
               </select>
             </div>
             <div class="field-row">
@@ -2620,7 +2631,7 @@ async function openRefineSettingsModal(item = {}) {
                 <span class="toggle-slider"></span>
               </label>
             </div>
-            <p class="field-hint texture-setting-note" id="refineRemoveLightingNote">Cleaner base textures for custom lighting setups. Only available on Meshy 6 / latest.</p>
+            <p class="field-hint texture-setting-note" id="refineRemoveLightingNote">Cleaner base textures for custom lighting setups. Only available on Generation 6 / latest.</p>
             <div class="inline-field">
               <label for="refineTextureResolution">Texture Resolution</label>
               <select id="refineTextureResolution">
@@ -2629,7 +2640,7 @@ async function openRefineSettingsModal(item = {}) {
                 <option value="8k">8K</option>
               </select>
             </div>
-            <p class="field-hint texture-setting-note" id="refineTextureResolutionNote">2K and 4K use the base refine cost. 8K uses the higher Meshy texture tier. Meshy 5 supports 2K only.</p>
+            <p class="field-hint texture-setting-note" id="refineTextureResolutionNote">2K and 4K use the base refine cost. 8K uses the higher texture tier. Generation 5 supports 2K only.</p>
             <div class="field-row">
               <span class="field-label-inline">Transparent Thumbnail</span>
               <label class="toggle-switch">
@@ -2686,11 +2697,11 @@ async function openRefineSettingsModal(item = {}) {
           <div class="gen-meta">
             <span class="gen-time">~2 min</span>
             <span class="gen-divider">|</span>
-            <span class="gen-credits" id="refineCreditsDisplay"><i class="fa-solid fa-coins"></i> 10</span>
+            <span class="gen-credits" id="refineCreditsDisplay"><i class="fa-solid fa-coins"></i> 5</span>
           </div>
           <div class="workspace-modal__actions">
             <button type="button" class="gen-btn gen-btn--rail workspace-modal__ghost" id="refineSettingsCancel">Cancel</button>
-            <button type="button" class="gen-btn" id="refineSettingsApply">Start Refine <span class="btn-cost-badge">10 cr</span></button>
+            <button type="button" class="gen-btn" id="refineSettingsApply">Start Refine <span class="btn-cost-badge">5 cr</span></button>
           </div>
         </div>
       </div>
@@ -2785,8 +2796,8 @@ async function openRefineSettingsModal(item = {}) {
       }
       if (removeLightingNote) {
         removeLightingNote.textContent = supported
-          ? 'Cleaner base textures for custom lighting setups. Only available on Meshy 6 / latest.'
-          : 'Remove Lighting is unavailable on Meshy 5 and stays off until you switch back to Meshy 6 / latest.';
+          ? 'Cleaner base textures for custom lighting setups. Only available on Generation 6 / latest.'
+          : 'Remove Lighting is unavailable on Generation 5 and stays off until you switch back to Generation 6 / latest.';
       }
       if (textureResolution) {
         textureResolution.querySelectorAll('option').forEach((option) => {
@@ -2809,8 +2820,8 @@ async function openRefineSettingsModal(item = {}) {
       }
       if (textureResolutionNote) {
         textureResolutionNote.textContent = supported
-          ? '2K and 4K use the base refine cost. 8K uses the higher Meshy texture tier.'
-          : 'Meshy 5 supports 2K texture output only.';
+          ? '2K and 4K use the base refine cost. 8K uses the higher texture tier.'
+          : 'Generation 5 supports 2K texture output only.';
       }
     };
 
@@ -3548,13 +3559,13 @@ export function watchMultiColorPrintJob(job_id, { isRecovery = false } = {}) {
   createPoller({
     jobId: job_id,
     endpoint: '/api/_mod/print/multi-color',
-    label: 'Meshy 3MF',
+    label: 'Full-Color 3MF',
     initialDelay: 4000,
     steadyDelay: 8000,
     notFoundRetries: 2,
     restartFn: () => watchMultiColorPrintJob(job_id, { isRecovery: true }),
     onTimeout: () => {
-      handleJobFailure('Meshy 3MF timed out after max attempts', 'multi_color_print', { isRecovery });
+      handleJobFailure('Full-Color 3MF generation timed out.', 'multi_color_print', { isRecovery });
     },
     onStatus: async (st, prog) => {
       const pct = typeof st.pct === 'number'
@@ -3581,14 +3592,14 @@ export function watchMultiColorPrintJob(job_id, { isRecovery = false } = {}) {
         const threeMfUrl = st.three_mf_url || st.model_urls?.['3mf'] || '';
         const sourceModelUrl = st.source_model_url || meta.source_model_url || meta.glb_url || '';
         const sourceProxy = sourceModelUrl ? getLoadableModelUrl(sourceModelUrl) : '';
-        const title = meta.title || shortTitle(meta) || 'Meshy Auto 3MF';
+        const title = meta.title || shortTitle(meta) || 'Full-Color 3MF';
         const rootPrompt = meta.root_prompt || meta.prompt || title || '';
 
         const historyData = {
           id: job_id,
           type: 'model',
           status: 'finished',
-          status_label: 'Meshy 3MF ready',
+          status_label: 'Full-Color 3MF ready',
           created_at: normalizeEpochMs(st.created_at) || Date.now(),
           prompt: meta.prompt || title || '',
           root_prompt: rootPrompt,
@@ -3631,8 +3642,8 @@ export function watchMultiColorPrintJob(job_id, { isRecovery = false } = {}) {
           });
         }
 
-        prog.done('Meshy 3MF ready.');
-        if (!isRecovery && window.showToast) window.showToast('Meshy 3MF is ready.', 'success');
+        prog.done('Full-Color 3MF ready.');
+        if (!isRecovery && window.showToast) window.showToast('Full-Color 3MF is ready.', 'success');
         return 'done';
       }
 
@@ -3646,7 +3657,7 @@ export function watchMultiColorPrintJob(job_id, { isRecovery = false } = {}) {
             refreshCreditsInBackground();
           }
         }
-        const errorMsg = st.message || st.error || 'Meshy 3MF failed';
+        const errorMsg = st.message || st.error || 'Full-Color 3MF failed';
         prog.fail(errorMsg);
         State.updateHistoryItem(job_id, { status: 'failed', status_label: errorMsg });
         renderHistory();
@@ -4253,7 +4264,7 @@ export async function startOpenAIImageGeneration() {
         return;
       }
       releaseCreditsReservation(reservation.reservationId);
-      throw new Error(result.error || `OpenAI HTTP ${result.status}`);
+      throw new Error(result.error || `Image service HTTP ${result.status}`);
     }
     const data = result.data;
     const jobId = data.job_id || data.image_id;
@@ -4407,7 +4418,7 @@ export async function startGeminiImageGeneration() {
 
   addGeneratingPlaceholder(tempId, {
     type: 'image',
-    status_label: 'Generating image with Gemini...',
+    status_label: 'Generating image…',
     prompt: promptRaw,
     stage: 'image',
     provider: 'google',
@@ -4417,7 +4428,7 @@ export async function startGeminiImageGeneration() {
   });
 
   try {
-    prog.label('Generating image with Gemini...');
+    prog.label('Generating image…');
 
     // Image-to-image refs (any of these → backend routes through the Gemini image API)
     const refs = normalizeImageAssetList(stateSettings.referenceImages);
@@ -4479,7 +4490,7 @@ export async function startGeminiImageGeneration() {
         return;
       }
       releaseCreditsReservation(reservation.reservationId);
-      throw new Error(result.error?.message || result.error || `Gemini image failed: HTTP ${result.status}`);
+      throw new Error(result.error?.message || result.error || `Image generation failed: HTTP ${result.status}`);
     }
 
     const data = result.data;
@@ -4496,7 +4507,7 @@ export async function startGeminiImageGeneration() {
         State.deleteHistoryItem(tempId, { skipRemote: true });
         addGeneratingPlaceholder(imageId, {
           type: 'image',
-          status_label: 'Generating image with Gemini...',
+          status_label: 'Generating image…',
           prompt: promptRaw,
           stage: 'image',
           provider: 'google',
@@ -4538,7 +4549,7 @@ export async function startGeminiImageGeneration() {
     // Handle sync response (status: "done") - backward compatibility
     if (!imageUrl) {
       releaseCreditsReservation(reservation.reservationId);
-      throw new Error('No image returned from Gemini');
+      throw new Error('No image was returned');
     }
 
     // Gemini returned image synchronously - update history immediately
@@ -4587,8 +4598,8 @@ export async function startGeminiImageGeneration() {
 
   } catch (err) {
     console.error('[Gemini Image] Error:', err);
-    prog.fail(err?.message || 'Gemini image generation failed');
-    alert(err?.message || 'Gemini image generation failed.');
+    prog.fail(err?.message || 'Image generation failed');
+    alert(err?.message || 'Image generation failed.');
     // Clean up placeholder on error
     State.deleteHistoryItem(tempId, { skipRemote: true });
     renderHistory();
@@ -5064,7 +5075,7 @@ export async function startNanoBananaImageGeneration(providerName = 'nano_banana
 
   addGeneratingPlaceholder(tempId, {
     type: 'image',
-    status_label: 'Generating image with Nano Banana...',
+    status_label: 'Generating image…',
     prompt: promptRaw,
     stage: 'image',
     provider: providerName,
@@ -5074,7 +5085,7 @@ export async function startNanoBananaImageGeneration(providerName = 'nano_banana
   });
 
   try {
-    prog.label('Generating image with Nano Banana...');
+    prog.label('Generating image…');
 
     // Image-to-image refs (Nano Banana 2 uses a single reference image)
     const refs = normalizeImageAssetList(stateSettings.referenceImages);
@@ -5130,7 +5141,7 @@ export async function startNanoBananaImageGeneration(providerName = 'nano_banana
         return;
       }
       releaseCreditsReservation(reservation.reservationId);
-      throw new Error(result.error?.message || result.error || `Nano Banana image failed: HTTP ${result.status}`);
+      throw new Error(result.error?.message || result.error || `Image generation failed: HTTP ${result.status}`);
     }
 
     const data = result.data;
@@ -5147,7 +5158,7 @@ export async function startNanoBananaImageGeneration(providerName = 'nano_banana
         State.deleteHistoryItem(tempId, { skipRemote: true });
         addGeneratingPlaceholder(imageId, {
           type: 'image',
-          status_label: 'Generating image with Nano Banana...',
+          status_label: 'Generating image…',
           prompt: promptRaw,
           stage: 'image',
           provider: providerName,
@@ -5185,7 +5196,7 @@ export async function startNanoBananaImageGeneration(providerName = 'nano_banana
     // Handle sync response (unlikely for PiAPI but keep for safety)
     if (!imageUrl) {
       releaseCreditsReservation(reservation.reservationId);
-      throw new Error('No image returned from Nano Banana');
+      throw new Error('No image was returned');
     }
 
     const finalItem = {
@@ -5228,8 +5239,8 @@ export async function startNanoBananaImageGeneration(providerName = 'nano_banana
 
   } catch (err) {
     console.error('[Nano Banana] Error:', err);
-    prog.fail(err?.message || 'Nano Banana image generation failed');
-    alert(err?.message || 'Nano Banana image generation failed.');
+    prog.fail(err?.message || 'Image generation failed');
+    alert(err?.message || 'Image generation failed.');
     State.deleteHistoryItem(tempId, { skipRemote: true });
     renderHistory();
   } finally {
@@ -5314,7 +5325,7 @@ export async function startFluxProImageGeneration() {
 
   const stateSettings = window.GenerationState?.getSettings?.('image') || {};
   const requestBody = buildFluxRequestFromState(stateSettings);
-  const promptRaw = requestBody.prompt || 'FLUX.2 image';
+  const promptRaw = requestBody.prompt || 'Photoreal image';
   const settingsSnapshot = {
     ...stateSettings,
     prompt: promptRaw,
@@ -5329,15 +5340,15 @@ export async function startFluxProImageGeneration() {
 
   await startAsyncImageProvider({
     provider: 'flux_pro',
-    providerLabel: 'FLUX.2 Pro',
+    providerLabel: 'Photoreal',
     logPrefix: 'FLUX.2 Pro',
     prompt: promptRaw,
     settingsSnapshot,
     requestBody,
     placeholderLabel: requestBody.operation === 'edit'
-      ? 'Generating FLUX.2 edit...'
-      : 'Generating image with FLUX.2...',
-    queuedLabel: 'Queueing FLUX.2 request...',
+      ? 'Generating edit…'
+      : 'Generating image…',
+    queuedLabel: 'Queueing request…',
     successLabel: 'Image generated!',
     tempIdPrefix: 'flux-pro-temp',
     responseModel: requestBody.model_variant === 'flex'
@@ -5366,7 +5377,7 @@ export async function startIdeogramV3ImageGeneration() {
 
   const stateSettings = window.GenerationState?.getSettings?.('image') || {};
   const requestBody = buildIdeogramRequestFromState(stateSettings);
-  const promptRaw = requestBody.prompt || `Ideogram ${requestBody.operation || 'generate'}`;
+  const promptRaw = requestBody.prompt || `Typography ${requestBody.operation || 'generate'}`;
   const settingsSnapshot = {
     ...stateSettings,
     prompt: promptRaw,
@@ -5380,13 +5391,13 @@ export async function startIdeogramV3ImageGeneration() {
 
   await startAsyncImageProvider({
     provider: 'ideogram_v3',
-    providerLabel: 'Ideogram V3',
+    providerLabel: 'Typography',
     logPrefix: 'Ideogram V3',
     prompt: promptRaw,
     settingsSnapshot,
     requestBody,
-    placeholderLabel: `Running Ideogram ${requestBody.operation.replaceAll('_', ' ')}...`,
-    queuedLabel: 'Queueing Ideogram request...',
+    placeholderLabel: `Running ${requestBody.operation.replaceAll('_', ' ')}…`,
+    queuedLabel: 'Queueing request…',
     successLabel: 'Image generated!',
     tempIdPrefix: 'ideogram-v3-temp',
     responseModel: 'ideogram-v3',
@@ -5411,7 +5422,7 @@ export async function startRecraftV4ImageGeneration() {
 
   const stateSettings = window.GenerationState?.getSettings?.('image') || {};
   const requestBody = buildRecraftRequestFromState(stateSettings);
-  const promptRaw = requestBody.prompt || `Recraft ${requestBody.operation.replaceAll('_', ' ')}`;
+  const promptRaw = requestBody.prompt || `Vector & design ${requestBody.operation.replaceAll('_', ' ')}`;
   const outputMode = requestBody.output_mode || 'raster';
   const settingsSnapshot = {
     ...stateSettings,
@@ -5427,17 +5438,17 @@ export async function startRecraftV4ImageGeneration() {
 
   await startAsyncImageProvider({
     provider: 'recraft_v4',
-    providerLabel: 'Recraft V4',
+    providerLabel: 'Vector & design',
     logPrefix: 'Recraft V4',
     prompt: promptRaw,
     settingsSnapshot,
     requestBody,
     placeholderLabel: requestBody.operation === 'vectorize'
-      ? 'Vectorizing image with Recraft...'
+      ? 'Vectorizing image…'
       : outputMode === 'vector_svg'
-        ? 'Generating SVG vector with Recraft...'
-        : `Running Recraft ${requestBody.operation.replaceAll('_', ' ')}...`,
-    queuedLabel: 'Queueing Recraft request...',
+        ? 'Generating SVG vector…'
+        : `Running ${requestBody.operation.replaceAll('_', ' ')}…`,
+    queuedLabel: 'Queueing request…',
     successLabel: outputMode === 'vector_svg' ? 'Vector ready!' : 'Image generated!',
     tempIdPrefix: 'recraft-v4-temp',
     responseModel: requestBody.model_variant || (outputMode === 'vector_svg' ? 'recraftv4_1_vector' : 'recraftv4_1'),
@@ -5712,11 +5723,11 @@ const SEEDANCE_COSTS = {
       '1080p': { 5: 60, 10: 120, 15: 180 },
     },
 };
-const SEEDANCE_CPS = { mini: 14, fast: 16, quality: 20, preview: 20, v25: 18 };
+const SEEDANCE_CPS = { mini: 1.6, fast: 2.0, quality: 2.4, preview: 2.4, v25: 3.6 };
 // PiAPI's per-tier default resolution — Mini defaults to 720p, not 480p.
 const SEEDANCE_DEFAULT_RESOLUTION = { mini: '720p', fast: '480p', quality: '480p', preview: '480p', v25: '720p' };
-// fal Seedance 1.5 Pro: BUDGET tier (8 cps)
-const FAL_SEEDANCE_CPS = 8;
+// fal Seedance 1.5 Pro: BUDGET tier (1.6 credits/sec)
+const FAL_SEEDANCE_CPS = 1.6;
 
 /**
  * Check if a provider belongs to the Seedance family (fal or PiAPI).
@@ -5730,9 +5741,9 @@ function _isSeedanceProvider(provider) {
  * Get display name for a provider.
  */
 function _providerDisplayName(provider) {
-  if (provider === 'fal_seedance') return 'Seedance';
-  if (provider === 'seedance') return 'Seedance 2.0';
-  return 'Veo';
+  if (provider === 'fal_seedance') return 'Legacy';
+  if (provider === 'seedance') return 'Fast / Quality';
+  return 'Cinematic';
 }
 
 /**
@@ -5748,9 +5759,9 @@ function getVideoCredits(settings) {
     return window.VideoJobControl.computeCredits(settings);
   }
 
-  // fal Seedance: BUDGET tier (8 cps)
+  // fal Seedance: BUDGET tier (1.6 credits/sec)
   if (settings.provider === 'fal_seedance') {
-    return FAL_SEEDANCE_CPS * (settings.durationSec || 5);
+    return Math.round(FAL_SEEDANCE_CPS * (settings.durationSec || 5));
   }
 
   // Seedance (PiAPI): exact GA tier/resolution/duration table, plus Reference Video input surcharge.
@@ -5765,7 +5776,7 @@ function getVideoCredits(settings) {
     if (!resCosts && resolution === '1080p') {
       resCosts = tierCosts['720p'];
     }
-    let baseCost = resCosts?.[duration] ?? ((SEEDANCE_CPS[tier] || 16) * duration);
+    let baseCost = resCosts?.[duration] ?? Math.round((SEEDANCE_CPS[tier] || 2.0) * duration);
     if (settings.mode === 'reference_video') {
       const ref = window.VideoReferenceState?.getPayload?.();
       const inputVideoSeconds = Math.max(0, Number(ref?.input_video_seconds || 0));
@@ -5902,7 +5913,7 @@ export async function startVideoGeneration() {
   try {
     prog.label(_isSeedanceProvider(settings.provider)
       ? `Sending to ${_providerDisplayName(settings.provider)}${(settings.seedanceTier === 'quality' || settings.seedanceTier === 'preview') ? ' Quality' : ''}...`
-      : 'Sending to Veo...');
+      : 'Sending to Cinematic…');
 
     // Build payload for Veo
     let endpoint;
@@ -6181,28 +6192,28 @@ function _friendlyVideoError(errorCode, rawMsg) {
     validation: 'Invalid request — check your settings',
     quota: 'Provider quota reached — try again later',
     // Seedance-specific (legacy)
-    seedance_pending_timeout: 'Seedance queue timed out',
-    seedance_processing_timeout: 'Seedance render timed out',
-    seedance_poll_error: 'Lost connection to Seedance',
-    seedance_generation_failed: 'Seedance rejected this generation',
+    seedance_pending_timeout: 'Video queue timed out',
+    seedance_processing_timeout: 'Video render timed out',
+    seedance_poll_error: 'Lost connection to the video service',
+    seedance_generation_failed: 'This generation was rejected',
     seedance_no_video_url: 'Completed but no video returned',
     seedance_auth_error: 'Provider authentication failed',
     // fal Seedance-specific
-    fal_seedance_auth_error: 'fal Seedance authentication failed',
-    fal_seedance_network_error: 'Lost connection to fal Seedance',
-    fal_seedance_no_request_id: 'fal Seedance completed but no video returned',
-    fal_seedance_api_error: 'fal Seedance rejected this generation',
-    fal_seedance_download_error: 'Failed to download from fal Seedance',
+    fal_seedance_auth_error: 'Video service authentication failed',
+    fal_seedance_network_error: 'Lost connection to the video service',
+    fal_seedance_no_request_id: 'Completed but no video returned',
+    fal_seedance_api_error: 'This generation was rejected',
+    fal_seedance_download_error: 'Failed to download the finished video',
     // Vertex-specific
-    vertex_video_failed: 'Veo generation failed — try a lower resolution',
-    vertex_no_result_url: 'Vertex completed but no video returned',
-    vertex_timeout: 'Vertex generation timed out',
-    vertex_auth_failed: 'Vertex authentication failed',
-    vertex_auth_error: 'Vertex authentication failed',
-    vertex_quota: 'Vertex quota reached — try again later',
-    vertex_pending_timeout: 'Veo queue timed out — try again',
-    vertex_processing_timeout: 'Veo render timed out — try a lower resolution',
-    vertex_poll_error: 'Lost connection to Veo — try again',
+    vertex_video_failed: 'Video generation failed — try a lower resolution',
+    vertex_no_result_url: 'Completed but no video returned',
+    vertex_timeout: 'Video generation timed out',
+    vertex_auth_failed: 'Video service authentication failed',
+    vertex_auth_error: 'Video service authentication failed',
+    vertex_quota: 'Video quota reached — try again later',
+    vertex_pending_timeout: 'Video queue timed out — try again',
+    vertex_processing_timeout: 'Video render timed out — try a lower resolution',
+    vertex_poll_error: 'Lost connection to the video service — try again',
     provider_filtered_content: 'Content blocked by safety filters',
     // Gemini (legacy)
     gemini_video_failed: 'Video generation failed',
@@ -7081,7 +7092,7 @@ async function startMultiImageTo3D() {
   // Meshy 7 / latest treats the first image as the front view, and the panel
   // labels slot 1 that way — so slot 1 must be the one we send first.
   if (!filled[0]) {
-    alert('Add the front view to the Image 1 slot — Meshy builds the model around the first image.');
+    alert('Add the front view to the Image 1 slot — the model is built around the first image.');
     return;
   }
 
@@ -7934,7 +7945,7 @@ function _stuckLabel(type, elapsedSec, queuePos) {
   if (elapsedSec >= th.stale)
     return `${verb} is taking unusually long.${queueHint} You can close this and check history later.`;
   if (elapsedSec >= th.warning)
-    return `${verb} is still running — Meshy may be under heavy load.${queueHint}`;
+    return `${verb} is still running — the 3D service may be under heavy load.${queueHint}`;
   if (elapsedSec >= th.delayed)
     return `${verb} is taking longer than usual...${queueHint}`;
   return null; // no special message yet
@@ -8502,7 +8513,7 @@ export async function startCreativeLabPrototype(product, { image_url, name = '',
   if (!started.ok) throw new Error(started.error || `Prototype failed (HTTP ${started.status})`);
 
   const jobId = started.data?.job_id;
-  if (!jobId) throw new Error('Meshy did not return a prototype task id.');
+  if (!jobId) throw new Error('The 3D service did not return a prototype task id.');
   if (started.data?.new_balance !== undefined && window.WorkspaceCredits?.applyBackendBalance) {
     window.WorkspaceCredits.applyBackendBalance(started.data.new_balance, 'creative_lab_prototype');
   }
@@ -8558,7 +8569,7 @@ export async function startCreativeLabBuild(product, { input_task_id, name = '',
 
   if (!started.ok) throw new Error(started.error || `Build failed (HTTP ${started.status})`);
   const jobId = started.data?.job_id;
-  if (!jobId) throw new Error('Meshy did not return a build task id.');
+  if (!jobId) throw new Error('The 3D service did not return a build task id.');
 
   State.addActiveJob(jobId);
   State.savePendingMeta(jobId, { ...meta, idempotency_key: idempotencyKey });
@@ -8642,15 +8653,15 @@ export function watchCreativeLabBuild(product, jobId, { label = '', stage = '', 
 export async function runMeshyPrintAnalyze(item, opts = {}) {
   const source = buildMeshySourceFromItem(item);
   if (!source.input_task_id && !source.model_url) {
-    throw new Error('This model has no source Meshy can analyse. Try generating or uploading a model first.');
+    throw new Error('This model has no source we can analyse. Try generating or uploading a model first.');
   }
 
-  opts.onProgress?.('Sending model to Meshy...');
+  opts.onProgress?.('Sending model for analysis…');
   const started = await apiFetch('/api/_mod/mesh/print/analyze', { method: 'POST', body: source });
   if (!started.ok) throw new Error(started.error || `Analyze failed (HTTP ${started.status})`);
 
   const jobId = started.data?.job_id;
-  if (!jobId) throw new Error('Meshy did not return an analysis job id.');
+  if (!jobId) throw new Error('The 3D service did not return an analysis job id.');
 
   opts.onProgress?.('Analysing geometry...');
   return pollMeshyPrintability(`/api/_mod/mesh/print/analyze/status/${encodeURIComponent(jobId)}`, opts);
@@ -8670,14 +8681,14 @@ async function pollMeshyPrintability(url, opts = {}) {
     const data = res.data || {};
     if (data.status === 'done') return data;
     if (data.status === 'failed') {
-      throw new Error(data.message || data.error || 'Meshy could not analyse this model.');
+      throw new Error(data.message || data.error || 'This model could not be analysed.');
     }
     if (typeof data.pct === 'number' && data.pct > 0) {
       opts.onProgress?.(`Analysing geometry... ${Math.min(99, data.pct)}%`);
     }
     await new Promise((resolve) => setTimeout(resolve, intervalMs));
   }
-  throw new Error('Meshy analysis timed out. Please try again.');
+  throw new Error('Analysis timed out. Please try again.');
 }
 
 /**
@@ -8690,7 +8701,7 @@ export async function startMeshyPrintRepair(item, options = {}) {
   State.setHistoryActiveModelId(item.id);
   const source = buildMeshySourceFromItem(item);
   if (!source.input_task_id && !source.model_url) {
-    alert('This model has no source Meshy can repair. Try generating or uploading a model first.');
+    alert('This model has no source we can repair. Try generating or uploading a model first.');
     return;
   }
 
@@ -9355,7 +9366,7 @@ async function _doResumePendingJobs(options = {}) {
     print_repair: 'Repairing for print...', creative_lab_build: 'Building...',
     video: 'Generating video...', rig: 'Rigging...', animate: 'Animating...',
     animation: 'Animating...', refine: 'Refining...', preview: 'Generating...',
-    image: 'Generating image...', multi_color_print: 'Preparing Meshy 3MF...',
+    image: 'Generating image...', multi_color_print: 'Preparing Full-Color 3MF…',
   };
   for (const id of allToResume) {
     const meta = pendingMeta[id] || {};

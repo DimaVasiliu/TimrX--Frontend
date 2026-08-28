@@ -678,7 +678,7 @@ async function _handleVerify() {
         }));
       } else {
         await _fetchWallet();
-        const creditsGranted = data.welcome_bonus_credits || 50;
+        const creditsGranted = data.welcome_bonus_credits || 15;
         _showStep('welcome');
         _animateCounter('authCreditsCounter', creditsGranted);
 

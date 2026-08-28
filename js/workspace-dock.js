@@ -296,6 +296,19 @@
     var btn = commitButton(st.panel);
     if (!btn) { genBtn.disabled = true; return; }
     genBtn.disabled = !!btn.disabled;
+    // Mirror WHY it is disabled, not just THAT it is. Without this the primary
+    // CTA greys out silently: the source button carries the explanation in its
+    // title and in the .insufficient-credits class that renders the hint bubble.
+    var reason = btn.getAttribute('data-disabled-reason');
+    var srcTitle = btn.getAttribute('title') || '';
+    if (btn.disabled) {
+      genBtn.title = btn.classList.contains('insufficient-credits')
+        ? (srcTitle || 'Not enough credits')
+        : (reason === 'validation' ? 'Fill in the required fields above to continue' : srcTitle);
+    } else {
+      genBtn.title = srcTitle;
+    }
+    genBtn.classList.toggle('insufficient-credits', btn.classList.contains('insufficient-credits'));
     var working = /generating|processing|starting/i.test(btn.textContent || '');
     genBtn.classList.toggle('is-working', working);
     var badge = btn.querySelector('.btn-cost-badge');

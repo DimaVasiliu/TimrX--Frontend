@@ -25,7 +25,7 @@
 @import url('media/variables-media.css?v=20260811ah');
 
 /* 2. Navigation & Brand */
-@import url('css/layout.css?v=20260811ah');
+@import url('css/layout.css?v=20260827g');
 @import url('media/layout-media.css?v=20260811ah');
 
 /* 3. Buttons, Forms, Tabs, Chips */
@@ -33,7 +33,7 @@
 @import url('media/components-media.css?v=20260811ah');
 
 /* 4. Workspace Grid & Cards */
-@import url('css/workspace.css?v=20260814viewerops');
+@import url('css/workspace.css?v=20260827g');
 @import url('media/workspace-media.css?v=20260811ah');
 
 /* 5. 3D Viewer Controls */

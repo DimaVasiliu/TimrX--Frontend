@@ -1030,9 +1030,9 @@ export const historyState = {
 };
 
 const FLUX_MODEL_VARIANTS = [
-  { value: 'pro', label: 'FLUX.2 Pro' },
-  { value: 'pro_preview', label: 'FLUX.2 Pro Preview' },
-  { value: 'flex', label: 'FLUX.2 Flex' },
+  { value: 'pro', label: 'Pro' },
+  { value: 'pro_preview', label: 'Pro Preview' },
+  { value: 'flex', label: 'Flex' },
 ];
 
 const IDEOGRAM_OPERATIONS = [
@@ -1076,7 +1076,7 @@ const RECRAFT_OPERATIONS = [
 export const PROVIDER_CAPABILITIES = {
   image: {
     nano_banana: {
-      name: 'Nano Banana',
+      name: 'Everyday (4K)',
       // PiAPI expanded nano-banana-2 to ten aspect ratios (Aug 2026) — the three
       // classics plus wide/classic/tall, which map to 21:9 / 3:2 / 4:5.
       shapes: ['square', 'portrait', 'landscape', 'wide', 'classic', 'tall'],
@@ -1100,10 +1100,10 @@ export const PROVIDER_CAPABILITIES = {
       defaultOperation: 'generate',
       supportsSourceImage: true,
       maxReferenceImages: 1,
-      hint: 'Premium provider with exclusive 4K output. Drop a reference image and Nano Banana 2 will steer the generation off it.'
+      hint: 'Our all-round image model, and the only one with 4K output. Drop a reference image and it will steer the generation off it.'
     },
     nano_banana_pro: {
-      name: 'Nano Banana Pro',
+      name: 'Pro \u2014 text & consistency',
       // PiAPI gemini/nano-banana-pro (Gemini 3 Pro Image): sharpest text
       // rendering, strongest subject consistency. 1K and 2K cost the same
       // upstream ($0.105/img), 4K is $0.18/img.
@@ -1128,10 +1128,10 @@ export const PROVIDER_CAPABILITIES = {
       defaultOperation: 'generate',
       supportsSourceImage: true,
       maxReferenceImages: 4,
-      hint: 'Top-tier image model — crisp in-image text, strong subject consistency across up to 4 references, and 4K output. 2K costs the same as 1K.'
+      hint: 'Our highest-quality image model — crisp in-image text, strong subject consistency across up to 4 references, and 4K output. 2K costs the same as 1K.'
     },
     openai: {
-      name: 'OpenAI',
+      name: 'Precise edits & masking',
       operations: [
         { value: 'generate', label: 'Generate',            requiresSource: false, requiresMask: false },
         { value: 'edit',     label: 'Edit with reference', requiresSource: true,  requiresMask: false }
@@ -1156,10 +1156,10 @@ export const PROVIDER_CAPABILITIES = {
       supportsMaskImage: true,
       supportsReferenceImages: true,
       maxReferenceImages: 4,
-      hint: 'Drop an image (and optional mask) — gpt-image will edit it based on your prompt.'
+      hint: 'The only model that accepts a mask. Drop an image (and optional mask) and it will edit just that area from your prompt.'
     },
     google: {
-      name: 'Google Gemini',
+      name: 'Reference-guided',
       operations: [
         { value: 'generate', label: 'Generate',            requiresSource: false, requiresMask: false },
         { value: 'edit',     label: 'Reference / Edit',    requiresSource: true,  requiresMask: false }
@@ -1183,10 +1183,10 @@ export const PROVIDER_CAPABILITIES = {
       supportsMaskImage: true,
       supportsReferenceImages: true,
       maxReferenceImages: 4,
-      hint: 'Text-to-image uses Gemini 3.1 Flash Image (Google\u2019s replacement for Imagen). Reference / edit mode uses the same Gemini image model — drop an image to use as your reference.'
+      hint: 'Strong general-purpose model for reference-guided work — drop an image to use as your reference for an edit or a variation.'
     },
     google_nano: {
-      name: 'Google Nano',
+      name: 'Quick photo edits',
       operations: [
         { value: 'generate', label: 'Generate',            requiresSource: false, requiresMask: false },
         { value: 'edit',     label: 'Edit with reference', requiresSource: true,  requiresMask: false }
@@ -1209,10 +1209,10 @@ export const PROVIDER_CAPABILITIES = {
       supportsSourceImage: true,
       supportsReferenceImages: true,
       maxReferenceImages: 3,
-      hint: 'Gemini 2.5 Flash Image — native image-to-image. Drop a photo and tell it what to change.'
+      hint: 'Native image-to-image. Drop a photo and tell it what to change — fastest route for small edits.'
     },
     flux_pro: {
-      name: 'FLUX.2 Pro',
+      name: 'Photoreal',
       operations: [
         { value: 'generate', label: 'Generate', requiresSource: false, requiresMask: false },
         { value: 'edit', label: 'Reference / Edit', requiresSource: true, requiresMask: false }
@@ -1243,10 +1243,10 @@ export const PROVIDER_CAPABILITIES = {
       supportsSourceImage: true,
       supportsReferenceImages: true,
       maxReferenceImages: 8,
-      hint: 'Highest-fidelity photoreal provider with Pro, Preview, and Flex variants.'
+      hint: 'Highest-fidelity photoreal output, and our cheapest image model at 1 credit.'
     },
     ideogram_v3: {
-      name: 'Ideogram V3',
+      name: 'Typography & posters',
       operations: IDEOGRAM_OPERATIONS,
       defaultOperation: 'generate',
       shapes: ['square', 'portrait', 'landscape'],
@@ -1276,10 +1276,10 @@ export const PROVIDER_CAPABILITIES = {
       supportsSourceImage: true,
       supportsMaskImage: true,
       supportsUpscaleTuning: true,
-      hint: 'Strongest provider for typography, posters, logos, remixing, and guided edits.'
+      hint: 'Best choice when the image needs readable text — posters, logos, packaging, remixes and guided edits.'
     },
     recraft_v4: {
-      name: 'Recraft V4',
+      name: 'Vector & design',
       operations: RECRAFT_OPERATIONS,
       defaultOperation: 'generate',
       modelVariants: RECRAFT_MODEL_VARIANTS,
@@ -1292,7 +1292,7 @@ export const PROVIDER_CAPABILITIES = {
       defaultOutputMode: 'raster',
       credits: 1,
       creditsByQuality: { standard: 1 },
-      creditsByOutputMode: { raster: 8, vector_svg: 10 },
+      creditsByOutputMode: { raster: 1, vector_svg: 3 },
       genTimeByQuality: { standard: '40 sec' },
       genTimeByOutputMode: { raster: '40 sec', vector_svg: '50 sec' },
       genTime: '40 sec',
@@ -1313,12 +1313,12 @@ export const PROVIDER_CAPABILITIES = {
       supportsTextLayout: true,
       supportsSvgShapeControls: true,
       supportsSeed: true,
-      hint: 'Design-oriented provider for raster, vector, styled V3 edits, and utility image operations.'
+      hint: 'The only model that outputs true vector SVG. Design-oriented, with curated styles and utility image operations.'
     }
   },
   video: {
     google: {
-      name: 'Google (Veo)',
+      name: 'Cinematic',
       aspects: ['landscape', 'portrait'],
       qualities: ['standard', 'high'],
       durations: [4, 6, 8],
@@ -1329,13 +1329,13 @@ export const PROVIDER_CAPABILITIES = {
       fps: 24,
       genTime: '~2 min',
       aspectMap: { landscape: '16:9', portrait: '9:16' },
-      qualityMultiplier: { standard: 1.0, high: 1.5 },
+      qualityMultiplier: { standard: 1.0, high: 1.0 },
       baseCreditsByDuration: { 4: 10, 6: 15, 8: 20 }
     }
   },
   model: {
     meshy: {
-      name: 'Meshy',
+      name: '3D Engine',
       modes: ['text-to-3d', 'image-to-3d'],
       defaultMode: 'text-to-3d',
       credits: 10,
@@ -1679,7 +1679,7 @@ export function getGenerationSnapshot(mode) {
     }
   } else if (mode === 'video' && caps) {
     // Video: pricing by duration and quality multiplier
-    const base = caps.baseCreditsByDuration?.[settings.duration] || 30;
+    const base = caps.baseCreditsByDuration?.[settings.duration] || 20;
     const mult = caps.qualityMultiplier?.[settings.quality] || 1.0;
     credits = Math.round(base * mult);
   }

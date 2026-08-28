@@ -6,8 +6,8 @@
 
 import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableModelUrl, isTimrxS3Url, BACKEND } from './config.js';
 import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, triggerBrowserDownload } from './download-utils.js';
-import * as State from './state.js?v=20260827f';
-import * as Viewer from './viewer.js?v=20260827f';
+import * as State from './state.js?v=20260827g';
+import * as Viewer from './viewer.js?v=20260827g';
 import * as UI from './ui-utils.js';
 
 // 20+ call sites across api.js / 3dprint-app.js / multi-color-print.js guard on
@@ -28,15 +28,15 @@ import {
   resetGalleryInfiniteScroll,
   syncAssetsToolbarFilters,
   getHistoryMenuLayer
-} from './history.js?v=20260827f';
-import * as API from './api.js?v=20260827f';
+} from './history.js?v=20260827g';
+import * as API from './api.js?v=20260827g';
 import * as Converter from './converter.js';
-import * as Credits from './workspace-credits.js?v=20260827f';
+import * as Credits from './workspace-credits.js?v=20260827g';
 import * as Notifications from './notifications.js';
 // Analytics: wraps dataLayer.push for GTM (GA4 + Google Ads). Side-effect import —
 // the module self-primes on load and listens for `timrx:identity:confirmed`.
 import './analytics.js';
-import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260827f';
+import { openMultiColorModal, openMeshyMultiColorModal } from './multi-color-print.js?v=20260827g';
 
 // ============================================================================
 // MODULE STATE
@@ -999,8 +999,8 @@ function openViewerTextureModal(item) {
           <span>Provider</span>
           <select data-field="texture-model">
             <option value="latest">Latest</option>
-            <option value="meshy-7">Meshy 7</option>
-            <option value="meshy-6">Meshy 6</option>
+            <option value="meshy-7">Generation 7</option>
+            <option value="meshy-6">Generation 6</option>
           </select>
         </label>
         <label class="viewer-action-field">
@@ -1027,7 +1027,7 @@ function openViewerTextureModal(item) {
       </label>
       <label class="viewer-action-check">
         <input type="checkbox" data-field="remove-lighting">
-        <span>Remove baked lighting when using Meshy 6.</span>
+        <span>Remove baked lighting when using Generation 6.</span>
       </label>
     `,
     onSubmit: async (overlay) => {
@@ -1318,8 +1318,8 @@ function initViewerToolbar() {
       }
       if (meshySummary) {
         meshySummary.textContent = printability?.needs_repair
-          ? 'Meshy found geometry that will cause slicing problems. Use Meshy Repair below, or switch to Local Check for wall thickness and overhang analysis.'
-          : 'Meshy found no blocking geometry problems. Switch to Local Check for wall thickness, overhangs and print scale.';
+          ? 'Printability check found geometry that will cause slicing problems. Use Repair below, or switch to Local Check for wall thickness and overhang analysis.'
+          : 'Printability check found no blocking geometry problems. Switch to Local Check for wall thickness, overhangs and print scale.';
       }
       const localGrid = document.getElementById('printChecksGrid');
       if (localGrid) {
@@ -1788,10 +1788,10 @@ function initViewerToolbar() {
 
     if (note) {
       const statusCopy = {
-        healthy: 'Meshy reports this mesh as healthy for printing.',
-        warning: 'Meshy flagged non-blocking warnings on this mesh.',
-        error: 'Meshy found errors that will affect slicing.',
-        unknown: 'Meshy returned no overall verdict for this mesh.',
+        healthy: 'This mesh is reported healthy for printing.',
+        warning: 'Non-blocking warnings were flagged on this mesh.',
+        error: 'Errors were found that will affect slicing.',
+        unknown: 'No overall verdict was returned for this mesh.',
       };
       note.textContent = statusCopy[printability.status] || statusCopy.unknown;
     }
@@ -1807,10 +1807,10 @@ function initViewerToolbar() {
             await API.startMeshyPrintRepair(item);
             togglePrintPanel(false);
             if (window.showToast) {
-              window.showToast('Meshy repair started — the repaired model will appear in your history.', 'info');
+              window.showToast('Repair started — the repaired model will appear in your history.', 'info');
             }
           } catch (err) {
-            if (window.showToast) window.showToast(err?.message || 'Could not start Meshy repair.', 'error');
+            if (window.showToast) window.showToast(err?.message || 'Could not start the repair.', 'error');
           } finally {
             repairBtn.disabled = false;
           }
@@ -4405,15 +4405,25 @@ function wireGallery() {
           videoMotion.placeholder = `Motion for: ${item.prompt.slice(0, 50)}...`;
         }
 
-        // Update credits display — Veo image-to-video 4s 720p (equalized with text-to-video)
+        // Quote from the single source of truth rather than a hardcoded number.
+        // This used to hardcode 48 — a pre-unified figure that silently overwrote
+        // the correct quote the moment an image was loaded.
+        let _videoCost = 20;
+        try {
+          if (window.VideoJobControl?.computeCredits) {
+            _videoCost = window.VideoJobControl.computeCredits({
+              provider: 'vertex', durationSec: 4, resolution: '720p', mode: 'image2video',
+            }) || 20;
+          }
+        } catch (_) { /* fall back to the base quote */ }
         const videoCreditsDisplay = byId('videoCreditsDisplay');
         if (videoCreditsDisplay) {
-          videoCreditsDisplay.innerHTML = '<i class="fa-solid fa-coins"></i> 48';
+          videoCreditsDisplay.innerHTML = `<i class="fa-solid fa-coins"></i> ${_videoCost}`;
         }
         const generateVideoBtn = byId('generateVideoBtn');
         if (generateVideoBtn) {
-          generateVideoBtn.title = '48 credits';
-          generateVideoBtn.dataset.baseCredits = '48';
+          generateVideoBtn.title = `${_videoCost} credits`;
+          generateVideoBtn.dataset.baseCredits = String(_videoCost);
           // Enable button since we have a valid image loaded
           generateVideoBtn.disabled = false;
           generateVideoBtn.removeAttribute('data-disabled-reason');

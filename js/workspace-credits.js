@@ -33,7 +33,7 @@ const creditsState = {
     balance: 0,
     reserved: 0,
     available: 0,
-    // Video credits (separate pool)
+    // LEGACY FIELD — unified credits: there is ONE pool. Mirrors general.
     videoBalance: 0,
     videoReserved: 0,
     videoAvailable: 0,
@@ -359,7 +359,7 @@ async function _fetchRealWalletBalances() {
  */
 const _ACTION_COSTS_CACHE_KEY = 'timrx_action_costs';
 const _ACTION_COSTS_CACHE_TTL = 3600000; // 1 hour — costs are admin-configured, rarely change
-const _ACTION_COSTS_CACHE_VERSION = 4;   // bumped for unified-credits price book (Sep 2026)   // Bump when pricing changes to invalidate stale caches
+const _ACTION_COSTS_CACHE_VERSION = 5;   // bumped for unified-credits price book (Sep 2026)   // Bump when pricing changes to invalidate stale caches
 
 export async function fetchActionCosts() {
   // Fast path: use localStorage cache if fresh (avoids network call entirely on repeat loads)
@@ -486,100 +486,123 @@ export async function fetchActionCosts() {
 }
 
 /**
- * Default action costs (fallback if API unavailable)
+ * Default action costs — LAST-RESORT FALLBACK ONLY.
  *
- * CANONICAL ACTION KEYS — Pricing refactor Mar 2026:
- * - image_generate          (4c)  - OpenAI standard image (1K)
- * - image_generate_2k       (8c)  - OpenAI 2K image
- * - gemini_image_generate   (4c)  - Gemini standard image
- * - piapi_image_generate    (7c)  - Nano Banana standard (premium)
- * - piapi_image_generate_2k (12c) - Nano Banana 2K (premium)
- * - text_to_3d_generate  (20c) - Text to 3D preview generation
- * - image_to_3d_generate (30c) - Image to 3D conversion
- * - refine               (10c) - Refine/upscale 3D model
- * - remesh               (5c)  - Remesh 3D model
- * - retexture            (10c) - Apply new texture to 3D model
- * - convert              (1c)  - Format-only conversion (Meshy Convert)
- * - video_generate       (96c) - Generic video generation (Vertex 8s 720p base)
- * - video_text_generate  (96c) - Text-to-video generation (base)
- * - video_image_animate  (96c) - Image-to-video (equalized with text-to-video)
+ * Unified credits (1 credit = $0.10 retail). These MUST mirror
+ * backend/services/unified_price_book.py. If the /api/billing/action-costs
+ * fetch fails, the whole workspace quotes from this table, so a stale copy
+ * here silently misprices every button on the page.
  *
- * VIDEO PRICING (DB-driven via video_credit_rules):
- * - 720p:  4s=48, 6s=72, 8s=96  (Vertex 12 c/s, margin-stabilized)
- * - 1080p: 8s=120 (requires 8s duration)
- * - 4K:    8s=156 (requires 8s duration)
+ * When a provider price changes: update the price book, then update this
+ * table in the same commit and bump the ?v= token on this module.
+ * Last synced against production /api/billing/action-costs: 2026-08-27.
  */
 function getDefaultActionCosts() {
   return {
-    // === CANONICAL ACTION KEYS — Pricing refactor Mar 2026 ===
-    // Image — OpenAI/Gemini standard tier (4c / 8c / 12c)
-    'image_generate': 4,
-    'image_generate_2k': 8,
-    'image_generate_4k': 12,
-    // Image — Gemini tier (4c / 8c / 12c)
-    'gemini_image_generate': 4,
-    'gemini_image_generate_2k': 8,
-    'gemini_image_generate_4k': 12,
-    // Image — Nano Banana premium tier (7c / 12c / 18c)
-    'piapi_image_generate': 7,
-    'piapi_image_generate_2k': 12,
-    'piapi_image_generate_4k': 18,
-    'text_to_3d_generate': 20,    // Text to 3D preview
-    'image_to_3d_generate': 30,   // Image to 3D
-    'refine': 10,                 // Refine 3D model
-    'remesh': 5,                  // Remesh 3D model
-    'retexture': 10,              // Retexture 3D model
-    'convert': 1,                 // Meshy Convert (format-only remesh)
-    'resize': 1,                  // Meshy Resize
-    'uv_unwrap': 5,               // Meshy UV Unwrap
-    'print_analyze': 0,           // Meshy Analyze Printability (free)
-    'print_repair': 10,           // Meshy Repair Printability
-    'video_generate': 96,         // Video generation (Vertex 8s 720p base)
-    'video_text_generate': 96,    // Text to video (base)
-    'video_image_animate': 96,    // Image to video (equalized)
-    'rig': 5,                     // Rig a 3D model
-    'animate': 3,                 // Apply animation to rigged model
-    'multi_color_print': 10,      // Full-color 3MF print conversion
+    // === Images ===
+    'image_generate': 2,
+    'image_generate_2k': 2,
+    'image_generate_4k': 3,
+    'gemini_image_generate': 2,
+    'gemini_image_generate_2k': 3,
+    'gemini_image_generate_4k': 3,
+    'google_nano_image_generate': 2,
+    'piapi_image_generate': 2,
+    'piapi_image_generate_2k': 2,
+    'piapi_image_generate_4k': 3,
+    'piapi_pro_image_generate': 3,
+    'piapi_pro_image_generate_2k': 3,
+    'piapi_pro_image_generate_4k': 5,
+    'flux_pro_image_generate': 1,
+    'ideogram_v3_image_generate': 1,
+    'ideogram_v3_image_generate_default': 2,
+    'ideogram_v3_image_generate_quality': 3,
+    'recraft_v4_image_generate': 1,
+    'recraft_v4_vector_generate': 3,
+    'meshy_text_to_image': 3,
+    'meshy_image_to_image': 6,
+
+    // === 3D ===
+    'text_to_3d_generate': 10,
+    'image_to_3d_generate': 15,
+    'refine': 5,
+    'remesh': 3,
+    'retexture': 5,
+    'convert': 1,
+    'resize': 1,
+    'uv_unwrap': 3,
+    'print_analyze': 0,
+    'print_repair': 5,
+    'rig': 3,
+    'animate': 2,
+    'multi_color_print': 5,
+
+    // === Video (base quote; exact cost is resolution/duration dependent) ===
+    'video_generate': 20,
+    'video_text_generate': 20,
+    'video_image_animate': 20,
+    'gemini_video': 20,
+
+    // === Creative Lab ===
+    'creative_lab_keychain_prototype': 4,
+    'creative_lab_keychain_build': 15,
+    'creative_lab_fridge_magnet_prototype': 4,
+    'creative_lab_fridge_magnet_build': 15,
+    'creative_lab_figure_prototype': 4,
+    'creative_lab_figure_build': 15,
+    'creative_lab_vinyl_figure_prototype': 4,
+    'creative_lab_vinyl_figure_build': 15,
+    'creative_lab_brick_figure_prototype': 4,
+    'creative_lab_brick_figure_build': 15,
+    'creative_lab_lamp_prototype': 4,
+    'creative_lab_lamp_build': 15,
+    'creative_lab_keycap_prototype': 7,
+    'creative_lab_keycap_build': 25,
 
     // === LEGACY ALIASES (backwards compatibility) ===
-    // Hyphenated variants
-    'text-to-3d': 20,
-    'image-to-3d': 30,
-    'text-to-image': 4,            // -> image_generate (OpenAI tier)
+    'text-to-3d': 10,
+    'image-to-3d': 15,
+    'text-to-image': 2,
+    'preview': 10,
+    'texture': 5,
+    'upscale': 5,
+    'video': 20,
+    'image_studio_generate': 2,
 
-    // Old naming
-    'preview': 20,                // -> text_to_3d_generate
-    'texture': 10,                // -> retexture
-    'upscale': 10,                // -> refine
-    'video': 96,                  // -> video_generate (base)
-    'image_studio_generate': 4,   // -> image_generate (OpenAI tier)
-
-    // Backend DB action codes (for direct lookups)
-    'MESHY_TEXT_TO_3D': 20,
-    'MESHY_IMAGE_TO_3D': 30,
-    'MESHY_RETEXTURE': 10,
-    'MESHY_REMESH': 5,
+    // === Backend DB action codes (for direct lookups) ===
+    'MESHY_TEXT_TO_3D': 10,
+    'MESHY_IMAGE_TO_3D': 15,
+    'MESHY_RETEXTURE': 5,
+    'MESHY_REMESH': 3,
     'MESHY_CONVERT': 1,
     'MESHY_RESIZE': 1,
-    'MESHY_UV_UNWRAP': 5,
+    'MESHY_UV_UNWRAP': 3,
     'MESHY_PRINT_ANALYZE': 0,
-    'MESHY_PRINT_REPAIR': 10,
-    'MESHY_REFINE': 10,
-    'MESHY_RIGGING': 5,
-    'MESHY_ANIMATION': 3,
-    'MESHY_MULTI_COLOR_PRINT': 10,
-    'OPENAI_IMAGE': 4,
-    'OPENAI_IMAGE_2K': 8,
-    // OPENAI_IMAGE_4K removed — OpenAI does not support 4K
-    'GEMINI_IMAGE': 4,
-    'GEMINI_IMAGE_2K': 8,
-    // GEMINI_IMAGE_4K removed — Gemini does not support 4K
-    'PIAPI_IMAGE': 7,
-    'PIAPI_IMAGE_2K': 12,
-    'PIAPI_IMAGE_4K': 18,
-    'VIDEO_GENERATE': 96,
-    'VIDEO_TEXT_GENERATE': 96,
-    'VIDEO_IMAGE_ANIMATE': 96,
+    'MESHY_PRINT_REPAIR': 5,
+    'MESHY_REFINE': 5,
+    'MESHY_RIGGING': 3,
+    'MESHY_ANIMATION': 2,
+    'MESHY_MULTI_COLOR_PRINT': 5,
+    'OPENAI_IMAGE': 2,
+    'OPENAI_IMAGE_2K': 2,
+    'GEMINI_IMAGE': 2,
+    'GEMINI_IMAGE_2K': 3,
+    'GOOGLE_NANO_IMAGE': 2,
+    'PIAPI_IMAGE': 2,
+    'PIAPI_IMAGE_2K': 2,
+    'PIAPI_IMAGE_4K': 3,
+    'PIAPI_PRO_IMAGE': 3,
+    'PIAPI_PRO_IMAGE_2K': 3,
+    'PIAPI_PRO_IMAGE_4K': 5,
+    'FLUX_PRO_IMAGE': 1,
+    'IDEOGRAM_V3_IMAGE': 1,
+    'IDEOGRAM_V3_IMAGE_DEFAULT': 2,
+    'IDEOGRAM_V3_IMAGE_QUALITY': 3,
+    'RECRAFT_V4_IMAGE': 1,
+    'RECRAFT_V4_VECTOR': 3,
+    'VIDEO_GENERATE': 20,
+    'VIDEO_TEXT_GENERATE': 20,
+    'VIDEO_IMAGE_ANIMATE': 20,
   };
 }
 
@@ -751,14 +774,14 @@ export function getAvailableCredits() {
 }
 
 /**
- * Get wallet state (includes both general and video credits)
+ * Get wallet state. Unified credits: one balance, no second pool.
  */
 export function getWallet() {
   return { ...creditsState.wallet };
 }
 
 /**
- * Get general credits wallet only (without video credits)
+ * Get the wallet. Unified credits: this IS the whole balance.
  */
 export function getGeneralWallet() {
   return {
@@ -797,11 +820,11 @@ export function getConfirmedBalance() {
 }
 
 // ============================================================================
-// VIDEO CREDITS - Separate pool for video generation
+// VIDEO CREDITS - LEGACY SHIM. Unified credits: these mirror the single balance.
 // ============================================================================
 
 /**
- * Get available video credits
+ * LEGACY: mirrors the single balance. Do not reintroduce a second pool.
  */
 export function getVideoCredits() {
   // Unified credits: mirrors the single balance (video pool retired)
@@ -821,8 +844,8 @@ export function getVideoWallet() {
 }
 
 /**
- * Check if user has enough video credits for a specific cost
- * @param {number} cost - Required video credits
+ * LEGACY: checks the single balance.
+ * @param {number} cost - Required credits
  * @returns {boolean}
  */
 export function hasVideoCredits(cost) {
@@ -1444,6 +1467,8 @@ function updateEmailBeaconUI() {
     beacon.setAttribute('data-status', 'verified');
     beacon.setAttribute('title', `Signed in as ${creditsState.email}`);
     beacon.setAttribute('aria-label', `Account: ${creditsState.email}`);
+    const vLabel = document.getElementById('accountBeaconLabel');
+    if (vLabel) vLabel.style.display = 'none';
     if (icon) icon.style.display = 'none';
     if (initial) {
       initial.textContent = creditsState.email[0].toUpperCase();
@@ -1451,8 +1476,10 @@ function updateEmailBeaconUI() {
     }
   } else {
     beacon.setAttribute('data-status', 'anonymous');
-    beacon.setAttribute('title', 'Sign In');
-    beacon.setAttribute('aria-label', 'Sign In');
+    beacon.setAttribute('title', 'Sign in to save your work and get 15 free credits');
+    beacon.setAttribute('aria-label', 'Sign in to save your work and get 15 free credits');
+    const aLabel = document.getElementById('accountBeaconLabel');
+    if (aLabel) aLabel.style.display = '';
     if (icon) icon.style.display = '';
     if (initial) initial.style.display = 'none';
   }
@@ -1513,6 +1540,22 @@ export function updateCreditsUI() {
     if (el) el.textContent = generalText;
   });
 
+  // Balance state in WORDS. The pill previously conveyed empty/low through
+  // colour alone, which is invisible to anyone who cannot distinguish it and
+  // meaningless to everyone else.
+  const worthEl = document.getElementById('creditsTooltipWorth');
+  if (worthEl && creditsState.loaded) {
+    worthEl.textContent = `1 credit = $0.10 \u00b7 you have ~$${(effectiveAvailable * 0.10).toFixed(2)} of credit`;
+  }
+  const stateEl = document.getElementById('creditsTooltipState');
+  if (stateEl) {
+    if (!creditsState.loaded) stateEl.textContent = '';
+    else if (effectiveAvailable === 0) stateEl.textContent = 'Out of credits — click to top up.';
+    else if (effectiveAvailable < 30) stateEl.textContent = 'Running low — click to top up.';
+    else stateEl.textContent = '';
+    stateEl.classList.toggle('is-warning', creditsState.loaded && effectiveAvailable < 30);
+  }
+
   // Show/hide reserved indicator
   if (reservedIndicator) {
     if (hasReservations) {
@@ -1539,8 +1582,19 @@ export function updateCreditsUI() {
       });
     }
 
-    // Native title removed — hover tooltip shows pool breakdown instead
-    creditsPill.removeAttribute('title');
+    // Touch devices and screen readers never get the hover tooltip, so the
+    // balance state has to live somewhere they can reach it too.
+    if (!creditsState.loaded) {
+      creditsPill.setAttribute('aria-label', 'Loading your credit balance');
+      creditsPill.removeAttribute('title');
+    } else {
+      const stateWord = effectiveAvailable === 0
+        ? 'Out of credits — tap to top up'
+        : (effectiveAvailable < 30 ? 'Running low — tap to top up' : 'Tap to top up');
+      const label = `${effectiveAvailable.toLocaleString()} credits (about $${(effectiveAvailable * 0.10).toFixed(2)}). ${stateWord}.`;
+      creditsPill.setAttribute('aria-label', label);
+      creditsPill.setAttribute('title', label);
+    }
   }
 
   // Toggle syncing class on group and pill
@@ -1976,7 +2030,7 @@ export async function refreshCredits() {
           ? data.available_credits
           : Math.max(0, serverBalance - serverReserved);
 
-        // Video credits (separate pool)
+        // LEGACY FIELD — unified credits: there is ONE pool. Mirrors general.
         // Unified credits: mirror the single balance (see the note in the
         // primary wallet parse above) so no reader ever sees a hard 0.
         const videoReserved = 0;
@@ -2250,7 +2304,7 @@ window.WorkspaceCredits = {
   getIdentityId,
   canDownloadAssets,
   showDownloadAccessRequiredMessage,
-  // Video credits API (separate pool)
+  // Video credits API — LEGACY SHIM, mirrors the single unified balance.
   getVideoCredits,
   getVideoWallet,
   hasVideoCredits,
