@@ -64,7 +64,7 @@
     { key: 'model',   group: 'mode',  icon: 'cmdi-model',   label: 'Text or image to 3D', hint: 'Model',
       kw: 'model 3d mesh generate create text image to 3d meshy' },
     { key: 'image',   group: 'mode',  icon: 'cmdi-image',   label: 'Generate image',      hint: 'Image',
-      kw: 'image picture 2d art flux ideogram recraft imagen openai nano banana' },
+      kw: 'image picture 2d art flux ideogram recraft gemini openai nano banana' },
     { key: 'video',   group: 'mode',  icon: 'cmdi-video',   label: 'Generate video',      hint: 'Video',
       kw: 'video clip motion veo seedance footage' },
     { key: 'remesh',  group: 'model', icon: 'cmdi-remesh',  label: 'Remesh',              hint: 'Model',

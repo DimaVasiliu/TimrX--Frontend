@@ -183,13 +183,20 @@ function modelUrlFromHistoryItem(item = {}) {
   return '';
 }
 
-function showOperationError(message, fallback = 'Operation failed') {
-  const text = message || fallback;
+function showUserNotice(message, tone = 'error', duration = 7000) {
+  const text = message || 'Something went wrong';
   if (UI?.toast) {
-    UI.toast(text, 'error', 7000);
+    UI.toast(text, tone, duration);
+  } else if (window.showToast) {
+    window.showToast(text, tone, duration);
   } else {
     console.error(text);
   }
+}
+
+function showOperationError(message, fallback = 'Operation failed') {
+  const text = message || fallback;
+  showUserNotice(text, 'error', 7000);
 }
 
 function activeDerivedOperationJob(operationKey) {
@@ -218,7 +225,7 @@ function finishedDerivedOperation(operationKey) {
 async function shouldStartDerivedOperation(label, operationKey) {
   const activeJob = activeDerivedOperationJob(operationKey);
   if (activeJob) {
-    alert(`${label} is already running for this model and settings.`);
+    showUserNotice(`${label} is already running for this model and settings.`);
     return { start: false, forceNew: false };
   }
 
@@ -867,9 +874,9 @@ function releaseCreditsReservation(reservationId) {
   window.WorkspaceCredits.releaseReservation(reservationId);
 }
 
-/**
+ /**
  * Show insufficient credits modal with exact required vs available
- * Replaces alert() for better UX
+ * Replaces browser alert UX for better checkout/generation flow
  *
  * @param {number} cost - Credits required for this action
  * @param {number} available - Credits currently available
@@ -2108,13 +2115,13 @@ function handleJobFailure(message, operation = '', opts = {}) {
     return true;
   }
   if (opts.isRecovery) {
-    // Stale recovered job — log but don't spam the user with alerts
+    // Stale recovered job — log but don't spam the user with notifications
     console.warn(`[Recovery] Silently failed recovered ${operation} job: ${message}`);
     return false;
   }
   // A failed generation is the moment a customer decides whether to trust the
   // billing. The reservation IS released server-side — say so, in the modal,
-  // every time. This used to be a bare alert() that never mentioned it.
+  // every time. This used to be a bare browser alert that never mentioned it.
   showErrorModal(
     'Generation failed',
     message || 'This job could not be completed.',
@@ -2883,7 +2890,7 @@ async function openRefineSettingsModal(item = {}) {
         });
       } catch (err) {
         applyBtn.disabled = false;
-        alert(err?.message || 'Unable to read refine settings.');
+        showUserNotice(err?.message || 'Unable to read refine settings.');
       }
     });
   });
@@ -3339,7 +3346,7 @@ export function watchJob(job_id, { isRecovery = false } = {}) {
         prog.fail(errorMsg);
         State.updateHistoryItem(job_id, { status: 'failed', status_label: errorMsg });
         renderHistory();
-        // Replace the blocking alert() with a non-blocking action toast.
+        // Replace the blocking browser alert with a non-blocking action toast.
         // For non-recovery jobs, offer Cancel/Retry. handleJobFailure still runs
         // on expired-model errors via its own path.
         if (!isRecovery && !isExpiredModelError(errorMsg)) {
@@ -3868,7 +3875,7 @@ export async function onGenerateClick() {
     const negativePrompt = getNegativePromptValue('modelNegativePrompt');
     if (!prompt) {
       prog.clear();
-      alert('Please type a prompt describing what you want to generate.');
+      showUserNotice('Please type a prompt describing what you want to generate.');
       return;
     }
 
@@ -4059,7 +4066,7 @@ export async function onGenerateClick() {
   } catch (err) {
     console.error(err);
     prog.fail(err?.message || String(err));
-    alert(`Generation failed: ${err?.message || err}`);
+    showUserNotice(`Generation failed: ${err?.message || err}`);
     // Release any remaining reservations on error
     reservations.forEach(r => {
       if (r.reservationId) releaseCreditsReservation(r.reservationId);
@@ -4310,7 +4317,7 @@ export async function startOpenAIImageGeneration() {
   } catch (err) {
     console.error('[OpenAI] Error:', err);
     prog.fail(err?.message || 'Image generation failed');
-    alert(err?.message || 'Image generation failed.');
+    showUserNotice(err?.message || 'Image generation failed.');
     // Clean up placeholder on error
     State.deleteHistoryItem(activeHistoryId, { skipRemote: true });
     renderHistory();
@@ -4599,7 +4606,7 @@ export async function startGeminiImageGeneration() {
   } catch (err) {
     console.error('[Gemini Image] Error:', err);
     prog.fail(err?.message || 'Image generation failed');
-    alert(err?.message || 'Image generation failed.');
+    showUserNotice(err?.message || 'Image generation failed.');
     // Clean up placeholder on error
     State.deleteHistoryItem(tempId, { skipRemote: true });
     renderHistory();
@@ -4980,7 +4987,7 @@ async function startAsyncImageProvider({
   } catch (err) {
     console.error(`[${logPrefix}] Error:`, err);
     prog.fail(err?.message || `${providerLabel} image generation failed`);
-    alert(err?.message || `${providerLabel} image generation failed.`);
+    showUserNotice(err?.message || `${providerLabel} image generation failed.`);
     State.deleteHistoryItem(tempId, { skipRemote: true });
     renderHistory();
   } finally {
@@ -5240,7 +5247,7 @@ export async function startNanoBananaImageGeneration(providerName = 'nano_banana
   } catch (err) {
     console.error('[Nano Banana] Error:', err);
     prog.fail(err?.message || 'Image generation failed');
-    alert(err?.message || 'Image generation failed.');
+    showUserNotice(err?.message || 'Image generation failed.');
     State.deleteHistoryItem(tempId, { skipRemote: true });
     renderHistory();
   } finally {
@@ -5635,7 +5642,7 @@ export async function startImageGenerationByProvider() {
   // No DOM fallback - if state is unavailable, something is wrong
   if (!window.GenerationState?.getProvider) {
     console.error('[Image] GenerationState not available - cannot determine provider');
-    alert('Image generation unavailable. Please refresh the page.');
+    showUserNotice('Image generation unavailable. Please refresh the page.');
     return;
   }
 
@@ -5665,7 +5672,7 @@ export async function startImageGenerationByProvider() {
   const startProvider = providerDispatch[provider];
   if (!startProvider) {
     console.error(`[Image] Unknown provider: ${provider} - NO FALLBACK`);
-    alert(`Image provider "${provider}" is not available. Please select a valid image provider.`);
+    showUserNotice(`Image provider "${provider}" is not available. Please select a valid image provider.`);
     return;
   }
 
@@ -6164,7 +6171,7 @@ export async function startVideoGeneration() {
     if (isQuotaError && window.showQuotaExceededPopup) {
       window.showQuotaExceededPopup();
     } else {
-      alert(errorMsg);
+      showUserNotice(errorMsg);
     }
 
     State.deleteHistoryItem(tempId, { skipRemote: true });
@@ -6503,7 +6510,7 @@ async function startImageTo3DFromUpload() {
   // Accept both data URLs (from file upload) and HTTP URLs (from history images)
   const isValidImage = imageData && (imageData.startsWith('data:') || imageData.startsWith('http'));
   if (!isValidImage) {
-    alert('Please upload a reference image first.');
+    showUserNotice('Please upload a reference image first.');
     return;
   }
 
@@ -6612,7 +6619,7 @@ async function startImageTo3DFromUpload() {
     State.deleteHistoryItem(tempId, { skipRemote: true });
     State.deletePendingMeta(tempId);
     prog.fail(err?.message || 'Image to 3D failed');
-    alert(err?.message || 'Image to 3D failed');
+    showUserNotice(err?.message || 'Image to 3D failed');
   } finally {
     startLock = false;
     allGenBtns.forEach(btn => btn.removeAttribute('disabled'));
@@ -6625,7 +6632,7 @@ async function startImageTo3DFromUpload() {
  */
 export async function startImageTo3DFromHistory(item) {
   if (!item || !item.image_url) {
-    alert('No image found to convert to 3D.');
+    showUserNotice('No image found to convert to 3D.');
     return;
   }
 
@@ -6713,7 +6720,7 @@ export async function startImageTo3DFromHistory(item) {
     State.deleteHistoryItem(tempId, { skipRemote: true });
     State.deletePendingMeta(tempId);
     prog.fail(err?.message || 'Image to 3D failed');
-    alert(err?.message || 'Image to 3D failed');
+    showUserNotice(err?.message || 'Image to 3D failed');
   }
 }
 
@@ -6780,7 +6787,7 @@ export async function startRefineFromHistory(item, origin = 'history') {
     (stage === 'preview' ? item.id : null);
   if (!previewTaskId) {
     console.warn('[Refine] No preview_task_id found:', { id: item.id, stage, keys: Object.keys(item) });
-    alert('Only finished preview models can be refined. Select a preview result first.');
+    showUserNotice('Only finished preview models can be refined. Select a preview result first.');
     return;
   }
   console.log('[Refine] Starting with previewTaskId:', previewTaskId, 'stage:', stage, 'origin:', origin);
@@ -6898,7 +6905,7 @@ export async function startRefineFromHistory(item, origin = 'history') {
     }
     console.error(err);
     prog.fail(err?.message || 'Refine failed');
-    alert(err?.message || 'Refine failed');
+    showUserNotice(err?.message || 'Refine failed');
   } finally {
     postProcessLock = false;
   }
@@ -6921,7 +6928,7 @@ export async function startRemeshFromPanel() {
   const baseItem = choice === 'current' ? getActiveHistoryItem() : null;
 
   if (choice === 'current' && !baseItem) {
-    alert('Load or generate a model before remeshing.');
+    showUserNotice('Load or generate a model before remeshing.');
     return;
   }
 
@@ -6929,14 +6936,14 @@ export async function startRemeshFromPanel() {
   let labelPrompt = '';
   if (choice === 'upload') {
     const file = byId('remeshModelUpload')?.files?.[0];
-    if (!file) { alert('Please choose a model to remesh.'); return; }
+    if (!file) { showUserNotice('Please choose a model to remesh.'); return; }
     const dataUrl = await fileToDataURL(file);
     source = { model_url: dataUrl };
     labelPrompt = `Remesh ${file.name}`;
   } else if (baseItem) {
     source = buildMeshySourceFromItem(baseItem);
     if (!source.input_task_id && !source.model_url) {
-      alert('This model has no valid source for remeshing. Try generating or uploading a model first.');
+      showUserNotice('This model has no valid source for remeshing. Try generating or uploading a model first.');
       return;
     }
     labelPrompt = `Remesh ${shortTitle(baseItem)}`;
@@ -6950,7 +6957,7 @@ export async function startRemeshFromPanel() {
     && !remeshValues.auto_size
     && !remeshValues.resize_height
     && !remeshValues.resize_longest_side) {
-    alert('Enter a target size, or pick Auto size, before resizing.');
+    showUserNotice('Enter a target size, or pick Auto size, before resizing.');
     return;
   }
 
@@ -6979,7 +6986,7 @@ export async function startRemeshFromPanel() {
     await beginMeshyTask(operationMode, { ...source, ...remeshValues }, meta);
   } catch (err) {
     console.error(err);
-    alert(err?.message || `${remeshActionLabel} failed.`);
+    showUserNotice(err?.message || `${remeshActionLabel} failed.`);
   }
 }
 
@@ -6995,7 +7002,7 @@ export async function startTextureFromPanel() {
   const choice = byId('textureModelSelect')?.value || 'current';
   const baseItem = choice === 'current' ? getActiveHistoryItem() : null;
   if (choice === 'current' && !baseItem) {
-    alert('Load or generate a model before texturing.');
+    showUserNotice('Load or generate a model before texturing.');
     return;
   }
 
@@ -7003,7 +7010,7 @@ export async function startTextureFromPanel() {
   let labelPrompt = '';
   if (choice === 'upload') {
     const file = byId('textureModelUpload')?.files?.[0];
-    if (!file) { alert('Please choose a model to texture.'); return; }
+    if (!file) { showUserNotice('Please choose a model to texture.'); return; }
     const dataUrl = await fileToDataURL(file);
     source = { model_url: dataUrl };
     labelPrompt = `Texture ${file.name}`;
@@ -7011,7 +7018,7 @@ export async function startTextureFromPanel() {
     // Canonical retexture source — shared logic across all entry points
     source = buildCanonicalRetextureSource(baseItem, 'rail');
     if (!source) {
-      alert('This model has no valid source for retexturing. Try generating a new model first.');
+      showUserNotice('This model has no valid source for retexturing. Try generating a new model first.');
       return;
     }
     labelPrompt = `Texture ${shortTitle(baseItem)}`;
@@ -7021,12 +7028,12 @@ export async function startTextureFromPanel() {
   try {
     texValues = await getTextureFormValues();
   } catch (err) {
-    alert(err?.message || 'Unable to read texture settings.');
+    showUserNotice(err?.message || 'Unable to read texture settings.');
     return;
   }
   const usesMultiviewStyle = Array.isArray(texValues.multiview_image_urls) && texValues.multiview_image_urls.length > 0;
   if (!usesMultiviewStyle && !texValues.text_style_prompt && !texValues.image_style_url) {
-    alert('Please describe the texture you want, add a style image, or add multiview style images.');
+    showUserNotice('Please describe the texture you want, add a style image, or add multiview style images.');
     return;
   }
   const textureStyleMode = usesMultiviewStyle ? 'multiview' : (texValues.image_style_url ? 'image' : 'text');
@@ -7063,7 +7070,7 @@ export async function startTextureFromPanel() {
     }, meta);
   } catch (err) {
     console.error(err);
-    alert(err?.message || 'Texture generation failed.');
+    showUserNotice(err?.message || 'Texture generation failed.');
   }
 }
 
@@ -7079,20 +7086,20 @@ async function startMultiImageTo3D() {
 
   // Collect image data URLs from the multi-image grid
   const grid = byId('multiImageGrid');
-  if (!grid) { alert('Multi-image panel not found.'); return; }
+  if (!grid) { showUserNotice('Multi-image panel not found.'); return; }
 
   const previews = Array.from(grid.querySelectorAll('.multi-img-preview'));
   const filled = previews.map(img => (img.style.display !== 'none' && img.src) ? img.src : null);
   const imageUrls = filled.filter(Boolean);
 
   if (imageUrls.length < 1 || imageUrls.length > 4) {
-    alert(`Please upload 1–4 images. Currently ${imageUrls.length} selected.`);
+    showUserNotice(`Please upload 1–4 images. Currently ${imageUrls.length} selected.`);
     return;
   }
   // Meshy 7 / latest treats the first image as the front view, and the panel
   // labels slot 1 that way — so slot 1 must be the one we send first.
   if (!filled[0]) {
-    alert('Add the front view to the Image 1 slot — the model is built around the first image.');
+    showUserNotice('Add the front view to the Image 1 slot — the model is built around the first image.');
     return;
   }
 
@@ -7189,7 +7196,7 @@ async function startMultiImageTo3D() {
     State.deleteHistoryItem(tempId, { skipRemote: true });
     State.deletePendingMeta(tempId);
     prog.fail(err?.message || 'Multi-image to 3D failed');
-    alert(err?.message || 'Multi-image to 3D failed');
+    showUserNotice(err?.message || 'Multi-image to 3D failed');
   } finally {
     startLock = false;
     allGenBtns.forEach(btn => btn.removeAttribute('disabled'));
@@ -7362,7 +7369,7 @@ export async function startRigFromPanel() {
   const baseItem = choice === 'current' ? getActiveHistoryItem() : null;
 
   if (choice === 'current' && !baseItem) {
-    alert('Load or generate a model before rigging.');
+    showUserNotice('Load or generate a model before rigging.');
     startLock = false;
     return;
   }
@@ -7379,7 +7386,7 @@ export async function startRigFromPanel() {
 
   if (choice === 'upload') {
     const file = byId('rigModelUpload')?.files?.[0];
-    if (!file) { alert('Please choose a model to rig.'); startLock = false; return; }
+    if (!file) { showUserNotice('Please choose a model to rig.'); startLock = false; return; }
     const dataUrl = await fileToDataURL(file);
     payload.model_url = dataUrl;
     labelPrompt = `Rig ${file.name}`;
@@ -7397,12 +7404,12 @@ export async function startRigFromPanel() {
     const fileName = (uploadedRigTexture.name || '').toLowerCase();
     const hasAllowedExtension = fileName.endsWith('.png');
     if (mime && mime !== 'image/png' && !hasAllowedExtension) {
-      alert('Rig texture image must be a PNG file.');
+      showUserNotice('Rig texture image must be a PNG file.');
       startLock = false;
       return;
     }
     if (!mime && !hasAllowedExtension) {
-      alert('Rig texture image must be a PNG file.');
+      showUserNotice('Rig texture image must be a PNG file.');
       startLock = false;
       return;
     }
@@ -7531,7 +7538,7 @@ export async function startViewerRigFromHistory(item, options = {}) {
   window.dispatchEvent(new CustomEvent('generation:start', { detail: { type: 'rig' } }));
 
   if (!item) {
-    alert('Load or generate a model before rigging.');
+    showUserNotice('Load or generate a model before rigging.');
     startLock = false;
     return;
   }
@@ -7544,7 +7551,7 @@ export async function startViewerRigFromHistory(item, options = {}) {
   const source = buildMeshySourceFromItem(item);
   Object.assign(payload, source);
   if (!payload.input_task_id && !payload.model_url) {
-    alert('This model has no valid source for rigging. Try generating or uploading a model first.');
+    showUserNotice('This model has no valid source for rigging. Try generating or uploading a model first.');
     startLock = false;
     return;
   }
@@ -7553,7 +7560,7 @@ export async function startViewerRigFromHistory(item, options = {}) {
   const textureImageUrl = String(options.texture_image_url || '').trim();
   if (textureImageUrl) {
     if (!/\.png($|\?)/i.test(textureImageUrl) && !textureImageUrl.startsWith('data:image/png')) {
-      alert('Rig texture image URL must point to a PNG file.');
+      showUserNotice('Rig texture image URL must point to a PNG file.');
       startLock = false;
       return;
     }
@@ -8049,12 +8056,12 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
 
   console.log('[Anim] startAnimationFromPanel called: rigTaskId=' + riggingTaskId + ' actionId=' + actionId);
   if (!riggingTaskId) {
-    alert('No rigged model available. Please complete rigging first.');
+    showUserNotice('No rigged model available. Please complete rigging first.');
     startLock = false;
     return;
   }
   if (actionId == null || isNaN(actionId)) {
-    alert('Please select an animation from the library.');
+    showUserNotice('Please select an animation from the library.');
     startLock = false;
     return;
   }
@@ -8402,7 +8409,7 @@ async function startRemeshFromHistoryWithValues(item, remeshValues) {
   State.setHistoryActiveModelId(item.id);
   const source = buildMeshySourceFromItem(item);
   if (!source.input_task_id && !source.model_url) {
-    alert('This model has no valid source for remeshing. Try generating or uploading a model first.');
+    showUserNotice('This model has no valid source for remeshing. Try generating or uploading a model first.');
     return;
   }
   const operationMode = remeshValues.operation_mode
@@ -8458,7 +8465,7 @@ async function startRemeshFromHistoryWithValues(item, remeshValues) {
     await beginMeshyTask(operationMode, { ...source, ...remeshValues }, meta);
   } catch (err) {
     console.error(err);
-    alert(err?.message || `${remeshActionLabel} failed.`);
+    showUserNotice(err?.message || `${remeshActionLabel} failed.`);
   }
 }
 
@@ -8701,7 +8708,7 @@ export async function startMeshyPrintRepair(item, options = {}) {
   State.setHistoryActiveModelId(item.id);
   const source = buildMeshySourceFromItem(item);
   if (!source.input_task_id && !source.model_url) {
-    alert('This model has no source we can repair. Try generating or uploading a model first.');
+    showUserNotice('This model has no source we can repair. Try generating or uploading a model first.');
     return;
   }
 
@@ -8727,7 +8734,7 @@ export async function startMeshyPrintRepair(item, options = {}) {
     }, meta);
   } catch (err) {
     console.error(err);
-    alert(err?.message || 'Print repair failed.');
+    showUserNotice(err?.message || 'Print repair failed.');
   }
 }
 
@@ -8741,7 +8748,7 @@ export async function startPrintReadyRemeshFromItem(item, options = {}) {
   State.setHistoryActiveModelId(item.id);
   const source = buildMeshySourceFromItem(item);
   if (!source.input_task_id && !source.model_url) {
-    alert('This model has no valid source for repair. Try generating or uploading a model first.');
+    showUserNotice('This model has no valid source for repair. Try generating or uploading a model first.');
     return;
   }
 
@@ -8780,7 +8787,7 @@ export async function startPrintReadyRemeshFromItem(item, options = {}) {
     await beginMeshyTask('remesh', { ...source, ...repairValues }, meta);
   } catch (err) {
     console.error(err);
-    alert(err?.message || 'Print repair failed.');
+    showUserNotice(err?.message || 'Print repair failed.');
   }
 }
 
@@ -8794,7 +8801,7 @@ async function startTextureFromHistoryWithValues(item, texValues, origin = 'hist
   // Canonical retexture source — same helper as rail panel and viewer toolbar
   const source = buildCanonicalRetextureSource(item, origin);
   if (!source) {
-    alert('This model has no valid source for retexturing. Try generating a new model first.');
+    showUserNotice('This model has no valid source for retexturing. Try generating a new model first.');
     return;
   }
 
@@ -8842,7 +8849,7 @@ async function startTextureFromHistoryWithValues(item, texValues, origin = 'hist
     }, meta);
   } catch (err) {
     console.error(err);
-    alert(err?.message || 'Texture generation failed.');
+    showUserNotice(err?.message || 'Texture generation failed.');
   }
 }
 
@@ -8851,7 +8858,7 @@ export async function startTextureFromHistory(item, origin = 'history') {
   try {
     texValues = await getTextureFormValues();
   } catch (err) {
-    alert(err?.message || 'Unable to read texture settings.');
+    showUserNotice(err?.message || 'Unable to read texture settings.');
     return;
   }
   return startTextureFromHistoryWithValues(item, texValues, origin);
@@ -8868,7 +8875,7 @@ export async function evolveFromHistory(item, count = 2) {
   if (!item) return;
   const prompt = item.prompt || item.root_prompt || '';
   if (!prompt) {
-    alert('No prompt available to evolve from.');
+    showUserNotice('No prompt available to evolve from.');
     return;
   }
 

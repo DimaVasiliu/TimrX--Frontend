@@ -520,7 +520,8 @@
       const size = parseInt(document.getElementById('sg-size').value, 10);
 
       if (!url) {
-        alert('Please enter a model URL');
+        if (window.showToast) window.showToast('Please enter a model URL', 'warning');
+        else console.error('Please enter a model URL');
         return;
       }
 

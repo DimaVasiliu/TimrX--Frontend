@@ -936,12 +936,14 @@ export function getVideoCreditCost(task, durationSeconds, resolution) {
     return cost;
   }
 
-  // Fallback to hardcoded defaults (must match backend pricing_service.py)
-  // Vertex Veo 3.1: 12 c/s (margin-stabilized). All modes equalized.
+  // Fallback to hardcoded defaults (must match unified_price_book.py).
+  // These were 48/72/96/120/156 — pre-unified figures, ~4.8x the real price —
+  // and survived the Stage 6 sweep because they live inside this function
+  // rather than in a named table. Verified by scripts/price_parity_sweep.mjs.
   const FALLBACK_COSTS = {
-    '720p': { 4: 48, 6: 72, 8: 96 },
-    '1080p': { 8: 120 },
-    '4k': { 8: 156 },
+    '720p': { 4: 10, 6: 15, 8: 20 },
+    '1080p': { 8: 25 },
+    '4k': { 8: 62 },
   };
 
   const resLower = resolution.toLowerCase();
@@ -953,8 +955,8 @@ export function getVideoCreditCost(task, durationSeconds, resolution) {
   }
 
   // Ultimate fallback — Vertex 8s 720p base rate
-  console.warn(`[Credits] No cost found for ${actionCode}, defaulting to 96`);
-  return 96;
+  console.warn(`[Credits] No cost found for ${actionCode}, defaulting to 20`);
+  return 20;
 }
 
 /**

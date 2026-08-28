@@ -5172,7 +5172,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
           window.showToast(message, 'error');
           return;
         }
-        alert(message);
+        console.error(message);
       }
 
       function validateImageFile(file) {

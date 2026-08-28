@@ -16,6 +16,36 @@
   const TIP_AMOUNTS = [5, 10, 25, 50];
   const REMIX_STORAGE_KEY = 'timrx_pending_community_remix';
 
+  function notify(message, type = 'error') {
+    if (window.showToast) {
+      window.showToast(message, type);
+      return;
+    }
+    if (document.body) {
+      const toast = document.createElement('div');
+      toast.textContent = message;
+      toast.setAttribute('role', 'status');
+      toast.style.cssText = [
+        'position:fixed',
+        'right:20px',
+        'bottom:20px',
+        'z-index:99999',
+        `background:${type === 'success' ? '#14351f' : '#2b1414'}`,
+        'color:#fff',
+        'padding:12px 16px',
+        'border:1px solid rgba(255,255,255,.14)',
+        'border-radius:8px',
+        'box-shadow:0 10px 24px rgba(0,0,0,.35)',
+        'font-size:14px',
+        'max-width:min(360px, calc(100vw - 40px))'
+      ].join(';');
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 6000);
+    } else {
+      console.error(message);
+    }
+  }
+
   // Content types excluded from public community display.
   const EXCLUDED_DISPLAY_TYPES = ['animated'];
 
@@ -1786,11 +1816,11 @@
           if (charCount) charCount.textContent = '';
           wireCommentActions(postId);
         } else {
-          alert(data.error?.message || 'Failed to post comment');
+          notify(data.error?.message || 'Failed to post comment');
         }
       } catch (e) {
         console.error('[Community] Comment submit error:', e);
-        alert('Failed to post comment. Please try again.');
+        notify('Failed to post comment. Please try again.');
       } finally {
         submitting = false;
         btn.disabled = false;

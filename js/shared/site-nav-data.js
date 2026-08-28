@@ -66,7 +66,6 @@
     '/ai-3d-generator': { preview: 'ai-3d-generator.html', live: '/ai-3d-generator' },
     '/seedance-video-generator': { preview: 'seedance-video-generator.html', live: '/seedance-video-generator' },
     '/veo-3-video-generator': { preview: 'veo-3-video-generator.html', live: '/veo-3-video-generator' },
-    '/imagen-image-generator': { preview: 'imagen-image-generator.html', live: '/imagen-image-generator' },
     '/text-to-3d': { preview: 'text-to-3d.html', live: '/text-to-3d' },
     '/image-to-3d': { preview: 'image-to-3d.html', live: '/image-to-3d' },
     '/3d-print-model-generator': { preview: '3d-print-model-generator.html', live: '/3d-print-model-generator' },

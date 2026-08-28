@@ -15,6 +15,14 @@ import * as State from './state.js?v=20260827g';
 // Auth gate — 3MF downloads require a verified-email (active) account.
 // ============================================================================
 
+function _notify(message, type = 'error') {
+  if (window.showToast) {
+    window.showToast(message, type);
+  } else {
+    console.error(message);
+  }
+}
+
 function _isActiveUser() {
   // Active = signed in (verified email) AND has at least 1 credit in the wallet.
   try {
@@ -49,7 +57,7 @@ function _requireActiveUserOr3mfBlock(action = 'download') {
       } else if (window.showToast) {
         window.showToast(msg, 'info');
       } else {
-        alert(msg);
+        _notify(msg, 'info');
       }
     } else {
       // Signed in but no credits
@@ -59,7 +67,7 @@ function _requireActiveUserOr3mfBlock(action = 'download') {
       } else if (window.showToast) {
         window.showToast(msg, 'warning');
       } else {
-        alert(msg);
+        _notify(msg, 'warning');
       }
     }
   } catch (err) {
@@ -729,7 +737,7 @@ function _placeLabelAtEvent(e) {
   const text = _sanitizeLabelText(_labelText);
   if (!text) {
     if (window.showToast) window.showToast('Enter label text first.', 'warning');
-    else alert('Enter label text first.');
+    else _notify('Enter label text first.', 'warning');
     return;
   }
 
@@ -2180,7 +2188,7 @@ async function _runManualPrintCheck() {
 
 async function _startPrintRepair() {
   if (typeof _manualRepairHandler !== 'function') {
-    alert('Repair is available from history items after the page finishes loading.');
+    _notify('Repair is available from history items after the page finishes loading.', 'info');
     return;
   }
   const targetHeight = Number.parseFloat(_exportTargetHeightMm);
@@ -2363,7 +2371,7 @@ function _renderSidebar() {
       console.error('[MCP] 3MF export failed:', err);
       const msg = err?.message || '3MF export failed.';
       if (window.showToast) window.showToast(msg, 'error');
-      else alert(msg);
+      else _notify(msg);
     }
   });
   sb.querySelector('#mcp-export-glb-btn')?.addEventListener('click', _exportColoredGLB);

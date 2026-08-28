@@ -161,7 +161,7 @@ function switchHistoryFilter(filter = 'all') {
 
 function showErrorToast(message) {
   if (!document.body) {
-    alert(message);
+    console.error(message);
     return;
   }
   const toast = document.createElement('div');
@@ -189,6 +189,14 @@ function showErrorToast(message) {
     toast.style.opacity = '0';
     setTimeout(() => toast.remove(), 220);
   }, 2600);
+}
+
+function showWorkspaceNotice(message, type = 'error') {
+  if (window.showToast) {
+    window.showToast(message, type);
+    return;
+  }
+  showErrorToast(message);
 }
 
 /**
@@ -643,7 +651,7 @@ window.TimrXState = {
 
 function handleImageFile(file) {
   if (!file.type.startsWith('image/')) {
-    alert('Please select an image (.png, .jpg, .webp)');
+    showWorkspaceNotice('Please select an image (.png, .jpg, .webp)');
     return;
   }
   UI.state.imageFile = file;
@@ -658,7 +666,7 @@ function handleImageFile(file) {
 function handleModelFile(file) {
   const ok = /\.(glb|gltf)$/i.test(file.name);
   if (!ok) {
-    alert('For instant preview, upload a .glb or .gltf file.');
+    showWorkspaceNotice('For instant preview, upload a .glb or .gltf file.');
     return;
   }
   UI.state.modelFile = file;
@@ -742,18 +750,18 @@ function setupGenerateButtonListeners() {
 
       // Pre-validate and give helpful feedback instead of silent failure
       if (!riggingTaskId) {
-        alert('No rigged model loaded. Please rig a model first, or load one from history.');
+        showWorkspaceNotice('No rigged model loaded. Please rig a model first, or load one from history.');
         return;
       }
       if (actionId == null || isNaN(actionId)) {
-        alert('Please select an animation from the library or quick picks before clicking Apply.');
+        showWorkspaceNotice('Please select an animation from the library or quick picks before clicking Apply.');
         return;
       }
       let postProcess = null;
       try {
         postProcess = API.getAnimationPostProcessValues();
       } catch (err) {
-        alert(err?.message || 'Invalid animation output settings.');
+        showWorkspaceNotice(err?.message || 'Invalid animation output settings.');
         return;
       }
       API.startAnimationFromPanel(riggingTaskId, actionId, postProcess);
@@ -877,7 +885,7 @@ function openViewerActionModal(config = {}) {
     } catch (err) {
       console.error('[ViewerActionModal] Submit failed:', err);
       if (window.showToast) window.showToast(err?.message || 'Action failed.', 'error');
-      else alert(err?.message || 'Action failed.');
+      else showWorkspaceNotice(err?.message || 'Action failed.');
       submitBtn.disabled = false;
       submitBtn.textContent = originalText;
     }
@@ -1537,7 +1545,7 @@ function initViewerToolbar() {
       stlBtn.onclick = async () => {
         const item = API.getActiveHistoryItem();
         if (!item) {
-          alert('No model selected. Open a model from history first.');
+          showWorkspaceNotice('No model selected. Open a model from history first.');
           return;
         }
 
@@ -1585,7 +1593,7 @@ function initViewerToolbar() {
           return;
         }
 
-        alert('No exportable model found. Load the model in the viewer first.');
+        showWorkspaceNotice('No exportable model found. Load the model in the viewer first.');
       };
     }
 
@@ -1610,13 +1618,13 @@ function initViewerToolbar() {
       repairStlBtn.onclick = async () => {
         const item = API.getActiveHistoryItem();
         if (!item) {
-          alert('No model selected. Open a model from history first.');
+          showWorkspaceNotice('No model selected. Open a model from history first.');
           return;
         }
 
         const jobId = item.id || item.model_id;
         if (!jobId) {
-          alert('No model id found for this item.');
+          showWorkspaceNotice('No model id found for this item.');
           return;
         }
 
@@ -1681,7 +1689,7 @@ function initViewerToolbar() {
     if (threeMfBtn) {
       threeMfBtn.onclick = async () => {
         const item = API.getActiveHistoryItem();
-        if (!item) { alert('No model selected. Open a model from history first.'); return; }
+        if (!item) { showWorkspaceNotice('No model selected. Open a model from history first.'); return; }
 
         // Only download a real 3MF. Do not silently fall back to GLB from a
         // button labelled "3MF"; that makes Bambu/Orca workflows look broken.
@@ -1694,7 +1702,7 @@ function initViewerToolbar() {
 
         const msg = 'No 3MF file is available for this model. Generate/export 3MF first, or use Manual Paint Download 3MF.';
         if (window.showToast) window.showToast(msg, 'error');
-        else alert(msg);
+        else showWorkspaceNotice(msg);
       };
     }
 
@@ -1703,11 +1711,11 @@ function initViewerToolbar() {
       btn.addEventListener('click', async () => {
         const slicer = btn.dataset.slicer;
         const item = API.getActiveHistoryItem();
-        if (!item) { alert('No model selected. Open a model from history first.'); return; }
+        if (!item) { showWorkspaceNotice('No model selected. Open a model from history first.'); return; }
 
         // Get the best URL for the model
         const modelUrl = item.glb_url || item.glb_proxy;
-        if (!modelUrl) { alert('No model URL available.'); return; }
+        if (!modelUrl) { showWorkspaceNotice('No model URL available.'); return; }
 
         // Slicer URL schemes for local app launch
         const slicerSchemes = {
@@ -1731,7 +1739,7 @@ function initViewerToolbar() {
           }
         } catch (err) {
           console.warn('[Slicer] Launch failed:', err);
-          alert(`Could not open ${slicer}. Make sure it is installed on your computer.`);
+          showWorkspaceNotice(`Could not open ${slicer}. Make sure it is installed on your computer.`);
         }
       });
     });
@@ -1919,10 +1927,10 @@ function initViewerToolbar() {
 
       if (act === 'copy-link') {
         const link = item?.glb_proxy || item?.glb_url;
-        if (!link) { alert('No downloadable link available yet.'); return; }
+        if (!link) { showWorkspaceNotice('No downloadable link available yet.'); return; }
         try {
           await navigator.clipboard.writeText(link);
-          alert('Link copied to clipboard.');
+          showWorkspaceNotice('Link copied to clipboard.', 'success');
         } catch { prompt('Copy link manually:', link); }
       }
       if (act === 'share-twitter') {
@@ -1943,7 +1951,7 @@ function initViewerToolbar() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type: assetType, prompt: promptText, thumbnail_url: thumbUrl }),
-        }).then(() => alert('Shared to Discord!')).catch(() => alert('Failed to share to Discord.'));
+        }).then(() => showWorkspaceNotice('Shared to Discord!', 'success')).catch(() => showWorkspaceNotice('Failed to share to Discord.'));
         window.open('https://discord.gg/VpqT2UywDG', '_blank');
       }
       if (act === 'share-inspire' && item) {
@@ -2052,7 +2060,7 @@ function initViewerToolbar() {
         const glbUrl = activeItem.glb_proxy || activeItem.glb_url || activeItem.model_url || '';
         if (!glbUrl) {
           if (window.showToast) window.showToast('No paintable model URL found for this item.', 'error');
-          else alert('No paintable model URL found for this item.');
+          else showWorkspaceNotice('No paintable model URL found for this item.');
           return;
         }
         openMultiColorModal({
@@ -2078,7 +2086,7 @@ function initViewerToolbar() {
       }
 
       if (window.showToast) window.showToast('Load a model in the viewer first.', 'info');
-      else alert('Load a model in the viewer first.');
+      else showWorkspaceNotice('Load a model in the viewer first.');
     }
 
     if (action === 'refine' && activeItem) {
@@ -2161,7 +2169,7 @@ function initViewerToolbar() {
     if (action === 'retry' && activeItem) {
       closeViewerPopovers();
       const prompt = activeItem.prompt || activeItem.root_prompt || '';
-      if (!prompt) { alert('No prompt available to retry.'); return; }
+      if (!prompt) { showWorkspaceNotice('No prompt available to retry.'); return; }
       // The rail's data-panel values are model|image|video — 'image3d'/'text3d'
       // never existed, so retry was a no-op (audit 2026-08-11). Route to the
       // model rail, then the image-to-3d feature tab for image-sourced items.
@@ -3292,7 +3300,7 @@ function initTimrxOrderModal() {
           'info'
         );
       } else {
-        alert('Open a completed model from your History first — TimrX needs a finished GLB to print.');
+        showWorkspaceNotice('Open a completed model from your History first — TimrX needs a finished GLB to print.');
       }
       return;
     }
@@ -3849,7 +3857,7 @@ function wireGallery() {
         setTimeout(() => refreshBtn.classList.remove('is-success'), 1500);
       } catch (err) {
         console.error('Failed to restore history:', err);
-        alert('Failed to restore history from database. Please try again.');
+        showWorkspaceNotice('Failed to restore history from database. Please try again.');
         refreshBtn.classList.remove('is-loading');
       }
     });
@@ -4186,7 +4194,7 @@ function wireGallery() {
         }
         const imageUrl = btn.getAttribute('data-image-url') || item.image_url || item.thumbnail_url;
         if (!imageUrl) {
-          alert('No image available to download.');
+          showWorkspaceNotice('No image available to download.');
           return;
         }
         const artifactFormat = String(item.artifact_format || item.meta?.artifact_format || item.format || '').toLowerCase();
@@ -4214,7 +4222,7 @@ function wireGallery() {
         }
         const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
         if (!videoUrl) {
-          alert('No video available to download.');
+          showWorkspaceNotice('No video available to download.');
           return;
         }
         const filename = buildItemDownloadFilename(item, {
@@ -4229,13 +4237,13 @@ function wireGallery() {
       if (act === 'copy-video-link') {
         const videoUrl = btn.getAttribute('data-video-url') || item.video_url;
         if (!videoUrl) {
-          alert('No video link available.');
+          showWorkspaceNotice('No video link available.');
           return;
         }
         if (navigator.clipboard?.writeText) {
           try {
             await navigator.clipboard.writeText(videoUrl);
-            alert('Video link copied to clipboard.');
+            showWorkspaceNotice('Video link copied to clipboard.', 'success');
           } catch {
             prompt('Copy video link manually:', videoUrl);
           }
@@ -4248,13 +4256,13 @@ function wireGallery() {
       if (act === 'copy-link') {
         const link = item.glb_proxy || item.glb_url || item.image_url;
         if (!link) {
-          alert('No downloadable link available yet.');
+          showWorkspaceNotice('No downloadable link available yet.');
           return;
         }
         if (navigator.clipboard?.writeText) {
           try {
             await navigator.clipboard.writeText(link);
-            alert('Link copied to clipboard.');
+            showWorkspaceNotice('Link copied to clipboard.', 'success');
           } catch {
             prompt('Copy link manually:', link);
           }
@@ -4292,9 +4300,9 @@ function wireGallery() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ type: assetType, prompt, thumbnail_url: thumbUrl }),
         }).then(() => {
-          alert('Shared to Discord!');
+          showWorkspaceNotice('Shared to Discord!', 'success');
         }).catch(() => {
-          alert('Failed to share to Discord.');
+          showWorkspaceNotice('Failed to share to Discord.');
         });
         window.open('https://discord.gg/VpqT2UywDG', '_blank');
         return;
@@ -4477,7 +4485,7 @@ function wireGallery() {
           } else {
             const errMsg = res.data?.error?.message || res.error || 'Retry failed';
             if (window.showToast) window.showToast(errMsg, 'error');
-            else alert(errMsg);
+            else showWorkspaceNotice(errMsg);
           }
         } catch (err) {
           console.error('[Retry] Failed:', err);

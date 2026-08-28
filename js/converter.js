@@ -20,6 +20,36 @@ let originalFile = null;
 // ============================================================================
 const getEl = (id) => document.getElementById(id);
 
+function notifyConverter(message, type = 'error') {
+  if (window.showToast) {
+    window.showToast(message, type);
+    return;
+  }
+  if (document.body) {
+    const toast = document.createElement('div');
+    toast.textContent = message;
+    toast.setAttribute('role', 'status');
+    toast.style.cssText = [
+      'position:fixed',
+      'right:20px',
+      'bottom:20px',
+      'z-index:99999',
+      `background:${type === 'success' ? '#14351f' : '#2b1414'}`,
+      'color:#fff',
+      'padding:12px 16px',
+      'border:1px solid rgba(255,255,255,.14)',
+      'border-radius:8px',
+      'box-shadow:0 10px 24px rgba(0,0,0,.35)',
+      'font-size:14px',
+      'max-width:min(360px, calc(100vw - 40px))'
+    ].join(';');
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 6000);
+  } else {
+    console.error(message);
+  }
+}
+
 function formatFileSize(bytes) {
   if (!Number.isFinite(bytes) || bytes <= 0) return '0 MB';
   if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -372,7 +402,7 @@ function handleFileUpload(file) {
   const sizeMB = file.size / (1024 * 1024);
 
   if (sizeMB > MAX_SIZE_MB) {
-    alert(`File is ${sizeMB.toFixed(0)} MB — too large for browser-based conversion.\n\nMaximum recommended size: ${MAX_SIZE_MB} MB.\nUse Blender or another desktop tool for files this large.`);
+    notifyConverter(`File is ${sizeMB.toFixed(0)} MB — too large for browser-based conversion. Maximum recommended size: ${MAX_SIZE_MB} MB. Use Blender or another desktop tool for files this large.`);
     return;
   }
 
@@ -667,7 +697,7 @@ async function exportModel(format) {
     return;
   }
   if (!converterModel) {
-    alert('Please upload a model first');
+    notifyConverter('Please upload a model first');
     return;
   }
 

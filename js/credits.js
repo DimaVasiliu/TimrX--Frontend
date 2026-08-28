@@ -4281,13 +4281,13 @@
         updateSubscriptionUI();
 
         // Show confirmation
-        alert(`Your subscription has been cancelled.\n\nYou can continue using your credits until ${formatDate(result.data.period_end || currentSubscription.current_period_end)}.`);
+        showToast(`Your subscription has been cancelled. You can continue using your credits until ${formatDate(result.data.period_end || currentSubscription.current_period_end)}.`, 'success', 7000);
       } else {
-        alert(result.data?.message || 'Failed to cancel subscription. Please try again or contact support.');
+        showToast(result.data?.message || 'Failed to cancel subscription. Please try again or contact support.', 'error', 7000);
       }
     } catch (err) {
       console.error('[Credits] Cancel subscription error:', err);
-      alert('Failed to cancel subscription. Please try again or contact support.');
+      showToast('Failed to cancel subscription. Please try again or contact support.', 'error', 7000);
     } finally {
       if (cancelSubscriptionBtn) {
         cancelSubscriptionBtn.disabled = false;

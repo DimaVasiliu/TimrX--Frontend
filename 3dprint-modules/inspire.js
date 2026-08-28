@@ -175,25 +175,25 @@
     image: [
       {
         title: 'Luxury Watch Macro',
-        providerHint: 'Best with OpenAI, Imagen, or FLUX.2 Pro',
+        providerHint: 'Best with OpenAI, Gemini, or FLUX.2 Pro',
         hint: 'Strong for premium product photography and material realism.',
         prompt: 'macro product photograph of a luxury skeleton watch resting on dark volcanic stone, brushed titanium case, sapphire reflections, warm edge light, deep shadows, ultra-sharp dial details, premium editorial ad photography, clean composition'
       },
       {
         title: 'Brutalist Cafe Editorial',
-        providerHint: 'Best with OpenAI or Imagen',
+        providerHint: 'Best with OpenAI or Gemini',
         hint: 'Detailed environment, grounded materials, strong interior light.',
         prompt: 'editorial interior photo of a brutalist cafe at blue hour, poured concrete walls, smoked glass, brushed steel counter, soft practical lamps, a few guests in tailored monochrome outfits, cinematic natural composition, premium architecture magazine style'
       },
       {
         title: 'Streetwear Portrait',
-        providerHint: 'Best with OpenAI, Imagen, or FLUX.2 Pro',
+        providerHint: 'Best with OpenAI, Gemini, or FLUX.2 Pro',
         hint: 'Portrait-driven fashion shots respond well to concrete styling cues.',
         prompt: 'fashion portrait of a streetwear creative standing under a subway platform, oversized charcoal coat, silver jewelry, rain-slick pavement, moody side light, crisp skin texture, candid editorial energy, shallow depth of field'
       },
       {
         title: 'Botanical Perfume Ad',
-        providerHint: 'Best with OpenAI or Imagen',
+        providerHint: 'Best with OpenAI or Gemini',
         hint: 'Clear hero subject plus surrounding art direction.',
         prompt: 'high-end perfume campaign image, emerald glass bottle surrounded by wet fig leaves and sliced pear, dramatic softbox lighting, luxury beauty ad composition, polished reflections, fresh green palette, premium brand mood'
       },
@@ -205,13 +205,13 @@
       },
       {
         title: 'Neon Transit Matte',
-        providerHint: 'Best with Imagen or FLUX.2 Pro',
+        providerHint: 'Best with Gemini or FLUX.2 Pro',
         hint: 'Scene scale, weather, and light cues help cinematic worldbuilding.',
         prompt: 'cinematic matte painting of a futuristic transit station in heavy rain, neon route markers, reflective pavement, commuters with translucent umbrellas, volumetric fog, magenta and cyan glow, grand scale, richly layered urban atmosphere'
       },
       {
         title: 'Childrens Book Meadow',
-        providerHint: 'Best with OpenAI or Imagen',
+        providerHint: 'Best with OpenAI or Gemini',
         hint: 'Clear subject, medium, and tone create stable illustration results.',
         prompt: 'children’s book illustration of a fox courier crossing a flower meadow with a satchel of letters, bright watercolor textures, warm morning sun, whimsical rounded shapes, friendly storybook charm, highly readable scene composition'
       },
@@ -235,13 +235,13 @@
       },
       {
         title: 'Dessert Hero Shot',
-        providerHint: 'Best with OpenAI or Imagen',
+        providerHint: 'Best with OpenAI or Gemini',
         hint: 'Food prompts improve with texture and lighting specificity.',
         prompt: 'hero food photograph of a glossy pistachio mille-feuille, flaky pastry layers, crushed pistachios, tiny edible flowers, dark moody background, studio side light, ultra-detailed textures, luxury patisserie advertising'
       },
       {
         title: 'Minimal Desk Product',
-        providerHint: 'Best with OpenAI, Imagen, or FLUX.2 Pro',
+        providerHint: 'Best with OpenAI, Gemini, or FLUX.2 Pro',
         hint: 'Works for clean tech product renders and landing-page imagery.',
         prompt: 'minimal product render of a compact mechanical keyboard on a pale oak desk, soft daylight from the left, brushed aluminum frame, crisp shadows, modern creative workspace styling, airy premium tech aesthetic'
       },
@@ -253,13 +253,13 @@
       },
       {
         title: 'Fantasy Cover Art',
-        providerHint: 'Best with OpenAI, Imagen, or FLUX.2 Pro',
+        providerHint: 'Best with OpenAI, Gemini, or FLUX.2 Pro',
         hint: 'Strong for character-plus-environment key art.',
         prompt: 'epic fantasy book cover art, lone mage on a cliff above a storm-lit city, cloak whipping in the wind, electric blue runes, towering clouds, cinematic scale, dramatic focal lighting, premium cover illustration'
       },
       {
         title: 'Isometric House Cutaway',
-        providerHint: 'Best with Recraft or Imagen',
+        providerHint: 'Best with Recraft or Gemini',
         hint: 'Explicit layout language helps for structured diagram scenes.',
         prompt: 'isometric cutaway illustration of a compact eco house, visible rooms, solar battery wall, cozy reading loft, indoor plants, clean labels space, bright informative palette, polished architectural infographic style'
       },
