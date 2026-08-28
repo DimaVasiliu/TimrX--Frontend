@@ -253,6 +253,7 @@
   <link rel="stylesheet" href="trustpilot.css?v=20260518a">
   <link rel="stylesheet" href="site-shell.css?v=20260819palette2">
   <link rel="stylesheet" href="tx-menu.css?v=20260819palette2">
+  <link rel="stylesheet" href="pricing-packs.css?v=20260828packs6">
   <link rel="stylesheet" href="hub-palette.css?v=20260820pricing-calculator-compact">
 
   <!-- Visually Hidden Utility -->
@@ -585,12 +586,12 @@
         </div>
       </div>
 
-      <div class="pricing-grid" id="modelPricingGrid">
+      <div class="pricing-grid pricing-grid--packs" id="modelPricingGrid">
         <!-- Card 0: Mini — ONE-TIME ONLY, no mini_monthly/mini_yearly exists -->
         <div class="price-card" data-one-time-only>
           <div class="pc-top">
+            <span class="badge">Try It</span>
             <h3>Mini</h3>
-            <p class="sub">Try it out, no commitment</p>
           </div>
           <div class="pc-price">
             <span class="big">$4.99</span>
@@ -600,17 +601,16 @@
             <li>Up to 25 AI images</li>
             <li>Up to 3 textured 3D models</li>
             <li>Up to 6 short videos</li>
-            <li>One balance for everything</li>
+            <li>Credits never expire</li>
           </ul>
-          <p class="pc-note"><i class="fa-solid fa-film"></i> Includes video — one balance for everything</p>
           <button class="btn block pricing-cta" type="button" data-plan="mini_50">Get Mini</button>
         </div>
 
         <!-- Card 1: Starter -->
         <div class="price-card">
           <div class="pc-top">
+            <span class="badge">Great Start</span>
             <h3>Starter</h3>
-            <p class="sub">Perfect for exploring AI creation</p>
           </div>
           <div class="pc-price">
             <span class="big">$9.99</span>
@@ -620,9 +620,8 @@
             <li>Up to 60 AI images</li>
             <li>Up to 8 textured 3D models</li>
             <li>Up to 15 short videos</li>
-            <li>One balance for everything</li>
+            <li>Credits never expire</li>
           </ul>
-          <p class="pc-note"><i class="fa-solid fa-film"></i> Includes video — one balance for everything</p>
           <button class="btn block pricing-cta" type="button" data-plan="starter_120">Get Starter</button>
         </div>
 
@@ -631,7 +630,6 @@
           <div class="pc-top">
             <span class="badge hot">Popular</span>
             <h3>Creator</h3>
-            <p class="sub">For serious creators building portfolios</p>
           </div>
           <div class="pc-price">
             <span class="big">$19.99</span>
@@ -641,9 +639,8 @@
             <li>Up to 125 AI images</li>
             <li>Up to 16 textured 3D models</li>
             <li>Up to 31 short videos</li>
-            <li>GLB/GLTF downloads</li>
+            <li>GLB &amp; GLTF downloads</li>
           </ul>
-          <p class="pc-note"><i class="fa-solid fa-film"></i> Includes video — one balance for everything</p>
           <button class="btn block pricing-cta" type="button" data-plan="creator_250">Get Creator</button>
         </div>
 
@@ -652,7 +649,6 @@
           <div class="pc-top">
             <span class="badge">Best Value</span>
             <h3>Studio</h3>
-            <p class="sub">Maximum value for professionals</p>
           </div>
           <div class="pc-price">
             <span class="big">$39.99</span>
@@ -664,16 +660,14 @@
             <li>Up to 68 short videos</li>
             <li>Priority queue access</li>
           </ul>
-          <p class="pc-note"><i class="fa-solid fa-film"></i> Includes video — one balance for everything</p>
           <button class="btn block pricing-cta" type="button" data-plan="studio_550">Get Studio</button>
         </div>
 
         <!-- Card 4: Max — ONE-TIME ONLY, no max_monthly/max_yearly exists -->
         <div class="price-card" data-one-time-only>
           <div class="pc-top">
-            <span class="badge">Best Value</span>
+            <span class="badge">Most Credits</span>
             <h3>Max</h3>
-            <p class="sub">Highest value per credit</p>
           </div>
           <div class="pc-price">
             <span class="big">$79.99</span>
@@ -685,7 +679,6 @@
             <li>Up to 150 short videos</li>
             <li>Priority queue access</li>
           </ul>
-          <p class="pc-note"><i class="fa-solid fa-film"></i> Includes video — one balance for everything</p>
           <button class="btn block pricing-cta" type="button" data-plan="max_1200">Get Max</button>
         </div>
 
@@ -693,16 +686,17 @@
 
       <!-- Video pricing grid REMOVED (unified credits Sep 2026 — one balance) -->
 
-      <p class="foot-note" id="pricingFootNote">Images from 1 credit · 3D from 10 · 5s video from 8 · one balance for everything</p>
+      <p class="foot-note" id="pricingFootNote">Images from 1 credit · 3D from 10 · 5s video from 8 · one balance for everything · all prices in USD</p>
 
       <!-- ═══ "What can I generate?" Calculator ═══ -->
       <div class="calc-wrap collapsed" id="valueCalculator">
-        <button type="button" class="calc-title" id="calcToggleBtn">
+        <button type="button" class="calc-title" id="calcToggleBtn" aria-expanded="false" aria-controls="calcBody">
           <i class="fa-solid fa-calculator calc-title-icon"></i>
           What can I create?
           <i class="fa-solid fa-chevron-down calc-title-chevron"></i>
         </button>
-        <div class="calc-body">
+        <div class="calc-body" id="calcBody">
+          <button type="button" class="calc-close" id="calcCloseBtn" aria-label="Close"></button>
           <p class="calc-sub">Select a pack to see what you can generate.</p>
 
           <!-- Pool pills + tier dropdowns (rebuilt dynamically by JS) -->
@@ -1013,7 +1007,7 @@
     <script src="js/shared/tx-menu.js?v=20260818mobile" defer></script>
     <script src="js/site-shell.js?v=20260803b" defer></script>
     <script src="js/auth-modal.js?v=20260827g" defer></script>
-    <script src="js/credits.js?v=20260827g" defer></script>
+    <script src="js/credits.js?v=20260828i" defer></script>
     <script src="js/trustpilot.js" defer></script>
     <script src="js/cookie-consent.js" defer></script>
 

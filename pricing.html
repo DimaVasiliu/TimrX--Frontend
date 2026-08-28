@@ -113,7 +113,7 @@
         "name": "Do unused credits roll over?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Credits from one-time purchases never expire and roll over indefinitely. For subscription plans, unused monthly credits may roll over for a limited period depending on the plan tier. Check the specific plan details for exact rollover policies."
+          "text": "Credits from one-time purchases never expire and remain available until used. Subscription credits refresh each billing cycle and unused subscription credits do not roll over."
         }
       },
       {
@@ -121,7 +121,7 @@
         "name": "Can I get a refund for unused credits?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Refund eligibility depends on how and when the credits were purchased. Generally, unused credits from one-time purchases may be eligible for a refund within a specified window. Subscription credits that have already been allocated are typically non-refundable. Please refer to the TimrX terms of service for full refund policy details."
+          "text": "Credits are automatically returned when a generation fails, times out, or is cancelled before completion. Once credits are used successfully, the delivered generation is not refundable. For billing issues, contact TimrX support and review the terms of service."
         }
       },
       {
@@ -129,7 +129,7 @@
         "name": "How is the TimrX print-and-ship service priced?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Print orders are priced separately from AI credits. The cost depends on model volume, material (PLA/PETG/resin), infill, finish and shipping destination — full breakdown shown on the order screen before you pay. We aren't trying to be the cheapest service; we focus on premium output, fair sustainable pricing and reliable delivery. Worldwide shipping is free once your print subtotal reaches $79 (\u20ac65 in the eurozone)."
+          "text": "Print orders are priced separately from AI credits. The cost depends on model volume, material (PLA, PLA+, PETG, ABS, TPU, Silk), infill, finish and shipping destination — full breakdown shown on the order screen before you pay. We aren't trying to be the cheapest service; we focus on premium output, fair sustainable pricing and reliable delivery. Worldwide shipping is free once your print subtotal reaches $79 (\u20ac65 / \u00a355)."
         }
       },
       {
@@ -152,12 +152,12 @@
     "serviceType": "3D Printing on Demand",
     "provider": { "@type": "Organization", "name": "TimrX", "url": "https://timrx.live" },
     "areaServed": "Worldwide",
-    "description": "Order your AI-generated TimrX models as physical prints. FDM, resin and multi-color AMS / MMU output, with worldwide shipping. Premium quality, fair pricing, no hidden fees.",
+    "description": "Order your AI-generated TimrX models as physical prints. FDM output with worldwide shipping; resin by manual quote. Premium quality, fair pricing, no hidden fees.",
     "url": "https://timrx.live/pricing",
     "offers": [
-      { "@type": "Offer", "name": "First Small Print Free", "description": "First order only: one print up to 50 mm tall is free — you pay only shipping. Limit one per customer. Launching with the print service in summer 2026.", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/PreOrder", "validFrom": "2026-07-01", "availabilityStarts": "2026-07-01" },
-      { "@type": "Offer", "name": "Free Worldwide Shipping over $79", "description": "Orders with a print subtotal of $79 or more (\u20ac65 in the eurozone) ship free worldwide. No code required. Launching with the print service in summer 2026.", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/PreOrder", "validFrom": "2026-07-01", "availabilityStarts": "2026-07-01" },
-      { "@type": "Offer", "name": "Refer-a-Friend $5 Print Credit", "description": "You and your friend each receive $5 in print credit when they place their first paid order. Launching with the print service in summer 2026.", "price": "5", "priceCurrency": "USD", "availability": "https://schema.org/PreOrder", "validFrom": "2026-07-01", "availabilityStarts": "2026-07-01" }
+      { "@type": "Offer", "name": "First Small Print Free", "description": "First order only: one print up to 50 mm tall is free — you pay only shipping. Limit one per customer.", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" },
+      { "@type": "Offer", "name": "Free Worldwide Shipping over $79", "description": "Orders with a print subtotal of $79 or more (\u20ac65 / \u00a355) ship free worldwide. No code required.", "price": "0", "priceCurrency": "USD", "availability": "https://schema.org/InStock" },
+      { "@type": "Offer", "name": "Refer-a-Friend $5 Print Credit", "description": "You and your friend each receive $5 in print credit when they place their first paid order.", "price": "5", "priceCurrency": "USD", "availability": "https://schema.org/InStock" }
     ]
   }
   </script>
@@ -224,7 +224,7 @@
   <section class="tool-intro">
     <div class="container">
       <p>TimrX uses a credit-based pricing model that gives you full control over how you spend. Every AI operation on the platform — whether it is generating an image, creating a video, building a 3D model, or applying textures — costs a defined number of credits. This means you only pay for what you actually use, and you can allocate your budget across tools in whatever way suits your workflow.</p>
-      <p>Credits can be obtained through free signup credits, one-time credit packs, or monthly subscription plans. Subscription plans offer the best value per credit and include additional perks like priority processing and higher resolution outputs. One-time packs are ideal for occasional users who want flexibility without a recurring commitment.</p>
+      <p>Credits can be obtained through free signup credits, one-time credit packs, or monthly subscription plans. Subscription plans offer the best value per credit, and both subscriptions and the larger one-time packs raise your queue priority and concurrent job limit. One-time packs are ideal for occasional users who want flexibility without a recurring commitment.</p>
       <p>The credit costs listed below reflect the computational resources each tool requires. More complex operations like video generation and 3D modeling consume more credits than simpler tasks like image generation. All prices are subject to change as new models and features are added to the platform.</p>
     </div>
   </section>
@@ -305,7 +305,7 @@
   <section class="tool-comparison">
     <div class="container">
       <h2>Subscription Plans</h2>
-      <p>Monthly plans offer the best value per credit, priority processing, and higher concurrent job limits. Save up to 17% with yearly billing.</p>
+      <p>Monthly plans offer the best value per credit, higher queue priority, and higher concurrent job limits. Save up to 17% with yearly billing.</p>
       <div style="overflow-x:auto;">
         <table>
           <thead>
@@ -319,10 +319,10 @@
           </thead>
           <tbody>
             <tr>
-              <td><strong>Starter</strong></td>
+              <td><strong>Free</strong></td>
               <td>$0</td>
               <td>15 (one-time)</td>
-              <td>1</td>
+              <td>2</td>
               <td>Standard</td>
             </tr>
             <tr>
@@ -357,7 +357,7 @@
   <section class="tool-comparison">
     <div class="container">
       <h2>TimrX prints, ships &amp; delivers</h2>
-      <p>The credit prices above cover generating models on TimrX. If you want the physical object too, order the print straight from the workspace &mdash; we run it on calibrated FDM and resin printers, support multi-color AMS / MMU output, then ship and deliver worldwide. Premium output, fair pricing, no hidden fees.</p>
+      <p>The credit prices above cover generating models on TimrX. If you want the physical object too, order the print straight from the workspace &mdash; we run it on calibrated FDM printers, then ship and deliver worldwide; resin is quoted manually. Premium output, fair pricing, no hidden fees.</p>
       <div style="overflow-x:auto;">
         <table>
           <thead>
@@ -386,7 +386,7 @@
             <tr>
               <td>Shipping</td>
               <td>From $4 worldwide</td>
-              <td>Tracked delivery. Free over $79 subtotal ($65 equivalent in the eurozone). Bulky / heavy prints quoted at checkout.</td>
+              <td>Tracked delivery. Free over $79 subtotal (€65 / £55). Bulky / heavy prints quoted at checkout.</td>
             </tr>
           </tbody>
         </table>
@@ -410,7 +410,7 @@
         </div>
         <div class="tool-usecase">
           <h4>Free Worldwide Shipping over $79</h4>
-          <p>Bundle a few prints together and shipping is on us once the print subtotal reaches $79 ($65 in the eurozone). No code required.</p>
+          <p>Bundle a few prints together and shipping is on us once the print subtotal reaches $79 (€65 / £55). No code required.</p>
         </div>
         <div class="tool-usecase">
           <h4>Refer a Friend &middot; $5 Print Credit Each</h4>
@@ -440,7 +440,7 @@
         </div>
         <div class="tool-usecase">
           <h4>Standard Resolution</h4>
-          <p>Signup-credit outputs are generated at standard resolution. Upgrade to a paid plan for higher resolutions, AI upscaling, and priority queue access.</p>
+          <p>Signup credits run at the free tier: 2 concurrent jobs and standard queue priority. Any paid pack or subscription raises both. Resolution and upscaling are credit options, not plan tiers &mdash; every account can use them.</p>
         </div>
         <div class="tool-usecase">
           <h4>No Credit Card Required</h4>
@@ -468,7 +468,7 @@
 
       <details>
         <summary>Can I buy credits without a subscription?</summary>
-        <p>Absolutely. TimrX offers one-time credit packs in multiple sizes alongside its subscription plans. This pay-as-you-go option is perfect for users who have occasional or project-based needs and prefer not to commit to a recurring monthly payment. One-time credit packs never expire, so you can purchase them and use them at whatever pace suits your workflow. Subscription plans, however, offer better per-credit value and additional benefits like priority processing.</p>
+        <p>Absolutely. TimrX offers one-time credit packs in multiple sizes alongside its subscription plans. This pay-as-you-go option is perfect for users who have occasional or project-based needs and prefer not to commit to a recurring monthly payment. One-time credit packs never expire, so you can purchase them and use them at whatever pace suits your workflow. Subscription plans offer better per-credit value, and the Studio and Max packs carry the same queue priority and concurrent job limit as a Studio subscription.</p>
       </details>
 
       <details>
@@ -483,7 +483,7 @@
 
       <details>
         <summary>How is the TimrX print-and-ship service priced?</summary>
-        <p>Print orders are priced separately from AI credits. The cost depends on model volume, material (PLA / PETG / resin), infill, finish and shipping destination &mdash; full breakdown shown on the order screen before you pay. We aren&rsquo;t trying to be the cheapest service; we focus on premium output, fair sustainable pricing and reliable delivery. Worldwide shipping is free once your print subtotal reaches $79 ($65 in the eurozone).</p>
+        <p>Print orders are priced separately from AI credits. The cost depends on model volume, material (PLA / PETG / resin), infill, finish and shipping destination &mdash; full breakdown shown on the order screen before you pay. We aren&rsquo;t trying to be the cheapest service; we focus on premium output, fair sustainable pricing and reliable delivery. Worldwide shipping is free once your print subtotal reaches $79 (€65 / £55).</p>
       </details>
 
       <details>

@@ -54,6 +54,7 @@
           value: Number.isFinite(value) ? value : undefined,
           currency: 'USD',
           credit_type: isVideoFlow ? 'video' : 'general',
+          event_id: metadata.paymentId ? `begin_checkout:${metadata.paymentId}` : undefined,
         });
       }
     } catch (_) { /* never block UI */ }
@@ -327,7 +328,7 @@
   // Dynamic bullet copy per pricing mode and tier — Pricing refactor Mar 2026
   const PLAN_BULLETS = {
     one_time: {
-      starter: ['Up to 60 AI images', 'Up to 8 textured 3D models', 'Up to 15 short videos', 'One balance for everything'],
+      starter: ['Up to 60 AI images', 'Up to 8 textured 3D models', 'Up to 15 short videos', 'Credits never expire'],
       creator: ['Up to 125 AI images', 'Up to 16 textured 3D models', 'Up to 31 short videos', 'GLB/GLTF downloads'],
       studio:  ['Up to 275 AI images', 'Up to 36 textured 3D models', 'Up to 68 short videos', 'Priority queue access'],
     },
@@ -747,7 +748,7 @@
       if (modelPricingGrid) modelPricingGrid.style.display = '';
       if (videoPricingGrid) videoPricingGrid.style.display = 'none';
       // Simplified footer - no internal math explanations
-      if (pricingFootNote) pricingFootNote.textContent = 'Images from 1 credit · 3D from 10 · 5s video from 8 · one balance for everything';
+      if (pricingFootNote) pricingFootNote.textContent = 'Images from 1 credit · 3D from 10 · 5s video from 8 · one balance for everything · all prices in USD';
     }
 
     // Mini and Max are ONE-TIME ONLY — the backend has no mini_monthly,
@@ -1275,6 +1276,11 @@
           }
         } catch (_) { /* Safari: storage blocked */ }
 
+        trackCheckoutEvent('redirect_started', {
+          flow: 'subscription',
+          plan: selectedSubPlan.plan_code,
+          paymentId: data.payment_id || '',
+        });
         if (!isSafeCheckoutUrl(data.checkout_url)) { throw new Error('Untrusted checkout URL'); }
         window.location.href = data.checkout_url;
       } else {
@@ -1757,7 +1763,11 @@
         } catch (_) { /* Safari: storage blocked */ }
 
         // Redirect to Mollie checkout
-        trackCheckoutEvent('redirect_started', { flow: 'video', plan: selectedVideoPlan });
+        trackCheckoutEvent('redirect_started', {
+          flow: 'video',
+          plan: selectedVideoPlan,
+          paymentId: data.payment_id || '',
+        });
         if (!isSafeCheckoutUrl(data.checkout_url)) { throw new Error('Untrusted checkout URL'); }
         window.location.href = data.checkout_url;
       } else {
@@ -2749,7 +2759,11 @@
         } catch (_) { /* Safari: storage blocked */ }
 
         // Redirect to Mollie checkout
-        trackCheckoutEvent('redirect_started', { flow: 'general', plan: selectedPlan.id });
+        trackCheckoutEvent('redirect_started', {
+          flow: 'general',
+          plan: selectedPlan.id,
+          paymentId: data.payment_id || '',
+        });
         if (!isSafeCheckoutUrl(data.checkout_url)) { throw new Error('Untrusted checkout URL'); }
         window.location.href = data.checkout_url;
       } else {
@@ -4731,18 +4745,52 @@
   const calcToggleBtn = document.getElementById('calcToggleBtn');
   const calcWrap = document.getElementById('valueCalculator');
 
+  const calcCloseBtn = document.getElementById('calcCloseBtn');
+
+  // The calculator now opens upward as an overlay across the pack cards, so it
+  // needs the three dismissals every modal needs: a close button, Escape, and a
+  // click outside. Without them the only way out was finding the toggle again
+  // underneath the panel.
+  function closeCalc({ refocus = false } = {}) {
+    if (!calcWrap || !calcWrap.classList.contains('open')) return;
+    calcWrap.classList.remove('open');
+    calcWrap.classList.add('collapsed');
+    if (calcToggleBtn) {
+      calcToggleBtn.setAttribute('aria-expanded', 'false');
+      if (refocus) calcToggleBtn.focus();
+    }
+  }
+
+  function openCalc() {
+    if (!calcWrap) return;
+    calcWrap.classList.remove('collapsed');
+    calcWrap.classList.add('open');
+    if (calcToggleBtn) calcToggleBtn.setAttribute('aria-expanded', 'true');
+    updateCalcPills(pricingMode);   // builds the grid on first open
+  }
+
   if (calcToggleBtn && calcWrap) {
     calcToggleBtn.addEventListener('click', () => {
-      const isOpen = calcWrap.classList.contains('open');
-      if (isOpen) {
-        calcWrap.classList.remove('open');
-        calcWrap.classList.add('collapsed');
-      } else {
-        calcWrap.classList.remove('collapsed');
-        calcWrap.classList.add('open');
-        // Initialize grid on first open
-        updateCalcPills(pricingMode);
-      }
+      if (calcWrap.classList.contains('open')) closeCalc(); else openCalc();
+    });
+  }
+
+  if (calcCloseBtn) {
+    calcCloseBtn.addEventListener('click', () => closeCalc({ refocus: true }));
+  }
+
+  if (calcWrap) {
+    // pointerdown, not click: fires before the panel can move under the cursor.
+    // calcWrap contains BOTH the toggle and the panel, so this never fights the
+    // toggle's own click (which would close then immediately reopen).
+    document.addEventListener('pointerdown', (e) => {
+      if (!calcWrap.classList.contains('open')) return;
+      if (calcWrap.contains(e.target)) return;
+      closeCalc();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeCalc({ refocus: true });
     });
   }
 

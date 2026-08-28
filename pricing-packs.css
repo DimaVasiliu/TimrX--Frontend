@@ -1,0 +1,355 @@
+/* ============================================================================
+   PRICING PACKS — the five credit packs on /hub
+   2026-08-28. Scope: .pricing-grid--packs
+
+   Why every selector starts with body[data-shell-page="hub"]
+   ----------------------------------------------------------
+   hub-palette.css styles the pricing cards at specificity 0,2,1 / 0,2,2 —
+   including two rules that break at five across:
+
+       body[data-shell-page="hub"] .pc-top h3   font-size:clamp(42px,4.4vw,70px)
+       body[data-shell-page="hub"] .price-card  min-height:clamp(520px,42vw,680px)
+
+   The first rendered the pack names one letter per line in a ~200px column.
+   The second is what produced the tall cards with a half-screen void between
+   the bullets and the button: the card was 680px tall by decree, the content
+   was 300px, and margin-top:auto on the CTA pushed the difference into a gap.
+   Both are right for the THREE wide cards the palette was designed around.
+
+   Every rule below carries the same body[data-shell-page="hub"] prefix to
+   reach 0,3,2 and win cleanly, without touching those three-card layouts.
+
+   Deliberately NOT shown on these cards: any credits-per-currency figure.
+   It exposes unit economics, and a customer choosing a pack does not need it.
+   ========================================================================= */
+
+/* ── Grid ───────────────────────────────────────────────────────────────
+   The packs escape .container's 1280px cap. Five cards in 1280 gives ~236px
+   columns, which is what forced the cramped type in the first place; 1560
+   gives ~290px and lets every bullet sit on one line. left:50% + a -50%
+   translate centres it on the viewport from inside the narrower container. */
+body[data-shell-page="hub"] .pricing-grid.pricing-grid--packs{
+  display:grid;
+  /* Explicit 5, not auto-fit: auto-fit with a min width let the fifth card
+     wrap. Empty tracks collapse, so the three subscription cards still fill
+     the row when the cadence toggle hides Mini and Max. */
+  grid-template-columns:repeat(5,minmax(0,1fr));
+  gap:16px;
+  align-items:stretch;
+  position:relative;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(1560px,calc(100vw - 56px));
+}
+
+/* Subscription modes hide Mini and Max (there is no mini_monthly / max_yearly
+   plan). credits.js writes the visible count to data-card-count; without this
+   the three survivors stayed in tracks 1-3 of a five-column grid and sat hard
+   against the left edge. Narrowing the grid to three tracks re-centres them,
+   because the grid itself is centred on the viewport. */
+body[data-shell-page="hub"] .pricing-grid.pricing-grid--packs[data-card-count="3"]{
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  width:min(1040px,calc(100vw - 56px));
+}
+body[data-shell-page="hub"] .pricing-grid.pricing-grid--packs[data-card-count="4"]{
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  width:min(1320px,calc(100vw - 56px));
+}
+
+/* ── Card ──────────────────────────────────────────────────────────────
+   min-height:0 is the whole fix for the dead space. The card is now as tall
+   as what is in it, and all five hold the same four bullets, so they match. */
+body[data-shell-page="hub"] .pricing-grid--packs .price-card{
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  min-height:0;
+  padding:26px 26px 24px;
+  border-radius:20px;
+}
+
+/* ── Name: a quiet label. The price is the hero. ───────────────────────── */
+body[data-shell-page="hub"] .pricing-grid--packs .pc-top{
+  padding-right:0;
+  min-height:auto;
+}
+body[data-shell-page="hub"] .pricing-grid--packs .pc-top h3{
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  font-size:13px;
+  font-weight:600;
+  letter-spacing:.15em;
+  text-transform:uppercase;
+  line-height:1.1;
+  margin:0;
+  color:rgba(255,255,255,.58);
+  white-space:nowrap;             /* never stack letters again */
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+/* Tagline is marketing filler repeated five times; it cost ~3 lines of height
+   and said nothing that distinguishes one pack size from another. */
+body[data-shell-page="hub"] .pricing-grid--packs .pc-top .sub{ display:none; }
+
+/* ── Badge: inline above the name so cards with and without one align ──── */
+body[data-shell-page="hub"] .pricing-grid--packs .pc-top .badge{
+  position:static;
+  display:inline-block;
+  margin:0 0 12px;
+  padding:4px 10px;
+  font-size:9.5px;
+  font-weight:700;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  border-radius:999px;
+  white-space:nowrap;
+}
+/* Reserve the badge line on unbadged cards so all five prices sit level. */
+body[data-shell-page="hub"] .pricing-grid--packs .price-card:not(:has(.badge)) .pc-top::before{
+  content:"";
+  display:block;
+  /* badge box (4+4 padding + ~14px line) + its 12px margin */
+  height:34px;
+}
+
+/* ── Price: the one number that matters ────────────────────────────────── */
+body[data-shell-page="hub"] .pricing-grid--packs .pc-price{ margin:14px 0 0; }
+body[data-shell-page="hub"] .pricing-grid--packs .pc-price .big{
+  display:block;
+  font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  font-size:clamp(30px,2.1vw,42px);
+  font-weight:800;
+  line-height:1;
+  letter-spacing:-.03em;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+body[data-shell-page="hub"] .pricing-grid--packs .pc-price small{
+  display:block;
+  margin-top:9px;
+  font-size:13.5px;
+  font-weight:600;
+  color:rgba(255,255,255,.92);
+}
+/* fx.js local-currency estimate: an approximation directly beneath an exact
+   price reads as two competing numbers. Currency is stated once in the grid
+   footnote instead. */
+body[data-shell-page="hub"] .pricing-grid--packs .price-converted,
+body[data-shell-page="hub"] .pricing-grid--packs .price-disclaimer{ display:none; }
+
+/* ── What you get ──────────────────────────────────────────────────────
+   A hairline above the list separates price from contents without adding a
+   heading. At ~290px wide every bullet fits on one line. */
+body[data-shell-page="hub"] .pricing-grid--packs .pc-list{
+  list-style:none;
+  margin:20px 0 22px;
+  padding:18px 0 0;
+  border-top:1px solid rgba(255,255,255,.09);
+  display:grid;
+  gap:9px;
+  font-size:13px;
+  line-height:1.4;
+  color:rgba(255,255,255,.80);
+}
+body[data-shell-page="hub"] .pricing-grid--packs .pc-list li{
+  position:relative;
+  padding-left:15px;
+}
+body[data-shell-page="hub"] .pricing-grid--packs .pc-list li::before{
+  content:"";
+  position:absolute;
+  left:0; top:.52em;
+  width:4px; height:4px;
+  border-radius:50%;
+  background:currentColor;
+  opacity:.45;
+}
+/* Bullets are curated to four in the markup and in PLAN_BULLETS, so nothing
+   is hidden here — a hidden differentiator ("priority queue") is a lost sale. */
+
+/* ── CTA ───────────────────────────────────────────────────────────────
+   margin-top:auto keeps the buttons on one line if a mode ever renders an
+   uneven bullet count; with equal counts it is a no-op. The shared rule also
+   pins .pc-note this way, which is what left a void under the bullets — the
+   note is identical on all five cards and now lives in the grid footnote. */
+body[data-shell-page="hub"] .pricing-grid--packs .pc-note{ display:none; }
+body[data-shell-page="hub"] .pricing-grid--packs .pricing-cta{
+  margin-top:auto;
+  width:100%;
+  padding:13px 10px;
+  font-size:12.5px;
+  font-weight:700;
+  letter-spacing:.06em;
+  text-transform:uppercase;
+  border-radius:12px;
+  white-space:nowrap;
+}
+
+/* ── Responsive: 5 → 3 → 2 → 1 (skips 4; a 4+1 row reads as a mistake) ─── */
+@media (max-width:1320px){
+  body[data-shell-page="hub"] .pricing-grid.pricing-grid--packs{
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    width:min(1120px,calc(100vw - 48px));
+  }
+}
+@media (max-width:900px){
+  body[data-shell-page="hub"] .pricing-grid.pricing-grid--packs{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    /* hub-palette caps .pricing-grid at 680px below 980px, which is meant for
+       one full-width card, not two packs side by side. */
+    width:auto;
+    max-width:none;
+    left:auto;
+    transform:none;
+  }
+}
+@media (max-width:560px){
+  body[data-shell-page="hub"] .pricing-grid.pricing-grid--packs{
+    grid-template-columns:minmax(0,1fr);
+    gap:12px;
+  }
+  /* One column has width to spare: name and price left, CTA right, so five
+     packs stay scannable instead of becoming five screens of scrolling. */
+  body[data-shell-page="hub"] .pricing-grid--packs .price-card{
+    display:grid;
+    grid-template-columns:1fr auto;
+    grid-template-areas:"top cta" "price cta" "list list";
+    align-items:center;
+    column-gap:18px;
+    padding:22px 20px;
+  }
+  body[data-shell-page="hub"] .pricing-grid--packs .pc-top{ grid-area:top; }
+  body[data-shell-page="hub"] .pricing-grid--packs .price-card:not(:has(.badge)) .pc-top::before{ display:none; }
+  body[data-shell-page="hub"] .pricing-grid--packs .pc-price{ grid-area:price; margin:6px 0 0; }
+  body[data-shell-page="hub"] .pricing-grid--packs .pc-list{ grid-area:list; margin:16px 0 0; }
+  body[data-shell-page="hub"] .pricing-grid--packs .pricing-cta{
+    grid-area:cta; margin:0; width:auto; min-width:158px; padding:13px 20px;
+  }
+}
+
+/* ============================================================================
+   VALUE CALCULATOR — open upward, over the cards
+   ----------------------------------------------------------------------------
+   The calculator sits below the pack grid, so expanding it downward pushed
+   ~600px of panel below the fold: you clicked "What can I create?" and had to
+   scroll to see the answer, with the packs it is meant to explain now off
+   screen above you.
+
+   Inverted here: the pill button stays where it is, and the panel is lifted out
+   of flow and anchored above it, so it opens over the cards with both visible
+   in one view. The panel chrome (border, blur, shadow) moves from .calc-wrap
+   onto .calc-body, since the wrap is now only the button.
+
+   #valueCalculator is used purely for specificity — hub-palette.css loads after
+   this file, so a plain .calc-wrap.open rule would tie and lose.
+   ========================================================================= */
+/* Close control. The panel is a modal now (Escape and a click outside also
+   dismiss it — see credits.js), so it needs a visible way out that does not
+   depend on finding the toggle again underneath. position:relative here is the
+   containing block for it in the mobile accordion; the overlay below makes
+   .calc-body absolute, which serves the same purpose. */
+body[data-shell-page="hub"] #valueCalculator .calc-body{
+  position:relative;
+}
+body[data-shell-page="hub"] #valueCalculator .calc-close{
+  position:absolute;
+  top:12px;
+  right:12px;
+  z-index:2;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:34px;
+  height:34px;
+  padding:0;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:50%;
+  background:rgba(255,255,255,.05);
+  color:rgba(255,255,255,.72);
+  line-height:1;
+  cursor:pointer;
+  transition:background .2s ease,color .2s ease,border-color .2s ease;
+}
+/* The X is drawn in CSS rather than set as a Font Awesome glyph. FA is loaded
+   from a CDN with media="print" + onload, so a slow or blocked CDN would leave
+   the only visible way out of the modal as an empty circle. */
+body[data-shell-page="hub"] #valueCalculator .calc-close::before,
+body[data-shell-page="hub"] #valueCalculator .calc-close::after{
+  content:"";
+  position:absolute;
+  width:13px;
+  height:1.6px;
+  border-radius:2px;
+  background:currentColor;
+}
+body[data-shell-page="hub"] #valueCalculator .calc-close::before{ transform:rotate(45deg); }
+body[data-shell-page="hub"] #valueCalculator .calc-close::after{ transform:rotate(-45deg); }
+body[data-shell-page="hub"] #valueCalculator .calc-close:hover{
+  background:rgba(255,255,255,.11);
+  border-color:rgba(255,255,255,.28);
+  color:#fff;
+}
+body[data-shell-page="hub"] #valueCalculator .calc-close:focus-visible{
+  outline:2px solid rgba(var(--hub-yellow-rgb),.7);
+  outline-offset:2px;
+}
+
+@media (min-width:900px){
+  body[data-shell-page="hub"] #valueCalculator.calc-wrap{
+    position:relative;
+    overflow:visible;
+    width:max-content;
+    max-width:min(100%,460px);
+    margin-inline:auto;
+    padding:0;
+    border-color:transparent;
+    background:transparent;
+    box-shadow:none;
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+  }
+  /* the wrap's grid texture belongs to the panel now */
+  body[data-shell-page="hub"] #valueCalculator.calc-wrap::before{ display:none; }
+
+  body[data-shell-page="hub"] #valueCalculator.calc-wrap.open .calc-title{
+    margin-bottom:0;
+  }
+
+  body[data-shell-page="hub"] #valueCalculator .calc-body{
+    position:absolute;
+    bottom:calc(100% + 16px);
+    left:50%;
+    width:min(980px,calc(100vw - 48px));
+    max-height:none;
+    padding:clamp(20px,2.4vw,28px);
+    border:1px solid rgba(var(--hub-white-rgb),.12);
+    border-radius:26px;
+    background:
+      radial-gradient(circle at 8% 0%,rgba(var(--hub-red-rgb),.16),transparent 34%),
+      radial-gradient(circle at 100% 10%,rgba(var(--hub-teal-rgb),.15),transparent 38%),
+      linear-gradient(145deg,rgba(var(--hub-white-rgb),.055),rgba(var(--hub-blue-rgb),.16)),
+      rgba(9,10,12,.94);
+    box-shadow:0 30px 80px rgba(0,0,0,.55),inset 0 0 0 1px rgba(255,255,255,.035);
+    -webkit-backdrop-filter:blur(16px);
+    backdrop-filter:blur(16px);
+    text-align:center;
+    z-index:60;
+    transform:translateX(-50%);
+    transition:opacity .26s ease,transform .3s cubic-bezier(.16,1,.3,1),visibility .26s;
+  }
+
+  /* visibility, not max-height: the panel is out of flow, so collapsing its
+     height no longer hides anything — and it keeps the panel out of the tab
+     order while closed. */
+  body[data-shell-page="hub"] #valueCalculator.calc-wrap.collapsed .calc-body{
+    max-height:none;
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transform:translateX(-50%) translateY(12px);
+  }
+  body[data-shell-page="hub"] #valueCalculator.calc-wrap.open .calc-body{
+    opacity:1;
+    visibility:visible;
+    pointer-events:auto;
+  }
+}

@@ -3170,24 +3170,12 @@ margin-bottom: 0;
 }
 .pricing-grid{
   display:grid;
-  /* Five one-time packs on one row at desktop. auto-fit (not repeat(5)) so
-     the subscription cadences, which show only three cards, centre and fill
-     rather than leaving two empty columns. A fixed column count is how
-     mini_50 and max_1200 ended up with no card at all. */
-  grid-template-columns:repeat(auto-fit,minmax(clamp(180px,15.5vw,240px),1fr));
-  gap:clamp(10px,1.1vw,18px);
-  align-items:stretch;
+  /* Pack-grid layout now lives in pricing-packs.css, scoped to
+     .pricing-grid--packs. This base rule serves any other .pricing-grid. */
+  grid-template-columns:repeat(3,1fr);
+  gap:clamp(14px,1.8vw,22px);
 }
 
-/* Five-across means less room per card, so the type scales with the column
-   rather than sitting at the three-card size and overflowing. */
-.pricing-grid .price-card{ padding:clamp(14px,1.3vw,22px); gap:clamp(10px,1vw,16px); }
-.pricing-grid .pc-price .big{ font-size:clamp(26px,2.3vw,40px); line-height:1.05; }
-.pricing-grid .pc-top h3{ font-size:clamp(26px,2.6vw,44px); }
-.pricing-grid .pc-top .sub{ font-size:clamp(11px,.85vw,14px); }
-.pricing-grid .pc-list{ font-size:clamp(11.5px,.85vw,14px); }
-.pricing-grid .pc-note{ font-size:clamp(10.5px,.8vw,13px); white-space:normal; }
-.pricing-grid .pricing-cta{ padding:clamp(10px,1vw,14px); font-size:clamp(12px,.9vw,14px); }
 .price-card{
   background:#0f0f0f; border:1px solid var(--line);
   border-radius:20px; padding:22px;
@@ -3220,7 +3208,10 @@ margin-bottom: 0;
   border:1px solid rgba(255,255,255,.2); font-weight:800; font-size:12px; letter-spacing:.06em;
 }
 .pc-top .badge.hot{ border-color:#fff; }
-.pc-top h3{ font-family:"Bebas Neue"; font-size:38px; margin:8px 0 2px; }
+/* Bebas Neue is CONDENSED and loads async; with no fallback stack the
+   browser substituted its default serif, which is far wider and made
+   headings overflow their card. Fallbacks are all condensed too. */
+.pc-top h3{ font-family:"Bebas Neue","Oswald","Archivo Narrow","Arial Narrow","Roboto Condensed",ui-sans-serif,system-ui,sans-serif; font-size:38px; margin:8px 0 2px; }
 .pc-top .sub{ color:#bdbdbd; margin:0; }
 
 .pc-price .big{ font-size:40px; font-weight:900; }

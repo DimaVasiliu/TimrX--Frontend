@@ -77,11 +77,11 @@
     "@context": "https://schema.org",
     "@type": "HowTo",
     "name": "How to make a multi-color 3D print with TimrX",
-    "description": "Turn an AI 3D model into a multi-color print using full-color 3MF export or TimrX's print-on-demand service.",
+    "description": "Turn an AI 3D model into a slicer-ready full-color 3MF for AMS and MMU printers.",
     "step": [
       { "@type": "HowToStep", "position": 1, "name": "Generate a textured model", "text": "Create your model in the TimrX workspace with AI textures. Quality of the source textures drives quality of the final color mapping." },
       { "@type": "HowToStep", "position": 2, "name": "Open Full-Color 3MF", "text": "Open the multi-color tool in the workspace. Pick how many filament colors (1 to 16) and the color detail level. Preview the color regions live." },
-      { "@type": "HowToStep", "position": 3, "name": "Export or Order", "text": "Export the 3MF and load it into Bambu Studio, OrcaSlicer or PrusaSlicer — or order the multi-color print directly from TimrX and we'll run it on our AMS hardware." }
+      { "@type": "HowToStep", "position": 3, "name": "Export or Order", "text": "Export the 3MF and load it into Bambu Studio, OrcaSlicer or PrusaSlicer. Multi-color print-and-ship from TimrX is still in build; single-color FDM and resin orders ship today." }
     ]
   }
   </script>
@@ -91,7 +91,7 @@
     "@context": "https://schema.org",
     "@type": "FAQPage",
     "mainEntity": [
-      { "@type": "Question", "name": "What is multi-color 3D printing (MCP) on TimrX?", "acceptedAnswer": { "@type": "Answer", "text": "MCP on TimrX takes a textured AI 3D model and converts it into a slicer-ready full-color 3MF file with 1–16 filament color regions. Compatible with any AMS or MMU printer including Bambu Lab X1 / P1S, Prusa XL and others. You can export the 3MF yourself or have TimrX print the multi-color model for you." } },
+      { "@type": "Question", "name": "What is multi-color 3D printing (MCP) on TimrX?", "acceptedAnswer": { "@type": "Answer", "text": "MCP on TimrX takes a textured AI 3D model and converts it into a slicer-ready full-color 3MF file with 1–16 filament color regions. Compatible with any AMS or MMU printer including Bambu Lab X1 / P1S, Prusa XL and others. You export the 3MF yourself; multi-color print-and-ship from TimrX is still in build." } },
       { "@type": "Question", "name": "Which printers does the full-color 3MF work with?", "acceptedAnswer": { "@type": "Answer", "text": "Any multi-material printer that imports 3MF. Tested with Bambu Lab X1 Carbon, X1E, P1S and P1P with AMS or AMS Lite; Prusa XL with the 5-tool head; Prusa MK4 / MK4S with MMU3. The exported 3MF includes color regions, recommended print settings and the source model." } },
       { "@type": "Question", "name": "How many colors can one print have?", "acceptedAnswer": { "@type": "Answer", "text": "Up to 16 filament colors per print. The AI quantizes the model's surface textures into the number of colors you pick. More colors look richer but extend print time and use more purge material — for most prints 4–8 colors is the sweet spot." } },
       { "@type": "Question", "name": "How much does multi-color cost?", "acceptedAnswer": { "@type": "Answer", "text": "Generating the 3MF is 5 credits per conversion — that's live today. The print-on-demand side (TimrX prints and ships you the multi-color model) launches summer 2026. Planned starting price for multi-color FDM is $12 per small print; final price depends on volume, number of colors and shipping. We aren't the cheapest option; we focus on color accuracy and print quality." } },
@@ -162,7 +162,7 @@
   <section class="tool-intro">
     <div class="container">
       <p>Multi-color print (MCP) on TimrX bridges the gap between AI-generated textures and physical multi-material printing. The AI textures your model with colors and patterns; the MCP tool quantizes those textures into 1&ndash;16 solid filament regions; the slicer-ready 3MF goes straight into Bambu Studio, OrcaSlicer or PrusaSlicer.</p>
-      <p><strong>Don&rsquo;t own an AMS or MMU?</strong> Order the multi-color print directly from TimrX &mdash; we run it on our Bambu Lab AMS hardware, QC every color region against the source model, then ship worldwide. No slicer work, no filament loading, no purge mess.</p>
+      <p><strong>Don&rsquo;t own an AMS or MMU?</strong> The 3MF is slicer-ready, so any print shop with an AMS or MMU can run it as-is. Multi-color print-and-ship from TimrX is still in build &mdash; single-color FDM and resin orders ship from the workspace today.</p>
     </div>
   </section>
 
@@ -184,7 +184,7 @@
         <div class="tool-step">
           <span class="tool-step-num">03</span>
           <h3>Export or Order</h3>
-          <p>Export the 3MF for your own AMS / MMU printer, or order the multi-color print from TimrX. We print, ship and deliver.</p>
+          <p>Export the 3MF for your own AMS / MMU printer. Multi-color print-and-ship from TimrX is still in build.</p>
         </div>
       </div>
     </div>
@@ -221,13 +221,13 @@
   <!-- TimrX MCP print service -->
   <section class="tool-intro">
     <div class="container">
-      <div style="display:inline-block;padding:5px 12px;border:1px solid rgba(126,231,135,0.3);background:rgba(126,231,135,0.08);border-radius:999px;color:#86efac;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:14px;">Print service is live &middot; <a href="/print-on-demand" style="color:#86efac;text-decoration:underline;">see how it works</a></div>
-      <h2 style="margin:0 0 8px;">TimrX will print multi-color &amp; ship it</h2>
-      <p>No AMS at home? No problem. Once the print service is live (summer 2026), you&rsquo;ll be able to order a multi-color print from the TimrX workspace and we&rsquo;ll run it on our Bambu Lab AMS hardware. We&rsquo;ll pick filament colors that match your design (or you pick from our filament library), print, QC against the source model, then ship worldwide. The full-color 3MF generator itself is live now &mdash; you can export 3MF files today and slice them on your own AMS / MMU.</p>
-      <p style="margin:14px 0 6px;color:#fbbf24;font-size:12px;font-weight:600;">Launch offers (live at summer 2026 launch):</p>
+      <div style="display:inline-block;padding:5px 12px;border:1px solid rgba(126,231,135,0.3);background:rgba(126,231,135,0.08);border-radius:999px;color:#86efac;font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:14px;">3MF export live &middot; multi-color printing in build &middot; <a href="/print-on-demand" style="color:#86efac;text-decoration:underline;">see how it works</a></div>
+      <h2 style="margin:0 0 8px;">Multi-color files today, multi-color printing next</h2>
+      <p>The full-color 3MF generator is live now &mdash; export a slicer-ready file today and run it on your own AMS / MMU, or hand it to a print shop. Multi-color print-and-ship from TimrX is still in build. What you can order from the workspace today is a single-color FDM or resin print: we print it, QC it against the source model, then ship worldwide.</p>
+      <p style="margin:14px 0 6px;color:#fbbf24;font-size:12px;font-weight:600;">Offers on print orders (live now):</p>
       <ul style="margin:0;padding-left:20px;line-height:1.7;">
-        <li><strong>First small multi-color print free.</strong> On your first order &mdash; you cover shipping.</li>
-        <li><strong>Free worldwide shipping over $79.</strong> Bundle a few and ship for free.</li>
+        <li><strong>First small print free.</strong> First order only: one print up to 50 mm tall &mdash; you cover shipping.</li>
+        <li><strong>Free worldwide shipping over $79 (€65 / £55).</strong> Bundle a few and ship for free.</li>
         <li><strong>Refer-a-friend &middot; $5 print credit each.</strong> Both sides get credit on their first paid order.</li>
       </ul>
     </div>
@@ -239,7 +239,7 @@
       <h2 class="tool-faq-title">Frequently Asked Questions</h2>
       <div class="tool-faq-list">
         <details class="tool-faq-item"><summary>What is multi-color 3D printing (MCP) on TimrX?</summary>
-          <p>MCP on TimrX takes a textured AI 3D model and converts it into a slicer-ready full-color 3MF file with 1&ndash;16 filament color regions. Compatible with any AMS or MMU printer including Bambu Lab X1 / P1S, Prusa XL and others. You can export the 3MF yourself or have TimrX print the multi-color model for you.</p>
+          <p>MCP on TimrX takes a textured AI 3D model and converts it into a slicer-ready full-color 3MF file with 1&ndash;16 filament color regions. Compatible with any AMS or MMU printer including Bambu Lab X1 / P1S, Prusa XL and others. You export the 3MF yourself; multi-color print-and-ship from TimrX is still in build.</p>
         </details>
         <details class="tool-faq-item"><summary>Which printers does the full-color 3MF work with?</summary>
           <p>Any multi-material printer that imports 3MF. Tested with Bambu Lab X1 Carbon, X1E, P1S and P1P with AMS or AMS Lite; Prusa XL with the 5-tool head; Prusa MK4 / MK4S with MMU3.</p>
