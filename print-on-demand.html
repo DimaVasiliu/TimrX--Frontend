@@ -167,6 +167,7 @@
   <!-- End Google Tag Manager -->
   <script src="js/console-shield.js?v=1"></script>
   <link rel="stylesheet" href="home-shell.css?v=20260821shell">
+  <link rel="stylesheet" href="print-on-demand-palette.css?v=20260829pod6">
 </head>
 <body class="print-on-demand-page tool-rich-page home-shell">
   <!-- Google Tag Manager (noscript) -->
@@ -179,7 +180,7 @@
     <div class="shell nav-shell">
       <a class="brand" href="/" aria-label="TimrX home"><img src="img/logo.png?v=20260815logo" width="44" height="44" alt=""><span>Timr<span>X</span></span></a>
       <nav class="desktop-nav" aria-label="Primary navigation">
-        <a href="/">Home</a><a href="/3dprint" data-track="nav_create">Create</a><a href="/community" data-track="nav_community">Community</a><a href="/tutorials" data-track="nav_tutorials">Tutorials</a><a href="/docs" data-track="nav_docs">Docs</a><a href="/hub#pricing" data-track="nav_pricing">Pricing</a><a href="/blogs" data-track="nav_blog">Blog</a><a href="/hub" data-track="nav_dashboard">Dashboard</a>
+        <a href="/">Home</a><a href="/3dprint" data-track="nav_create">Create</a><a href="/community" data-track="nav_community">Community</a><a href="/tutorials" data-track="nav_tutorials">Tutorials</a><a href="/docs" data-track="nav_docs">Docs</a><a href="/pricing" data-track="nav_pricing">Pricing</a><a href="/blogs" data-track="nav_blog">Blog</a><a href="/hub" data-track="nav_dashboard">Dashboard</a>
       </nav>
       <a class="button button-small desktop-cta" href="/3dprint" data-track="nav_open_workspace">Open Workspace <span aria-hidden="true">↗</span></a>
       <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
@@ -208,24 +209,87 @@
   </div>
 
   <!-- Hero -->
-  <section class="tool-hero">
+  <section class="tool-hero pod-hero">
     <div class="container">
-      <div style="display:inline-block;padding:6px 14px;border:1px solid rgba(34,197,94,0.3);background:rgba(34,197,94,0.08);border-radius:999px;color:#86efac;font-size:12px;font-weight:600;letter-spacing:0.04em;margin-bottom:18px;">Live now in workspace &middot; <a href="/3dprint" style="color:#86efac;text-decoration:underline;">Open a completed model</a></div>
-      <h1>Order FDM 3D Prints Online</h1>
-      <p class="tool-subtitle">Generate or upload a 3D model on TimrX, run Print Check, get a server-side quote, pay at checkout and receive tracked delivery. FDM filament ordering is live now; resin can be quoted manually while automated resin checkout stays disabled.</p>
+      <div class="pod-hero-copy">
+        <div class="pod-eyebrow">Live in workspace &middot; FDM checkout</div>
+        <h1><span>Your 3D model,</span> printed and delivered</h1>
+        <p class="tool-subtitle">Make or upload a model, run Print Check, choose material and delivery, then get a real FDM print shipped to your door. Resin can still be quoted manually while automated resin checkout stays disabled.</p>
+        <div class="pod-hero-actions">
+          <a href="/3dprint" class="pod-primary">Open Workspace</a>
+          <a href="/pricing" class="pod-secondary">View Pricing</a>
+        </div>
+        <p class="pod-human-note">No printer to buy. No slicer setup. The quote is checked server-side before you pay.</p>
+        <div class="pod-hero-stats" aria-label="Print service highlights">
+          <span><strong>256mm</strong> build volume</span>
+          <span><strong>17</strong> FDM colors</span>
+          <span><strong>$79</strong> free delivery level</span>
+        </div>
+      </div>
+      <div class="pod-hero-visual" aria-label="Print order preview">
+        <div class="pod-quote-card">
+          <div class="pod-quote-head">
+            <span>Print Check</span>
+            <strong>Ready</strong>
+          </div>
+          <img src="vid/3d-print-model-generator/phone-stand.jpg" alt="Printed phone stand on a workshop table" width="620" height="430">
+          <div class="pod-quote-grid">
+            <span>Material <strong>PLA</strong></span>
+            <span>Height <strong>168 mm</strong></span>
+            <span>Infill <strong>20%</strong></span>
+            <span>Delivery <strong>Tracked</strong></span>
+          </div>
+        </div>
+        <div class="pod-flow-card" aria-hidden="true">
+          <span>Generate</span>
+          <span>Check</span>
+          <span>Quote</span>
+          <span>Ship</span>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- Intro -->
-  <section class="tool-intro">
+  <section class="tool-intro pod-intro">
     <div class="container">
-      <p><strong>TimrX prints, ships &amp; delivers.</strong> You generate or upload the model in the browser — text-to-3D, image-to-3D, remesh, repair, print check and export — then order the physical FDM print from the same workspace. The checkout uses the same server-side pricing model as the backend order API.</p>
-      <p>No printer to own, no slicer to learn, no support material to clean. TimrX validates the completed GLB from your history, scales it to the current 256 × 256 × 256 mm build volume, estimates material and delivery tier, then creates a tracked print order after payment.</p>
+      <div class="pod-intro-panel">
+        <span class="pod-section-kicker">Browser to doorstep</span>
+        <h2>Print ordering without leaving the workspace.</h2>
+        <p>Generate or upload the model, run Print Check, review the server-side quote and place the order from the same TimrX flow.</p>
+        <div class="pod-intro-tags" aria-label="Print order signals">
+          <span>FDM live</span>
+          <span>Server quote</span>
+          <span>Tracked delivery</span>
+        </div>
+      </div>
+      <div class="pod-intro-flow" aria-label="Print order workflow">
+        <div>
+          <strong>01</strong>
+          <span>Create</span>
+          <p>Text-to-3D, image-to-3D, remesh, repair and export tools stay in one browser workspace.</p>
+        </div>
+        <div>
+          <strong>02</strong>
+          <span>Validate</span>
+          <p>Print Check reviews size, geometry and the current 256 × 256 × 256 mm build volume.</p>
+        </div>
+        <div>
+          <strong>03</strong>
+          <span>Quote</span>
+          <p>Material, infill, finish, quantity, packaging and delivery are recomputed before payment.</p>
+        </div>
+        <div>
+          <strong>04</strong>
+          <span>Ship</span>
+          <p>After checkout, the order moves into production, packaging and tracked delivery.</p>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- Platform updates -->
-  <section class="tool-usecases">
+  <section class="tool-usecases pod-live-section">
     <div class="container">
       <h2 class="tool-usecases-title">Platform Updates Now Live</h2>
       <p class="tool-status-note">The print page now reflects the shipped workspace flow: create, validate, quote, checkout and track from one browser session.</p>
@@ -255,7 +319,7 @@
   </section>
 
   <!-- 4 steps -->
-  <section class="tool-steps">
+  <section class="tool-steps pod-steps">
     <div class="container">
       <h2 class="tool-steps-title">How It Works</h2>
       <div class="tool-steps-grid">
@@ -284,7 +348,7 @@
   </section>
 
   <!-- Offers -->
-  <section class="tool-usecases">
+  <section class="tool-usecases pod-offers-section">
     <div class="container">
       <h2 class="tool-usecases-title">Live Offers &amp; Checkout Benefits</h2>
       <div style="max-width:760px;margin:0 auto 1.4rem;padding:12px 16px;border:1px solid rgba(34,197,94,0.25);background:rgba(34,197,94,0.06);border-radius:10px;text-align:center;color:#86efac;font-size:13px;">
@@ -317,7 +381,7 @@
   </section>
 
   <!-- What we print -->
-  <section class="tool-comparison">
+  <section class="tool-comparison pod-print-section">
     <div class="container">
       <h2>What We Print</h2>
       <p>Match the right production path to your model. Automated checkout is live for FDM filament prints; other processes can still be discussed manually while fulfillment expands.</p>
@@ -358,7 +422,7 @@
   </section>
 
   <!-- FAQ -->
-  <section class="tool-faq">
+  <section class="tool-faq pod-faq">
     <div class="container">
       <h2 class="tool-faq-title">Frequently Asked Questions</h2>
       <div class="tool-faq-list">
@@ -388,7 +452,7 @@
   </section>
 
   <!-- CTA -->
-  <section class="tool-cta">
+  <section class="tool-cta pod-cta">
     <div class="container">
       <h2 class="tool-cta-title">Generate a Model, We&rsquo;ll Print &amp; Ship It</h2>
       <div class="tool-cta-buttons">
@@ -399,7 +463,7 @@
   </section>
 
   <!-- Related -->
-  <section class="tool-related">
+  <section class="tool-related pod-related">
     <div class="container">
       <h2 class="tool-related-title">Related</h2>
       <div class="tool-related-grid">
@@ -414,7 +478,18 @@
   <footer class="site-footer"><div class="shell footer-grid"><div><a class="brand" href="/"><img src="img/logo.png?v=20260815logo" width="40" height="40" alt=""><span>Timr<span>X</span></span></a><p>Images, video and 3D creation in one browser workspace.</p></div><nav aria-label="Product"><h2>Product</h2><a href="/3dprint">Create</a><a href="/ai-tools">Tools</a><a href="/converter">Converter</a><a href="/stl-library">STL Library</a></nav><nav aria-label="Explore"><h2>Explore</h2><a href="/blogs">Blog</a><a href="/tutorials">Tutorials</a><a href="/community">Community</a><a href="/prompts">Prompts</a><a href="/company">Company</a></nav><nav aria-label="Account"><h2>Account</h2><a href="/hub">Dashboard</a><a href="/hub#pricing">Pricing</a><a href="/docs">Docs</a></nav><nav aria-label="Connect"><h2>Connect</h2><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a><a href="mailto:support@timrx.live">Support</a><a href="/llms.txt">LLM Summary</a></nav><nav aria-label="Legal"><h2>Legal</h2><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></nav></div><div class="shell footer-bottom"><span>© <span id="year" data-year>2026</span> TimrX</span><a href="/dima-vasiliu">Built by Dima Vasiliu <span>↗</span></a></div></footer>
   <script>
   (function(){var h=document.querySelector('.site-header[data-header]');if(h){var s=function(){h.classList.toggle('is-scrolled',window.scrollY>8);};s();window.addEventListener('scroll',s,{passive:true});}
-  var y=document.querySelector('[data-year]');if(y)y.textContent=new Date().getFullYear();})();
+  var y=document.querySelector('[data-year]');if(y)y.textContent=new Date().getFullYear();
+  var faq=document.querySelector('.pod-faq');
+  if(faq){
+    faq.querySelectorAll('details').forEach(function(item){
+      item.addEventListener('toggle',function(){
+        if(!item.open)return;
+        faq.querySelectorAll('details[open]').forEach(function(other){
+          if(other!==item)other.open=false;
+        });
+      });
+    });
+  }})();
   </script>
   <script type="module" src="js/analytics.js"></script>
   <script src="js/shared/tx-menu.js?v=20260818mobile" defer></script>
