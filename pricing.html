@@ -172,8 +172,9 @@
   <!-- End Google Tag Manager -->
   <script src="js/console-shield.js?v=1"></script>
   <link rel="stylesheet" href="home-shell.css?v=20260821shell">
+  <link rel="stylesheet" href="pricing-palette.css?v=20260829polish1">
 </head>
-<body class="tool-rich-page home-shell">
+<body class="tool-rich-page home-shell pricing-page">
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -184,7 +185,7 @@
     <div class="shell nav-shell">
       <a class="brand" href="/" aria-label="TimrX home"><img src="img/logo.png?v=20260815logo" width="44" height="44" alt=""><span>Timr<span>X</span></span></a>
       <nav class="desktop-nav" aria-label="Primary navigation">
-        <a href="/">Home</a><a href="/3dprint" data-track="nav_create">Create</a><a href="/community" data-track="nav_community">Community</a><a href="/tutorials" data-track="nav_tutorials">Tutorials</a><a href="/docs" data-track="nav_docs">Docs</a><a href="/hub#pricing" data-track="nav_pricing">Pricing</a><a href="/blogs" data-track="nav_blog">Blog</a><a href="/hub" data-track="nav_dashboard">Dashboard</a>
+        <a href="/">Home</a><a href="/3dprint" data-track="nav_create">Create</a><a href="/community" data-track="nav_community">Community</a><a href="/tutorials" data-track="nav_tutorials">Tutorials</a><a href="/docs" data-track="nav_docs">Docs</a><a href="/hub#pricing" data-track="nav_pricing" aria-current="page">Pricing</a><a href="/blogs" data-track="nav_blog">Blog</a><a href="/hub" data-track="nav_dashboard">Dashboard</a>
       </nav>
       <a class="button button-small desktop-cta" href="/3dprint" data-track="nav_open_workspace">Open Workspace <span aria-hidden="true">↗</span></a>
       <button class="tx-burger" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="txMenu" data-tx-burger><span></span><span></span><span></span><span></span></button>
@@ -215,8 +216,25 @@
   <!-- Hero -->
   <section class="tool-hero">
     <div class="container">
+      <span class="pricing-eyebrow"><span aria-hidden="true"></span> Credits · subscriptions · print orders</span>
       <h1>Pricing — Generation Credits and 3D Print Service</h1>
       <p class="tool-subtitle">TimrX runs on a simple credit system. Each AI tool costs a set number of credits per use — no hidden fees, no confusing tiers. Buy credits when you need them or subscribe for a monthly allocation.</p>
+      <div class="pricing-hero-actions" aria-label="Pricing actions">
+        <a class="pricing-action pricing-action-primary" href="/hub#pricing">Compare Plans</a>
+        <a class="pricing-action" href="/3dprint">Open Workspace</a>
+      </div>
+      <div class="pricing-hero-stats" aria-label="Pricing highlights">
+        <span><strong>15</strong><small>free starter credits</small></span>
+        <span><strong>$9.99</strong><small>starter monthly plan</small></span>
+        <span><strong>10</strong><small>credits for text to 3D</small></span>
+        <span><strong>$79</strong><small>free print shipping level</small></span>
+      </div>
+      <div class="pricing-hero-orbit" aria-hidden="true">
+        <span class="pricing-orbit-word">CREDITS</span>
+        <span class="pricing-orbit-ring pricing-orbit-ring-a"></span>
+        <span class="pricing-orbit-ring pricing-orbit-ring-b"></span>
+        <span class="pricing-orbit-ring pricing-orbit-ring-c"></span>
+      </div>
     </div>
   </section>
 
@@ -230,7 +248,7 @@
   </section>
 
   <!-- Credit Cost Table -->
-  <section class="tool-comparison">
+  <section class="tool-comparison pricing-costs">
     <div class="container">
       <h2>Credit Costs per Tool</h2>
       <p>The table below shows how many credits each AI tool consumes per operation. Actual credit costs may vary depending on resolution, duration, complexity, and model selection. These values represent standard usage at default settings.</p>
@@ -302,7 +320,7 @@
   </section>
 
   <!-- Subscription Plans -->
-  <section class="tool-comparison">
+  <section class="tool-comparison pricing-plans">
     <div class="container">
       <h2>Subscription Plans</h2>
       <p>Monthly plans offer the best value per credit, higher queue priority, and higher concurrent job limits. Save up to 17% with yearly billing.</p>
@@ -354,7 +372,7 @@
   </section>
 
   <!-- TimrX prints, ships &amp; delivers -->
-  <section class="tool-comparison">
+  <section class="tool-comparison pricing-print">
     <div class="container">
       <h2>TimrX prints, ships &amp; delivers</h2>
       <p>The credit prices above cover generating models on TimrX. If you want the physical object too, order the print straight from the workspace &mdash; we run it on calibrated FDM printers, then ship and deliver worldwide; resin is quoted manually. Premium output, fair pricing, no hidden fees.</p>
@@ -509,18 +527,18 @@
 
   <script>
   (function(){var h=document.querySelector('.site-header[data-header]');if(h){var s=function(){h.classList.toggle('is-scrolled',window.scrollY>8);};s();window.addEventListener('scroll',s,{passive:true});}
-  var y=document.querySelector('[data-year]');if(y)y.textContent=new Date().getFullYear();})();
-  </script>
-  <script>
-  (function(){
-    var nav=document.querySelector('.nav'),lastY=0;
-    window.addEventListener('scroll',function(){
-      var y=window.pageYOffset;
-      if(document.body.classList.contains('tx-menu-open'))return;
-      if(y>60&&y>lastY){nav.style.transform='translateY(-100%)';}else{nav.style.transform='';}
-      lastY=y;
-    },{passive:true});
-  })();
+  var y=document.querySelector('[data-year]');if(y)y.textContent=new Date().getFullYear();
+  var faq=document.querySelector('.tool-faq');
+  if(faq){
+    faq.querySelectorAll('details').forEach(function(item){
+      item.addEventListener('toggle',function(){
+        if(!item.open)return;
+        faq.querySelectorAll('details[open]').forEach(function(other){
+          if(other!==item)other.open=false;
+        });
+      });
+    });
+  }})();
   </script>
   <script type="module" src="js/analytics.js"></script>
   <script src="js/shared/tx-menu.js?v=20260818mobile" defer></script>
