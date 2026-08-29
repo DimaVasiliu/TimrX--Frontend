@@ -174,6 +174,17 @@
 
   function addSelectChip(sel, ico, title, popTitle) {
     if (!sel || !sel.options || sel.options.length < 2) return;
+    /* A control the active engine hides is not a control the user has.
+       applyProviderConfig() hides the .vs-setting wrapper but leaves the <select>
+       in the DOM, so without this guard the chip row shows settings that do
+       nothing: the Seedance tier chip survives a switch to Veo, and Veo's
+       Quality chip (Standard/Pro Full HD/Ultra 4K) shows while Seedance is
+       active — where getVideoSettingsFromUI() ignores #videoQuality entirely and
+       reads #seedanceResolutionSelect instead. A user picking "Pro (Full HD)"
+       there was silently generating at whatever the Seedance selector held.
+       Scoped to .vs-setting so collapsing the whole sheet never blanks the row. */
+    var vsWrap = sel.closest ? sel.closest('.vs-setting') : null;
+    if (vsWrap && vsWrap.classList.contains('hidden')) return;
     var chip = chipEl(chipHtml(ico, selText(sel), true), '', title);
     chip.addEventListener('click', function () { showPop(chip, popTitle, selectItems(sel)); });
     chipsRow.appendChild(chip);
@@ -270,6 +281,10 @@
       addSelectChip($('videoDuration'), '◔', 'Duration', 'Duration');
       addSelectChip($('videoAspectRatio'), '▭', 'Aspect ratio', 'Aspect ratio');
       addSelectChip($('videoQuality'), '◈', 'Quality', 'Quality');
+      /* Seedance owns a separate, tier-aware resolution select (480p/720p, +1080p
+         on Quality). It is the one getVideoSettingsFromUI() reads, so it belongs on
+         the chip row; only one of these two is ever visible at a time. */
+      addSelectChip($('seedanceResolutionSelect'), '◈', 'Resolution', 'Resolution');
     }
 
     /* advanced chip -> the legacy sheet */
