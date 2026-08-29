@@ -118,7 +118,8 @@
 .dashboard-account-actions button,
 .dashboard-account-actions a,
 .dashboard-billing-state button,
-.dashboard-workflow-actions a{
+.dashboard-workflow-actions a,
+.dashboard-workflow-actions button{
   appearance:none;
   display:inline-flex;
   align-items:center;
@@ -139,7 +140,8 @@
 .dashboard-account-actions button:hover,
 .dashboard-account-actions a:hover,
 .dashboard-billing-state button:hover,
-.dashboard-workflow-actions a:hover{
+.dashboard-workflow-actions a:hover,
+.dashboard-workflow-actions button:hover{
   transform:translateY(-1px);
   border-color:rgba(243,232,188,.34);
   background:rgba(243,232,188,.11);
@@ -234,15 +236,23 @@
 .dashboard-panel-head{
   margin-bottom:14px;
 }
-.dashboard-panel-head a{
+.dashboard-panel-head a,
+.dashboard-panel-link{
+  appearance:none;
+  border:0;
+  background:transparent;
+  padding:0;
   display:inline-flex;
   align-items:center;
   gap:8px;
   color:#d8d0c3;
   font-size:12px;
   font-weight:750;
+  font-family:Inter,system-ui,sans-serif;
+  cursor:pointer;
 }
-.dashboard-panel-head a:hover{
+.dashboard-panel-head a:hover,
+.dashboard-panel-link:hover{
   color:#fff;
 }
 .dashboard-shortcuts{
@@ -305,6 +315,35 @@
   color:#f6f2ea;
   font-size:13px;
   text-align:right;
+}
+.dashboard-activity-list{
+  min-height:137px;
+}
+.dashboard-activity-list li{
+  align-items:flex-start;
+}
+.dashboard-activity-list span{
+  display:grid;
+  gap:4px;
+  min-width:0;
+}
+.dashboard-activity-list em{
+  color:#706a61;
+  font-size:11px;
+  font-style:normal;
+  line-height:1.35;
+}
+.dashboard-activity-list strong{
+  white-space:nowrap;
+}
+.dashboard-activity-list .is-positive{
+  color:#86efac;
+}
+.dashboard-activity-list .is-negative{
+  color:#fca5a5;
+}
+.dashboard-activity-list .is-held{
+  color:#fbbf24;
 }
 .dashboard-estimates{
   display:grid;
@@ -432,6 +471,14 @@
   }
   .dashboard-account-actions{
     grid-template-columns:1fr;
+  }
+  .dashboard-activity-list li{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:6px;
+  }
+  .dashboard-activity-list strong{
+    text-align:left;
   }
 }
 
@@ -4203,7 +4250,7 @@ margin-bottom: 0;
               rgba(0,0,0,.62);
   backdrop-filter: blur(10px) saturate(120%);
   -webkit-backdrop-filter: blur(10px) saturate(120%);
-  z-index: 120;
+  z-index: 9990;
 }
 .modal.open{ display: grid; }
 
@@ -5065,6 +5112,132 @@ color: var(--muted);
 .ra-code-actions .btn {
   width: 100%;
   min-width: 0;
+}
+}
+
+/* ========================================================================== */
+/* Usage / Transaction History                                                 */
+/* ========================================================================== */
+
+.usage-history-modal{
+width:min(720px,calc(100vw - 32px));
+max-height:min(760px,calc(100vh - 36px));
+overflow:auto;
+}
+.usage-history-summary{
+display:grid;
+grid-template-columns:repeat(3,minmax(0,1fr));
+gap:10px;
+margin:18px 0;
+}
+.usage-history-summary div{
+padding:14px;
+border:1px solid rgba(255,255,255,.08);
+border-radius:12px;
+background:rgba(255,255,255,.035);
+}
+.usage-history-summary span{
+display:block;
+color:#9d958a;
+font-size:11px;
+font-weight:800;
+letter-spacing:.08em;
+text-transform:uppercase;
+}
+.usage-history-summary strong{
+display:block;
+margin-top:8px;
+color:#f6f2ea;
+font-size:26px;
+line-height:1;
+}
+.usage-history-list{
+display:grid;
+gap:8px;
+margin-top:12px;
+}
+.usage-history-row{
+display:grid;
+grid-template-columns:auto minmax(0,1fr) auto;
+gap:12px;
+align-items:center;
+padding:13px 0;
+border-top:1px solid rgba(255,255,255,.08);
+}
+.usage-history-row:first-child{
+border-top:0;
+}
+.usage-history-icon{
+display:grid;
+place-items:center;
+width:34px;
+height:34px;
+border:1px solid rgba(255,255,255,.1);
+border-radius:10px;
+background:rgba(255,255,255,.045);
+color:#d8d0c3;
+}
+.usage-history-main{
+min-width:0;
+}
+.usage-history-title{
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+align-items:center;
+color:#f6f2ea;
+font-size:14px;
+font-weight:800;
+line-height:1.25;
+}
+.usage-history-chip{
+border:1px solid rgba(255,255,255,.1);
+border-radius:999px;
+padding:2px 7px;
+color:#a8b6c2;
+font-size:10px;
+font-weight:800;
+text-transform:uppercase;
+}
+.usage-history-detail,
+.usage-history-date,
+.usage-history-empty{
+color:#948c80;
+font-size:12px;
+line-height:1.45;
+}
+.usage-history-date{
+margin-top:3px;
+}
+.usage-history-amount{
+color:#f6f2ea;
+font-size:14px;
+font-weight:850;
+white-space:nowrap;
+}
+.usage-history-amount.is-positive{
+color:#86efac;
+}
+.usage-history-amount.is-negative{
+color:#fca5a5;
+}
+.usage-history-amount.is-held{
+color:#fbbf24;
+}
+.usage-history-actions{
+margin-top:18px;
+}
+
+@media(max-width:620px){
+.usage-history-summary{
+  grid-template-columns:1fr;
+}
+.usage-history-row{
+  grid-template-columns:auto minmax(0,1fr);
+}
+.usage-history-amount{
+  grid-column:2;
+  justify-self:start;
 }
 }
 

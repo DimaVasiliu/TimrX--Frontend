@@ -115,7 +115,8 @@ if (slider) {
   // Backdrop click (ignore clicks inside the card)
   qsa('.modal').forEach(m=>{
     m.addEventListener('mousedown', (e)=>{
-      const card = qs('.card', m);
+      const card = qs('.card, .modal-content', m);
+      if (!card) return;
       if (!card.contains(e.target)) closeModal(m);
     });
   });
@@ -385,6 +386,253 @@ if (slider) {
   });
 
   sync();
+})();
+
+// Usage / transaction history. Read-only dashboard surface for credit trust.
+(function(){
+  const API_BASE = window.TIMRX_3D_API_BASE || 'https://3d.timrx.live';
+  const activityList = document.getElementById('dashboardActivityList');
+  const usageBtn = document.getElementById('dashboardUsageBtn');
+  const usageInlineBtn = document.getElementById('dashboardUsageInlineBtn');
+  const modal = document.getElementById('usageHistoryModal');
+  const closeBtn = document.getElementById('usageHistoryClose');
+  const refreshBtn = document.getElementById('usageHistoryRefreshBtn');
+  const modalList = document.getElementById('usageHistoryList');
+  const availableOut = document.getElementById('usageAvailableCredits');
+  const reservedOut = document.getElementById('usageReservedCredits');
+  const balanceOut = document.getElementById('usageBalanceCredits');
+
+  if (!activityList && !modal) return;
+
+  let lastCompactLoad = 0;
+  let fullLoadInFlight = null;
+
+  function fmtCredits(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n.toLocaleString() : '--';
+  }
+
+  function formatAmount(item) {
+    const amount = Number(item?.amount_credits || 0);
+    if (item?.kind === 'reservation' || item?.status === 'held') return `${fmtCredits(Math.abs(amount))} held`;
+    if (amount > 0) return `+${fmtCredits(amount)}`;
+    if (amount < 0) return `-${fmtCredits(Math.abs(amount))}`;
+    return '0';
+  }
+
+  function amountClass(item) {
+    const amount = Number(item?.amount_credits || 0);
+    if (item?.kind === 'reservation' || item?.status === 'held') return 'is-held';
+    if (amount > 0) return 'is-positive';
+    if (amount < 0) return 'is-negative';
+    return '';
+  }
+
+  function iconClass(item) {
+    const kind = item?.kind;
+    if (kind === 'purchase' || kind === 'credit') return 'fa-circle-plus';
+    if (kind === 'refund' || kind === 'release') return 'fa-rotate-left';
+    if (kind === 'reservation') return 'fa-hourglass-half';
+    if (kind === 'charge') return 'fa-receipt';
+    return 'fa-clock-rotate-left';
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+      + ' ' + date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  }
+
+  function setEmpty(target, message) {
+    if (!target) return;
+    target.textContent = '';
+    const empty = document.createElement('div');
+    empty.className = 'usage-history-empty';
+    empty.textContent = message;
+    target.appendChild(empty);
+  }
+
+  function buildRow(item) {
+    const row = document.createElement('div');
+    row.className = 'usage-history-row';
+
+    const icon = document.createElement('span');
+    icon.className = 'usage-history-icon';
+    const iconNode = document.createElement('i');
+    iconNode.className = `fa-solid ${iconClass(item)}`;
+    iconNode.setAttribute('aria-hidden', 'true');
+    icon.appendChild(iconNode);
+
+    const main = document.createElement('div');
+    main.className = 'usage-history-main';
+
+    const title = document.createElement('div');
+    title.className = 'usage-history-title';
+    const titleText = document.createElement('span');
+    titleText.textContent = item?.title || 'Credit activity';
+    title.appendChild(titleText);
+    if (item?.status) {
+      const chip = document.createElement('span');
+      chip.className = 'usage-history-chip';
+      chip.textContent = String(item.status).replace(/_/g, ' ');
+      title.appendChild(chip);
+    }
+
+    const detail = document.createElement('div');
+    detail.className = 'usage-history-detail';
+    detail.textContent = item?.detail || item?.action_code || item?.entry_type || '';
+
+    const date = document.createElement('div');
+    date.className = 'usage-history-date';
+    date.textContent = formatDate(item?.created_at);
+
+    main.appendChild(title);
+    if (detail.textContent) main.appendChild(detail);
+    if (date.textContent) main.appendChild(date);
+
+    const amount = document.createElement('strong');
+    amount.className = `usage-history-amount ${amountClass(item)}`.trim();
+    amount.textContent = formatAmount(item);
+
+    row.appendChild(icon);
+    row.appendChild(main);
+    row.appendChild(amount);
+    return row;
+  }
+
+  function renderCompact(items, emptyMessage = 'No activity yet') {
+    if (!activityList) return;
+    activityList.textContent = '';
+    if (!items.length) {
+      const item = document.createElement('li');
+      const label = document.createElement('span');
+      label.textContent = 'Usage history';
+      const value = document.createElement('strong');
+      value.textContent = emptyMessage;
+      item.appendChild(label);
+      item.appendChild(value);
+      activityList.appendChild(item);
+      return;
+    }
+    items.slice(0, 3).forEach((entry) => {
+      const row = document.createElement('li');
+      const label = document.createElement('span');
+      label.textContent = entry.title || 'Credit activity';
+      const detail = document.createElement('em');
+      detail.textContent = entry.detail || formatDate(entry.created_at);
+      label.appendChild(detail);
+      const value = document.createElement('strong');
+      value.className = amountClass(entry);
+      value.textContent = formatAmount(entry);
+      row.appendChild(label);
+      row.appendChild(value);
+      activityList.appendChild(row);
+    });
+  }
+
+  function renderModal(data) {
+    const summary = data?.summary || {};
+    if (availableOut) availableOut.textContent = fmtCredits(summary.available_credits);
+    if (reservedOut) reservedOut.textContent = fmtCredits(summary.reserved_credits);
+    if (balanceOut) balanceOut.textContent = fmtCredits(summary.balance_credits);
+    if (!modalList) return;
+    modalList.textContent = '';
+    const items = Array.isArray(data?.items) ? data.items : [];
+    if (!items.length) {
+      setEmpty(modalList, 'No credit activity yet.');
+      return;
+    }
+    items.forEach((item) => modalList.appendChild(buildRow(item)));
+  }
+
+  async function fetchActivity(limit) {
+    const response = await fetch(`${API_BASE}/api/billing/activity?limit=${limit}`, {
+      method: 'GET',
+      credentials: 'include',
+      mode: 'cors',
+      headers: { Accept: 'application/json' },
+    });
+    const data = await response.json().catch(() => null);
+    if (!response.ok || !data?.ok) {
+      const code = data?.error?.code || data?.error || response.status;
+      throw new Error(String(code));
+    }
+    return data;
+  }
+
+  async function loadCompact(force = false) {
+    if (!force && Date.now() - lastCompactLoad < 15000) return;
+    lastCompactLoad = Date.now();
+    try {
+      const data = await fetchActivity(3);
+      renderCompact(data.items || []);
+    } catch (err) {
+      if (String(err.message).includes('UNAUTHORIZED') || String(err.message).includes('401')) {
+        renderCompact([], 'Sign in to load');
+      } else if (activityList) {
+        const item = document.createElement('li');
+        const label = document.createElement('span');
+        label.textContent = 'Usage history';
+        const value = document.createElement('strong');
+        value.textContent = 'Unavailable';
+        item.appendChild(label);
+        item.appendChild(value);
+        activityList.textContent = '';
+        activityList.appendChild(item);
+      }
+    }
+  }
+
+  async function loadFull(force = false) {
+    if (fullLoadInFlight && !force) return fullLoadInFlight;
+    if (modalList) setEmpty(modalList, 'Loading usage history...');
+    fullLoadInFlight = fetchActivity(80)
+      .then((data) => {
+        renderModal(data);
+        renderCompact(data.items || []);
+      })
+      .catch((err) => {
+        const message = String(err.message).includes('UNAUTHORIZED') || String(err.message).includes('401')
+          ? 'Sign in to view credit usage history.'
+          : 'Usage history is unavailable right now.';
+        setEmpty(modalList, message);
+      })
+      .finally(() => {
+        fullLoadInFlight = null;
+      });
+    return fullLoadInFlight;
+  }
+
+  function openUsageModal() {
+    if (!modal) return;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    loadFull(true);
+  }
+
+  function closeUsageModal() {
+    if (!modal) return;
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+  }
+
+  usageBtn?.addEventListener('click', openUsageModal);
+  usageInlineBtn?.addEventListener('click', openUsageModal);
+  closeBtn?.addEventListener('click', closeUsageModal);
+  refreshBtn?.addEventListener('click', () => loadFull(true));
+  modal?.addEventListener('click', (event) => {
+    if (event.target === modal) closeUsageModal();
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal?.classList.contains('open')) closeUsageModal();
+  });
+
+  window.addEventListener('timrx:wallet', () => loadCompact(true));
+  window.addEventListener('timrx:auth:verified', () => loadCompact(true));
+  window.addEventListener('timrx:auth:switched', () => loadCompact(true));
+  window.setTimeout(() => loadCompact(), 1200);
 })();
 
 
