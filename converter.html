@@ -626,19 +626,8 @@
       window.addEventListener('load',unlockConverterScroll);
       window.addEventListener('pageshow',unlockConverterScroll);
       window.addEventListener('resize',unlockConverterScroll,{passive:true});
-      window.addEventListener('wheel',unlockConverterScroll,{passive:true,capture:true});
-      window.addEventListener('touchstart',unlockConverterScroll,{passive:true,capture:true});
-      if(document.body && typeof MutationObserver==='function'){
-        var unlockQueued=false;
-        new MutationObserver(function(){
-          if(unlockQueued) return;
-          unlockQueued=true;
-          requestAnimationFrame(function(){
-            unlockQueued=false;
-            unlockConverterScroll();
-          });
-        }).observe(document.body,{attributes:true,attributeFilter:['class','style']});
-      }
+      setTimeout(unlockConverterScroll,250);
+      setTimeout(unlockConverterScroll,1000);
     })();
   </script>
 
@@ -652,31 +641,7 @@
   </script>
 
   <script type="module">
-    import * as THREE_NS from 'three';
-    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-    import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-    import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-    import { ThreeMFLoader } from 'three/addons/loaders/3MFLoader.js';
-    import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
-    import { GLTFExporter } from 'three/addons/exporters/GLTFExporter.js';
-    import { OBJExporter } from 'three/addons/exporters/OBJExporter.js';
-    import { STLExporter } from 'three/addons/exporters/STLExporter.js';
-    import { USDZExporter } from 'three/addons/exporters/USDZExporter.js';
-    import { init as initConverter } from './js/converter.js?v=20260520a';
-
-    window.THREE = Object.assign({}, THREE_NS, {
-      OrbitControls,
-      GLTFLoader,
-      OBJLoader,
-      STLLoader,
-      ThreeMFLoader,
-      FBXLoader,
-      GLTFExporter,
-      OBJExporter,
-      STLExporter,
-      USDZExporter
-    });
+    import { init as initConverter } from './js/converter.js?v=20260830lazy';
 
     initConverter();
   </script>
