@@ -612,11 +612,14 @@
         var burger=document.querySelector('[data-tx-burger]');
         var menuOpen=(menu && menu.classList.contains('is-open')) || (burger && burger.getAttribute('aria-expanded')==='true');
         if(menuOpen) return;
+        var lockedClass=document.body.classList.contains('tx-menu-open') || document.body.classList.contains('site-menu-open') || document.body.classList.contains('menu-open');
+        var lockedStyle=document.body.style.top || document.body.style.position==='fixed' || document.body.style.overflowY==='hidden' || document.documentElement.style.overflowY==='hidden';
+        if(!lockedClass && !lockedStyle) return;
         document.body.classList.remove('tx-menu-open','site-menu-open','menu-open');
-        document.body.style.top='';
-        document.body.style.position='';
-        document.body.style.overflowY='auto';
-        document.documentElement.style.overflowY='auto';
+        if(document.body.style.top) document.body.style.top='';
+        if(document.body.style.position==='fixed') document.body.style.position='';
+        if(document.body.style.overflowY==='hidden') document.body.style.overflowY='';
+        if(document.documentElement.style.overflowY==='hidden') document.documentElement.style.overflowY='';
       };
 
       unlockConverterScroll();
@@ -626,7 +629,15 @@
       window.addEventListener('wheel',unlockConverterScroll,{passive:true,capture:true});
       window.addEventListener('touchstart',unlockConverterScroll,{passive:true,capture:true});
       if(document.body && typeof MutationObserver==='function'){
-        new MutationObserver(unlockConverterScroll).observe(document.body,{attributes:true,attributeFilter:['class','style']});
+        var unlockQueued=false;
+        new MutationObserver(function(){
+          if(unlockQueued) return;
+          unlockQueued=true;
+          requestAnimationFrame(function(){
+            unlockQueued=false;
+            unlockConverterScroll();
+          });
+        }).observe(document.body,{attributes:true,attributeFilter:['class','style']});
       }
     })();
   </script>
