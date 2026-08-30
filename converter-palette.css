@@ -1,8 +1,9 @@
+html.converter-document,
 html:has(body.converter-page){
-  min-height:100%;
-  height:auto !important;
-  overflow-x:hidden;
-  overflow-y:auto !important;
+  height:100% !important;
+  min-height:100% !important;
+  overflow:hidden !important;
+  overscroll-behavior-y:none;
 }
 
 /* Converter page polish. Loaded last so the live converter logic can stay untouched. */
@@ -21,19 +22,42 @@ body.converter-page{
   --header:74px;
   --navH:74px;
   padding-top:0 !important;
+  display:block !important;
+  position:relative !important;
+  inset:auto !important;
   background:var(--converter-cream);
   color:var(--converter-ink);
   overflow-x:hidden;
-  overflow-y:auto !important;
-  height:auto !important;
-  min-height:100%;
-  overscroll-behavior-y:auto;
+  overflow-y:hidden !important;
+  height:100dvh !important;
+  min-height:100dvh !important;
+  max-height:100dvh !important;
+  overscroll-behavior-y:none;
+  scrollbar-gutter:stable;
 }
 
+body.converter-page,
+body.converter-page.tx-menu-open,
+body.converter-page.site-menu-open,
+body.converter-page.menu-open,
 body.converter-page:not(.tx-menu-open):not(.site-menu-open):not(.menu-open){
-  position:static !important;
+  position:relative !important;
+  inset:auto !important;
   top:auto !important;
-  overflow-y:auto !important;
+  overflow-y:hidden !important;
+}
+
+body.converter-page .converter-scroll-root{
+  position:fixed;
+  inset:0;
+  z-index:1;
+  height:100dvh;
+  overflow-x:hidden;
+  overflow-y:auto;
+  overscroll-behavior-y:auto;
+  -webkit-overflow-scrolling:touch;
+  background:var(--converter-cream);
+  scrollbar-gutter:stable;
 }
 
 body.converter-page main,
@@ -43,6 +67,7 @@ body.converter-page .converter-expanded-shell{
 }
 
 body.converter-page .site-header{
+  z-index:1000;
   height:var(--header);
   background:
     radial-gradient(580px 140px at 15% 0%,rgba(90,33,50,.24),transparent 70%),
@@ -115,6 +140,7 @@ body.converter-page main{
   padding:0;
   background:var(--converter-cream);
   overflow:visible !important;
+  min-height:auto !important;
 }
 
 body.converter-page .converter-expanded-view{

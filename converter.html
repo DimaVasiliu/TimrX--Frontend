@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="converter-document">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -60,7 +60,7 @@
   <link rel="stylesheet" href="styles.css?v=20260819palette">
   <link rel="stylesheet" href="footer.css?v=20260819palette2">
   <link rel="stylesheet" href="home-shell.css?v=20260821shell">
-  <link rel="stylesheet" href="converter-palette.css?v=20260830converter3">
+  <link rel="stylesheet" href="converter-palette.css?v=20260830scrollroot">
   <!-- Google Tag Manager -->
   <script>
     (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
@@ -134,6 +134,7 @@
     </div>
   </div>
 
+  <div class="converter-scroll-root" data-converter-scroll-root>
   <main>
     <section class="converter-expanded-view" aria-labelledby="converterTitle">
       <div class="converter-expanded-shell">
@@ -590,6 +591,7 @@
   </main>
 
   <footer class="site-footer"><div class="shell footer-grid"><div><a class="brand" href="/"><img src="img/logo.png?v=20260815logo" width="40" height="40" alt=""><span>Timr<span>X</span></span></a><p>Images, video and 3D creation in one browser workspace.</p></div><nav aria-label="Product"><h2>Product</h2><a href="/3dprint">Create</a><a href="/ai-tools">Tools</a><a href="/converter">Converter</a><a href="/stl-library">STL Library</a></nav><nav aria-label="Explore"><h2>Explore</h2><a href="/blogs">Blog</a><a href="/tutorials">Tutorials</a><a href="/community">Community</a><a href="/prompts">Prompts</a><a href="/company">Company</a></nav><nav aria-label="Account"><h2>Account</h2><a href="/hub">Dashboard</a><a href="/pricing">Pricing</a><a href="/docs">Docs</a></nav><nav aria-label="Connect"><h2>Connect</h2><a href="https://www.youtube.com/@TimrX-Studio" target="_blank" rel="noopener noreferrer">YouTube</a><a href="mailto:support@timrx.live">Support</a><a href="/llms.txt">LLM Summary</a></nav><nav aria-label="Legal"><h2>Legal</h2><a href="/terms">Terms</a><a href="/privacy">Privacy</a><a href="/cookies">Cookies</a></nav></div><div class="shell footer-bottom"><span>© <span id="year" data-year>2026</span> TimrX</span><a href="/dima-vasiliu">Built by Dima Vasiliu <span>↗</span></a></div></footer>
+  </div>
 
   <script src="js/shared/tx-menu.js?v=20260818mobile" defer></script>
   <script src="js/auth-modal.js?v=20260827g" defer></script>
@@ -597,11 +599,21 @@
   <script src="js/cookie-consent.js" defer></script>
   <script>
     (function(){
+      var getConverterScrollRoot=function(){
+        return document.querySelector('[data-converter-scroll-root]');
+      };
       var h=document.querySelector('.site-header[data-header]');
       if(h){
-        var s=function(){h.classList.toggle('is-scrolled',window.scrollY>8);};
+        var getScrollY=function(){
+          var root=getConverterScrollRoot();
+          return Math.max(root ? root.scrollTop || 0 : 0, window.scrollY || 0, document.documentElement.scrollTop || 0, document.body ? document.body.scrollTop || 0 : 0);
+        };
+        var s=function(){h.classList.toggle('is-scrolled',getScrollY()>8);};
         s();
         window.addEventListener('scroll',s,{passive:true});
+        if(document.body) document.body.addEventListener('scroll',s,{passive:true});
+        var root=getConverterScrollRoot();
+        if(root) root.addEventListener('scroll',s,{passive:true});
       }
       var y=document.querySelector('[data-year]');
       if(y)y.textContent=new Date().getFullYear();
@@ -613,14 +625,61 @@
         var menuOpen=(menu && menu.classList.contains('is-open')) || (burger && burger.getAttribute('aria-expanded')==='true');
         if(menuOpen) return;
         var lockedClass=document.body.classList.contains('tx-menu-open') || document.body.classList.contains('site-menu-open') || document.body.classList.contains('menu-open');
-        var lockedStyle=document.body.style.top || document.body.style.position==='fixed' || document.body.style.overflowY==='hidden' || document.documentElement.style.overflowY==='hidden';
-        if(!lockedClass && !lockedStyle) return;
         document.body.classList.remove('tx-menu-open','site-menu-open','menu-open');
         if(document.body.style.top) document.body.style.top='';
         if(document.body.style.position==='fixed') document.body.style.position='';
-        if(document.body.style.overflowY==='hidden') document.body.style.overflowY='';
-        if(document.documentElement.style.overflowY==='hidden') document.documentElement.style.overflowY='';
+        if(document.body.style.overflowY!=='hidden') document.body.style.overflowY='hidden';
+        if(document.body.style.overflowX!=='hidden') document.body.style.overflowX='hidden';
+        if(document.documentElement.style.overflow!=='hidden') document.documentElement.style.overflow='hidden';
+        var root=getConverterScrollRoot();
+        if(root && root.style.overflowY==='hidden') root.style.overflowY='';
       };
+
+      Array.prototype.forEach.call(document.querySelectorAll('a[href^="#"]'),function(link){
+        link.addEventListener('click',function(event){
+          var id=link.getAttribute('href');
+          if(!id || id==='#') return;
+          var target=document.querySelector(id);
+          if(!target) return;
+          event.preventDefault();
+          target.scrollIntoView({behavior:'smooth',block:'start'});
+        });
+      });
+
+      var converterMenuIsOpen=function(){
+        var menu=document.querySelector('[data-tx-menu]');
+        var burger=document.querySelector('[data-tx-burger]');
+        return (menu && menu.classList.contains('is-open')) || (burger && burger.getAttribute('aria-expanded')==='true');
+      };
+
+      var scrollConverterBy=function(delta){
+        var root=getConverterScrollRoot();
+        if(!root || converterMenuIsOpen()) return false;
+        var max=Math.max(0,root.scrollHeight-root.clientHeight);
+        if(!max) return false;
+        var before=root.scrollTop || 0;
+        var next=Math.max(0,Math.min(max,before+delta));
+        if(next===before) return false;
+        root.scrollTop=next;
+        return root.scrollTop!==before;
+      };
+
+      document.addEventListener('wheel',function(event){
+        if(Math.abs(event.deltaY)<=Math.abs(event.deltaX)) return;
+        if(scrollConverterBy(event.deltaY)) event.preventDefault();
+      },{passive:false,capture:true});
+
+      var touchY=null;
+      document.addEventListener('touchstart',function(event){
+        touchY=event.touches && event.touches.length ? event.touches[0].clientY : null;
+      },{passive:true,capture:true});
+      document.addEventListener('touchmove',function(event){
+        if(touchY===null || !event.touches || !event.touches.length) return;
+        var nextY=event.touches[0].clientY;
+        var moved=scrollConverterBy(touchY-nextY);
+        touchY=nextY;
+        if(moved) event.preventDefault();
+      },{passive:false,capture:true});
 
       unlockConverterScroll();
       window.addEventListener('load',unlockConverterScroll);
@@ -628,6 +687,7 @@
       window.addEventListener('resize',unlockConverterScroll,{passive:true});
       setTimeout(unlockConverterScroll,250);
       setTimeout(unlockConverterScroll,1000);
+      setTimeout(unlockConverterScroll,2500);
     })();
   </script>
 
