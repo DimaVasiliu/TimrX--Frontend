@@ -3,8 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Seedance AI Video Model Generator — Text &amp; Image to Video | TimrX</title>
-  <meta name="description" content="Generate AI video with Seedance on TimrX. Turn text prompts, still images or references into clips, transitions and MP4 exports saved to My Assets." />
+  <title>Seedance AI Video Generator — Text, Image &amp; Reference to Video | TimrX</title>
+  <meta name="description" content="Generate video with Seedance 2.5 and Seedance 2.0 in TimrX. Create text-to-video, image-to-video, first-to-last-frame transitions and reference-led MP4 clips." />
   <link rel="canonical" href="https://timrx.live/seedance-video-generator" />
   <!-- Favicon / app icons -->
   <link rel="icon" href="/favicon.ico?v=20260822head" sizes="any">
@@ -21,8 +21,8 @@
   <!-- Open Graph -->
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://timrx.live/seedance-video-generator" />
-  <meta property="og:title" content="Seedance AI Video Model Generator — Text &amp; Image to Video" />
-  <meta property="og:description" content="Generate AI video with Seedance on TimrX. Turn text prompts, still images or references into clips, transitions and MP4 exports saved to My Assets." />
+  <meta property="og:title" content="Seedance AI Video Generator — Text, Image &amp; Reference to Video" />
+  <meta property="og:description" content="Generate video with Seedance 2.5 and Seedance 2.0 in TimrX. Create text-to-video, image-to-video, transitions and reference-led MP4 clips." />
   <meta property="og:image" content="https://timrx.live/img/og-video-generator.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
@@ -31,8 +31,8 @@
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:url" content="https://timrx.live/seedance-video-generator" />
-  <meta name="twitter:title" content="Seedance AI Video Model Generator — Text &amp; Image to Video" />
-  <meta name="twitter:description" content="Generate AI video with Seedance on TimrX. Turn text prompts, still images or references into clips, transitions and MP4 exports saved to My Assets." />
+  <meta name="twitter:title" content="Seedance AI Video Generator — Text, Image &amp; Reference to Video" />
+  <meta name="twitter:description" content="Generate video with Seedance 2.5 and Seedance 2.0 in TimrX. Create text-to-video, image-to-video, transitions and reference-led MP4 clips." />
   <meta name="twitter:image" content="https://timrx.live/img/og-video-generator.png" />
   <meta name="twitter:creator" content="@timrx_live" />
 
@@ -62,7 +62,7 @@
   "applicationCategory": "MultimediaApplication",
   "operatingSystem": "Web browser",
   "url": "https://timrx.live/seedance-video-generator",
-  "description": "Generate AI video with Seedance on TimrX. Turn text prompts, still images, or reference frames into short animated clips, cinematic motion, and MP4 exports.",
+  "description": "Generate AI video with Seedance in TimrX. Use Seedance 2.5 or Seedance 2.0 tiers to create text-to-video, image-to-video, first-to-last-frame transitions and reference-led MP4 clips.",
   "offers": {
     "@type": "Offer",
     "price": "0",
@@ -115,19 +115,19 @@
       "@type": "HowToStep",
       "position": 1,
       "name": "Choose your input",
-      "text": "Start from a text prompt, or upload a still image you want to animate into a moving clip."
+      "text": "Start from a text prompt, upload a still image, provide a first-and-last-frame pair, or add reference media for a guided Seedance generation."
     },
     {
       "@type": "HowToStep",
       "position": 2,
       "name": "Generate with Seedance",
-      "text": "Seedance produces a short animated clip with natural motion. Preview it and refine the prompt or source frame to iterate."
+      "text": "Choose a Seedance tier, duration, aspect ratio and resolution. Preview the result and refine the prompt or references to iterate."
     },
     {
       "@type": "HowToStep",
       "position": 3,
       "name": "Download the clip",
-      "text": "Export the result as an MP4, ready for a video editor or direct posting to social platforms."
+      "text": "Save the finished result to My Assets and export it as an MP4 for editing, posting or reuse in the wider TimrX workflow."
     }
   ]
 }
@@ -143,7 +143,7 @@
       "name": "What is the Seedance video generator?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "It is the Seedance video engine available in the TimrX workspace. It generates short video clips from text prompts or from still images you upload."
+          "text": "It is the Seedance video engine inside the TimrX workspace. It generates short MP4 video clips from text prompts, still images, frame pairs or reference media depending on the selected mode."
       }
     },
     {
@@ -151,7 +151,7 @@
       "name": "Does Seedance support image-to-video?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Yes. Seedance can animate a still image into a moving clip, as well as generate video from a text prompt."
+          "text": "Yes. Seedance can animate a still image into a moving clip, generate from text, create first-to-last-frame transitions and use reference-led generation modes."
       }
     },
     {
@@ -167,7 +167,7 @@
       "name": "What is the difference between Seedance and Veo 3.1 on TimrX?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "Both are video engines in the same workspace. They produce different motion and style; generating with both lets you compare and pick the clip that fits your project."
+          "text": "Both are video engines in the same workspace, but they produce different motion, camera behavior and style. Running the same brief through both gives you more options before choosing a final take."
       }
     },
     {
@@ -184,6 +184,14 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "text": "Seedance 2.5 generates clips up to 30 seconds in a single shot in the TimrX workspace; the Seedance 2.0 tiers produce up to 15 seconds. Combine several clips in an editor for longer sequences."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Which Seedance tiers are available?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The backend supports Seedance 2.0 Mini, Fast and Quality tiers, plus Seedance 2.5. The right choice depends on draft speed, target resolution, duration and credit budget."
       }
     },
     {
@@ -208,8 +216,9 @@
   <!-- End Google Tag Manager -->
   <script src="js/console-shield.js?v=1"></script>
   <link rel="stylesheet" href="home-shell.css?v=20260821shell">
+  <link rel="stylesheet" href="seedance-palette.css?v=20260830seedance1">
 </head>
-<body class="tool-rich-page">
+<body class="seedance-page tool-rich-page home-shell">
   <!-- Google Tag Manager (noscript) -->
   <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-TH8DB6S5"
     height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
@@ -249,19 +258,66 @@
   </div>
 
   <!-- Hero -->
-  <section class="tool-hero">
+  <section class="tool-hero seedance-hero">
     <div class="container">
-      <h1>Seedance AI video model generator</h1>
-      <p class="tool-subtitle">Generate video with Seedance inside TimrX. Turn a text prompt, still image or reference into an animated clip or transition with natural motion, then save it to My Assets and download MP4 output.</p>
+      <div class="seedance-hero-copy">
+        <div class="seedance-pill">Seedance 2.5 &middot; motion workspace</div>
+        <h1><span>Seedance</span> motion from text, images &amp; refs</h1>
+        <p class="tool-subtitle">Create short motion clips in TimrX with Seedance. Start from a prompt, animate a still frame, blend first and last frames, or use multimodal references, then save the result to My Assets and download MP4 output.</p>
+        <div class="seedance-hero-actions">
+          <a href="/3dprint?panel=video" class="seedance-primary">Open Video Generator</a>
+          <a href="/ai-video-generator" class="seedance-secondary">Compare Engines</a>
+        </div>
+        <div class="seedance-stats" aria-label="Seedance workspace capabilities">
+          <span><strong>30s</strong> max Seedance 2.5 clip</span>
+          <span><strong>4</strong> input workflows</span>
+          <span><strong>MP4</strong> asset export</span>
+        </div>
+      </div>
+      <div class="seedance-stage" aria-label="Seedance video generation preview">
+        <div class="seedance-orbit" aria-hidden="true"></div>
+        <div class="seedance-video-card">
+          <div class="seedance-card-head">
+            <span>Motion Build</span>
+            <strong>Ready</strong>
+          </div>
+          <div class="seedance-shot" aria-hidden="true"></div>
+          <div class="seedance-frame-stack" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <div class="seedance-card-foot">
+            <div class="seedance-timeline" aria-hidden="true"></div>
+            <div class="seedance-chips">
+              <span>Text</span>
+              <span>Image</span>
+              <span>Transition</span>
+              <span>Reference</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- Intro -->
-  <section class="tool-intro">
+  <section class="tool-intro seedance-intro">
     <div class="container">
-      <p>Seedance is an AI video model available in the TimrX workspace. It supports text-to-video, image-to-video, and first-to-last-frame transitions — start from a written prompt, animate a still image, or guide a transition between two images.</p>
-      <p>Seedance is one of several video engines on TimrX, alongside Veo 3. Generating with more than one engine lets you compare motion and style and choose the best clip for your project.</p>
-      <p>Image-to-video is useful when you already have a frame you like — a generated image, a product photo, a piece of concept art — and want to bring it to life as short motion content.</p>
+      <div class="seedance-intro-grid">
+        <div class="seedance-lede-card">
+          <h2>Use Seedance when the image already has a direction.</h2>
+          <p>Seedance fits quick product shots, social clips, transitions, previz and motion tests where you want strong camera movement without leaving the browser.</p>
+        </div>
+        <div class="seedance-copy-stack">
+          <div class="seedance-info-card">
+            <strong>Built into the same TimrX video panel.</strong>
+            <p>Choose Seedance next to the other video engines, generate from text or references, preview the clip, then keep finished outputs with the rest of your assets.</p>
+          </div>
+          <div class="seedance-info-card">
+            <strong>Seedance 2.5 is the premium path.</strong>
+            <p>The live backend supports Seedance 2.5 for longer single-shot clips, plus Seedance 2.0 mini, fast and quality tiers when speed or cost matters more.</p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -272,18 +328,18 @@
       <div class="tool-steps-grid">
         <div class="tool-step">
           <span class="tool-step-num">01</span>
-          <h3>Choose your input</h3>
-          <p>Start from a text prompt, or upload a still image you want to animate into a moving clip.</p>
+          <h3>Pick the source</h3>
+          <p>Start from text, one still image, a first-and-last-frame pair, or a set of image, video and audio references.</p>
         </div>
         <div class="tool-step">
           <span class="tool-step-num">02</span>
-          <h3>Generate with Seedance</h3>
-          <p>Seedance produces a short animated clip with natural motion. Preview it and refine the prompt or source frame to iterate.</p>
+          <h3>Choose the Seedance tier</h3>
+          <p>Use Mini or Fast for quicker drafts, Quality for 1080p Seedance 2.0 output, or Seedance 2.5 for longer premium clips.</p>
         </div>
         <div class="tool-step">
           <span class="tool-step-num">03</span>
-          <h3>Download the clip</h3>
-          <p>Export the result as an MP4, ready for a video editor or direct posting to social platforms.</p>
+          <h3>Save the usable take</h3>
+          <p>Preview the result, iterate on motion and framing, save it to My Assets, then download MP4 output when the shot works.</p>
         </div>
       </div>
     </div>
@@ -295,20 +351,20 @@
       <h2 class="tool-usecases-title">Use Cases</h2>
       <div class="tool-usecases-grid">
         <div class="tool-usecase">
-          <h4>Animate a Still</h4>
-          <p>Turn a generated image or photo into a short moving clip with image-to-video.</p>
+          <h4>Image-to-video</h4>
+          <p>Animate a product render, character frame, generated image or phone shot into controlled movement.</p>
         </div>
         <div class="tool-usecase">
-          <h4>Social Content</h4>
-          <p>Produce short clips for Reels, Shorts and TikTok directly from prompts or images.</p>
+          <h4>First-to-last transitions</h4>
+          <p>Guide a move between two frames when you need a clearer start and end point than text alone.</p>
         </div>
         <div class="tool-usecase">
-          <h4>Concept Motion</h4>
-          <p>Add movement to concept art and storyboards to preview how a scene plays out.</p>
+          <h4>Reference-led shots</h4>
+          <p>Blend visual, video or audio references to keep style and pacing closer to a known direction.</p>
         </div>
         <div class="tool-usecase">
-          <h4>Product Showcases</h4>
-          <p>Animate product photos into short motion shots for ads and landing pages.</p>
+          <h4>Campaign clips</h4>
+          <p>Create short scenes for ads, landing pages and social posts, then compare the take against Veo outputs.</p>
         </div>
       </div>
     </div>
@@ -321,11 +377,11 @@
       <div class="tool-faq-list">
         <details>
           <summary>What is the Seedance video generator?</summary>
-          <p>It is the Seedance video engine available in the TimrX workspace. It generates short video clips from text prompts or from still images you upload.</p>
+          <p>It is the Seedance video engine inside the TimrX workspace. It generates short MP4 video clips from text prompts, still images, frame pairs, or reference media depending on the selected mode.</p>
         </details>
         <details>
           <summary>Does Seedance support image-to-video?</summary>
-          <p>Yes. Seedance can animate a still image into a moving clip, as well as generate video from a text prompt.</p>
+          <p>Yes. Seedance can animate a still image into a moving clip, generate from text, create first-to-last-frame transitions and use reference-led generation modes.</p>
         </details>
         <details>
           <summary>How do I generate a video with Seedance?</summary>
@@ -333,7 +389,7 @@
         </details>
         <details>
           <summary>What is the difference between Seedance and Veo 3.1 on TimrX?</summary>
-          <p>Both are video engines in the same workspace. They produce different motion and style; generating with both lets you compare and pick the clip that fits your project.</p>
+          <p>Both are video engines in the same workspace, but they produce different motion, camera behavior and style. Running the same brief through both gives you more options before choosing a final take.</p>
         </details>
         <details>
           <summary>What format does the clip download as?</summary>
@@ -342,6 +398,10 @@
         <details>
           <summary>How long are Seedance clips?</summary>
           <p>Seedance 2.5 generates clips up to 30 seconds in a single shot in the TimrX workspace; the Seedance 2.0 tiers produce up to 15 seconds. Combine several clips in an editor for longer sequences.</p>
+        </details>
+        <details>
+          <summary>Which Seedance tiers are available?</summary>
+          <p>The backend supports Seedance 2.0 Mini, Fast and Quality tiers, plus Seedance 2.5. The right choice depends on draft speed, target resolution, duration and credit budget.</p>
         </details>
         <details>
           <summary>Does Seedance generation cost credits?</summary>
@@ -373,15 +433,15 @@
         </a>
         <a href="/veo-3-video-generator" class="tool-link-card">
           <h4>Veo 3.1 Video Generator</h4>
-          <p>Generate video with the Veo engine.</p>
+          <p>Generate cinematic clips with Veo and compare the result with Seedance takes.</p>
         </a>
         <a href="/ai-image-generator" class="tool-link-card">
           <h4>AI Image Generator</h4>
-          <p>Generate images and source frames from text.</p>
+          <p>Create source frames, product visuals and concept art to animate with Seedance.</p>
         </a>
         <a href="/ai-3d-generator" class="tool-link-card">
           <h4>AI 3D Model Generator</h4>
-          <p>Turn text or image references into textured 3D models after planning motion.</p>
+          <p>Turn frames or references into textured 3D assets after planning the shot.</p>
         </a>
       </div>
     </div>
@@ -397,12 +457,25 @@
   <script>
   (function(){
     var nav=document.querySelector('.nav'),lastY=0;
+    if(!nav)return;
     window.addEventListener('scroll',function(){
       var y=window.pageYOffset;
       if(document.body.classList.contains('tx-menu-open'))return;
       if(y>60&&y>lastY){nav.style.transform='translateY(-100%)';}else{nav.style.transform='';}
       lastY=y;
     },{passive:true});
+  })();
+  </script>
+  <script>
+  (function(){
+    document.querySelectorAll('.tool-faq-list details').forEach(function(item){
+      item.addEventListener('toggle',function(){
+        if(!item.open)return;
+        document.querySelectorAll('.tool-faq-list details[open]').forEach(function(other){
+          if(other!==item)other.open=false;
+        });
+      });
+    });
   })();
   </script>
   <script type="module" src="js/analytics.js"></script>

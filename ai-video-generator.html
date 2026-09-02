@@ -131,7 +131,7 @@
         "name": "How long can generated videos be?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "Currently, TimrX generates video clips between 3 and 10 seconds in length depending on the model and settings you choose. While this may seem short, these clips are designed for social media, motion graphics, and creative prototyping where short-form content performs best. You can chain multiple clips together in an external editor for longer sequences."
+          "text": "TimrX generates clips up to 30 seconds in a single shot with Seedance 2.5, and shorter clips on the Seedance 2.0 tiers and Veo depending on generation mode, resolution and parameters. You can chain multiple clips together in an editor for longer sequences."
         }
       },
       {
@@ -155,7 +155,7 @@
         "name": "What resolution are the generated videos?",
         "acceptedAnswer": {
           "@type": "Answer",
-          "text": "720p is the cheapest tier in credits and the usual starting point for social and web. 1080p and 4K are available to any account — they simply cost more credits per clip, with no plan required. All videos maintain consistent frame rates and visual clarity regardless of the chosen resolution tier."
+          "text": "Resolution depends on the selected video engine and tier. Seedance supports 480p and 720p across tiers, with 1080p available on the Seedance 2.0 quality tier. Higher resolution and longer duration cost more credits."
         }
       },
       {
@@ -498,7 +498,7 @@
         </details>
         <details class="tool-faq-item">
           <summary>How long can generated videos be?</summary>
-          <p>TimrX generates clips up to 30 seconds in a single shot with Seedance 2.5, and up to 15 seconds on the Seedance 2.0 tiers and Veo, depending on generation mode, resolution, and parameters. Short-form clips are optimized for social media, motion graphics, and rapid creative prototyping. If you need longer content, you can generate multiple clips and stitch them together using any standard video editing tool.</p>
+          <p>TimrX generates clips up to 30 seconds in a single shot with Seedance 2.5, and shorter clips on the Seedance 2.0 tiers and Veo depending on generation mode, resolution and parameters. Short-form clips are optimized for social media, motion graphics and rapid creative prototyping. If you need longer content, generate multiple clips and stitch them together using any standard editor.</p>
         </details>
         <details class="tool-faq-item">
           <summary>How is TimrX different from Runway?</summary>
@@ -510,7 +510,7 @@
         </details>
         <details class="tool-faq-item">
           <summary>What resolution are the generated videos?</summary>
-          <p>720p is the cheapest tier in credits and suits most social and web use. 1080p and 4K are open to every account and simply cost more credits per clip — there is no plan gate on resolution. All generated videos maintain smooth frame rates and visual consistency, ensuring that the quality meets the expectations of modern content platforms regardless of which resolution tier you use.</p>
+          <p>Resolution depends on the selected video engine and tier. Seedance supports 480p and 720p across tiers, with 1080p available on the Seedance 2.0 quality tier. Higher resolution and longer duration cost more credits, so the workspace keeps those choices visible before you generate.</p>
         </details>
         <details class="tool-faq-item">
           <summary>Can I convert AI videos into 3D animations?</summary>
@@ -536,6 +536,14 @@
     <div class="container">
       <h2 class="tool-related-title">Related Tools</h2>
       <div class="tool-related-grid">
+        <a href="/seedance-video-generator" class="tool-link-card">
+          <h4>Seedance Video Generator</h4>
+          <p>Create Seedance 2.5 clips, Seedance 2.0 drafts, image animation and frame transitions.</p>
+        </a>
+        <a href="/veo-3-video-generator" class="tool-link-card">
+          <h4>Veo 3.1 Video Generator</h4>
+          <p>Generate cinematic clips with Veo and compare motion against Seedance takes.</p>
+        </a>
         <a href="/ai-image-generator" class="tool-link-card">
           <h4>AI Image Generator</h4>
           <p>Create images from text prompts for use as video input.</p>
@@ -543,10 +551,6 @@
         <a href="/ai-3d-generator" class="tool-link-card">
           <h4>AI 3D Generator</h4>
           <p>Generate 3D models from text or images.</p>
-        </a>
-        <a href="/text-to-3d" class="tool-link-card">
-          <h4>Text to 3D</h4>
-          <p>Turn text descriptions into 3D models.</p>
         </a>
       </div>
     </div>
@@ -559,7 +563,7 @@
       <div class="tool-cross-links-grid">
         <a href="/seedance-video-generator" class="tool-cross-link">
           <h3>Seedance Video Generator</h3>
-          <p>Generate Seedance text-to-video, image-to-video and transition clips.</p>
+          <p>Generate Seedance 2.5 and Seedance 2.0 text, image, transition and reference-led clips.</p>
         </a>
         <a href="/veo-3-video-generator" class="tool-cross-link">
           <h3>Veo 3.1 Video Generator</h3>
@@ -621,6 +625,7 @@
   <script>
   (function(){
     var nav=document.querySelector('.nav'),lastY=0;
+    if(!nav)return;
     window.addEventListener('scroll',function(){
       var y=window.pageYOffset;
       if(document.body.classList.contains('tx-menu-open'))return;

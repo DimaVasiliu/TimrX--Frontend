@@ -381,6 +381,7 @@
   <script>
   (function(){
     var nav=document.querySelector('.nav'),lastY=0;
+    if(!nav)return;
     window.addEventListener('scroll',function(){
       var y=window.pageYOffset;
       if(document.body.classList.contains('tx-menu-open'))return;
