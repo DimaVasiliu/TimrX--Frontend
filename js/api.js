@@ -17,7 +17,7 @@ import {
 } from './config.js';
 import * as State from './state.js?v=20260827g';
 import * as Viewer from './viewer.js?v=20260827g';
-import * as UI from './ui-utils.js';
+import * as UI from './ui-utils.js?v=20261025b';
 import { renderHistory, updateJobStatusInPlace, shortTitle } from './history.js?v=20260827g';
 
 // ============================================================================
@@ -185,6 +185,8 @@ function modelUrlFromHistoryItem(item = {}) {
 
 function showUserNotice(message, tone = 'error', duration = 7000) {
   const text = message || 'Something went wrong';
+  // prog.fail() now toasts; don't show the same failure twice.
+  if (tone === 'error' && UI?.wasJustAnnounced?.(text)) return;
   if (UI?.toast) {
     UI.toast(text, tone, duration);
   } else if (window.showToast) {

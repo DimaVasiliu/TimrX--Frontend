@@ -8,7 +8,7 @@ import { byId, safe, log, onThreeReady, normalizeEpochMs, apiFetch, getLoadableM
 import { buildDownloadFilename, buildProxyDownloadUrl, inferExtensionFromUrl, triggerBrowserDownload } from './download-utils.js';
 import * as State from './state.js?v=20260827g';
 import * as Viewer from './viewer.js?v=20260827g';
-import * as UI from './ui-utils.js';
+import * as UI from './ui-utils.js?v=20261025b';
 
 // 20+ call sites across api.js / 3dprint-app.js / multi-color-print.js guard on
 // window.showToast — it was never assigned anywhere, so every toast silently
@@ -29,7 +29,7 @@ import {
   syncAssetsToolbarFilters,
   getHistoryMenuLayer
 } from './history.js?v=20260827g';
-import * as API from './api.js?v=20260827g';
+import * as API from './api.js?v=20261025b';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js?v=20260827g';
 import * as Notifications from './notifications.js?v=20261025a';

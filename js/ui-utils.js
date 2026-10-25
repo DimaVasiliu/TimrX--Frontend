@@ -75,6 +75,23 @@ export function showOutputEmpty() {}
 export function showOutputProgress() {}
 export function setOutputProgress() {}
 
+let _lastFailure = { msg: '', at: 0 };
+
+/** True if `msg` was shown by a progress driver's fail() in the last 5s. */
+export function wasJustAnnounced(msg) {
+  return String(msg).slice(0, 300) === _lastFailure.msg && Date.now() - _lastFailure.at < 5000;
+}
+
+function announceFailure(msg) {
+  const text = String(msg).slice(0, 300);
+  const now = Date.now();
+  // Several watchers can report the same failure for one job.
+  if (text === _lastFailure.msg && now - _lastFailure.at < 5000) return;
+  _lastFailure = { msg: text, at: now };
+  const safe = text.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  toast(safe, 'error', 8000);
+}
+
 /**
  * Create a progress driver for tracking job progress
  * Returns an object with: label, jump, done, fail, clear methods
@@ -88,7 +105,9 @@ export function makeProgressDriver() {
     label: () => {},
     jump: (to) => { pct = Math.max(pct, to); },
     done: () => { clearInterval(id); },
-    fail: () => { clearInterval(id); },
+    // Failures used to be swallowed here: every generation that failed
+    // (provider down, wallet empty, timeout) showed the user nothing.
+    fail: (msg) => { clearInterval(id); if (msg) announceFailure(msg); },
     clear: () => { clearInterval(id); }
   };
 }
