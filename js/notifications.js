@@ -82,8 +82,23 @@ export function initNotifications() {
 // POLLING
 // ============================================================================
 
+let visibilityHooked = false;
+
 function startPolling() {
-  if (pollTimer) return;
+  // Background tabs don't poll: an idle tab left open overnight was hitting
+  // the DB every 30s. Refresh once on return, then resume the interval.
+  if (!visibilityHooked) {
+    visibilityHooked = true;
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) {
+        stopPolling();
+      } else {
+        fetchUnreadCount().catch(() => {});
+        startPolling();
+      }
+    });
+  }
+  if (pollTimer || document.hidden) return;
   pollTimer = setInterval(fetchUnreadCount, POLL_INTERVAL_MS);
 }
 

@@ -32,7 +32,7 @@ import {
 import * as API from './api.js?v=20260827g';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js?v=20260827g';
-import * as Notifications from './notifications.js';
+import * as Notifications from './notifications.js?v=20261025a';
 // Analytics: wraps dataLayer.push for GTM (GA4 + Google Ads). Side-effect import —
 // the module self-primes on load and listens for `timrx:identity:confirmed`.
 import './analytics.js';
