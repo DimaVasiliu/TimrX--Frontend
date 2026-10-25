@@ -406,8 +406,12 @@ if (slider) {
 
   let lastCompactLoad = 0;
   let fullLoadInFlight = null;
+  let activityEpoch = 0;
+  let compactRequest = 0;
+  let fullRequest = 0;
 
   function fmtCredits(value) {
+    if (value === undefined || value === null) return '--';
     const n = Number(value);
     return Number.isFinite(n) ? n.toLocaleString() : '--';
   }
@@ -565,10 +569,14 @@ if (slider) {
   async function loadCompact(force = false) {
     if (!force && Date.now() - lastCompactLoad < 15000) return;
     lastCompactLoad = Date.now();
+    const epoch = activityEpoch;
+    const request = ++compactRequest;
     try {
       const data = await fetchActivity(3);
+      if (epoch !== activityEpoch || request !== compactRequest) return;
       renderCompact(data.items || []);
     } catch (err) {
+      if (epoch !== activityEpoch || request !== compactRequest) return;
       if (String(err.message).includes('UNAUTHORIZED') || String(err.message).includes('401')) {
         renderCompact([], 'Sign in to load');
       } else if (activityList) {
@@ -587,20 +595,32 @@ if (slider) {
 
   async function loadFull(force = false) {
     if (fullLoadInFlight && !force) return fullLoadInFlight;
+    const epoch = activityEpoch;
+    const request = ++fullRequest;
+    // Do not display a previous balance while the current request is pending
+    // or failed. An unavailable balance is different from a zero balance.
+    [availableOut, reservedOut, balanceOut].forEach((out) => {
+      if (out) out.textContent = '--';
+    });
     if (modalList) setEmpty(modalList, 'Loading usage history...');
     fullLoadInFlight = fetchActivity(80)
       .then((data) => {
+        if (epoch !== activityEpoch || request !== fullRequest) return;
         renderModal(data);
         renderCompact(data.items || []);
       })
       .catch((err) => {
+        if (epoch !== activityEpoch || request !== fullRequest) return;
+        [availableOut, reservedOut, balanceOut].forEach((out) => {
+          if (out) out.textContent = '--';
+        });
         const message = String(err.message).includes('UNAUTHORIZED') || String(err.message).includes('401')
           ? 'Sign in to view credit usage history.'
           : 'Usage history is unavailable right now.';
         setEmpty(modalList, message);
       })
       .finally(() => {
-        fullLoadInFlight = null;
+        if (epoch === activityEpoch && request === fullRequest) fullLoadInFlight = null;
       });
     return fullLoadInFlight;
   }
@@ -630,8 +650,20 @@ if (slider) {
   });
 
   window.addEventListener('timrx:wallet', () => loadCompact(true));
-  window.addEventListener('timrx:auth:verified', () => loadCompact(true));
-  window.addEventListener('timrx:auth:switched', () => loadCompact(true));
+  function resetAccountActivity() {
+    activityEpoch++;
+    fullLoadInFlight = null;
+    [availableOut, reservedOut, balanceOut].forEach((out) => {
+      if (out) out.textContent = '--';
+    });
+    renderCompact([], 'Loading...');
+    setEmpty(modalList, 'Loading usage history...');
+    loadCompact(true);
+    if (modal?.classList.contains('open')) loadFull(true);
+  }
+  window.addEventListener('timrx:auth:verified', resetAccountActivity);
+  window.addEventListener('timrx:auth:switched', resetAccountActivity);
+  window.addEventListener('timrx:identity_changed', resetAccountActivity);
   window.setTimeout(() => loadCompact(), 1200);
 })();
 

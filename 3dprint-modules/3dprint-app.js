@@ -10,6 +10,13 @@
    function initTimrxWorkspace() {
     'use strict';
 
+    // This deferred classic script can run before main.js's module graph.
+    // Import the shared helper rather than racing its window.TimrXApi export.
+    async function workspaceApiFetch(path) {
+      const { apiFetch } = await import('../js/config.js');
+      return apiFetch(path);
+    }
+
     /* -------------------------------------------------------------------------
      * QUICK DOM HOOKS
      * ---------------------------------------------------------------------- */
@@ -4490,9 +4497,8 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       initReferenceVideoMode();
 
       async function syncVideoProviderCatalog() {
-        if (!window.TimrXApi?.apiFetch) return;
         try {
-          const result = await window.TimrXApi.apiFetch('/api/video/providers');
+          const result = await workspaceApiFetch('/api/video/providers');
           if (!result?.ok || !result.data) return;
 
           const enabled = new Set(Array.isArray(result.data.enabled_providers) ? result.data.enabled_providers : []);
@@ -6024,10 +6030,10 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       }
 
       async function syncEnabledImageProviders() {
-        if (!imageAIProvider || !window.TimrXApi?.apiFetch) return;
+        if (!imageAIProvider) return;
 
         try {
-          const result = await window.TimrXApi.apiFetch('/api/image/providers');
+          const result = await workspaceApiFetch('/api/image/providers');
           if (!result?.ok) return;
 
           const enabledProviders = Array.isArray(result.data?.enabled_providers)
@@ -7559,7 +7565,7 @@ Example: Use @image1 as the subject and create a smooth product-style camera mov
       if (_animLibraryLoaded) return;
       console.log('[AnimLibrary] Loading animation library...');
       try {
-        const result = await window.TimrXApi.apiFetch('/api/_mod/rig/animations/library');
+        const result = await workspaceApiFetch('/api/_mod/rig/animations/library');
         console.log('[AnimLibrary] Fetch result: ok=' + result.ok + ' items=' + (result.data?.items?.length ?? 0));
         if (result.ok && result.data?.items) {
           _animLibrary = result.data.items;

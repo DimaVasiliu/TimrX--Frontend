@@ -14,11 +14,66 @@ let converterControls = null;
 let converterModel = null;
 let converterAnimationId = null;
 let originalFile = null;
+let threeLoadPromise = null;
 
 // ============================================================================
 // HELPERS
 // ============================================================================
 const getEl = (id) => document.getElementById(id);
+
+async function ensureThreeDependencies() {
+  if (window.THREE?.GLTFLoader && window.THREE?.OBJLoader && window.THREE?.USDZExporter) {
+    return window.THREE;
+  }
+
+  if (!threeLoadPromise) {
+    threeLoadPromise = Promise.all([
+      import('three'),
+      import('three/addons/controls/OrbitControls.js'),
+      import('three/addons/loaders/GLTFLoader.js'),
+      import('three/addons/loaders/OBJLoader.js'),
+      import('three/addons/loaders/STLLoader.js'),
+      import('three/addons/loaders/3MFLoader.js'),
+      import('three/addons/loaders/FBXLoader.js'),
+      import('three/addons/exporters/GLTFExporter.js'),
+      import('three/addons/exporters/OBJExporter.js'),
+      import('three/addons/exporters/STLExporter.js'),
+      import('three/addons/exporters/USDZExporter.js')
+    ]).then(([
+      THREE_NS,
+      { OrbitControls },
+      { GLTFLoader },
+      { OBJLoader },
+      { STLLoader },
+      { ThreeMFLoader },
+      { FBXLoader },
+      { GLTFExporter },
+      { OBJExporter },
+      { STLExporter },
+      { USDZExporter }
+    ]) => {
+      window.THREE = Object.assign({}, THREE_NS, window.THREE, {
+        OrbitControls,
+        GLTFLoader,
+        OBJLoader,
+        STLLoader,
+        ThreeMFLoader,
+        FBXLoader,
+        GLTFExporter,
+        OBJExporter,
+        STLExporter,
+        USDZExporter
+      });
+      window.dispatchEvent(new Event('three-ready'));
+      return window.THREE;
+    }).catch((err) => {
+      threeLoadPromise = null;
+      throw err;
+    });
+  }
+
+  return threeLoadPromise;
+}
 
 function notifyConverter(message, type = 'error') {
   if (window.showToast) {
@@ -483,6 +538,14 @@ async function handleFileUpload(file) {
     if (!proceed) return;
   }
 
+  try {
+    await ensureThreeDependencies();
+  } catch (err) {
+    console.error('Failed to load converter engine:', err);
+    notifyConverter('The converter engine could not load. Please refresh and try again.');
+    return;
+  }
+
   originalFile = file;
 
   // Update UI
@@ -773,6 +836,14 @@ async function exportModel(format) {
   }
   if (!converterModel) {
     notifyConverter('Please upload a model first');
+    return;
+  }
+
+  try {
+    await ensureThreeDependencies();
+  } catch (err) {
+    console.error('Failed to load converter engine:', err);
+    notifyConverter('The converter engine could not load. Please refresh and try again.');
     return;
   }
 

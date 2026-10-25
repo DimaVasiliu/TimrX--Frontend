@@ -1,0 +1,38 @@
+name: Frontend regression checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: JavaScript syntax
+        run: |
+          node --check hub.js
+          node --check js/converter.js
+          node --check 3dprint-modules/3dprint-app.js
+      - name: Cloudflare Pages header limits
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          headers = Path("_headers").read_text().splitlines()
+          oversized = [i for i, line in enumerate(headers, 1) if len(line) > 2000]
+          assert not oversized, f"Cloudflare Pages header lines exceed 2,000 characters: {oversized}"
+          assert any("Content-Security-Policy:" in line for line in headers)
+          PY
+      - name: Billing history behavior
+        run: node --test tests/billing-history.test.mjs
