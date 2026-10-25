@@ -29,7 +29,7 @@ import {
   syncAssetsToolbarFilters,
   getHistoryMenuLayer
 } from './history.js?v=20260827g';
-import * as API from './api.js?v=20261025b';
+import * as API from './api.js?v=20261025c';
 import * as Converter from './converter.js';
 import * as Credits from './workspace-credits.js?v=20260827g';
 import * as Notifications from './notifications.js?v=20261025a';

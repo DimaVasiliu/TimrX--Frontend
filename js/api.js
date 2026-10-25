@@ -714,7 +714,21 @@ function checkCreditsFor(action, count = 1) {
  * @param {number} count - Batch count (default 1)
  * @returns {Promise<boolean>}
  */
-function confirmCostBeforeAction(action, count = 1) {
+// Jobs at or above this cost ask before spending; cheaper ones stay one-click.
+const CONFIRM_MIN_CREDITS = 10;
+const LARGE_JOB_CREDITS = 100;
+const ACTION_LABELS = {
+  'text-to-3d': 'Text to 3D', 'image-to-3d': 'Image to 3D', 'refine': 'Refine texture',
+  'retexture': 'Retexture', 'remesh': 'Remesh', 'rig': 'Auto-rig', 'animate': 'Animation',
+  'video': 'Video', 'convert': 'Convert',
+};
+function actionLabelFor(action) {
+  if (ACTION_LABELS[action]) return ACTION_LABELS[action];
+  const s = String(action || '').replace(/^creative-lab-/, '').replace(/-/g, ' ');
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+function confirmCostBeforeAction(action, count = 1, opts = {}) {
   // If credits system isn't loaded or balance not confirmed, skip confirmation
   // (checkCreditsFor or the server will catch the real issue)
   if (!window.WorkspaceCredits?.isBalanceConfirmed?.()) {
@@ -722,11 +736,13 @@ function confirmCostBeforeAction(action, count = 1) {
   }
 
   const costPer = window.WorkspaceCredits.getActionCost(action) || 0;
-  const totalCost = costPer * count;
+  const totalCost = Number.isFinite(opts.cost) ? opts.cost : costPer * count;
   const balance = window.WorkspaceCredits.getAvailableCredits() || 0;
   const balanceAfter = Math.max(0, balance - totalCost);
 
-  if (totalCost === 0) return Promise.resolve(true);
+  if (totalCost < CONFIRM_MIN_CREDITS) return Promise.resolve(true);
+  const isLarge = totalCost >= LARGE_JOB_CREDITS;
+  const detail = opts.detail ? String(opts.detail) : '';
 
   // Inject styles once
   if (!document.getElementById('costConfirmStyles')) {
@@ -747,6 +763,7 @@ function confirmCostBeforeAction(action, count = 1) {
       @keyframes ccFadeIn { from { opacity: 0; } to { opacity: 1; } }
 
       .cost-confirm-card {
+        font-family: var(--font-ui, Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif);
         width: min(380px, 88vw);
         background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(0,0,0,0)), #111;
         border: 1px solid rgba(255,255,255,.12);
@@ -769,8 +786,13 @@ function confirmCostBeforeAction(action, count = 1) {
       }
       .cost-confirm-card .cc-action {
         font-size: 15px; font-weight: 600; color: #e2e8f0;
-        margin: 0 0 16px;
-        text-transform: capitalize;
+        margin: 0 0 6px;
+      }
+      .cost-confirm-card .cc-detail {
+        font-size: 12px; color: #94a3b8; margin: 0 0 16px;
+      }
+      .cost-confirm-card .cc-large {
+        font-size: 12px; color: #fbbf24; margin: -6px 0 14px;
       }
       .cost-confirm-card .cc-breakdown {
         display: flex; flex-direction: column; gap: 0;
@@ -834,13 +856,16 @@ function confirmCostBeforeAction(action, count = 1) {
     // Remove any existing
     document.querySelector('.cost-confirm-overlay')?.remove();
 
-    const actionLabel = action.replace(/-/g, ' ');
+    const esc = (t) => String(t).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    const actionLabel = esc(opts.label || actionLabelFor(action));
     const overlay = document.createElement('div');
     overlay.className = 'cost-confirm-overlay';
     overlay.innerHTML = `
       <div class="cost-confirm-card">
         <div class="cc-icon"><i class="fa-solid fa-coins"></i></div>
         <p class="cc-action">${count > 1 ? count + '× ' : ''}${actionLabel}</p>
+        <p class="cc-detail">${esc(detail)}</p>
+        ${isLarge ? '<p class="cc-large">Large job — please check the settings before confirming.</p>' : ''}
         <div class="cc-breakdown">
           <div class="cc-row"><span>Cost</span><span>${totalCost} credits</span></div>
           <div class="cc-row"><span>Current balance</span><span>${balance.toLocaleString()}</span></div>
@@ -3810,6 +3835,7 @@ async function beginMeshyTask(kind, payload, meta = {}) {
   if (!checkCreditsFor(creditAction)) {
     return;
   }
+  if (!(await confirmCostBeforeAction(creditAction))) return;
 
   const endpoint = MESH_TASK_ENDPOINTS[kind] || MESH_TASK_ENDPOINTS.remesh;
   const statusLabel = creditAction === 'convert' && kind === 'remesh'
@@ -5952,6 +5978,16 @@ export async function startVideoGeneration() {
     return;
   }
 
+  const videoDetail = [
+    settings.durationSec ? `${settings.durationSec}s` : '',
+    settings.resolution || '',
+    settings.provider === 'seedance' ? 'Fast / Quality engine' : 'Cinematic engine',
+  ].filter(Boolean).join(' · ');
+  if (!(await confirmCostBeforeAction('video', 1, { cost: totalCredits, detail: videoDetail }))) {
+    releaseSubmitLock();
+    return;
+  }
+
   const prog = UI.makeProgressDriver();
 
   // Reserve the EXACT computed credits (not multiplied by action cost)
@@ -6591,6 +6627,7 @@ async function startImageTo3DFromUpload() {
   if (!checkCreditsFor('image-to-3d')) {
     return;
   }
+  if (!(await confirmCostBeforeAction('image-to-3d'))) return;
 
   startLock = true;
   const allGenBtns = document.querySelectorAll('button[id*="generate"]');
@@ -6714,6 +6751,7 @@ export async function startImageTo3DFromHistory(item) {
   if (!checkCreditsFor('image-to-3d')) {
     return;
   }
+  if (!(await confirmCostBeforeAction('image-to-3d'))) return;
 
   const prompt = item.prompt || item.title || 'Image to 3D';
   const negativePrompt = getNegativePromptValue('image3dNegativePrompt');
@@ -6867,6 +6905,7 @@ export async function startRefineFromHistory(item, origin = 'history') {
   console.log('[Refine] Starting with previewTaskId:', previewTaskId, 'stage:', stage, 'origin:', origin);
 
   if (!checkCreditsFor('refine')) return;
+  if (!(await confirmCostBeforeAction('refine'))) return;
 
   postProcessLock = true;
   const prog = UI.makeProgressDriver();
@@ -7178,6 +7217,7 @@ async function startMultiImageTo3D() {
   }
 
   if (!checkCreditsFor('image-to-3d')) return;
+  if (!(await confirmCostBeforeAction('image-to-3d'))) return;
 
   startLock = true;
   const allGenBtns = document.querySelectorAll('button[id*="generate"]');
@@ -7449,6 +7489,7 @@ export async function startRigFromPanel() {
   }
 
   if (!checkCreditsFor('rig')) { startLock = false; return; }
+  if (!(await confirmCostBeforeAction('rig'))) { startLock = false; return; }
 
   const heightVal = parseFloat(byId('rigHeight')?.value) || 1.7;
   const height_meters = Math.max(0.1, Math.min(5.0, heightVal));
@@ -7618,6 +7659,7 @@ export async function startViewerRigFromHistory(item, options = {}) {
   }
 
   if (!checkCreditsFor('rig')) { startLock = false; return; }
+  if (!(await confirmCostBeforeAction('rig'))) { startLock = false; return; }
 
   const heightVal = parseFloat(options.height_meters || '1.7');
   const height_meters = Math.max(0.1, Math.min(5.0, Number.isFinite(heightVal) ? heightVal : 1.7));
@@ -8141,6 +8183,7 @@ export async function startAnimationFromPanel(riggingTaskId, actionId, postProce
   }
 
   if (!checkCreditsFor('animate')) { startLock = false; return; }
+  if (!(await confirmCostBeforeAction('animate'))) { startLock = false; return; }
 
   // Build title BEFORE payload
   const animState = window._timrxAnimState || {};
@@ -8584,6 +8627,9 @@ export async function startCreativeLabPrototype(product, { image_url, name = '',
   if (!checkCreditsFor(`creative-lab-${product}-prototype`)) {
     throw new Error('Not enough credits for this prototype.');
   }
+  if (!(await confirmCostBeforeAction(`creative-lab-${product}-prototype`))) {
+    throw new Error('Cancelled.');
+  }
 
   const idempotencyKey = State.generateIdempotencyKey();
   const started = await apiFetch(`/api/_mod/creative-lab/${encodeURIComponent(product)}/prototype`, {
@@ -8614,6 +8660,9 @@ export async function startCreativeLabBuild(product, { input_task_id, name = '',
   if (!input_task_id) throw new Error('Run the prototype step first.');
   if (!checkCreditsFor(`creative-lab-${product}-build`)) {
     throw new Error('Not enough credits for this build.');
+  }
+  if (!(await confirmCostBeforeAction(`creative-lab-${product}-build`))) {
+    throw new Error('Cancelled.');
   }
 
   const label = name || `${product.replace(/-/g, ' ')}`;
@@ -8954,6 +9003,7 @@ export async function evolveFromHistory(item, count = 2) {
   }
 
   if (!checkCreditsFor('text-to-3d', count)) return;
+  if (!(await confirmCostBeforeAction('text-to-3d', count))) return;
 
   const model = item.model || 'latest';
   const license = item.license || 'private';
